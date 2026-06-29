@@ -1,0 +1,16 @@
+memories:
+  - name: code-memory
+    engine: codebase-memory
+    retrieval_index: codegraph
+    requires:
+      - codegraph-command
+      - codegraph-index
+
+  - name: knowledge-memory
+    engine: graphify
+
+  - name: enterprise-memory
+    engine: azure-rag
+
+  - name: domain-memory
+    source: repo-registry

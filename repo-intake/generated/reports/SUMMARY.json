@@ -1,0 +1,47 @@
+{
+  "timestamp": "2026-06-29T17:20:14.681784+00:00",
+  "schema_version": "2.0",
+  "repos_count": 5,
+  "repos": [
+    {
+      "name": "boost_dba",
+      "slug": "boost_dba",
+      "domain": "dba",
+      "agent": "dba-agent",
+      "engine": "Graphify",
+      "version": "1.0.0"
+    },
+    {
+      "name": "boost_azure_rag",
+      "slug": "boost_azure_rag",
+      "domain": "azure-rag",
+      "agent": "azure-rag-agent",
+      "engine": "Azure RAG Builder",
+      "version": "1.0.0"
+    },
+    {
+      "name": "boost_azure_iot_edge",
+      "slug": "boost_azure_iot_edge",
+      "domain": "iot",
+      "agent": "iot-agent",
+      "engine": "GitNexus/CodeGraph + Graphify",
+      "version": "1.0.0"
+    },
+    {
+      "name": "boost_dev_core",
+      "slug": "boost_dev_core",
+      "domain": "dev",
+      "agent": "dev-agent",
+      "engine": "CodeGraph",
+      "version": "1.0.0"
+    },
+    {
+      "name": "boost_backend",
+      "slug": "boost_backend",
+      "domain": "dev",
+      "agent": "dev-agent",
+      "engine": "CodeGraph",
+      "version": "1.0.0"
+    }
+  ]
+}

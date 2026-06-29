@@ -1,0 +1,25 @@
+{
+  "repo": "boost_dev_core",
+  "slug": "boost_dev_core",
+  "version": "1.0.0",
+  "schema_version": "2.0",
+  "domain": "dev",
+  "location": "../sertxIA",
+  "type": "local",
+  "agent": "dev-agent",
+  "skill": "dev-coding",
+  "engine": "CodeGraph",
+  "engines": {
+    "knowledge": "codegraph",
+    "execution": "none",
+    "snapshot": "repomix"
+  },
+  "dependencies": [],
+  "approval": {
+    "status": "approved",
+    "approved_by": "platform-team",
+    "approved_date": "2026-06-29",
+    "review_ticket": "PLATFORM-1004"
+  },
+  "generated_at": "2026-06-29T17:20:14.716585+00:00"
+}

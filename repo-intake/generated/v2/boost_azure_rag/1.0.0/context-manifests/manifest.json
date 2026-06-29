@@ -1,0 +1,30 @@
+{
+  "repo": "boost_azure_rag",
+  "slug": "boost_azure_rag",
+  "version": "1.0.0",
+  "schema_version": "2.0",
+  "domain": "azure-rag",
+  "location": "../boost_RAG-Azure-Builder",
+  "type": "local",
+  "agent": "azure-rag-agent",
+  "skill": "azure-rag-enterprise",
+  "engine": "Azure RAG Builder",
+  "engines": {
+    "knowledge": "azure-rag-builder",
+    "execution": "none",
+    "snapshot": "repomix"
+  },
+  "dependencies": [
+    {
+      "ref": "boost_dba",
+      "version": ">=1.0.0"
+    }
+  ],
+  "approval": {
+    "status": "approved",
+    "approved_by": "platform-team",
+    "approved_date": "2026-06-29",
+    "review_ticket": "PLATFORM-1002"
+  },
+  "generated_at": "2026-06-29T17:20:14.697101+00:00"
+}

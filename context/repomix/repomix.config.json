@@ -1,0 +1,20 @@
+{
+  "output": {
+    "style": "xml",
+    "filePath": "context/repomix/repomix-output.xml",
+    "removeComments": false,
+    "removeEmptyLines": true,
+    "showLineNumbers": true
+  },
+  "ignore": {
+    "customPatterns": [
+      "node_modules/**",
+      "dist/**",
+      "build/**",
+      ".git/**",
+      ".env",
+      ".env.*",
+      "**/*.log"
+    ]
+  }
+}

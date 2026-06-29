@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-06-29T17:21:38.563912+00:00",
+  "root": "C:/repo",
+  "prefix": "boost_",
+  "registry": "C:/repo/mcp-first-enterprise-full/repo-registry/repos.yml",
+  "existing_count": 5,
+  "candidates_count": 0,
+  "skipped_count": 4,
+  "candidates": [],
+  "skipped": [
+    {
+      "folder": "boost_azure-iot-edge",
+      "reason": "already_registered_name"
+    },
+    {
+      "folder": "boost_backend",
+      "reason": "already_registered_name"
+    },
+    {
+      "folder": "boost_DBA",
+      "reason": "already_registered_name"
+    },
+    {
+      "folder": "boost_RAG-Azure-Builder",
+      "reason": "already_registered_location"
+    }
+  ],
+  "apply_mode": false
+}

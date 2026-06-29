@@ -1,0 +1,115 @@
+{
+  "schema_version": "2.0",
+  "governance": {
+    "owner": "platform-team",
+    "approval_required": true,
+    "repo_name_prefix": "boost_"
+  },
+  "repos": [
+    {
+      "name": "boost_dba",
+      "domain": "dba",
+      "version": "1.0.0",
+      "location": "../boost_DBA",
+      "type": "local",
+      "dependencies": [],
+      "approval": {
+        "status": "approved",
+        "approved_by": "platform-team",
+        "approved_date": "2026-06-29",
+        "review_ticket": "PLATFORM-1001"
+      },
+      "engines": {
+        "knowledge": "graphify",
+        "execution": "none",
+        "snapshot": "repomix"
+      }
+    },
+    {
+      "name": "boost_azure_rag",
+      "domain": "azure-rag",
+      "version": "1.0.0",
+      "location": "../boost_RAG-Azure-Builder",
+      "type": "local",
+      "dependencies": [
+        {
+          "ref": "boost_dba",
+          "version": ">=1.0.0"
+        }
+      ],
+      "approval": {
+        "status": "approved",
+        "approved_by": "platform-team",
+        "approved_date": "2026-06-29",
+        "review_ticket": "PLATFORM-1002"
+      },
+      "engines": {
+        "knowledge": "azure-rag-builder",
+        "execution": "none",
+        "snapshot": "repomix"
+      }
+    },
+    {
+      "name": "boost_azure_iot_edge",
+      "domain": "iot",
+      "version": "1.0.0",
+      "location": "../boost_azure-iot-edge",
+      "type": "local",
+      "dependencies": [
+        {
+          "ref": "boost_dba",
+          "version": ">=1.0.0"
+        }
+      ],
+      "approval": {
+        "status": "approved",
+        "approved_by": "platform-team",
+        "approved_date": "2026-06-29",
+        "review_ticket": "PLATFORM-1005"
+      },
+      "engines": {
+        "knowledge": "graphify",
+        "execution": "gitnexus",
+        "snapshot": "repomix"
+      }
+    },
+    {
+      "name": "boost_dev_core",
+      "domain": "dev",
+      "version": "1.0.0",
+      "location": "../sertxIA",
+      "type": "local",
+      "dependencies": [],
+      "approval": {
+        "status": "approved",
+        "approved_by": "platform-team",
+        "approved_date": "2026-06-29",
+        "review_ticket": "PLATFORM-1004"
+      },
+      "engines": {
+        "knowledge": "codegraph",
+        "execution": "none",
+        "snapshot": "repomix"
+      }
+    },
+    {
+      "name": "boost_backend",
+      "domain": "dev",
+      "version": "1.0.0",
+      "location": "../boost_backend",
+      "type": "local",
+      "dependencies": [],
+      "approval": {
+        "status": "approved",
+        "approved_by": "platform-team",
+        "approved_date": "2026-06-29",
+        "review_ticket": "PLATFORM-1006"
+      },
+      "engines": {
+        "knowledge": "codegraph",
+        "execution": "none",
+        "snapshot": "repomix"
+      }
+    }
+  ]
+}

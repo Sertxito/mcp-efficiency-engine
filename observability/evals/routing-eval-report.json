@@ -1,0 +1,28 @@
+{
+  "timestamp": "2026-06-29T17:20:18.573407+00:00",
+  "cases_total": 4,
+  "cases_passed": 4,
+  "cases_failed": 0,
+  "results": [
+    {
+      "id": "case-login-bug",
+      "ok": true,
+      "output": "{\n  \"timestamp\": \"2026-06-29T17:20:17.132876+00:00\",\n  \"input\": \"Arregla bug de login\",\n  \"intent\": \"bug-fix\",\n  \"source_type\": \"code\",\n  \"agent\": \"dev-agent\",\n  \"engine\": \"CodeGraph\",\n  \"optimization_profile\": \"strict+full\",\n  \"fallback\": false,\n  \"grounded\": true,\n  \"sources\": [\n    \"repo:boost_backend\"\n  ],\n  \"notes\": \"selected_by=capability\",\n  \"optimization\": {\n    \"token_saver\": \"always_on\",\n    \"token_saver_profile\": \"strict\",\n    \"caveman\": \"always_on\",\n    \"caveman_profile\": \"full\",\n    \"sources_preserved\": true,\n    \"context_reduction_strategy\": \"symbol\"\n  },\n  \"memory\": {\n    \"selected\": [\n      \"repo-memory\",\n      \"routing-memory\"\n    ],\n    \"reason\": \"capability-aware routing\"\n  },\n  \"learning\": {\n    \"used_pattern\": \"dev+bug-fix\",\n    \"success\": true,\n    \"fallback\": false,\n    \"confidence\": 0.9\n  }\n}\nEvent appended to: C:\\repo\\mcp-first-enterprise-full\\observability\\logs\\routing-decisions.jsonl\n"
+    },
+    {
+      "id": "case-sla-grounding",
+      "ok": true,
+      "output": "{\n  \"timestamp\": \"2026-06-29T17:20:17.662829+00:00\",\n  \"input\": \"Necesito fuentes SLA reales\",\n  \"intent\": \"knowledge-grounded\",\n  \"source_type\": \"corporate-docs\",\n  \"agent\": \"azure-rag-agent\",\n  \"engine\": \"Azure RAG Builder\",\n  \"optimization_profile\": \"evidence-first+evidence-first\",\n  \"fallback\": false,\n  \"grounded\": true,\n  \"sources\": [\n    \"repo:boost_azure_rag\"\n  ],\n  \"notes\": \"selected_by=capability\",\n  \"optimization\": {\n    \"token_saver\": \"always_on\",\n    \"token_saver_profile\": \"evidence-first\",\n    \"caveman\": \"always_on\",\n    \"caveman_profile\": \"evidence-first\",\n    \"sources_preserved\": true,\n    \"context_reduction_strategy\": \"chunk\"\n  },\n  \"memory\": {\n    \"selected\": [\n      \"repo-memory\",\n      \"routing-memory\"\n    ],\n    \"reason\": \"capability-aware routing\"\n  },\n  \"learning\": {\n    \"used_pattern\": \"azure-rag+knowledge-grounded\",\n    \"success\": true,\n    \"fallback\": false,\n    \"confidence\": 0.9\n  }\n}\nEvent appended to: C:\\repo\\mcp-first-enterprise-full\\observability\\logs\\routing-decisions.jsonl\n"
+    },
+    {
+      "id": "case-dba-analysis",
+      "ok": true,
+      "output": "{\n  \"timestamp\": \"2026-06-29T17:20:18.105683+00:00\",\n  \"input\": \"Analiza schema SQL\",\n  \"intent\": \"analysis\",\n  \"source_type\": \"technical-docs\",\n  \"agent\": \"dba-agent\",\n  \"engine\": \"Graphify\",\n  \"optimization_profile\": \"balanced+lite\",\n  \"fallback\": false,\n  \"grounded\": true,\n  \"sources\": [\n    \"repo:boost_dba\"\n  ],\n  \"notes\": \"selected_by=capability\",\n  \"optimization\": {\n    \"token_saver\": \"always_on\",\n    \"token_saver_profile\": \"balanced\",\n    \"caveman\": \"always_on\",\n    \"caveman_profile\": \"lite\",\n    \"sources_preserved\": true,\n    \"context_reduction_strategy\": \"manifest\"\n  },\n  \"memory\": {\n    \"selected\": [\n      \"repo-memory\",\n      \"routing-memory\"\n    ],\n    \"reason\": \"capability-aware routing\"\n  },\n  \"learning\": {\n    \"used_pattern\": \"dba+analysis\",\n    \"success\": true,\n    \"fallback\": false,\n    \"confidence\": 0.9\n  }\n}\nEvent appended to: C:\\repo\\mcp-first-enterprise-full\\observability\\logs\\routing-decisions.jsonl\n"
+    },
+    {
+      "id": "case-legacy-migration",
+      "ok": true,
+      "output": "{\n  \"timestamp\": \"2026-06-29T17:20:18.559700+00:00\",\n  \"input\": \"Plan de migracion legacy\",\n  \"intent\": \"migration\",\n  \"source_type\": \"code\",\n  \"agent\": \"legacy-agent\",\n  \"engine\": \"GitNexus\",\n  \"optimization_profile\": \"strict+full\",\n  \"fallback\": true,\n  \"grounded\": true,\n  \"sources\": [],\n  \"notes\": \"selected_by=domain_default\",\n  \"optimization\": {\n    \"token_saver\": \"always_on\",\n    \"token_saver_profile\": \"strict\",\n    \"caveman\": \"always_on\",\n    \"caveman_profile\": \"full\",\n    \"sources_preserved\": true,\n    \"context_reduction_strategy\": \"symbol\"\n  },\n  \"memory\": {\n    \"selected\": [\n      \"repo-memory\",\n      \"routing-memory\"\n    ],\n    \"reason\": \"capability-aware routing\"\n  },\n  \"learning\": {\n    \"used_pattern\": \"legacy+migration\",\n    \"success\": true,\n    \"fallback\": true,\n    \"confidence\": 0.7\n  }\n}\nEvent appended to: C:\\repo\\mcp-first-enterprise-full\\observability\\logs\\routing-decisions.jsonl\n"
+    }
+  ]
+}

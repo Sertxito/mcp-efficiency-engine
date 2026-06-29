@@ -1,0 +1,1845 @@
+{
+  "nodes": [
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_azure_rag_mcp_adapter_py",
+      "label": "azure-rag-mcp-adapter.py",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\azure-rag-mcp-adapter.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_build_graphify_ps1",
+      "label": "build-graphify.ps1",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\build-graphify.ps1",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_build_repomix_ps1",
+      "label": "build-repomix.ps1",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\build-repomix.ps1",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py",
+      "label": "discover-boost-repos.py",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_utc_now",
+      "label": "utc_now()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L11",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_load_registry",
+      "label": "load_registry()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L15",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_slug_name",
+      "label": "slug_name()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L22",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_infer_domain",
+      "label": "infer_domain()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L31",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_default_engines",
+      "label": "default_engines()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L44",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_build_candidate",
+      "label": "build_candidate()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L56",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L77",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_py",
+      "label": "repo-intake.py",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_parse_simple_yml",
+      "label": "parse_simple_yml()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L12",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_load_registry",
+      "label": "load_registry()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L32",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_slug",
+      "label": "slug()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L42",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_utc_now",
+      "label": "utc_now()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L46",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_ensure_dirs",
+      "label": "ensure_dirs()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L50",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L54",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py",
+      "label": "resolve-routing.py",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_utc_now",
+      "label": "utc_now()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L15",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_parse_simple_yml",
+      "label": "parse_simple_yml()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L19",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_load_registry",
+      "label": "load_registry()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L39",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_load_capability_index",
+      "label": "load_capability_index()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L50",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_load_manifest_index",
+      "label": "load_manifest_index()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L60",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_domain_defaults",
+      "label": "domain_defaults()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L73",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_is_repo_approved",
+      "label": "is_repo_approved()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L84",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_pick_route",
+      "label": "pick_route()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L91",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_profile_for_source",
+      "label": "profile_for_source()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L164",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_memory_selection_for_source",
+      "label": "memory_selection_for_source()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L174",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_runtime_requirements_for_source",
+      "label": "runtime_requirements_for_source()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L184",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_append_jsonl",
+      "label": "append_jsonl()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L195",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L201",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_run_repo_intake_ps1",
+      "label": "run-repo-intake.ps1",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-repo-intake.ps1",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_py",
+      "label": "run-routing-evals.py",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_utc_now",
+      "label": "utc_now()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L12",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_load_cases",
+      "label": "load_cases()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L16",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_run_case",
+      "label": "run_case()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L24",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L43",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_setup_codegraph_ps1",
+      "label": "setup-codegraph.ps1",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\setup-codegraph.ps1",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_setup_gitnexus_ps1",
+      "label": "setup-gitnexus.ps1",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\setup-gitnexus.ps1",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_setup_graphify_ps1",
+      "label": "setup-graphify.ps1",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\setup-graphify.ps1",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_setup_prerequisites_ps1",
+      "label": "setup-prerequisites.ps1",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\setup-prerequisites.ps1",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_setup_prerequisites_test_command",
+      "label": "Test-Command()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\setup-prerequisites.ps1",
+      "source_location": "L11",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_setup_prerequisites_install_npmglobalpackage",
+      "label": "Install-NpmGlobalPackage()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\setup-prerequisites.ps1",
+      "source_location": "L17",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_validate_context_ps1",
+      "label": "validate-context.ps1",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-context.ps1",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_ps1",
+      "label": "validate-repo-registry.ps1",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.ps1",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py",
+      "label": "validate-repo-registry.py",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_utc_now",
+      "label": "utc_now()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L17",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_parse_simple_yml",
+      "label": "parse_simple_yml()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L21",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_load_registry",
+      "label": "load_registry()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L41",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_validationresult",
+      "label": "ValidationResult",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L57",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_validate",
+      "label": "validate()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L62",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_write_report",
+      "label": "write_report()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L172",
+      "_origin": "ast"
+    },
+    {
+      "id": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L188",
+      "_origin": "ast"
+    }
+  ],
+  "edges": [
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py",
+      "target": "argparse",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py",
+      "target": "json",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py",
+      "target": "re",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py",
+      "target": "datetime",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py",
+      "target": "pathlib",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py",
+      "target": "typing",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_utc_now",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_load_registry",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_load_registry",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_load_registry",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_slug_name",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_infer_domain",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_default_engines",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_build_candidate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_build_candidate",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_build_candidate",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_build_candidate",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_slug_name",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L58",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_build_candidate",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_infer_domain",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_build_candidate",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_default_engines",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L86",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_load_registry",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_build_candidate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L116",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_discover_boost_repos_utc_now",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\discover-boost-repos.py",
+      "source_location": "L128",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_py",
+      "target": "pathlib",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_py",
+      "target": "json",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_py",
+      "target": "re",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_py",
+      "target": "shutil",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_py",
+      "target": "datetime",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_py",
+      "target": "yaml",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_parse_simple_yml",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_load_registry",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_slug",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_utc_now",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L46",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_ensure_dirs",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_load_registry",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_parse_simple_yml",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_ensure_dirs",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_load_registry",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L66",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_utc_now",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_repo_intake_slug",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\repo-intake.py",
+      "source_location": "L82",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py",
+      "target": "argparse",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py",
+      "target": "json",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py",
+      "target": "datetime",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py",
+      "target": "pathlib",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py",
+      "target": "typing",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py",
+      "target": "yaml",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_utc_now",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_parse_simple_yml",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_parse_simple_yml",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_parse_simple_yml",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_load_registry",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_load_registry",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_load_registry",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_load_capability_index",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_load_capability_index",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_load_capability_index",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_load_manifest_index",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_load_manifest_index",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_load_manifest_index",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_domain_defaults",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_is_repo_approved",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_is_repo_approved",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_pick_route",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L91",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_pick_route",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L91",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_profile_for_source",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L164",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_memory_selection_for_source",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L174",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_runtime_requirements_for_source",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L184",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_append_jsonl",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L195",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_append_jsonl",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L195",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_append_jsonl",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L195",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L201",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_load_registry",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_parse_simple_yml",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_pick_route",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_is_repo_approved",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L119",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_pick_route",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_domain_defaults",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L154",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L213",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_load_registry",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L214",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_load_capability_index",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L215",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_load_manifest_index",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L216",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_pick_route",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L218",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_profile_for_source",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L226",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_memory_selection_for_source",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L230",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_utc_now",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L232",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_runtime_requirements_for_source",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L255",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_resolve_routing_append_jsonl",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\resolve-routing.py",
+      "source_location": "L265",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_py",
+      "target": "argparse",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_py",
+      "target": "json",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_py",
+      "target": "subprocess",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_py",
+      "target": "sys",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_py",
+      "target": "datetime",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_py",
+      "target": "pathlib",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_py",
+      "target": "typing",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_utc_now",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_load_cases",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_load_cases",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_load_cases",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_run_case",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_run_case",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_run_case",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_load_cases",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_run_case",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_run_routing_evals_utc_now",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\run-routing-evals.py",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_setup_prerequisites_ps1",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_setup_prerequisites_test_command",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\setup-prerequisites.ps1",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_setup_prerequisites_ps1",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_setup_prerequisites_install_npmglobalpackage",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\setup-prerequisites.ps1",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_setup_prerequisites_install_npmglobalpackage",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_setup_prerequisites_test_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\setup-prerequisites.ps1",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py",
+      "target": "argparse",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py",
+      "target": "json",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py",
+      "target": "re",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py",
+      "target": "dataclasses",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py",
+      "target": "datetime",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py",
+      "target": "pathlib",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py",
+      "target": "typing",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py",
+      "target": "yaml",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_utc_now",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_parse_simple_yml",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_parse_simple_yml",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_parse_simple_yml",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_load_registry",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_load_registry",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_load_registry",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_validationresult",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_validate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_validate",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_validate",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_validate",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_validationresult",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_write_report",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L172",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_write_report",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L172",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_write_report",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_validationresult",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L172",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L188",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_load_registry",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_parse_simple_yml",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_validate",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_validationresult",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L68",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_write_report",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_utc_now",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L174",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L194",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_load_registry",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L201",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_validate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L208",
+      "weight": 1.0
+    },
+    {
+      "source": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_main",
+      "target": "c_repo_mcp_first_enterprise_full_scripts_validate_repo_registry_write_report",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\repo\\mcp-first-enterprise-full\\scripts\\validate-repo-registry.py",
+      "source_location": "L211",
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

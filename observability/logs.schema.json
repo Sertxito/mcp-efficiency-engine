@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mcp-first-enterprise/observability/logs.schema.json",
+  "title": "Routing Decision Event",
+  "type": "object",
+  "required": [
+    "timestamp",
+    "input",
+    "intent",
+    "source_type",
+    "agent",
+    "engine",
+    "optimization_profile",
+    "fallback",
+    "grounded",
+    "sources"
+  ],
+  "properties": {
+    "timestamp": { "type": "string", "format": "date-time" },
+    "input": { "type": "string", "minLength": 1 },
+    "intent": { "type": "string", "minLength": 1 },
+    "source_type": { "type": "string", "minLength": 1 },
+    "agent": { "type": "string", "minLength": 1 },
+    "engine": { "type": "string", "minLength": 1 },
+    "optimization_profile": { "type": "string", "minLength": 1 },
+    "fallback": { "type": "boolean" },
+    "grounded": { "type": "boolean" },
+    "sources": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "notes": { "type": "string" },
+    "optimization": {
+      "type": "object",
+      "properties": {
+        "token_saver": { "const": "always_on" },
+        "token_saver_profile": {
+          "type": "string",
+          "enum": ["strict", "balanced", "evidence-first", "didactic"]
+        },
+        "caveman": { "const": "always_on" },
+        "caveman_profile": {
+          "type": "string",
+          "enum": ["full", "lite", "evidence-first", "didactic-lite"]
+        },
+        "sources_preserved": { "type": "boolean" },
+        "context_reduction_strategy": {
+          "type": "string",
+          "enum": ["symbol", "node", "chunk", "manifest", "snapshot-scope"]
+        }
+      },
+      "additionalProperties": true
+    },
+    "memory": {
+      "type": "object",
+      "properties": {
+        "selected": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "reason": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "learning": {
+      "type": "object",
+      "properties": {
+        "used_pattern": { "type": "string" },
+        "success": { "type": "boolean" },
+        "fallback": { "type": "boolean" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

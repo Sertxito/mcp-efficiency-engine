@@ -1,0 +1,44 @@
+{
+  "servers": {
+    "token-saver-mcp": {
+      "command": "token-saver-mcp"
+    },
+    "codebase-memory-mcp": {
+      "command": "codebase-memory-mcp"
+    },
+    "codegraph": {
+      "command": "codegraph",
+      "args": [
+        "serve",
+        "--mcp"
+      ]
+    },
+    "gitnexus": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "gitnexus@latest",
+        "mcp"
+      ]
+    },
+    "repomix": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "repomix@latest",
+        "--mcp"
+      ]
+    },
+    "graphify": {
+      "command": "py",
+      "args": [
+        "-3.14",
+        "-m",
+        "graphify.serve",
+        "--transport",
+        "stdio",
+        "context/graphify-out/graph.json"
+      ]
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "cases": [
+    {
+      "id": "case-login-bug",
+      "input": "Arregla bug de login",
+      "intent": "bug-fix",
+      "domain": "dev",
+      "source_type": "code",
+      "capability": "dev-coding"
+    },
+    {
+      "id": "case-sla-grounding",
+      "input": "Necesito fuentes SLA reales",
+      "intent": "knowledge-grounded",
+      "domain": "azure-rag",
+      "source_type": "corporate-docs",
+      "capability": "azure-rag-enterprise"
+    },
+    {
+      "id": "case-dba-analysis",
+      "input": "Analiza schema SQL",
+      "intent": "analysis",
+      "domain": "dba",
+      "source_type": "technical-docs",
+      "capability": "database-analysis"
+    },
+    {
+      "id": "case-legacy-migration",
+      "input": "Plan de migracion legacy",
+      "intent": "migration",
+      "domain": "legacy",
+      "source_type": "code",
+      "capability": "legacy-migration"
+    }
+  ]
+}
