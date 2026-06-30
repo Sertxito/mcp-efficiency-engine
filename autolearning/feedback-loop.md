@@ -40,6 +40,7 @@ Nombre operativo: AutoLearning (antes Learning Loop).
 
 - Script: scripts/learning/learning-loop-report.py
 - Script de confirmacion real: scripts/learning/record-learning-feedback.py
+- scripts/intake/run-routing-evals.py confirma automaticamente (source=ci) los eventos de routing que pasan en eval
 - Gate CI: scripts/learning/autolearning-gate.py
 - Salidas:
   - observability/evals/learning-loop-report.json

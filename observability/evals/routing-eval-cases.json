@@ -31,6 +31,14 @@
       "domain": "legacy",
       "source_type": "code",
       "capability": "legacy-migration"
+    },
+    {
+      "id": "case-rag-tech-docs-local",
+      "input": "explica guia tecnica local",
+      "intent": "info",
+      "domain": "rag",
+      "source_type": "technical-docs",
+      "capability": "rag-knowledge"
     }
   ]
 }

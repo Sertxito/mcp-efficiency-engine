@@ -153,14 +153,47 @@ def pick_route(
         }
         return route, notes
 
+    approved_repos_for_domain = [
+        r
+        for r in repos
+        if isinstance(r, dict)
+        and str(r.get("domain", "")).strip() == domain
+        and is_repo_approved(r)
+    ]
+
     fallback = domain_defaults(domain)
-    notes.append("selected_by=domain_default")
+    if approved_repos_for_domain:
+        notes.append("selected_by=domain_default")
+    else:
+        # Some logical domains can be valid without a dedicated onboarded repo.
+        notes.append("selected_by=domain_default_expected")
     return {
         "agent": fallback["agent"],
         "engine": fallback["engine"],
         "capability": fallback["capability"],
         "repo": "",
     }, notes
+
+
+def resolve_sources_and_grounding(*, route: dict[str, Any], source_type: str, repo_root: Path) -> tuple[list[str], bool]:
+    sources: list[str] = []
+
+    repo_name = str(route.get("repo", "")).strip()
+    if repo_name:
+        sources.append(f"repo:{repo_name}")
+
+    engine = str(route.get("engine", "")).lower()
+    if source_type == "technical-docs":
+        graphify_index = repo_root / "context/graphify-out/graph.json"
+        if graphify_index.exists():
+            sources.append("graphify:index")
+
+    if "gitnexus" in engine:
+        gitnexus_index = repo_root / ".gitnexus/lbug"
+        if gitnexus_index.exists():
+            sources.append("gitnexus:index")
+
+    return sources, bool(sources)
 
 
 def profile_for_source(source_type: str) -> tuple[str, str, str]:
@@ -339,9 +372,8 @@ def main() -> int:
     )
 
     token_saver_profile, caveman_profile, context_strategy = profile_for_source(args.source_type)
-    fallback = any(n.startswith("selected_by=domain_default") for n in notes)
-    # Grounding is strict in production: no source reference means not grounded.
-    grounded = route["repo"] != ""
+    fallback = any(n == "selected_by=domain_default" for n in notes)
+    sources, grounded = resolve_sources_and_grounding(route=route, source_type=args.source_type, repo_root=repo_root)
 
     selected_memories, memory_reason = memory_selection_for_source(args.source_type)
     selected_prompt, prompt_exists = select_prompt_for_route(
@@ -378,7 +410,7 @@ def main() -> int:
         "optimization_profile": f"{token_saver_profile}+{caveman_profile}",
         "fallback": fallback,
         "grounded": grounded,
-        "sources": [f"repo:{route['repo']}"] if route["repo"] else [],
+        "sources": sources,
         "notes": ";".join(notes) if notes else "",
         "prompt": {
             "selected": selected_prompt,

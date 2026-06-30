@@ -1,15 +1,15 @@
 {
-  "timestamp": "2026-06-30T21:25:30.103719+00:00",
+  "timestamp": "2026-06-30T21:30:51.796940+00:00",
   "source": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\routing-decisions.jsonl",
   "feedback_source": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\learning-feedback.jsonl",
-  "total_events": 168,
+  "total_events": 173,
   "pending_events": 163,
-  "confirmed_events": 5,
+  "confirmed_events": 10,
   "kpis": {
-    "fallback_rate": 0.2619,
-    "grounded_rate": 0.7738,
+    "fallback_rate": 0.2543,
+    "grounded_rate": 0.7803,
     "success_rate": 1.0,
-    "confidence_avg": 0.9
+    "confidence_avg": 0.925
   },
   "thresholds": {
     "fallback_rate_max": 0.2,
@@ -40,34 +40,34 @@
     },
     {
       "pattern": "azure-rag+knowledge-grounded",
-      "total": 39,
+      "total": 40,
       "fallback_rate": 0.0,
       "grounded_rate": 1.0,
       "pending_count": 38,
-      "confirmed_count": 1,
+      "confirmed_count": 2,
       "success_rate": 1.0,
-      "confidence_avg": 0.9,
+      "confidence_avg": 0.925,
       "engines": {
-        "Azure RAG Builder": 39
+        "Azure RAG Builder": 40
       },
       "agents": {
-        "rag-azure-agent": 39
+        "rag-azure-agent": 40
       }
     },
     {
       "pattern": "dba+analysis",
-      "total": 38,
+      "total": 39,
       "fallback_rate": 0.0,
       "grounded_rate": 1.0,
       "pending_count": 37,
-      "confirmed_count": 1,
+      "confirmed_count": 2,
       "success_rate": 1.0,
-      "confidence_avg": 0.9,
+      "confidence_avg": 0.925,
       "engines": {
-        "Graphify": 38
+        "Graphify": 39
       },
       "agents": {
-        "dba-agent": 38
+        "dba-agent": 39
       }
     },
     {
@@ -88,18 +88,18 @@
     },
     {
       "pattern": "dev+bug-fix",
-      "total": 46,
-      "fallback_rate": 0.0652,
+      "total": 47,
+      "fallback_rate": 0.0638,
       "grounded_rate": 1.0,
       "pending_count": 44,
-      "confirmed_count": 2,
+      "confirmed_count": 3,
       "success_rate": 1.0,
-      "confidence_avg": 0.9,
+      "confidence_avg": 0.917,
       "engines": {
-        "CodeGraph": 46
+        "CodeGraph": 47
       },
       "agents": {
-        "dev-agent": 46
+        "dev-agent": 47
       }
     },
     {
@@ -136,36 +136,36 @@
     },
     {
       "pattern": "legacy+migration",
-      "total": 39,
-      "fallback_rate": 1.0,
-      "grounded_rate": 0.0769,
+      "total": 40,
+      "fallback_rate": 0.975,
+      "grounded_rate": 0.1,
       "pending_count": 38,
-      "confirmed_count": 1,
+      "confirmed_count": 2,
       "success_rate": 1.0,
-      "confidence_avg": 0.9,
+      "confidence_avg": 0.925,
       "engines": {
-        "GitNexus": 39
+        "GitNexus": 40
       },
       "agents": {
-        "legacy-agent": 39
+        "legacy-agent": 40
       }
     },
     {
       "pattern": "rag+info",
-      "total": 2,
-      "fallback_rate": 1.0,
-      "grounded_rate": 0.0,
+      "total": 3,
+      "fallback_rate": 0.6667,
+      "grounded_rate": 0.3333,
       "pending_count": 2,
-      "confirmed_count": 0,
-      "success_rate": 0.0,
-      "confidence_avg": 0.0,
+      "confirmed_count": 1,
+      "success_rate": 1.0,
+      "confidence_avg": 0.95,
       "engines": {
         "CodeGraph": 1,
-        "Graphify": 1
+        "Graphify": 2
       },
       "agents": {
         "dev-agent": 1,
-        "rag-local-agent": 1
+        "rag-local-agent": 2
       }
     }
   ]

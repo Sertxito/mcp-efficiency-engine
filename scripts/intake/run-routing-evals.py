@@ -21,7 +21,28 @@ def load_cases(path: Path) -> list[dict[str, Any]]:
     return [c for c in cases if isinstance(c, dict)]
 
 
-def run_case(repo_root: Path, case: dict[str, Any]) -> tuple[bool, str]:
+def parse_event_ids(path: Path) -> set[str]:
+    if not path.exists():
+        return set()
+    ids: set[str] = set()
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            obj = json.loads(line)
+        except Exception:
+            continue
+        if not isinstance(obj, dict):
+            continue
+        event_id = str(obj.get("event_id", "")).strip()
+        if event_id:
+            ids.add(event_id)
+    return ids
+
+
+def run_case(repo_root: Path, case: dict[str, Any], routing_log: Path) -> tuple[bool, str, str | None]:
+    before_ids = parse_event_ids(routing_log)
     cmd = [
         sys.executable,
         str((repo_root / "scripts/intake/resolve-routing.py").resolve()),
@@ -37,7 +58,35 @@ def run_case(repo_root: Path, case: dict[str, Any]) -> tuple[bool, str]:
         str(case.get("capability", "")),
     ]
     proc = subprocess.run(cmd, cwd=str(repo_root), capture_output=True, text=True)
-    return proc.returncode == 0, (proc.stdout or "") + (proc.stderr or "")
+    output = (proc.stdout or "") + (proc.stderr or "")
+
+    event_id: str | None = None
+    after_ids = parse_event_ids(routing_log)
+    new_ids = after_ids - before_ids
+    if new_ids:
+        event_id = sorted(new_ids)[-1]
+
+    return proc.returncode == 0, output, event_id
+
+
+def record_feedback(repo_root: Path, event_id: str, case_id: str) -> tuple[bool, str]:
+    cmd = [
+        sys.executable,
+        str((repo_root / "scripts/learning/record-learning-feedback.py").resolve()),
+        "--event-id",
+        event_id,
+        "--success",
+        "true",
+        "--confidence",
+        "0.95",
+        "--source",
+        "ci",
+        "--notes",
+        f"routing-eval-pass:{case_id}",
+    ]
+    proc = subprocess.run(cmd, cwd=str(repo_root), capture_output=True, text=True)
+    output = (proc.stdout or "") + (proc.stderr or "")
+    return proc.returncode == 0, output
 
 
 def main() -> int:
@@ -47,6 +96,7 @@ def main() -> int:
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[2]
+    routing_log = (repo_root / "observability/logs/routing-decisions.jsonl").resolve()
     cases_path = (repo_root / args.cases).resolve()
     if not cases_path.exists():
         print(f"Missing eval cases file: {cases_path}")
@@ -57,13 +107,22 @@ def main() -> int:
     passed = 0
 
     for case in cases:
-        ok, output = run_case(repo_root, case)
+        ok, output, event_id = run_case(repo_root, case, routing_log)
+        feedback_ok = False
+        feedback_output = ""
+        case_id = str(case.get("id", "unknown"))
+
+        if ok and event_id:
+            feedback_ok, feedback_output = record_feedback(repo_root, event_id, case_id)
         if ok:
             passed += 1
         results.append(
             {
-                "id": case.get("id", "unknown"),
+                "id": case_id,
                 "ok": ok,
+                "event_id": event_id,
+                "feedback_recorded": feedback_ok,
+                "feedback_output": feedback_output,
                 "output": output,
             }
         )
