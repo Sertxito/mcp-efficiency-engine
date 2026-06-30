@@ -6,7 +6,7 @@
   "domain": "azure-rag",
   "location": "../boost_RAG-Azure-Builder",
   "resolved_path": "C:/repo/boost_RAG-Azure-Builder",
-  "generated_at": "2026-06-30T20:32:48.886477+00:00",
+  "generated_at": "2026-06-30T21:25:01.416558+00:00",
   "exists": true,
   "top_level": {
     "dirs": [
@@ -14,14 +14,12 @@
       ".git",
       ".github",
       "assets",
-      "projects"
+      "rag-generador-convocatorias"
     ],
-    "files": [
-      ".env"
-    ],
+    "files": [],
     "counts": {
       "dirs": 5,
-      "files": 1
+      "files": 0
     }
   },
   "key_artifacts": [
@@ -87,5 +85,5 @@
       "kind": "missing"
     }
   ],
-  "cache_fingerprint": "ca8a8abcb5617ff1"
+  "cache_fingerprint": "c8d7e3f343e69119"
 }

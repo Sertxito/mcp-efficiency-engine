@@ -1,16 +1,16 @@
 # Iteration Value Report
 
-- timestamp: 2026-06-30T20:34:20.247012+00:00
-- events: 160
-- events_with_event_id: 109
+- timestamp: 2026-06-30T21:25:30.989129+00:00
+- events: 168
+- events_with_event_id: 117
 - metrics_covered: 5
 - feedback_confirmed: 5
 - confirmed_success: 5
 
 ## KPI
 
-- metrics_coverage_rate: 4.59%
-- confirmed_feedback_rate: 4.59%
+- metrics_coverage_rate: 4.27%
+- confirmed_feedback_rate: 4.27%
 - confirmed_success_rate: 100.0%
 - total_tokens: 6000
 - total_cost_usd: 0.05

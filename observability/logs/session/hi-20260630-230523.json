@@ -1,0 +1,227 @@
+{
+  "session": "hi",
+  "started_at": "2026-06-30T23:04:25.9782071+02:00",
+  "ended_at": "2026-06-30T23:05:23.0332064+02:00",
+  "duration_sec": 57.05,
+  "repo": "C:\\repo\\mcp-efficiency-engine",
+  "success": true,
+  "structure_cache": {
+    "refreshed": true,
+    "refresh_reason": "missing=0, stale=1",
+    "before": [
+      {
+        "repo": "boost_dba",
+        "slug": "boost_dba",
+        "version": "0",
+        "repo_path": "C:\\repo\\boost_DBA",
+        "structure_path": "C:\\repo\\mcp-efficiency-engine\\repo-intake\\generated\\boost_dba\\context-manifests\\structure-min.json",
+        "structure_exists": true,
+        "structure_reports_repo_exists": true,
+        "cache_fingerprint": "ef9546bf252c15dd",
+        "repo_latest_change_utc": "2026-06-15T23:21:51.7989226Z",
+        "structure_mtime_utc": "2026-06-30T21:00:44.2244461Z",
+        "status": "fresh"
+      },
+      {
+        "repo": "boost_azure_rag",
+        "slug": "boost_azure_rag",
+        "version": "0",
+        "repo_path": "C:\\repo\\boost_RAG-Azure-Builder",
+        "structure_path": "C:\\repo\\mcp-efficiency-engine\\repo-intake\\generated\\boost_azure_rag\\context-manifests\\structure-min.json",
+        "structure_exists": true,
+        "structure_reports_repo_exists": true,
+        "cache_fingerprint": "c8d7e3f343e69119",
+        "repo_latest_change_utc": "2026-06-30T21:04:24.9418500Z",
+        "structure_mtime_utc": "2026-06-30T21:00:44.2339757Z",
+        "status": "stale"
+      },
+      {
+        "repo": "boost_azure_iot_edge",
+        "slug": "boost_azure_iot_edge",
+        "version": "0",
+        "repo_path": "C:\\repo\\boost_azure-iot-edge",
+        "structure_path": "C:\\repo\\mcp-efficiency-engine\\repo-intake\\generated\\boost_azure_iot_edge\\context-manifests\\structure-min.json",
+        "structure_exists": true,
+        "structure_reports_repo_exists": true,
+        "cache_fingerprint": "3cc58b50a6794b0d",
+        "repo_latest_change_utc": "2026-06-29T17:15:44.7847312Z",
+        "structure_mtime_utc": "2026-06-30T21:00:44.2491521Z",
+        "status": "fresh"
+      },
+      {
+        "repo": "boost_dev_core",
+        "slug": "boost_dev_core",
+        "version": "0",
+        "repo_path": "C:\\repo\\sertxIA",
+        "structure_path": "C:\\repo\\mcp-efficiency-engine\\repo-intake\\generated\\boost_dev_core\\context-manifests\\structure-min.json",
+        "structure_exists": true,
+        "structure_reports_repo_exists": true,
+        "cache_fingerprint": "a8ae224391bc64a4",
+        "repo_latest_change_utc": "2026-06-29T16:03:19.8445980Z",
+        "structure_mtime_utc": "2026-06-30T21:00:44.2602402Z",
+        "status": "fresh"
+      },
+      {
+        "repo": "boost_backend",
+        "slug": "boost_backend",
+        "version": "0",
+        "repo_path": "C:\\repo\\boost_backend",
+        "structure_path": "C:\\repo\\mcp-efficiency-engine\\repo-intake\\generated\\boost_backend\\context-manifests\\structure-min.json",
+        "structure_exists": true,
+        "structure_reports_repo_exists": true,
+        "cache_fingerprint": "4989762876382d3e",
+        "repo_latest_change_utc": "2026-06-29T17:18:49.2902520Z",
+        "structure_mtime_utc": "2026-06-30T21:00:44.2707672Z",
+        "status": "fresh"
+      }
+    ],
+    "after": [
+      {
+        "repo": "boost_dba",
+        "slug": "boost_dba",
+        "version": "0",
+        "repo_path": "C:\\repo\\boost_DBA",
+        "structure_path": "C:\\repo\\mcp-efficiency-engine\\repo-intake\\generated\\boost_dba\\context-manifests\\structure-min.json",
+        "structure_exists": true,
+        "structure_reports_repo_exists": true,
+        "cache_fingerprint": "ef9546bf252c15dd",
+        "repo_latest_change_utc": "2026-06-15T23:21:51.7989226Z",
+        "structure_mtime_utc": "2026-06-30T21:04:42.5750910Z",
+        "status": "fresh"
+      },
+      {
+        "repo": "boost_azure_rag",
+        "slug": "boost_azure_rag",
+        "version": "0",
+        "repo_path": "C:\\repo\\boost_RAG-Azure-Builder",
+        "structure_path": "C:\\repo\\mcp-efficiency-engine\\repo-intake\\generated\\boost_azure_rag\\context-manifests\\structure-min.json",
+        "structure_exists": true,
+        "structure_reports_repo_exists": true,
+        "cache_fingerprint": "c8d7e3f343e69119",
+        "repo_latest_change_utc": "2026-06-30T21:04:24.9418500Z",
+        "structure_mtime_utc": "2026-06-30T21:04:42.5945771Z",
+        "status": "fresh"
+      },
+      {
+        "repo": "boost_azure_iot_edge",
+        "slug": "boost_azure_iot_edge",
+        "version": "0",
+        "repo_path": "C:\\repo\\boost_azure-iot-edge",
+        "structure_path": "C:\\repo\\mcp-efficiency-engine\\repo-intake\\generated\\boost_azure_iot_edge\\context-manifests\\structure-min.json",
+        "structure_exists": true,
+        "structure_reports_repo_exists": true,
+        "cache_fingerprint": "3cc58b50a6794b0d",
+        "repo_latest_change_utc": "2026-06-29T17:15:44.7847312Z",
+        "structure_mtime_utc": "2026-06-30T21:04:42.6152434Z",
+        "status": "fresh"
+      },
+      {
+        "repo": "boost_dev_core",
+        "slug": "boost_dev_core",
+        "version": "0",
+        "repo_path": "C:\\repo\\sertxIA",
+        "structure_path": "C:\\repo\\mcp-efficiency-engine\\repo-intake\\generated\\boost_dev_core\\context-manifests\\structure-min.json",
+        "structure_exists": true,
+        "structure_reports_repo_exists": true,
+        "cache_fingerprint": "a8ae224391bc64a4",
+        "repo_latest_change_utc": "2026-06-29T16:03:19.8445980Z",
+        "structure_mtime_utc": "2026-06-30T21:04:42.6311251Z",
+        "status": "fresh"
+      },
+      {
+        "repo": "boost_backend",
+        "slug": "boost_backend",
+        "version": "0",
+        "repo_path": "C:\\repo\\boost_backend",
+        "structure_path": "C:\\repo\\mcp-efficiency-engine\\repo-intake\\generated\\boost_backend\\context-manifests\\structure-min.json",
+        "structure_exists": true,
+        "structure_reports_repo_exists": true,
+        "cache_fingerprint": "4989762876382d3e",
+        "repo_latest_change_utc": "2026-06-29T17:18:49.2902520Z",
+        "structure_mtime_utc": "2026-06-30T21:04:42.6504529Z",
+        "status": "fresh"
+      }
+    ],
+    "changed_repos": [
+      {
+        "repo": "boost_azure_rag",
+        "before_status": "stale",
+        "after_status": "fresh",
+        "before_fingerprint": "c8d7e3f343e69119",
+        "after_fingerprint": "c8d7e3f343e69119"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "Validate context",
+      "required": true,
+      "success": true,
+      "duration_sec": 11.79,
+      "message": "ok"
+    },
+    {
+      "name": "Validate memory/cache artifacts",
+      "required": true,
+      "success": true,
+      "duration_sec": 0.02,
+      "message": "ok"
+    },
+    {
+      "name": "Check structure cache freshness",
+      "required": true,
+      "success": true,
+      "duration_sec": 5.71,
+      "message": "ok"
+    },
+    {
+      "name": "Validate sibling repos operability",
+      "required": true,
+      "success": true,
+      "duration_sec": 0.05,
+      "message": "ok"
+    },
+    {
+      "name": "Validate agent pipeline preflight",
+      "required": true,
+      "success": true,
+      "duration_sec": 0.8,
+      "message": "ok"
+    },
+    {
+      "name": "Validate MCP servers start/listen capability",
+      "required": true,
+      "success": true,
+      "duration_sec": 26.7,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh codegraph index sync",
+      "required": false,
+      "success": true,
+      "duration_sec": 4.55,
+      "message": "ok"
+    },
+    {
+      "name": "Run repo intake",
+      "required": true,
+      "success": true,
+      "duration_sec": 3.4,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh project notes from observability",
+      "required": false,
+      "success": true,
+      "duration_sec": 0.86,
+      "message": "ok"
+    },
+    {
+      "name": "Check codegraph status",
+      "required": false,
+      "success": true,
+      "duration_sec": 3.16,
+      "message": "ok"
+    }
+  ]
+}

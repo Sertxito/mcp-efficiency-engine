@@ -1,20 +1,20 @@
 {
-  "timestamp": "2026-06-30T20:34:20.247012+00:00",
+  "timestamp": "2026-06-30T21:25:30.989129+00:00",
   "sources": {
-    "routing": "C:\\repo\\mcp-first-enterprise-full\\observability\\logs\\routing-decisions.jsonl",
-    "feedback": "C:\\repo\\mcp-first-enterprise-full\\observability\\logs\\learning-feedback.jsonl",
-    "metrics": "C:\\repo\\mcp-first-enterprise-full\\observability\\logs\\iteration-metrics.jsonl"
+    "routing": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\routing-decisions.jsonl",
+    "feedback": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\learning-feedback.jsonl",
+    "metrics": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\iteration-metrics.jsonl"
   },
   "totals": {
-    "events": 160,
-    "events_with_event_id": 109,
+    "events": 168,
+    "events_with_event_id": 117,
     "metrics_covered": 5,
     "feedback_confirmed": 5,
     "confirmed_success": 5
   },
   "kpis": {
-    "metrics_coverage_rate": 0.0459,
-    "confirmed_feedback_rate": 0.0459,
+    "metrics_coverage_rate": 0.0427,
+    "confirmed_feedback_rate": 0.0427,
     "confirmed_success_rate": 1.0,
     "total_tokens": 6000,
     "total_cost_usd": 0.05,

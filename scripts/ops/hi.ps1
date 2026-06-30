@@ -264,6 +264,39 @@ function Ensure-SetupPrerequisites {
     return $true
 }
 
+function Ensure-GitNexusIndexed {
+    param(
+        [string]$RepoRootPath
+    )
+
+    $indexArtifact = Join-Path (Join-Path $RepoRootPath '.gitnexus') 'lbug'
+    if (Test-Path $indexArtifact) {
+        return $false
+    }
+
+    if ($script:GitNexusAnalyzeAttempted) {
+        return $script:GitNexusAnalyzeSucceeded
+    }
+
+    $script:GitNexusAnalyzeAttempted = $true
+    Write-Host '[info] GitNexus has no index. Running gitnexus analyze automatically...' -ForegroundColor DarkYellow
+    & npx -y gitnexus@latest analyze
+    if ($LASTEXITCODE -ne 0) {
+        $script:GitNexusAnalyzeSucceeded = $false
+        Write-Host "[info] gitnexus analyze failed with exit code $LASTEXITCODE" -ForegroundColor DarkYellow
+        return $false
+    }
+
+    if (-not (Test-Path $indexArtifact)) {
+        $script:GitNexusAnalyzeSucceeded = $false
+        Write-Host '[info] gitnexus analyze finished but local index artifact was not detected' -ForegroundColor DarkYellow
+        return $false
+    }
+
+    $script:GitNexusAnalyzeSucceeded = $true
+    return $true
+}
+
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 Set-Location $repoRoot
 
@@ -271,6 +304,8 @@ $script:Steps = @()
 $script:HasFailures = $false
 $script:SetupAttempted = $false
 $script:SetupSucceeded = $false
+$script:GitNexusAnalyzeAttempted = $false
+$script:GitNexusAnalyzeSucceeded = $false
 $script:StructureCacheReport = [ordered]@{
     refreshed = $false
     refresh_reason = 'none'
@@ -470,6 +505,8 @@ if (-not $SkipMcpStartupChecks) {
             $graphifyCmd += " " + ($pyParts -join ' ')
         }
         $graphifyCmd += ' -m graphify.serve --transport stdio context/graphify-out/graph.json'
+
+        [void](Ensure-GitNexusIndexed -RepoRootPath $repoRoot)
 
         $checks = @(
             @{ name = 'token-saver-mcp'; command = 'token-saver-mcp' },
