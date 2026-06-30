@@ -225,11 +225,52 @@ function Test-LongRunningCommand {
     Remove-Item $outFile, $errFile -ErrorAction SilentlyContinue
 }
 
+function Ensure-CodegraphInitialized {
+    param(
+        [string]$RepoRootPath
+    )
+
+    $indexPath = Join-Path $RepoRootPath '.codegraph'
+    if (Test-Path $indexPath) {
+        return $false
+    }
+
+    Write-Host '[info] CodeGraph not initialized. Running codegraph init automatically...' -ForegroundColor DarkYellow
+    & codegraph init
+    if ($LASTEXITCODE -ne 0) {
+        throw "codegraph init failed with exit code $LASTEXITCODE"
+    }
+
+    return $true
+}
+
+function Ensure-SetupPrerequisites {
+    if ($script:SetupAttempted) {
+        if (-not $script:SetupSucceeded) {
+            throw 'setup-prerequisites was already attempted and failed earlier in this run'
+        }
+        return $true
+    }
+
+    $script:SetupAttempted = $true
+    Write-Host '[info] Missing prerequisite detected. Running setup-prerequisites automatically...' -ForegroundColor DarkYellow
+    & pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup\setup-prerequisites.ps1
+    if ($LASTEXITCODE -ne 0) {
+        $script:SetupSucceeded = $false
+        throw "setup-prerequisites failed with exit code $LASTEXITCODE"
+    }
+
+    $script:SetupSucceeded = $true
+    return $true
+}
+
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 Set-Location $repoRoot
 
 $script:Steps = @()
 $script:HasFailures = $false
+$script:SetupAttempted = $false
+$script:SetupSucceeded = $false
 $script:StructureCacheReport = [ordered]@{
     refreshed = $false
     refresh_reason = 'none'
@@ -252,13 +293,10 @@ $validateContextAction = {
 
 Invoke-Step -Name 'Validate context' -Action $validateContextAction -Required $true
 
-if ($SetupIfNeeded -and $script:HasFailures) {
+if ($script:HasFailures) {
     $script:HasFailures = $false
     Invoke-Step -Name 'Setup prerequisites' -Action {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup\setup-prerequisites.ps1
-        if ($LASTEXITCODE -ne 0) {
-            throw "setup-prerequisites failed with exit code $LASTEXITCODE"
-        }
+        [void](Ensure-SetupPrerequisites)
     } -Required $true
 
     Invoke-Step -Name 'Validate context (retry)' -Action $validateContextAction -Required $true
@@ -272,10 +310,29 @@ Invoke-Step -Name 'Validate memory/cache artifacts' -Action {
         'repo-intake/generated/reports/repo-registry-validation.json'
     )
 
+    $missingArtifacts = @()
+    foreach ($item in $requiredPaths) {
+        if (-not (Test-Path $item)) {
+            $missingArtifacts += $item
+        }
+    }
+
+    if ($missingArtifacts.Count -gt 0 -and -not $SkipIntake) {
+        Write-Host '[info] Missing generated artifacts detected. Running repo intake automatically...' -ForegroundColor DarkYellow
+        & .\scripts\intake\run-repo-intake.cmd
+        if ($LASTEXITCODE -ne 0) {
+            throw "run-repo-intake failed while recovering missing artifacts with exit code $LASTEXITCODE"
+        }
+    }
+
     foreach ($item in $requiredPaths) {
         if (-not (Test-Path $item)) {
             throw "Missing required artifact: $item"
         }
+    }
+
+    if (-not (Get-Command codebase-memory-mcp -ErrorAction SilentlyContinue)) {
+        [void](Ensure-SetupPrerequisites)
     }
 
     if (-not (Get-Command codebase-memory-mcp -ErrorAction SilentlyContinue)) {
@@ -435,8 +492,14 @@ else {
 if (-not $SkipGraphRefresh) {
     Invoke-Step -Name 'Refresh codegraph index sync' -Action {
         if (-not (Get-Command codegraph -ErrorAction SilentlyContinue)) {
+            [void](Ensure-SetupPrerequisites)
+        }
+
+        if (-not (Get-Command codegraph -ErrorAction SilentlyContinue)) {
             throw 'codegraph command not found'
         }
+
+        [void](Ensure-CodegraphInitialized -RepoRootPath $repoRoot)
 
         & codegraph sync
         if ($LASTEXITCODE -ne 0) {
@@ -501,8 +564,14 @@ else {
 if (-not $SkipCodegraphStatus) {
     Invoke-Step -Name 'Check codegraph status' -Action {
         if (-not (Get-Command codegraph -ErrorAction SilentlyContinue)) {
+            [void](Ensure-SetupPrerequisites)
+        }
+
+        if (-not (Get-Command codegraph -ErrorAction SilentlyContinue)) {
             throw 'codegraph command not found'
         }
+
+        [void](Ensure-CodegraphInitialized -RepoRootPath $repoRoot)
 
         & codegraph status
         if ($LASTEXITCODE -ne 0) {
