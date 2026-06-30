@@ -111,7 +111,7 @@ En esta versión, **Token Saver y Caveman Mode están siempre activos**.
 Documentación principal:
 
 - `optimization/ALWAYS_ON_OPTIMIZATION.md`
-- `docs/always-on-optimization-guide.md`
+- `docs/02-always-on-optimization-guide.md`
 - `.github/copilot-instructions.md`
 - `.github/instructions/always-on-optimization.instructions.md`
 

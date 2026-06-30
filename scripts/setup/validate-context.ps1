@@ -13,6 +13,7 @@ $required = @(
   ".github/copilot-instructions.md",
   ".github/instructions/always-on-optimization.instructions.md",
   ".github/skills/token-saver/SKILL.md",
+  ".github/skills/ahorro-tokens/SKILL.md",
   ".github/skills/caveman-mode/SKILL.md",
   ".github/skills/caveman/SKILL.md",
   ".github/skills/caveman-help/SKILL.md",
@@ -29,10 +30,11 @@ $required = @(
   ".github/prompts/caveman-compress.prompt.md",
   ".github/prompts/cavecrew.prompt.md",
   "optimization/ALWAYS_ON_OPTIMIZATION.md",
+  "docs/00-Ahorro_Tokens.md",
   "optimization/token-saver.md",
   "optimization/caveman-mode.md",
   "optimization/optimization-routing.md",
-  "docs/always-on-optimization-guide.md",
+  "docs/02-always-on-optimization-guide.md",
   "repo-registry/repos.schema.json",
   "scripts/intake/validate-repo-registry.ps1",
   "scripts/intake/validate-repo-registry.py",
@@ -79,7 +81,7 @@ $specContracts = @{
   "specs/database.spec.md"          = @("## Objetivo", "## Reglas", "## Validacion minima")
   "specs/migration.spec.md"         = @("## Objetivo", "## Reglas", "## Validacion minima")
   "specs/observability.spec.md"     = @("## Objetivo", "## Reglas", "## Validacion minima")
-  "specs/optimization.spec.md"      = @("## Routing Robustness Contract (Production)", "## Enforcement")
+  "specs/optimization.spec.md"      = @("## Routing Robustness Contract (Production)", "## Token Efficiency Contract (Ahorro de Tokens)", "## Enforcement")
   "specs/repo-intake.spec.md"       = @("## Objetivo", "## Reglas", "## Validacion minima")
   "specs/rag.spec.md"               = @("## Objetivo", "## Reglas", "## Validacion minima")
   "specs/routing.spec.md"           = @("## Objetivo", "## Reglas", "## Validacion minima")

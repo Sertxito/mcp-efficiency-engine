@@ -34,6 +34,12 @@ python .\scripts\intake\run-routing-evals.py
 - `FINAL_USAGE_GUIDE.md`
 - `ARCHITECTURE.md`
 - `optimization/ALWAYS_ON_OPTIMIZATION.md`
+- `scripts/README.md`
+
+Mapa de politicas:
+
+- Gobierno: `policies/*.md`
+- Optimizacion always-on: `optimization/policies/*.md`
 
 ## 5) Arranque y cierre diarios
 

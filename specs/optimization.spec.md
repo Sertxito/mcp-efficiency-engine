@@ -11,6 +11,14 @@ Contrato operativo de optimizacion always-on para routing, contexto y enforcemen
 5. En rutas mixtas, se declara engine principal y secundarios en `notes`.
 6. Si falta evidencia o fuente resoluble, se declara gap explicito.
 
+## Token Efficiency Contract (Ahorro de Tokens)
+
+1. El flujo debe usar scope quirurgico y evitar discovery abierto por defecto.
+2. La ejecucion debe separar planificacion y cambios atomicos cuando aplique.
+3. Si existe CLI determinista para scaffolding/boilerplate, se usa antes que generacion manual.
+4. La respuesta operativa debe mantener formato corto accionable: diagnostico, accion, validacion, riesgo/gap.
+5. La base canonica para esta logica es `docs/00-Ahorro_Tokens.md`.
+
 ## Enforcement
 
 1. Antes de merge, ejecutar `py -3 .\\scripts\\intake\\run-routing-evals.py`.
