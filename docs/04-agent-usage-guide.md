@@ -21,3 +21,19 @@ Reglas actuales de seleccion:
 - fallback -> `.github/prompts/auto-route.prompt.md`
 
 Si el prompt seleccionado no existe, el evento añade una nota `prompt_not_found=...`.
+
+<!-- diagramas-v1 -->
+## Diagrama Visual De Uso De Agentes
+
+```mermaid
+sequenceDiagram
+  participant U as Usuario
+  participant O as Orchestrator
+  participant A as Agente
+  participant M as Motor
+  U->>O: Solicitud
+  O->>A: Routing por intencion
+  A->>M: Consulta/ejecucion
+  M-->>A: Contexto relevante
+  A-->>U: Resultado validado
+```

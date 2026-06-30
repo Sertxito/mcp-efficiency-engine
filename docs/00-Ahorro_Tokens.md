@@ -1590,3 +1590,20 @@ Haz el cambio mínimo.
 ---
 
 # Fin del documento
+
+<!-- diagramas-v1 -->
+## Diagrama Visual De Decision De Ahorro
+
+```mermaid
+flowchart TD
+  T[Tarea nueva] --> Q{Tipo}
+  Q -->|Duda puntual| ASK[Ask mode]
+  Q -->|Cambio acotado| AG[Agent mode]
+  Q -->|Arquitectura| PL[Plan mode]
+  ASK --> M1[Modelo economico]
+  AG --> M2[Modelo medio]
+  PL --> M3[Modelo alto solo para plan]
+  M1 --> OUT[Salida corta y accionable]
+  M2 --> OUT
+  M3 --> OUT
+```

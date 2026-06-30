@@ -156,14 +156,91 @@ Comandos disponibles en este repo:
 
 ## Referencias oficiales
 
-Motores y herramientas usadas en este stack:
+Motores (razonamiento, indexado, retrieval):
 
 - CodeGraph: [https://github.com/colbymchenry/codegraph](https://github.com/colbymchenry/codegraph)
 - GitNexus: [https://github.com/abhigyanpatwari/GitNexus](https://github.com/abhigyanpatwari/GitNexus)
 - Graphify (sitio): [https://graphify.net/](https://graphify.net/)
 - Graphify (PyPI): [https://pypi.org/project/graphifyy/](https://pypi.org/project/graphifyy/)
-- Repomix: [https://repomix.com/](https://repomix.com/)
+- Repomix (engine + packing): [https://repomix.com/](https://repomix.com/)
 - Repomix (GitHub): [https://github.com/yamadashy/repomix](https://github.com/yamadashy/repomix)
+
+Como sacar el maximo partido a cada motor:
+
+- CodeGraph
+  - Que hace: navegacion estructural rapida del repo activo
+    (simbolos, relaciones, contexto de codigo).
+  - Maximo partido:
+    - Mantener indice sincronizado con `codegraph sync`.
+    - Usarlo como primer paso en tareas de codigo vivo (antes de lectura masiva).
+    - Verificar salud con `codegraph status` en preflight diario.
+
+- GitNexus
+  - Que hace: grafo semantico y de impacto para analizar riesgo,
+    rutas de ejecucion y trazabilidad.
+  - Maximo partido:
+    - Reindexar tras cambios amplios con `gitnexus analyze . --skills --embeddings`.
+    - Usar `gitnexus impact` y `gitnexus detect-changes` antes de cambios sensibles.
+    - En Windows, al no haber VECTOR nativo, usar fallback optimizado
+      (ya configurado en `.vscode/mcp.json`):
+      - `GITNEXUS_SEMANTIC_EXACT_SCAN_LIMIT=50000`
+      - `GITNEXUS_EMBEDDING_THREADS=4`
+
+- Graphify
+  - Que hace: conocimiento local orientado a RAG sobre contexto interno del repo.
+  - Maximo partido:
+    - Regenerar grafo cuando cambie estructura con `scripts/context/build-graphify.ps1`.
+    - Mantener `context/graphify-out/graph.json` actualizado para
+      evitar respuestas con drift.
+
+- Repomix
+  - Que hace: snapshot consolidado del repo para analisis y transferencia de contexto.
+  - Maximo partido:
+    - Refrescar snapshot tras cambios de documentacion/arquitectura con `scripts/context/build-repomix.ps1`.
+    - Excluir artefactos ruidosos cuando no aporten al objetivo para reducir tokens.
+
+Herramientas runtime (operacion, memoria y optimizacion):
+
 - Token Saver MCP (npm): [https://www.npmjs.com/package/token-saver-mcp](https://www.npmjs.com/package/token-saver-mcp)
 - Token Saver (GitHub): [https://github.com/flightlesstux/token-saver](https://github.com/flightlesstux/token-saver)
 - Codebase Memory MCP: [https://github.com/DeusData/codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp)
+
+Como sacar el maximo partido a herramientas runtime:
+
+- Token Saver MCP
+  - Que hace: controla coste de contexto y evita sobre-recuperacion.
+  - Maximo partido:
+    - Mantenerlo siempre activo en MCP local.
+    - Aplicar retrieval minimo suficiente y evitar lectura indiscriminada.
+
+- Codebase Memory MCP
+  - Que hace: memoria operativa persistente de patrones y decisiones.
+  - Maximo partido:
+    - Mantener `auto_index=true` y `auto_index_limit=50000`.
+    - Guardar solo aprendizaje operativo util (no secretos, no ruido).
+
+Checklist rapido de maximo rendimiento (post-reinicio):
+
+```powershell
+pwsh -ExecutionPolicy Bypass -File .\scripts\setup\validate-context.ps1
+codegraph status
+gitnexus status
+codebase-memory-mcp config list
+```
+
+<!-- diagramas-v1 -->
+## Diagrama Visual Del Repositorio
+
+```mermaid
+flowchart TD
+  U[Usuario] --> D[Documentacion Base]
+  D --> R[README]
+  D --> A[AGENTS]
+  D --> F[FINAL_USAGE_GUIDE]
+  R --> ORQ[orchestrator]
+  R --> DOCS[docs 00-09]
+  R --> OPS[scripts setup/intake/ops]
+  ORQ --> ENGINES[CodeGraph | GitNexus | Graphify | Azure RAG | Repomix]
+  OPS --> OBS[observability]
+  DOCS --> USE[examples/use-cases]
+```

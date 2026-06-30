@@ -3,7 +3,8 @@ param(
     [switch]$SkipTokenSaver,
     [switch]$SkipCodegraph,
     [switch]$SkipGitnexus,
-    [switch]$SkipGraphify
+    [switch]$SkipGraphify,
+    [switch]$SkipRepomix
 )
 
 $ErrorActionPreference = 'Stop'
@@ -90,6 +91,10 @@ if (-not $SkipGitnexus) {
     Install-NpmGlobalPackage -Package 'gitnexus@latest' -ExpectedCommand 'gitnexus'
     Write-Host '[setup] gitnexus setup'
     gitnexus setup
+}
+
+if (-not $SkipRepomix) {
+    Install-NpmGlobalPackage -Package 'repomix@latest' -ExpectedCommand 'repomix'
 }
 
 if (-not $SkipGraphify) {

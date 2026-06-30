@@ -14,18 +14,18 @@
       ]
     },
     "gitnexus": {
-      "command": "npx",
+      "command": "gitnexus",
       "args": [
-        "-y",
-        "gitnexus@latest",
         "mcp"
-      ]
+      ],
+      "env": {
+        "GITNEXUS_SEMANTIC_EXACT_SCAN_LIMIT": "50000",
+        "GITNEXUS_EMBEDDING_THREADS": "4"
+      }
     },
     "repomix": {
-      "command": "npx",
+      "command": "repomix",
       "args": [
-        "-y",
-        "repomix@latest",
         "--mcp"
       ]
     },

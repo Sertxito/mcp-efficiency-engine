@@ -60,6 +60,31 @@ $required = @(
 $errors=@()
 foreach($i in $required){ if(!(Test-Path $i)){ $errors += "Missing $i" } }
 
+try {
+  $mcpRaw = Get-Content -Raw -Path '.vscode/mcp.json' | ConvertFrom-Json -Depth 20
+  if ($mcpRaw.servers.gitnexus.command -ne 'gitnexus') {
+    $errors += 'MCP gitnexus command should be local `gitnexus` (avoid npx startup latency).'
+  }
+  $scanLimit = 0
+  $gitnexusHasEnv = ($mcpRaw.servers.gitnexus.PSObject.Properties.Name -contains 'env')
+  if ($gitnexusHasEnv -and $mcpRaw.servers.gitnexus.env) {
+    $gitnexusEnv = $mcpRaw.servers.gitnexus.env
+    $hasScanProp = ($gitnexusEnv.PSObject.Properties.Name -contains 'GITNEXUS_SEMANTIC_EXACT_SCAN_LIMIT')
+    if ($hasScanProp) {
+      [void][int]::TryParse([string]$gitnexusEnv.GITNEXUS_SEMANTIC_EXACT_SCAN_LIMIT, [ref]$scanLimit)
+    }
+  }
+  if ($scanLimit -lt 20000) {
+    $errors += 'MCP gitnexus env.GITNEXUS_SEMANTIC_EXACT_SCAN_LIMIT should be >= 20000 for better semantic fallback on Windows.'
+  }
+  if ($mcpRaw.servers.repomix.command -ne 'repomix') {
+    $errors += 'MCP repomix command should be local `repomix` (avoid npx startup latency).'
+  }
+}
+catch {
+  $errors += "Unable to parse .vscode/mcp.json: $($_.Exception.Message)"
+}
+
 $specFiles = @(
   "specs/architecture.spec.md",
   "specs/azure-rag.spec.md",
@@ -125,6 +150,22 @@ if (-not (Get-Command codegraph -ErrorAction SilentlyContinue)) {
 }
 elseif (-not (Test-Path ".codegraph")) {
   $errors += "Missing .codegraph index. Run: codegraph init -i"
+}
+
+if (-not (Get-Command repomix -ErrorAction SilentlyContinue)) {
+  $errors += "Missing command repomix. Run: npm install -g repomix@latest"
+}
+
+if (Get-Command codebase-memory-mcp -ErrorAction SilentlyContinue) {
+  try {
+    $cbmCfg = codebase-memory-mcp config list | Out-String
+    if ($cbmCfg -notmatch 'auto_index\s*=\s*true') {
+      $errors += 'codebase-memory-mcp auto_index must be true. Run: codebase-memory-mcp config set auto_index true'
+    }
+  }
+  catch {
+    $errors += "Unable to read codebase-memory-mcp config: $($_.Exception.Message)"
+  }
 }
 
 if (-not (Get-Command py -ErrorAction SilentlyContinue) -and -not (Get-Command python -ErrorAction SilentlyContinue)) {

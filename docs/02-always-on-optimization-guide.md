@@ -96,3 +96,17 @@ py -3 .\scripts\intake\run-routing-evals.py
 
 - `.vscode/mcp.json`
 - Servidores base resolubles: `token-saver-mcp`, `codebase-memory-mcp`, `codegraph`, `gitnexus`, `repomix`, `graphify`.
+
+<!-- diagramas-v1 -->
+## Diagrama Visual Always-On
+
+```mermaid
+flowchart TD
+  RQ[Request] --> TS[Token Saver]
+  TS --> CV[Caveman]
+  CV --> MEM[Memory MCP]
+  MEM --> HITL[HITL Auto]
+  HITL --> RT[Routing]
+  RT --> EXE[Tooling Engine]
+  EXE --> OBS[Observability]
+```

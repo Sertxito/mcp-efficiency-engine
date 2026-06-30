@@ -46,3 +46,16 @@ Resultado esperado:
 1. Corregir reglas en `scripts/intake/resolve-routing.py`.
 2. Reejecutar evals.
 3. Registrar decision y riesgo en `context/project-notes/known-risks.md`.
+
+<!-- diagramas-v1 -->
+## Diagrama Visual De Observabilidad
+
+```mermaid
+flowchart LR
+  EV[Eventos de routing] --> LOG[routing-decisions.jsonl]
+  EV --> MET[metricas]
+  EV --> EVAL[routing-eval-report.json]
+  LOG --> DASH[Analisis]
+  MET --> DASH
+  EVAL --> DASH
+```

@@ -100,3 +100,16 @@ Reportes de sesion:
 
 - `observability/logs/session/hi-*.json`
 - `observability/logs/session/bye-*.json`
+
+<!-- diagramas-v1 -->
+## Diagrama Visual De Onboarding
+
+```mermaid
+flowchart LR
+  P[Prerequisitos] --> S[setup-prerequisites]
+  S --> V[validate-context]
+  V --> I[run-repo-intake]
+  I --> E[run-routing-evals]
+  E --> H[hi.ps1 diario]
+  H --> B[bye.ps1 cierre]
+```

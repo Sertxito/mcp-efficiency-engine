@@ -56,3 +56,16 @@ py -3 .\scripts\intake\run-routing-evals.py
 Esperado:
 
 - `cases_failed = 0`
+
+<!-- diagramas-v1 -->
+## Diagrama Visual De Routing MCP
+
+```mermaid
+flowchart TD
+  IN[Intent + Source + Domain] --> DEC[Decision Matrix]
+  DEC --> AG[Agent seleccionado]
+  AG --> ENG[Motor principal]
+  ENG --> REQ[Requirements]
+  REQ --> HITL[HITL si riesgo]
+  HITL --> OUT[Respuesta con grounding]
+```

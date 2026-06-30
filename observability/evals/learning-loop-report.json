@@ -1,13 +1,13 @@
 {
-  "timestamp": "2026-06-29T20:47:37.669858+00:00",
+  "timestamp": "2026-06-30T19:15:32.224184+00:00",
   "source": "C:\\repo\\mcp-first-enterprise-full\\observability\\logs\\routing-decisions.jsonl",
   "feedback_source": "C:\\repo\\mcp-first-enterprise-full\\observability\\logs\\learning-feedback.jsonl",
-  "total_events": 56,
-  "pending_events": 51,
+  "total_events": 156,
+  "pending_events": 151,
   "confirmed_events": 5,
   "kpis": {
-    "fallback_rate": 0.2679,
-    "grounded_rate": 0.8393,
+    "fallback_rate": 0.2628,
+    "grounded_rate": 0.7756,
     "success_rate": 1.0,
     "confidence_avg": 0.9
   },
@@ -18,56 +18,104 @@
   },
   "health": {
     "fallback_ok": false,
-    "grounded_ok": true,
+    "grounded_ok": false,
     "confidence_ok": true
   },
   "patterns": [
     {
-      "pattern": "azure-rag+knowledge-grounded",
-      "total": 12,
+      "pattern": "azure-rag+info",
+      "total": 1,
       "fallback_rate": 0.0,
       "grounded_rate": 1.0,
-      "pending_count": 11,
+      "pending_count": 1,
+      "confirmed_count": 0,
+      "success_rate": 0.0,
+      "confidence_avg": 0.0,
+      "engines": {
+        "Azure RAG Builder": 1
+      },
+      "agents": {
+        "rag-azure-agent": 1
+      }
+    },
+    {
+      "pattern": "azure-rag+knowledge-grounded",
+      "total": 36,
+      "fallback_rate": 0.0,
+      "grounded_rate": 1.0,
+      "pending_count": 35,
       "confirmed_count": 1,
       "success_rate": 1.0,
       "confidence_avg": 0.9,
       "engines": {
-        "Azure RAG Builder": 12
+        "Azure RAG Builder": 36
       },
       "agents": {
-        "rag-azure-agent": 12
+        "rag-azure-agent": 36
       }
     },
     {
       "pattern": "dba+analysis",
-      "total": 12,
+      "total": 35,
       "fallback_rate": 0.0,
       "grounded_rate": 1.0,
-      "pending_count": 11,
+      "pending_count": 34,
       "confirmed_count": 1,
       "success_rate": 1.0,
       "confidence_avg": 0.9,
       "engines": {
-        "Graphify": 12
+        "Graphify": 35
       },
       "agents": {
-        "dba-agent": 12
+        "dba-agent": 35
+      }
+    },
+    {
+      "pattern": "dba+sql",
+      "total": 1,
+      "fallback_rate": 0.0,
+      "grounded_rate": 1.0,
+      "pending_count": 1,
+      "confirmed_count": 0,
+      "success_rate": 0.0,
+      "confidence_avg": 0.0,
+      "engines": {
+        "Graphify": 1
+      },
+      "agents": {
+        "dba-agent": 1
       }
     },
     {
       "pattern": "dev+bug-fix",
-      "total": 19,
-      "fallback_rate": 0.1579,
+      "total": 43,
+      "fallback_rate": 0.0698,
       "grounded_rate": 1.0,
-      "pending_count": 17,
+      "pending_count": 41,
       "confirmed_count": 2,
       "success_rate": 1.0,
       "confidence_avg": 0.9,
       "engines": {
-        "CodeGraph": 19
+        "CodeGraph": 43
       },
       "agents": {
-        "dev-agent": 19
+        "dev-agent": 43
+      }
+    },
+    {
+      "pattern": "dev+info",
+      "total": 1,
+      "fallback_rate": 0.0,
+      "grounded_rate": 1.0,
+      "pending_count": 1,
+      "confirmed_count": 0,
+      "success_rate": 0.0,
+      "confidence_avg": 0.0,
+      "engines": {
+        "CodeGraph": 1
+      },
+      "agents": {
+        "dev-agent": 1
       }
     },
     {
@@ -88,20 +136,37 @@
     },
     {
       "pattern": "legacy+migration",
-      "total": 12,
+      "total": 36,
       "fallback_rate": 1.0,
-      "grounded_rate": 0.25,
-      "pending_count": 11,
+      "grounded_rate": 0.0833,
+      "pending_count": 35,
       "confirmed_count": 1,
       "success_rate": 1.0,
       "confidence_avg": 0.9,
       "engines": {
-        "GitNexus": 12
+        "GitNexus": 36
       },
       "agents": {
-        "legacy-agent": 12
+        "legacy-agent": 36
+      }
+    },
+    {
+      "pattern": "rag+info",
+      "total": 2,
+      "fallback_rate": 1.0,
+      "grounded_rate": 0.0,
+      "pending_count": 2,
+      "confirmed_count": 0,
+      "success_rate": 0.0,
+      "confidence_avg": 0.0,
+      "engines": {
+        "CodeGraph": 1,
+        "Graphify": 1
+      },
+      "agents": {
+        "dev-agent": 1,
+        "rag-local-agent": 1
       }
     }
   ]
 }
-

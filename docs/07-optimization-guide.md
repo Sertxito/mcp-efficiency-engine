@@ -30,3 +30,14 @@ Token Saver optimiza contexto/coste. Caveman optimiza interaccion/respuesta. Se 
 - Logs con bloque `hitl` cuando aplica.
 - Refresh de `context/project-notes/*` al dia.
 - Snapshot de `context/repomix/repomix-output.xml` actualizado.
+
+<!-- diagramas-v1 -->
+## Diagrama Visual De Bucle De Optimizacion
+
+```mermaid
+flowchart TD
+  OBS[Observabilidad] --> ANA[Analisis de coste/contexto]
+  ANA --> ACT[Ajustes en prompts/skills/policies]
+  ACT --> VAL[Validacion]
+  VAL --> OBS
+```

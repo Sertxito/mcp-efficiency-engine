@@ -32,3 +32,15 @@ Esperado:
 - No usar Azure RAG para modificar codigo.
 - Si faltan fuentes, declarar gap explicitamente.
 - Si el caso escala a riesgo alto, activar HITL.
+
+<!-- diagramas-v1 -->
+## Diagrama Visual Azure RAG
+
+```mermaid
+flowchart LR
+  DOCS[Documentos corporativos] --> IDX[Azure AI Search Index]
+  IDX --> RET[Retriever]
+  RET --> RAG[rag-azure-agent]
+  RAG --> ORQ[Orchestrator]
+  ORQ --> USER[Respuesta con fuentes]
+```

@@ -84,3 +84,24 @@ Esto significa:
 - todo retrieval se hará con contexto mínimo suficiente,
 - las fuentes se conservan cuando sean obligatorias,
 - el sistema solo aumenta detalle si el usuario o el caso lo requiere.
+
+<!-- diagramas-v1 -->
+## Diagrama Visual De Uso Diario
+
+```mermaid
+sequenceDiagram
+  participant U as Usuario
+  participant HI as hi.ps1
+  participant CTX as validate-context
+  participant IN as repo-intake
+  participant EV as routing-evals
+  participant BY as bye.ps1
+  U->>HI: Inicio de jornada
+  HI->>CTX: Validar contratos y estructura
+  HI->>IN: Actualizar contexto multi-repo
+  HI->>EV: Verificar routing
+  U->>U: Trabajo diario
+  U->>BY: Cierre de jornada
+  BY->>IN: Refresh intake/discovery
+  BY->>EV: Comprobacion final
+```

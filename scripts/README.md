@@ -24,6 +24,8 @@ Todas las ejecuciones deben usar rutas canonicas por subcarpeta.
 - `setup/setup-prerequisites.ps1`: instala y prepara dependencias base (MCP + tooling).
 - `setup/setup-codegraph.ps1`: setup de CodeGraph.
 - `setup/setup-gitnexus.ps1`: setup de GitNexus.
+- `setup/optimize-engines.ps1`: auditoria/optimizacion exhaustiva de motores MCP (CodeGraph, GitNexus, Graphify, Repomix).
+- `setup/start-gitnexus.ps1`: indexa si hace falta, levanta backend web y abre UI local.
 - `setup/setup-graphify.ps1`: setup de Graphify.
 - `setup/validate-context.ps1`: verificacion de prerequisitos locales.
 
@@ -70,6 +72,13 @@ Setup inicial:
 ```powershell
 .\scripts\setup\setup-prerequisites.ps1
 .\scripts\setup\validate-context.ps1
+.\scripts\setup\optimize-engines.ps1 -InstallMissing
+```
+
+Optimización profunda (skills + embeddings en GitNexus):
+
+```powershell
+.\scripts\setup\optimize-engines.ps1 -DeepGitNexus
 ```
 
 Validacion operativa minima:

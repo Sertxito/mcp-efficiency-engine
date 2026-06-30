@@ -39,3 +39,18 @@ Cierre:
 1. Ajustar reglas de routing.
 2. Reejecutar evals.
 3. Registrar hallazgo en `context/project-notes/known-risks.md`.
+
+<!-- diagramas-v1 -->
+## Diagrama Visual De Produccion RAG + MCP
+
+```mermaid
+flowchart TD
+  REQ[Request] --> GW[Policies and Governance]
+  GW --> ROU[Routing]
+  ROU --> RAG[RAG Engine]
+  ROU --> MCP[MCP Engine]
+  RAG --> MER[Merge evidence]
+  MCP --> MER
+  MER --> RES[Response]
+  RES --> OBS[Observability and audit]
+```

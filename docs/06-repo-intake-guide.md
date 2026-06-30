@@ -42,3 +42,16 @@ Campos opcionales:
 - Bloquea: ciclos de dependencias.
 - Bloquea: repos no aprobados.
 - Warning permitido: repo marcado `optional: true` cuya `location` no existe localmente.
+
+<!-- diagramas-v1 -->
+## Diagrama Visual De Repo Intake
+
+```mermaid
+flowchart TD
+  REG[repo-registry] --> VAL[validate-repo-registry]
+  VAL --> IN[repo-intake]
+  IN --> MAN[context-manifests]
+  IN --> CAP[capabilities]
+  MAN --> RT[Routing context]
+  CAP --> RT
+```

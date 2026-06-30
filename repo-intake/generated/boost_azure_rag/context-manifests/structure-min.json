@@ -6,7 +6,7 @@
   "domain": "azure-rag",
   "location": "../boost_RAG-Azure-Builder",
   "resolved_path": "C:/repo/boost_RAG-Azure-Builder",
-  "generated_at": "2026-06-30T17:24:02.382163+00:00",
+  "generated_at": "2026-06-30T19:14:08.895648+00:00",
   "exists": true,
   "top_level": {
     "dirs": [
@@ -16,22 +16,11 @@
       "assets"
     ],
     "files": [
-      ".env",
-      ".markdownlint.json",
-      "deploy-attempt8.log",
-      "deploy-final-attempt.log",
-      "deploy-final.log",
-      "deploy-full.log",
-      "deploy.log",
-      "deployment-eastus.txt",
-      "deployment-final.txt",
-      "deployment-output.txt",
-      "deployment-westeurope.txt",
-      "skills-lock.json"
+      ".env"
     ],
     "counts": {
       "dirs": 4,
-      "files": 12
+      "files": 1
     }
   },
   "key_artifacts": [
@@ -97,5 +86,5 @@
       "kind": "missing"
     }
   ],
-  "cache_fingerprint": "e43ca5193da0ac69"
+  "cache_fingerprint": "012ed15d246a3b18"
 }

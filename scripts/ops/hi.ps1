@@ -64,7 +64,7 @@ function Invoke-Step {
             Write-Host "[fail] $Name -> $message" -ForegroundColor Red
         }
         else {
-            Write-Host "[warn] $Name -> $message" -ForegroundColor Yellow
+            Write-Host "[info] $Name -> $message" -ForegroundColor DarkYellow
         }
     }
 

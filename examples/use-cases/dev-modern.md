@@ -19,3 +19,13 @@ Corregir bug en codigo moderno de un repo unico.
 ```powershell
 py -3 .\scripts\intake\resolve-routing.py --input "Arregla el bug de autenticacion en login y valida tests" --intent bug-fix --domain dev --source-type code --capability code-fix
 ```
+
+<!-- diagramas-v1 -->
+## Diagrama Visual Del Caso De Uso
+
+```mermaid
+flowchart LR
+  TASK[Tarea de desarrollo] --> DEV[dev-agent]
+  DEV --> CG[CodeGraph]
+  CG --> FIX[Cambio validado]
+```
