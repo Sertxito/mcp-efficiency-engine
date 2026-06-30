@@ -4,13 +4,15 @@ param(
     [switch]$SkipCodegraph,
     [switch]$SkipGitnexus,
     [switch]$SkipGraphify,
-    [switch]$SkipRepomix
+    [switch]$SkipRepomix,
+    [switch]$PortableMode
 )
 
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 Set-Location $repoRoot
+$toolingManifestPath = Join-Path $repoRoot 'tooling/tooling.manifest.json'
 
 function Test-Command {
     param([Parameter(Mandatory = $true)][string]$Name)
@@ -37,6 +39,47 @@ function Install-NpmGlobalPackage {
     npm install -g $Package
 }
 
+function Get-ToolingManifest {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    if (-not (Test-Path $Path)) {
+        throw "Missing tooling manifest: $Path"
+    }
+
+    return Get-Content -Raw -Path $Path | ConvertFrom-Json -Depth 20
+}
+
+function Install-ToolFromManifest {
+    param([Parameter(Mandatory = $true)][object]$Tool)
+
+    $commandName = [string]$Tool.command
+    if (Test-Command $commandName) {
+        Write-Host "[ok] $commandName already installed"
+        return
+    }
+
+    $install = $Tool.install
+    $installKind = [string]$install.kind
+
+    switch ($installKind) {
+        'npm-global' {
+            Install-NpmGlobalPackage -Package ([string]$install.package) -ExpectedCommand $commandName
+        }
+        'powershell-script' {
+            $scriptUrl = [string]$install.script_url
+            if (-not $scriptUrl) {
+                throw "Missing script_url for manifest tool $($Tool.name)"
+            }
+
+            Write-Host "[install] $commandName via official Windows setup script"
+            Invoke-RestMethod $scriptUrl | Invoke-Expression
+        }
+        default {
+            throw "Unsupported install kind '$installKind' for manifest tool $($Tool.name)"
+        }
+    }
+}
+
 function Test-PythonImport {
     param(
         [Parameter(Mandatory = $true)][string]$PythonCommand,
@@ -46,6 +89,24 @@ function Test-PythonImport {
 
     & $PythonCommand @PythonArgs -c "import $Module" *> $null
     return ($LASTEXITCODE -eq 0)
+}
+
+function Install-PythonRequirements {
+    param(
+        [Parameter(Mandatory = $true)][string]$PythonCommand,
+        [string[]]$PythonArgs = @(),
+        [Parameter(Mandatory = $true)][string]$RequirementsPath
+    )
+
+    if (-not (Test-Path $RequirementsPath)) {
+        throw "Missing Python requirements file: $RequirementsPath"
+    }
+
+    Write-Host "[install] $PythonCommand $($PythonArgs -join ' ') -m pip install -r $RequirementsPath"
+    & $PythonCommand @PythonArgs -m pip install -r $RequirementsPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to install Python requirements from $RequirementsPath"
+    }
 }
 
 function Resolve-PythonCommand {
@@ -60,22 +121,23 @@ function Resolve-PythonCommand {
 
 Write-Host '== MCP platform prerequisites setup =='
 
+$toolingManifest = Get-ToolingManifest -Path $toolingManifestPath
+$externalCliEntries = @($toolingManifest.external_clis)
+$toolByCommand = @{}
+foreach ($tool in $externalCliEntries) {
+    $toolByCommand[[string]$tool.command] = $tool
+}
+
 if (-not $SkipCodebaseMemory) {
-    if (Test-Command 'codebase-memory-mcp') {
-        Write-Host '[ok] codebase-memory-mcp already installed'
-    }
-    else {
-        Write-Host '[install] codebase-memory-mcp via official Windows setup script'
-        Invoke-RestMethod https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/scripts/setup-windows.ps1 | Invoke-Expression
-    }
+    Install-ToolFromManifest -Tool $toolByCommand['codebase-memory-mcp']
 }
 
 if (-not $SkipTokenSaver) {
-    Install-NpmGlobalPackage -Package 'token-saver-mcp' -ExpectedCommand 'token-saver-mcp'
+    Install-ToolFromManifest -Tool $toolByCommand['token-saver-mcp']
 }
 
 if (-not $SkipCodegraph) {
-    Install-NpmGlobalPackage -Package '@colbymchenry/codegraph' -ExpectedCommand 'codegraph'
+    Install-ToolFromManifest -Tool $toolByCommand['codegraph']
     Write-Host '[setup] codegraph install'
     codegraph install
     if (-not (Test-Path '.codegraph')) {
@@ -88,13 +150,13 @@ if (-not $SkipCodegraph) {
 }
 
 if (-not $SkipGitnexus) {
-    Install-NpmGlobalPackage -Package 'gitnexus@latest' -ExpectedCommand 'gitnexus'
+    Install-ToolFromManifest -Tool $toolByCommand['gitnexus']
     Write-Host '[setup] gitnexus setup'
     gitnexus setup
 }
 
 if (-not $SkipRepomix) {
-    Install-NpmGlobalPackage -Package 'repomix@latest' -ExpectedCommand 'repomix'
+    Install-ToolFromManifest -Tool $toolByCommand['repomix']
 }
 
 if (-not $SkipGraphify) {
@@ -112,8 +174,7 @@ if (-not $SkipGraphify) {
         Write-Host "[setup] Using Python launcher: $pyCmd"
     }
 
-    Write-Host '[install] python -m pip install "graphifyy[mcp]"'
-    & $pyCmd @pyArgs -m pip install "graphifyy[mcp]"
+    Install-PythonRequirements -PythonCommand $pyCmd -PythonArgs $pyArgs -RequirementsPath 'requirements.txt'
 
     if (-not (Test-PythonImport -PythonCommand $pyCmd -PythonArgs $pyArgs -Module 'graphify.serve')) {
         throw 'graphify.serve import failed after installation.'
@@ -134,6 +195,11 @@ if (-not $SkipGraphify) {
 
 Write-Host ''
 Write-Host 'Setup complete. Recommended next checks:'
-Write-Host '  1) .\scripts\setup\validate-context.ps1'
+if ($PortableMode) {
+    Write-Host '  1) .\scripts\setup\validate-context.ps1 -PortableMode'
+}
+else {
+    Write-Host '  1) .\scripts\setup\validate-context.ps1'
+}
 Write-Host '  2) .\scripts\intake\run-repo-intake.cmd'
 Write-Host '  3) /mcp (in your agent) to verify servers are active'

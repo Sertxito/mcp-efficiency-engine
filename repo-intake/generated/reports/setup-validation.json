@@ -1,0 +1,58 @@
+{
+  "warnings": [],
+  "external_clis": [
+    {
+      "installed": true,
+      "name": "codebase-memory-mcp",
+      "command": "codebase-memory-mcp",
+      "install_kind": "powershell-script",
+      "package": ""
+    },
+    {
+      "installed": true,
+      "name": "token-saver-mcp",
+      "command": "token-saver-mcp",
+      "install_kind": "npm-global",
+      "package": "token-saver-mcp"
+    },
+    {
+      "installed": true,
+      "name": "codegraph",
+      "command": "codegraph",
+      "install_kind": "npm-global",
+      "package": "@colbymchenry/codegraph"
+    },
+    {
+      "installed": true,
+      "name": "gitnexus",
+      "command": "gitnexus",
+      "install_kind": "npm-global",
+      "package": "gitnexus@latest"
+    },
+    {
+      "installed": true,
+      "name": "repomix",
+      "command": "repomix",
+      "install_kind": "npm-global",
+      "package": "repomix@latest"
+    }
+  ],
+  "overall_status": "ok",
+  "manifest_path": "tooling/tooling.manifest.json",
+  "mode": "portable",
+  "requirements_file": "requirements.txt",
+  "timestamp": "2026-06-30T20:19:13.9974872Z",
+  "python_requirements_ok": true,
+  "errors": [],
+  "python_modules": [
+    {
+      "import_ok": true,
+      "args": [
+        "-3.14",
+        "-c",
+        "import graphify.serve, mcp; print('ok')"
+      ],
+      "launcher": "py"
+    }
+  ]
+}

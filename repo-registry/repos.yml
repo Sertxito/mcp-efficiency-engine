@@ -1,4 +1,5 @@
 {
+  "registry_mode": "enterprise",
   "schema_version": "2.0",
   "governance": {
     "owner": "platform-team",

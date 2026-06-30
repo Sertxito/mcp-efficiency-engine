@@ -1,0 +1,10 @@
+{
+  "registry_mode": "template",
+  "schema_version": "2.0",
+  "governance": {
+    "owner": "your-team",
+    "approval_required": false,
+    "repo_name_prefix": "your-prefix_"
+  },
+  "repos": []
+}

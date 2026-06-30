@@ -6,20 +6,21 @@
   "domain": "azure-rag",
   "location": "../boost_RAG-Azure-Builder",
   "resolved_path": "C:/repo/boost_RAG-Azure-Builder",
-  "generated_at": "2026-06-30T19:14:08.895648+00:00",
+  "generated_at": "2026-06-30T20:32:48.886477+00:00",
   "exists": true,
   "top_level": {
     "dirs": [
       ".agents",
       ".git",
       ".github",
-      "assets"
+      "assets",
+      "projects"
     ],
     "files": [
       ".env"
     ],
     "counts": {
-      "dirs": 4,
+      "dirs": 5,
       "files": 1
     }
   },
@@ -86,5 +87,5 @@
       "kind": "missing"
     }
   ],
-  "cache_fingerprint": "012ed15d246a3b18"
+  "cache_fingerprint": "ca8a8abcb5617ff1"
 }

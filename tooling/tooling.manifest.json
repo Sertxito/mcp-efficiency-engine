@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0",
+  "python": {
+    "requirements_file": "requirements.txt",
+    "modules": [
+      "graphify.serve",
+      "mcp"
+    ]
+  },
+  "external_clis": [
+    {
+      "name": "codebase-memory-mcp",
+      "command": "codebase-memory-mcp",
+      "required_in": [
+        "portable",
+        "enterprise"
+      ],
+      "install": {
+        "kind": "powershell-script",
+        "script_url": "https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/scripts/setup-windows.ps1"
+      }
+    },
+    {
+      "name": "token-saver-mcp",
+      "command": "token-saver-mcp",
+      "required_in": [
+        "portable",
+        "enterprise"
+      ],
+      "install": {
+        "kind": "npm-global",
+        "package": "token-saver-mcp"
+      }
+    },
+    {
+      "name": "codegraph",
+      "command": "codegraph",
+      "required_in": [
+        "portable",
+        "enterprise"
+      ],
+      "install": {
+        "kind": "npm-global",
+        "package": "@colbymchenry/codegraph"
+      }
+    },
+    {
+      "name": "gitnexus",
+      "command": "gitnexus",
+      "required_in": [
+        "portable",
+        "enterprise"
+      ],
+      "install": {
+        "kind": "npm-global",
+        "package": "gitnexus@latest"
+      }
+    },
+    {
+      "name": "repomix",
+      "command": "repomix",
+      "required_in": [
+        "portable",
+        "enterprise"
+      ],
+      "install": {
+        "kind": "npm-global",
+        "package": "repomix@latest"
+      }
+    }
+  ]
+}

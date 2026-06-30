@@ -1,0 +1,87 @@
+{
+  "session": "bye",
+  "started_at": "2026-06-30T22:32:23.9291426+02:00",
+  "ended_at": "2026-06-30T22:34:23.6763761+02:00",
+  "duration_sec": 119.75,
+  "repo": "C:\\repo\\mcp-first-enterprise-full",
+  "success": true,
+  "steps": [
+    {
+      "name": "Validate repo registry (strict)",
+      "required": true,
+      "success": true,
+      "duration_sec": 2.64,
+      "message": "ok"
+    },
+    {
+      "name": "Run routing evals",
+      "required": true,
+      "success": true,
+      "duration_sec": 5.21,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh codegraph index sync",
+      "required": false,
+      "success": true,
+      "duration_sec": 12.91,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh repo intake artifacts",
+      "required": true,
+      "success": true,
+      "duration_sec": 4.49,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh sibling repos discovery proposal",
+      "required": false,
+      "success": true,
+      "duration_sec": 0.92,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh repomix context export",
+      "required": false,
+      "success": true,
+      "duration_sec": 87.41,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh project notes from observability",
+      "required": false,
+      "success": true,
+      "duration_sec": 0.92,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh learning loop report",
+      "required": false,
+      "success": true,
+      "duration_sec": 0.9,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh iteration value report",
+      "required": false,
+      "success": true,
+      "duration_sec": 0.85,
+      "message": "ok"
+    },
+    {
+      "name": "Check codegraph status",
+      "required": false,
+      "success": true,
+      "duration_sec": 2.69,
+      "message": "ok"
+    },
+    {
+      "name": "Collect git snapshot",
+      "required": false,
+      "success": true,
+      "duration_sec": 0.71,
+      "message": "ok"
+    }
+  ]
+}

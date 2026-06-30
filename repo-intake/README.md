@@ -18,4 +18,25 @@ La salida activa vive en `generated/<slug>/...` y `generated/reports/*.json`.
 1. Validar registry: `pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\intake\validate-repo-registry.ps1 -Strict`
 2. Ejecutar intake: `.\scripts\intake\run-repo-intake.cmd`
 3. Revisar reportes: `repo-intake/generated/reports/`
+
+Registry modes:
+
+- `repo-registry/repos.yml`: modo `enterprise`, con repos reales y validacion estricta.
+- `repo-registry/repos.template.json`: modo `template`, portable, permite `repos: []` mientras se configura el ecosistema.
+
+Bootstrap recomendado para modo portable en Windows:
+
+```powershell
+.\scripts\intake\init-template-registry.cmd
+.\scripts\intake\run-repo-intake.cmd
+```
+
+Si el registry plantilla sigue vacio, el intake no falla: genera reportes con `0` repos y deja el sistema listo para completar `repo-registry/repos.yml` mas tarde.
+
+Al inicializar la plantilla, el script pide interactivamente:
+
+- `owner` del registry
+- prefijo de nombres de repo
+- si quieres crear una primera entrada de repo
+- y, si la creas, nombre, dominio y localizacion
 4. Consumir contratos planos: `repo-intake/generated/<slug>/`

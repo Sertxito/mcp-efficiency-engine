@@ -63,6 +63,57 @@ Luego valida el contexto y corre el intake:
 python .\scripts\intake\run-routing-evals.py
 ```
 
+Contrato de instalacion:
+
+- `requirements.txt` cubre solo dependencias Python locales del runtime.
+- `tooling/tooling.manifest.json` define los CLIs externos requeridos y su instalacion.
+- `scripts/setup/setup-prerequisites.ps1` instala ambos planos.
+- `scripts/setup/validate-context.ps1 -PortableMode` verifica Python + CLIs y genera `repo-intake/generated/reports/setup-validation.json`.
+
+Contrato de registry portable:
+
+- `repo-registry/repos.yml` es el registry enterprise activo.
+- `repo-registry/repos.template.json` es la plantilla portable para nuevos repos.
+- `registry_mode: "template"` permite `repos: []` solo en validacion no estricta.
+- `registry_mode: "enterprise"` mantiene el comportamiento actual de gobierno y repos no vacios.
+
+Automatizacion recomendada para un repo nuevo:
+
+```powershell
+.\scripts\setup\setup-prerequisites.ps1 -PortableMode
+pwsh -ExecutionPolicy Bypass -NoProfile -File .\scripts\setup\validate-context.ps1 -PortableMode
+.\scripts\intake\init-template-registry.cmd
+.\scripts\intake\run-repo-intake.cmd
+```
+
+Comando unico recomendado:
+
+```powershell
+.\scripts\bootstrap-portable.cmd
+```
+
+Este comando:
+
+- instala o verifica tooling portable
+- valida el contexto base
+- inicializa el registry plantilla si no existe y pide los datos minimos
+- reutiliza el registry actual si ya existe
+- ejecuta el intake automaticamente
+- muestra un resumen final del registry y del intake generado
+
+Tambien soporta modo no interactivo si pasas los datos por flags:
+
+```powershell
+.\scripts\bootstrap-portable.cmd -ForceTemplateRegistry -Owner demo-team -RepoNamePrefix demo_ -InitialRepoName demo_repo -InitialRepoDomain dev -InitialRepoLocation .
+```
+
+Con eso el usuario final obtiene:
+
+- tooling instalado
+- validacion base ejecutada
+- registry plantilla inicializado
+- intake operativo aunque todavia no haya repos configurados
+
 Lee primero:
 
 - `FINAL_USAGE_GUIDE.md`

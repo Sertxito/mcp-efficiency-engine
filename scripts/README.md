@@ -21,6 +21,8 @@ Todas las ejecuciones deben usar rutas canonicas por subcarpeta.
 
 ## Setup y bootstrap
 
+- `bootstrap-portable.ps1`: orquesta setup portable + validacion + init registry + intake.
+- `bootstrap-portable.cmd`: wrapper CMD unico recomendado en Windows para bootstrap portable completo.
 - `setup/setup-prerequisites.ps1`: instala y prepara dependencias base (MCP + tooling).
 - `setup/setup-codegraph.ps1`: setup de CodeGraph.
 - `setup/setup-gitnexus.ps1`: setup de GitNexus.
@@ -28,11 +30,14 @@ Todas las ejecuciones deben usar rutas canonicas por subcarpeta.
 - `setup/start-gitnexus.ps1`: indexa si hace falta, levanta backend web y abre UI local.
 - `setup/setup-graphify.ps1`: setup de Graphify.
 - `setup/validate-context.ps1`: verificacion de prerequisitos locales.
+- `../tooling/tooling.manifest.json`: fuente de verdad de CLIs externos requeridos.
 
 ## Repo intake y routing
 
 - `intake/validate-repo-registry.py`: valida `repo-registry/repos.yml` (strict opcional).
 - `intake/validate-repo-registry.ps1`: wrapper PowerShell de validacion del registry.
+- `intake/init-template-registry.ps1`: inicializa `repo-registry/repos.yml` desde la plantilla portable.
+- `intake/init-template-registry.cmd`: wrapper CMD recomendado en Windows para inicializar el registry plantilla.
 - `intake/repo-intake.py`: genera artefactos intake por repo.
 - `intake/run-repo-intake.cmd`: wrapper recomendado en Windows para intake.
 - `intake/run-repo-intake.ps1`: wrapper PowerShell para intake.
@@ -70,6 +75,7 @@ Todas las ejecuciones deben usar rutas canonicas por subcarpeta.
 Setup inicial:
 
 ```powershell
+.\scripts\bootstrap-portable.cmd
 .\scripts\setup\setup-prerequisites.ps1
 .\scripts\setup\validate-context.ps1
 .\scripts\setup\optimize-engines.ps1 -InstallMissing
@@ -84,6 +90,8 @@ Optimización profunda (skills + embeddings en GitNexus):
 Validacion operativa minima:
 
 ```powershell
+pwsh -ExecutionPolicy Bypass -NoProfile -File .\scripts\setup\validate-context.ps1 -PortableMode
+.\scripts\intake\init-template-registry.cmd
 py -3 .\scripts\intake\validate-repo-registry.py --strict
 .\scripts\intake\run-repo-intake.cmd
 py -3 .\scripts\intake\agent-pipeline-preflight.py

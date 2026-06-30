@@ -63,9 +63,16 @@ def validate(registry: dict[str, Any], strict: bool, repo_root: Path) -> Validat
     errors: list[str] = []
     warnings: list[str] = []
 
+    registry_mode = str(registry.get("registry_mode", "enterprise")).strip().lower() or "enterprise"
     repos = registry.get("repos")
-    if not isinstance(repos, list) or not repos:
-        return ValidationResult(errors=["Registry must define a non-empty repos list."], warnings=[])
+    if not isinstance(repos, list):
+        return ValidationResult(errors=["Registry must define a repos list."], warnings=[])
+
+    if not repos:
+        if strict or registry_mode != "template":
+            return ValidationResult(errors=["Registry must define a non-empty repos list."], warnings=[])
+        warnings.append("Template registry has no repos yet.")
+        return ValidationResult(errors=[], warnings=warnings)
 
     schema_version = str(registry.get("schema_version", "1.0"))
     is_v2 = schema_version >= "2.0"
@@ -165,10 +172,19 @@ def validate(registry: dict[str, Any], strict: bool, repo_root: Path) -> Validat
     return ValidationResult(errors=errors, warnings=warnings)
 
 
-def write_report(path: Path, registry_path: Path, schema_version: str, strict: bool, result: ValidationResult, repos_count: int) -> None:
+def write_report(
+    path: Path,
+    registry_path: Path,
+    registry_mode: str,
+    schema_version: str,
+    strict: bool,
+    result: ValidationResult,
+    repos_count: int,
+) -> None:
     report = {
         "timestamp": utc_now(),
         "registry_path": str(registry_path).replace("\\", "/"),
+        "registry_mode": str(registry_mode),
         "schema_version": schema_version,
         "strict_mode": strict,
         "repos_count": repos_count,
@@ -199,6 +215,7 @@ def main() -> int:
         print(f"Failed to parse registry file: {exc}")
         return 1
 
+    registry_mode = str(registry.get("registry_mode", "enterprise")).strip().lower() or "enterprise"
     schema_version = str(registry.get("schema_version", "1.0"))
     repos_count = len(registry.get("repos", [])) if isinstance(registry.get("repos", []), list) else 0
     result = validate(registry=registry, strict=args.strict, repo_root=repo_root)
@@ -207,6 +224,7 @@ def main() -> int:
     write_report(
         path=report_path,
         registry_path=registry_path,
+        registry_mode=registry_mode,
         schema_version=schema_version,
         strict=args.strict,
         result=result,
