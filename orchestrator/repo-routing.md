@@ -1,3 +1,5 @@
+# Repo Routing
+
 Repo Routing base: dba->Graphify, iot->Graphify+GitNexus/CodeGraph, azure-rag->Azure RAG Builder, dev->CodeGraph, legacy->GitNexus.
 
 ## Routing por capacidades (v2)
@@ -11,8 +13,8 @@ Orden de decisión:
 Fuente de verdad:
 
 - `repo-registry/repos.yml` (approval, dependencies, optional)
-- `repo-intake/generated/v2/<slug>/<version>/context-manifests/manifest.json`
-- `repo-intake/generated/v2/<slug>/<version>/capabilities/capability.json`
+- `repo-intake/generated/<slug>/context-manifests/manifest.json`
+- `repo-intake/generated/<slug>/capabilities/capability.json`
 
 Reglas de bloqueo:
 
@@ -29,5 +31,5 @@ Política de degradación:
 Resolución operativa:
 
 ```powershell
-python .\scripts\resolve-routing.py --input "Analiza schema" --intent analysis --domain dba --source-type technical-docs --capability database-analysis
+python .\scripts\intake\resolve-routing.py --input "Analiza schema" --intent analysis --domain dba --source-type technical-docs --capability database-analysis
 ```

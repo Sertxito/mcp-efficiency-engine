@@ -1,0 +1,198 @@
+{
+  "session": "hi",
+  "started_at": "2026-06-29T23:38:53.8570706+02:00",
+  "ended_at": "2026-06-29T23:39:13.0977362+02:00",
+  "duration_sec": 19.24,
+  "repo": "C:\\repo\\mcp-first-enterprise-full",
+  "success": true,
+  "structure_cache": {
+    "refreshed": false,
+    "refresh_reason": "none",
+    "before": [
+      {
+        "repo": "boost_dba",
+        "slug": "boost_dba",
+        "version": "1.0.0",
+        "repo_path": "C:\\repo\\boost_DBA",
+        "structure_path": "C:\\repo\\mcp-first-enterprise-full\\repo-intake\\generated\\v2\\boost_dba\\1.0.0\\context-manifests\\structure-min.json",
+        "structure_exists": true,
+        "structure_reports_repo_exists": true,
+        "cache_fingerprint": "ef9546bf252c15dd",
+        "repo_latest_change_utc": "2026-06-15T23:21:51.7989226Z",
+        "structure_mtime_utc": "2026-06-29T21:37:11.4930494Z",
+        "status": "fresh"
+      },
+      {
+        "repo": "boost_azure_rag",
+        "slug": "boost_azure_rag",
+        "version": "1.0.0",
+        "repo_path": "C:\\repo\\boost_RAG-Azure-Builder",
+        "structure_path": "C:\\repo\\mcp-first-enterprise-full\\repo-intake\\generated\\v2\\boost_azure_rag\\1.0.0\\context-manifests\\structure-min.json",
+        "structure_exists": true,
+        "structure_reports_repo_exists": true,
+        "cache_fingerprint": "e43ca5193da0ac69",
+        "repo_latest_change_utc": "2026-06-28T21:48:10.0466031Z",
+        "structure_mtime_utc": "2026-06-29T21:37:11.5157458Z",
+        "status": "fresh"
+      },
+      {
+        "repo": "boost_azure_iot_edge",
+        "slug": "boost_azure_iot_edge",
+        "version": "1.0.0",
+        "repo_path": "C:\\repo\\boost_azure-iot-edge",
+        "structure_path": "C:\\repo\\mcp-first-enterprise-full\\repo-intake\\generated\\v2\\boost_azure_iot_edge\\1.0.0\\context-manifests\\structure-min.json",
+        "structure_exists": true,
+        "structure_reports_repo_exists": true,
+        "cache_fingerprint": "3cc58b50a6794b0d",
+        "repo_latest_change_utc": "2026-06-29T17:15:44.7847312Z",
+        "structure_mtime_utc": "2026-06-29T21:37:11.5354602Z",
+        "status": "fresh"
+      },
+      {
+        "repo": "boost_dev_core",
+        "slug": "boost_dev_core",
+        "version": "1.0.0",
+        "repo_path": "C:\\repo\\sertxIA",
+        "structure_path": "C:\\repo\\mcp-first-enterprise-full\\repo-intake\\generated\\v2\\boost_dev_core\\1.0.0\\context-manifests\\structure-min.json",
+        "structure_exists": true,
+        "structure_reports_repo_exists": true,
+        "cache_fingerprint": "a8ae224391bc64a4",
+        "repo_latest_change_utc": "2026-06-29T16:03:19.8445980Z",
+        "structure_mtime_utc": "2026-06-29T21:37:11.5538997Z",
+        "status": "fresh"
+      },
+      {
+        "repo": "boost_backend",
+        "slug": "boost_backend",
+        "version": "1.0.0",
+        "repo_path": "C:\\repo\\boost_backend",
+        "structure_path": "C:\\repo\\mcp-first-enterprise-full\\repo-intake\\generated\\v2\\boost_backend\\1.0.0\\context-manifests\\structure-min.json",
+        "structure_exists": true,
+        "structure_reports_repo_exists": true,
+        "cache_fingerprint": "4989762876382d3e",
+        "repo_latest_change_utc": "2026-06-29T17:18:49.2902520Z",
+        "structure_mtime_utc": "2026-06-29T21:37:11.5752850Z",
+        "status": "fresh"
+      }
+    ],
+    "after": [
+      {
+        "repo": "boost_dba",
+        "slug": "boost_dba",
+        "version": "1.0.0",
+        "repo_path": "C:\\repo\\boost_DBA",
+        "structure_path": "C:\\repo\\mcp-first-enterprise-full\\repo-intake\\generated\\v2\\boost_dba\\1.0.0\\context-manifests\\structure-min.json",
+        "structure_exists": true,
+        "structure_reports_repo_exists": true,
+        "cache_fingerprint": "ef9546bf252c15dd",
+        "repo_latest_change_utc": "2026-06-15T23:21:51.7989226Z",
+        "structure_mtime_utc": "2026-06-29T21:37:11.4930494Z",
+        "status": "fresh"
+      },
+      {
+        "repo": "boost_azure_rag",
+        "slug": "boost_azure_rag",
+        "version": "1.0.0",
+        "repo_path": "C:\\repo\\boost_RAG-Azure-Builder",
+        "structure_path": "C:\\repo\\mcp-first-enterprise-full\\repo-intake\\generated\\v2\\boost_azure_rag\\1.0.0\\context-manifests\\structure-min.json",
+        "structure_exists": true,
+        "structure_reports_repo_exists": true,
+        "cache_fingerprint": "e43ca5193da0ac69",
+        "repo_latest_change_utc": "2026-06-28T21:48:10.0466031Z",
+        "structure_mtime_utc": "2026-06-29T21:37:11.5157458Z",
+        "status": "fresh"
+      },
+      {
+        "repo": "boost_azure_iot_edge",
+        "slug": "boost_azure_iot_edge",
+        "version": "1.0.0",
+        "repo_path": "C:\\repo\\boost_azure-iot-edge",
+        "structure_path": "C:\\repo\\mcp-first-enterprise-full\\repo-intake\\generated\\v2\\boost_azure_iot_edge\\1.0.0\\context-manifests\\structure-min.json",
+        "structure_exists": true,
+        "structure_reports_repo_exists": true,
+        "cache_fingerprint": "3cc58b50a6794b0d",
+        "repo_latest_change_utc": "2026-06-29T17:15:44.7847312Z",
+        "structure_mtime_utc": "2026-06-29T21:37:11.5354602Z",
+        "status": "fresh"
+      },
+      {
+        "repo": "boost_dev_core",
+        "slug": "boost_dev_core",
+        "version": "1.0.0",
+        "repo_path": "C:\\repo\\sertxIA",
+        "structure_path": "C:\\repo\\mcp-first-enterprise-full\\repo-intake\\generated\\v2\\boost_dev_core\\1.0.0\\context-manifests\\structure-min.json",
+        "structure_exists": true,
+        "structure_reports_repo_exists": true,
+        "cache_fingerprint": "a8ae224391bc64a4",
+        "repo_latest_change_utc": "2026-06-29T16:03:19.8445980Z",
+        "structure_mtime_utc": "2026-06-29T21:37:11.5538997Z",
+        "status": "fresh"
+      },
+      {
+        "repo": "boost_backend",
+        "slug": "boost_backend",
+        "version": "1.0.0",
+        "repo_path": "C:\\repo\\boost_backend",
+        "structure_path": "C:\\repo\\mcp-first-enterprise-full\\repo-intake\\generated\\v2\\boost_backend\\1.0.0\\context-manifests\\structure-min.json",
+        "structure_exists": true,
+        "structure_reports_repo_exists": true,
+        "cache_fingerprint": "4989762876382d3e",
+        "repo_latest_change_utc": "2026-06-29T17:18:49.2902520Z",
+        "structure_mtime_utc": "2026-06-29T21:37:11.5752850Z",
+        "status": "fresh"
+      }
+    ],
+    "changed_repos": []
+  },
+  "steps": [
+    {
+      "name": "Validate context",
+      "required": true,
+      "success": true,
+      "duration_sec": 7.42,
+      "message": "ok"
+    },
+    {
+      "name": "Validate memory/cache artifacts",
+      "required": true,
+      "success": true,
+      "duration_sec": 0.04,
+      "message": "ok"
+    },
+    {
+      "name": "Check structure cache freshness",
+      "required": true,
+      "success": true,
+      "duration_sec": 3.02,
+      "message": "ok"
+    },
+    {
+      "name": "Validate sibling repos operability",
+      "required": true,
+      "success": true,
+      "duration_sec": 0.12,
+      "message": "ok"
+    },
+    {
+      "name": "Validate agent pipeline preflight",
+      "required": true,
+      "success": true,
+      "duration_sec": 1.04,
+      "message": "ok"
+    },
+    {
+      "name": "Run repo intake",
+      "required": true,
+      "success": true,
+      "duration_sec": 4.48,
+      "message": "ok"
+    },
+    {
+      "name": "Check codegraph status",
+      "required": false,
+      "success": true,
+      "duration_sec": 3.03,
+      "message": "ok"
+    }
+  ]
+}

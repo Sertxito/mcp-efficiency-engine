@@ -7,8 +7,8 @@
 | Bug/fix/refactor/test | Código repo único | dev-agent | CodeGraph |
 | Legacy/migración/multi-repo | Código legacy | legacy-agent | GitNexus |
 | SQL/schema/procedure | SQL/docs técnicas | dba-agent | Graphify |
-| Knowledge local/docs técnicas | Docs locales | rag-agent | Graphify |
-| Contratos/SLA/SharePoint/políticas | Docs corporativos | azure-rag-agent | Azure RAG Builder |
+| Knowledge local/docs técnicas | Docs locales | rag-local-agent | Graphify |
+| Contratos/SLA/SharePoint/políticas | Docs corporativos | rag-azure-agent | Azure RAG Builder |
 | IoT/edge/telemetría | Código + docs | iot-agent | GitNexus/CodeGraph + Graphify |
 | Formación/posts/storytelling | Knowledge generado | community-manager-agent | Graphify |
 | Exportar contexto | Repo/docs | snapshot-agent | Repomix |

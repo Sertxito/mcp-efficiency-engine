@@ -1,0 +1,39 @@
+{
+  "session": "bye",
+  "started_at": "2026-06-29T22:15:01.8591889+02:00",
+  "ended_at": "2026-06-29T22:15:13.2771525+02:00",
+  "duration_sec": 11.42,
+  "repo": "C:\\repo\\mcp-first-enterprise-full",
+  "success": true,
+  "steps": [
+    {
+      "name": "Validate repo registry (strict)",
+      "required": true,
+      "success": true,
+      "duration_sec": 2.6,
+      "message": "ok"
+    },
+    {
+      "name": "Run routing evals",
+      "required": true,
+      "success": true,
+      "duration_sec": 3.88,
+      "message": "ok"
+    },
+    {
+      "name": "Check codegraph status",
+      "required": false,
+      "success": true,
+      "duration_sec": 3.24,
+      "message": "ok"
+    },
+    {
+      "name": "Collect git snapshot",
+      "required": false,
+      "success": true,
+      "duration_sec": 1.59,
+      "message": "ok"
+    }
+  ],
+  "git": {}
+}

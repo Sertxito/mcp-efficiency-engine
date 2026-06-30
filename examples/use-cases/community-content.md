@@ -1,3 +1,21 @@
 # community-content
 
-Post técnico -> community-manager-agent -> Graphify.
+## Escenario
+
+Generar contenido tecnico para comunidad (post, hilo, resumen didactico).
+
+## Prompt de ejemplo
+
+"Prepara un post tecnico sobre observabilidad en esta plataforma."
+
+## Ruta esperada
+
+- `agent`: `community-manager-agent`
+- `engine`: Graphify
+- `domain`: community/content
+
+## Validacion
+
+```powershell
+py -3 .\scripts\intake\resolve-routing.py --input "Prepara un post tecnico sobre observabilidad en esta plataforma" --intent content --domain community --source-type technical-docs --capability community-content
+```

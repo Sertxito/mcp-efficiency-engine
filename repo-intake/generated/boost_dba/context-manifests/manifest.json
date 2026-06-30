@@ -1,0 +1,24 @@
+{
+  "repo": "boost_dba",
+  "slug": "boost_dba",
+  "schema_version": "2.0",
+  "domain": "dba",
+  "location": "../boost_DBA",
+  "type": "local",
+  "agent": "dba-agent",
+  "skill": "database-analysis",
+  "engine": "Graphify",
+  "engines": {
+    "knowledge": "graphify",
+    "execution": "none",
+    "snapshot": "repomix"
+  },
+  "dependencies": [],
+  "approval": {
+    "status": "approved",
+    "approved_by": "platform-team",
+    "approved_date": "2026-06-29",
+    "review_ticket": "PLATFORM-1001"
+  },
+  "generated_at": "2026-06-30T17:24:02.367599+00:00"
+}

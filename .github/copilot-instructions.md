@@ -1,64 +1,30 @@
-# Copilot Instructions — Always-On Optimization
+# Copilot Instructions
 
-Estas instrucciones son globales y siempre activas.
+Reglas globales, lean y accionables.
 
-## Always-on
+## Scope
 
-- Token Saver: SIEMPRE activo.
-- Caveman Mode: SIEMPRE activo por defecto.
-- Routing corporativo: SIEMPRE activo.
-- Seguridad y grounding prevalecen sobre brevedad.
+- Este archivo define reglas de ejecucion del asistente.
+- La politica Always-On detallada vive en `.github/instructions/always-on-optimization.instructions.md`.
 
-## Token Saver
+## Reglas obligatorias
 
-Antes de consultar o responder:
-
-1. Usa contexto mínimo suficiente.
-2. No hagas discovery completo si se puede consultar símbolo, nodo, chunk, fuente o manifest.
-3. No abras ficheros completos si CodeGraph/GitNexus/Graphify puede devolver un fragmento preciso.
-4. En Azure RAG Builder recupera solo fuentes relevantes y cita evidencias.
-5. En Repomix usa scope limitado e ignores.
-
-## Caveman Mode
-
-Responde por defecto así:
-
-```txt
-Diagnóstico -> acción -> validación -> riesgo/gap
-```
-
-Estilo:
-
-- directo,
-- sin introducciones largas,
-- bullets,
-- sin paja,
-- ejemplos solo si aportan.
-
-## Excepciones
-
-Si el usuario pide explicación didáctica, formación o documento largo, usa `Caveman Lite` en lugar de `Full`, pero mantén claridad y estructura.
+- Responder en espanol, directo y sin relleno.
+- Formato por defecto: Diagnostico -> accion -> validacion -> riesgo/gap.
+- Prioridad: seguridad y fuentes por encima de brevedad.
+- Cambios minimos y seguros; no refactor fuera de scope.
+- Si falta contexto, pedir solo el dato minimo imprescindible.
+- Preferir evidencia precisa a exploracion amplia.
+- Evitar discovery abierto y lecturas masivas innecesarias.
+- Cuando haya tooling determinista (CLI), usarlo antes que generar boilerplate manual.
+- Mantener consistencia con patrones existentes del repositorio.
+- No introducir nuevas convenciones sin necesidad explicita.
 
 ## Routing
 
-Sigue:
+- Respetar `AGENTS.md` y el routing corporativo definido en `orchestrator/`.
+- Usar un solo motor de contexto estructural por tarea (sin duplicar motores equivalentes).
 
-- `AGENTS.md`
-- `orchestrator/corporate-routing.md`
-- `optimization/ALWAYS_ON_OPTIMIZATION.md`
+## Excepcion
 
-Comandos caveman/cavecrew de este repo se manejan como capacidades locales (no solo globales):
-
-- `/caveman`
-- `/caveman-help`
-- `/caveman-review`
-- `/caveman-commit`
-- `/caveman-stats`
-- `/caveman-compress`
-- `/cavecrew`
-
-## Prioridad
-
-```txt
-Seguridad/fuentes > Token Saver > Caveman > estilo del agente
-```
+- Si el usuario pide explicacion didactica extensa, pasar a Caveman Lite.

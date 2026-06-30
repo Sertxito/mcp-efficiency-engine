@@ -1,0 +1,59 @@
+{
+  "session": "hi",
+  "started_at": "2026-06-29T22:56:48.2712454+02:00",
+  "ended_at": "2026-06-29T22:57:18.9609614+02:00",
+  "duration_sec": 30.69,
+  "repo": "C:\\repo\\mcp-first-enterprise-full",
+  "success": true,
+  "steps": [
+    {
+      "name": "Validate context",
+      "required": true,
+      "success": true,
+      "duration_sec": 15.0,
+      "message": "ok"
+    },
+    {
+      "name": "Validate memory/cache artifacts",
+      "required": true,
+      "success": true,
+      "duration_sec": 0.1,
+      "message": "ok"
+    },
+    {
+      "name": "Validate sibling repos operability",
+      "required": true,
+      "success": true,
+      "duration_sec": 0.2,
+      "message": "ok"
+    },
+    {
+      "name": "Validate agent pipeline preflight",
+      "required": true,
+      "success": true,
+      "duration_sec": 1.11,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh codegraph index sync",
+      "required": false,
+      "success": true,
+      "duration_sec": 5.96,
+      "message": "ok"
+    },
+    {
+      "name": "Run repo intake",
+      "required": true,
+      "success": true,
+      "duration_sec": 4.28,
+      "message": "ok"
+    },
+    {
+      "name": "Check codegraph status",
+      "required": false,
+      "success": true,
+      "duration_sec": 3.87,
+      "message": "ok"
+    }
+  ]
+}

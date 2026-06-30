@@ -1,0 +1,100 @@
+{
+  "schema_version": "1.0",
+  "repo": "boost_azure_iot_edge",
+  "slug": "boost_azure_iot_edge",
+  "version": "0",
+  "domain": "iot",
+  "location": "../boost_azure-iot-edge",
+  "resolved_path": "C:/repo/boost_azure-iot-edge",
+  "generated_at": "2026-06-30T17:24:02.397966+00:00",
+  "exists": true,
+  "top_level": {
+    "dirs": [
+      ".git",
+      ".github",
+      "arduinos",
+      "bridge",
+      "decider",
+      "deployment",
+      "docs",
+      "scripts",
+      "tests"
+    ],
+    "files": [
+      ".env.local.example",
+      ".gitignore",
+      "config.py",
+      "Dockerfile",
+      "README.md",
+      "requirements.txt"
+    ],
+    "counts": {
+      "dirs": 9,
+      "files": 6
+    }
+  },
+  "key_artifacts": [
+    {
+      "path": "AGENTS.md",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": "README.md",
+      "exists": true,
+      "kind": "file",
+      "fingerprint": {
+        "size_bytes": 8614,
+        "mtime_utc": "2026-06-29T17:15:44.746731+00:00",
+        "sha256_16": "ceb4e11a350913d5"
+      }
+    },
+    {
+      "path": "ARCHITECTURE.md",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": ".github/skills",
+      "exists": true,
+      "kind": "dir",
+      "sample_children": [
+        "appinsights-instrumentation",
+        "arduino-azure-iot-edge-integration",
+        "az-cost-optimize",
+        "azure-architecture-autopilot",
+        "azure-deployment-preflight",
+        "azure-pricing",
+        "azure-resource-visualizer",
+        "azure-role-selector",
+        "azure-smart-city-iot-solution-builder",
+        "python-azure-iot-edge-modules"
+      ],
+      "sample_truncated": false
+    },
+    {
+      "path": ".github/prompts",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": "scripts",
+      "exists": true,
+      "kind": "dir",
+      "sample_children": [
+        "create-stream-analytics.ps1",
+        "provision-smartcity-cloud.ps1",
+        "redeploy-edge.ps1",
+        "setup-landing-blob-access.ps1",
+        "sync-local-secrets.ps1"
+      ],
+      "sample_truncated": false
+    },
+    {
+      "path": "specs",
+      "exists": false,
+      "kind": "missing"
+    }
+  ],
+  "cache_fingerprint": "3cc58b50a6794b0d"
+}

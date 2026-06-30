@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.0",
+  "repo": "boost_dev_core",
+  "slug": "boost_dev_core",
+  "version": "0",
+  "domain": "dev",
+  "location": "../sertxIA",
+  "resolved_path": "C:/repo/sertxIA",
+  "generated_at": "2026-06-30T17:24:02.413053+00:00",
+  "exists": true,
+  "top_level": {
+    "dirs": [
+      ".git",
+      ".github",
+      ".venv",
+      ".vscode",
+      "archive",
+      "editorial",
+      "ego",
+      "node_modules",
+      "presentations"
+    ],
+    "files": [
+      ".gitignore",
+      "package-lock.json",
+      "README.md"
+    ],
+    "counts": {
+      "dirs": 9,
+      "files": 3
+    }
+  },
+  "key_artifacts": [
+    {
+      "path": "AGENTS.md",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": "README.md",
+      "exists": true,
+      "kind": "file",
+      "fingerprint": {
+        "size_bytes": 14368,
+        "mtime_utc": "2026-06-21T15:46:40.220488+00:00",
+        "sha256_16": "662753df4466f49c"
+      }
+    },
+    {
+      "path": "ARCHITECTURE.md",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": ".github/skills",
+      "exists": true,
+      "kind": "dir",
+      "sample_children": [
+        "content-research",
+        "content-validator",
+        "editorial-orchestrator",
+        "event-landing-builder",
+        "github-profile",
+        "image-prompt-builder",
+        "linkedin-campaign-analytics",
+        "performance-tracker",
+        "platform-formatter",
+        "presentation-storytelling",
+        "repo-analyzer",
+        "sessionize-profile",
+        "slidev-builder",
+        "techriders",
+        "upload-post"
+      ],
+      "sample_truncated": false
+    },
+    {
+      "path": ".github/prompts",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": "scripts",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": "specs",
+      "exists": false,
+      "kind": "missing"
+    }
+  ],
+  "cache_fingerprint": "a8ae224391bc64a4"
+}

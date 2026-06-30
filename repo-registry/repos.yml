@@ -9,7 +9,6 @@
     {
       "name": "boost_dba",
       "domain": "dba",
-      "version": "1.0.0",
       "location": "../boost_DBA",
       "type": "local",
       "dependencies": [],
@@ -28,13 +27,11 @@
     {
       "name": "boost_azure_rag",
       "domain": "azure-rag",
-      "version": "1.0.0",
       "location": "../boost_RAG-Azure-Builder",
       "type": "local",
       "dependencies": [
         {
-          "ref": "boost_dba",
-          "version": ">=1.0.0"
+          "ref": "boost_dba"
         }
       ],
       "approval": {
@@ -52,13 +49,11 @@
     {
       "name": "boost_azure_iot_edge",
       "domain": "iot",
-      "version": "1.0.0",
       "location": "../boost_azure-iot-edge",
       "type": "local",
       "dependencies": [
         {
-          "ref": "boost_dba",
-          "version": ">=1.0.0"
+          "ref": "boost_dba"
         }
       ],
       "approval": {
@@ -76,7 +71,6 @@
     {
       "name": "boost_dev_core",
       "domain": "dev",
-      "version": "1.0.0",
       "location": "../sertxIA",
       "type": "local",
       "dependencies": [],
@@ -95,7 +89,6 @@
     {
       "name": "boost_backend",
       "domain": "dev",
-      "version": "1.0.0",
       "location": "../boost_backend",
       "type": "local",
       "dependencies": [],

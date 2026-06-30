@@ -1,0 +1,24 @@
+{
+  "repo": "boost_backend",
+  "slug": "boost_backend",
+  "schema_version": "2.0",
+  "domain": "dev",
+  "location": "../boost_backend",
+  "type": "local",
+  "agent": "dev-agent",
+  "skill": "dev-coding",
+  "engine": "CodeGraph",
+  "engines": {
+    "knowledge": "codegraph",
+    "execution": "none",
+    "snapshot": "repomix"
+  },
+  "dependencies": [],
+  "approval": {
+    "status": "approved",
+    "approved_by": "platform-team",
+    "approved_date": "2026-06-29",
+    "review_ticket": "PLATFORM-1006"
+  },
+  "generated_at": "2026-06-30T17:24:02.426395+00:00"
+}

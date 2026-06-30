@@ -44,7 +44,7 @@ Respuesta trazable + observabilidad
 Setup inicial (Windows, una sola vez):
 
 ```powershell
-.\scripts\setup-prerequisites.ps1
+.\scripts\setup\setup-prerequisites.ps1
 ```
 
 Este script instala y configura herramientas base para la plataforma MCP:
@@ -58,9 +58,9 @@ Este script instala y configura herramientas base para la plataforma MCP:
 Luego valida el contexto y corre el intake:
 
 ```powershell
-.\scripts\validate-context.ps1
-.\scripts\run-repo-intake.cmd
-python .\scripts\run-routing-evals.py
+.\scripts\setup\validate-context.ps1
+.\scripts\intake\run-repo-intake.cmd
+python .\scripts\intake\run-routing-evals.py
 ```
 
 Lee primero:
@@ -70,6 +70,39 @@ Lee primero:
 - `optimization/token-saver.md`
 - `optimization/caveman-mode.md`
 - `optimization/optimization-routing.md`
+
+Mapa de scripts operativos:
+
+- `scripts/README.md`
+
+Entry points recomendados:
+
+- setup: `scripts/setup/*`
+- intake/routing: `scripts/intake/*`
+- operacion diaria: `scripts/ops/*`
+
+## Mapa de politicas
+
+Politicas de gobierno (globales del repo):
+
+- `policies/context-policy.md`
+- `policies/cost-policy.md`
+- `policies/repo-intake-policy.md`
+- `policies/security-policy.md`
+
+Politicas de optimizacion (always-on runtime):
+
+- `optimization/policies/response-style.policy.md`
+- `optimization/policies/token-budget.policy.md`
+
+Orden de lectura recomendado:
+
+1. `policies/security-policy.md`
+2. `policies/context-policy.md`
+3. `policies/cost-policy.md`
+4. `policies/repo-intake-policy.md`
+5. `optimization/policies/token-budget.policy.md`
+6. `optimization/policies/response-style.policy.md`
 
 ## Always-On Optimization
 
@@ -125,12 +158,12 @@ Comandos disponibles en este repo:
 
 Motores y herramientas usadas en este stack:
 
-- CodeGraph: https://github.com/colbymchenry/codegraph
-- GitNexus: https://github.com/abhigyanpatwari/GitNexus
-- Graphify (sitio): https://graphify.net/
-- Graphify (PyPI): https://pypi.org/project/graphifyy/
-- Repomix: https://repomix.com/
-- Repomix (GitHub): https://github.com/yamadashy/repomix
-- Token Saver MCP (npm): https://www.npmjs.com/package/token-saver-mcp
-- Token Saver (GitHub): https://github.com/flightlesstux/token-saver
-- Codebase Memory MCP: https://github.com/DeusData/codebase-memory-mcp
+- CodeGraph: [https://github.com/colbymchenry/codegraph](https://github.com/colbymchenry/codegraph)
+- GitNexus: [https://github.com/abhigyanpatwari/GitNexus](https://github.com/abhigyanpatwari/GitNexus)
+- Graphify (sitio): [https://graphify.net/](https://graphify.net/)
+- Graphify (PyPI): [https://pypi.org/project/graphifyy/](https://pypi.org/project/graphifyy/)
+- Repomix: [https://repomix.com/](https://repomix.com/)
+- Repomix (GitHub): [https://github.com/yamadashy/repomix](https://github.com/yamadashy/repomix)
+- Token Saver MCP (npm): [https://www.npmjs.com/package/token-saver-mcp](https://www.npmjs.com/package/token-saver-mcp)
+- Token Saver (GitHub): [https://github.com/flightlesstux/token-saver](https://github.com/flightlesstux/token-saver)
+- Codebase Memory MCP: [https://github.com/DeusData/codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp)

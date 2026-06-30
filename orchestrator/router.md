@@ -34,12 +34,12 @@ Requirements operativos (runtime):
 - MCP server activo: `codegraph` en `.vscode/mcp.json`
 - Comando disponible: `codegraph --version`
 - Repo inicializado: `codegraph status` debe reportar index up to date
-- Preflight recomendado: `.\scripts\validate-context.ps1`
+- Preflight recomendado: `.\scripts\setup\validate-context.ps1`
 
 Comando de resolución y emisión de evento:
 
 ```powershell
-python .\scripts\resolve-routing.py --input "Arregla bug de login" --intent bug-fix --domain dev --source-type code --capability dev-coding
+python .\scripts\intake\resolve-routing.py --input "Arregla bug de login" --intent bug-fix --domain dev --source-type code --capability dev-coding
 ```
 
 Salida:
@@ -65,3 +65,11 @@ Extensiones always-on:
 - `optimization` (token saver + caveman)
 - `memory` (selección previa)
 - `learning` (feedback)
+
+## Production guardrails (anti-expectation drift)
+
+- Routing debe declarar un engine principal por evento.
+- Si el evento termina en fallback sin `repo` asociado, marcar `grounded=false`.
+- `requirements` se calculan por engine real elegido (no solo por source_type).
+- Cuando exista ruta mixta (por ejemplo IoT), declarar un engine principal y el resto como apoyo en `notes`.
+- Nunca asumir evidencia: si no hay `sources`, declarar gap.

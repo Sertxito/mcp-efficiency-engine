@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0",
+  "repo": "boost_backend",
+  "slug": "boost_backend",
+  "version": "0",
+  "domain": "dev",
+  "location": "../boost_backend",
+  "resolved_path": "C:/repo/boost_backend",
+  "generated_at": "2026-06-30T17:24:02.426746+00:00",
+  "exists": true,
+  "top_level": {
+    "dirs": [
+      ".git",
+      ".github"
+    ],
+    "files": [
+      "README.md"
+    ],
+    "counts": {
+      "dirs": 2,
+      "files": 1
+    }
+  },
+  "key_artifacts": [
+    {
+      "path": "AGENTS.md",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": "README.md",
+      "exists": true,
+      "kind": "file",
+      "fingerprint": {
+        "size_bytes": 21563,
+        "mtime_utc": "2026-06-29T17:18:49.290252+00:00",
+        "sha256_16": "690bfa1515e44c2a"
+      }
+    },
+    {
+      "path": "ARCHITECTURE.md",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": ".github/skills",
+      "exists": true,
+      "kind": "dir",
+      "sample_children": [
+        "architecture-blueprint-generator",
+        "aws-core",
+        "aws-cost",
+        "aws-deploy",
+        "aws-diagnostics",
+        "aws-governance",
+        "aws-iac",
+        "aws-observability",
+        "aws-security",
+        "azure-devops-cli",
+        "breakdown-epic-arch",
+        "breakdown-epic-pm",
+        "breakdown-plan",
+        "breakdown-test",
+        "context-map",
+        "create-implementation-plan",
+        "create-specification",
+        "devops-rollout-plan",
+        "documentation-writer",
+        "dotnet-best-practices",
+        "dotnet-design-pattern-review",
+        "engineering-quality-traceability",
+        "generate-custom-instructions-from-codebase",
+        "identity-access-security",
+        "playwright-generate-test"
+      ],
+      "sample_truncated": true
+    },
+    {
+      "path": ".github/prompts",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": "scripts",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": "specs",
+      "exists": false,
+      "kind": "missing"
+    }
+  ],
+  "cache_fingerprint": "4989762876382d3e"
+}

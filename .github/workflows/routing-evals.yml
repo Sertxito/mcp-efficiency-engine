@@ -1,0 +1,172 @@
+name: Routing Evals Gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: routing-evals-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  routing-evals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      PYTHONUNBUFFERED: '1'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: requirements.txt
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install dependencies (if requirements.txt exists)
+        run: |
+          if [ -f requirements.txt ]; then
+            python -m pip install -r requirements.txt
+          fi
+
+      - name: Run routing evals
+        run: python ./scripts/intake/run-routing-evals.py
+
+      - name: Build learning loop report
+        run: python ./scripts/learning/learning-loop-report.py
+
+      - name: Build iteration value report
+        run: python ./scripts/learning/iteration-value-report.py
+
+      - name: Enforce AutoLearning gate
+        run: python ./scripts/learning/autolearning-gate.py
+
+      - name: Enforce zero failed cases
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = Path('observability/evals/routing-eval-report.json')
+          if not report.exists():
+              raise SystemExit('routing-eval-report.json not found')
+
+          data = json.loads(report.read_text(encoding='utf-8'))
+          failed = int(data.get('cases_failed', 0))
+          total = int(data.get('cases_total', 0))
+          passed = int(data.get('cases_passed', 0))
+          print(f'Routing evals: {passed}/{total} passed, failed={failed}')
+          if failed > 0:
+              raise SystemExit(1)
+          PY
+
+      - name: Upload eval artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: routing-evals-${{ github.run_number }}
+          if-no-files-found: warn
+          path: |
+            observability/evals/routing-eval-report.json
+            observability/evals/learning-loop-report.json
+            observability/evals/learning-loop-report.md
+            observability/evals/iteration-value-report.json
+            observability/evals/iteration-value-report.md
+
+  publish-summary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs:
+      - routing-evals
+    if: always()
+
+    steps:
+      - name: Download eval artifacts
+        id: download_artifacts
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: routing-evals-${{ github.run_number }}
+          path: artifacts
+
+      - name: Publish workflow summary
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          summary_path = Path(os.environ['GITHUB_STEP_SUMMARY'])
+
+          routing = Path('artifacts/observability/evals/routing-eval-report.json')
+          learning = Path('artifacts/observability/evals/learning-loop-report.json')
+          iteration = Path('artifacts/observability/evals/iteration-value-report.json')
+
+          lines = ['# Routing Evals Summary', '']
+          lines.append(f"- routing-evals result: {os.environ.get('NEEDS_ROUTING_EVALS_RESULT', 'unknown')}")
+          lines.append('')
+
+          if routing.exists():
+              data = json.loads(routing.read_text(encoding='utf-8'))
+              total = int(data.get('cases_total', 0))
+              passed = int(data.get('cases_passed', 0))
+              failed = int(data.get('cases_failed', 0))
+              lines.extend([
+                  '## Routing Gate',
+                  f'- total: {total}',
+                  f'- passed: {passed}',
+                  f'- failed: {failed}',
+                  ''
+              ])
+          else:
+              lines.extend(['## Routing Gate', '- report missing', ''])
+
+          if learning.exists():
+              data = json.loads(learning.read_text(encoding='utf-8'))
+              kpis = data.get('kpis', {}) if isinstance(data.get('kpis', {}), dict) else {}
+              lines.extend([
+                  '## Learning Loop',
+                  f"- fallback_rate: {kpis.get('fallback_rate', 0.0)}",
+                  f"- grounded_rate: {kpis.get('grounded_rate', 0.0)}",
+                  f"- success_rate: {kpis.get('success_rate', 0.0)}",
+                  f"- confidence_avg: {kpis.get('confidence_avg', 0.0)}",
+                  ''
+              ])
+          else:
+              lines.extend(['## Learning Loop', '- report missing', ''])
+
+          if iteration.exists():
+              data = json.loads(iteration.read_text(encoding='utf-8'))
+              kpis = data.get('kpis', {}) if isinstance(data.get('kpis', {}), dict) else {}
+              lines.extend([
+                  '## Iteration Value',
+                  f"- metrics_coverage_rate: {kpis.get('metrics_coverage_rate', 0.0)}",
+                  f"- confirmed_feedback_rate: {kpis.get('confirmed_feedback_rate', 0.0)}",
+                  f"- confirmed_success_rate: {kpis.get('confirmed_success_rate', 0.0)}",
+                  f"- total_tokens: {kpis.get('total_tokens', 0)}",
+                  f"- total_cost_usd: {kpis.get('total_cost_usd', 0.0)}",
+                  ''
+              ])
+          else:
+              lines.extend(['## Iteration Value', '- report missing', ''])
+
+          summary_path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          PY
+        env:
+          NEEDS_ROUTING_EVALS_RESULT: ${{ needs.routing-evals.result }}

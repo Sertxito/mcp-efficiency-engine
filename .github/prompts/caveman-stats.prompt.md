@@ -1,4 +1,11 @@
 # caveman-stats.prompt.md
 
-Mostrar token usage y ahorro estimado de forma compacta.
-Si no hay datos, declarar gap.
+Objetivo: mostrar estado rapido de eficiencia.
+
+Incluir:
+- tokens analizados
+- tokens ahorrados/suprimidos
+- alerts/warnings
+- estimacion de ahorro
+
+Si no hay datos, declarar gap y siguiente accion para obtenerlos.

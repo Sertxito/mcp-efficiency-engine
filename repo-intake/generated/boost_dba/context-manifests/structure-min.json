@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0",
+  "repo": "boost_dba",
+  "slug": "boost_dba",
+  "version": "0",
+  "domain": "dba",
+  "location": "../boost_DBA",
+  "resolved_path": "C:/repo/boost_DBA",
+  "generated_at": "2026-06-30T17:24:02.367966+00:00",
+  "exists": true,
+  "top_level": {
+    "dirs": [
+      ".git",
+      ".github",
+      "input",
+      "workspaces"
+    ],
+    "files": [
+      ".gitignore"
+    ],
+    "counts": {
+      "dirs": 4,
+      "files": 1
+    }
+  },
+  "key_artifacts": [
+    {
+      "path": "AGENTS.md",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": "README.md",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": "ARCHITECTURE.md",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": ".github/skills",
+      "exists": true,
+      "kind": "dir",
+      "sample_children": [
+        "capacity-planning",
+        "cross-platform-validation",
+        "database-analysis",
+        "dba-governance",
+        "dependency-impact",
+        "documentation-recovery",
+        "high-availability",
+        "human-in-the-loop",
+        "jobs-automation",
+        "migration-scripting",
+        "monitoring-baseline",
+        "performance-diagnostics",
+        "proactive-maintenance",
+        "query-optimization",
+        "secure-onboarding",
+        "security-loop",
+        "sp-to-application-migration",
+        "sql-anonymization",
+        "test-data-generation",
+        "token-usage-observability"
+      ],
+      "sample_truncated": false
+    },
+    {
+      "path": ".github/prompts",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": "scripts",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": "specs",
+      "exists": false,
+      "kind": "missing"
+    }
+  ],
+  "cache_fingerprint": "ef9546bf252c15dd"
+}

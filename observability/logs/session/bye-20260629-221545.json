@@ -1,0 +1,59 @@
+{
+  "session": "bye",
+  "started_at": "2026-06-29T22:15:37.3811843+02:00",
+  "ended_at": "2026-06-29T22:15:45.8187112+02:00",
+  "duration_sec": 8.44,
+  "repo": "C:\\repo\\mcp-first-enterprise-full",
+  "success": true,
+  "steps": [
+    {
+      "name": "Validate repo registry (strict)",
+      "required": true,
+      "success": true,
+      "duration_sec": 2.91,
+      "message": "ok"
+    },
+    {
+      "name": "Check codegraph status",
+      "required": false,
+      "success": true,
+      "duration_sec": 4.44,
+      "message": "ok"
+    },
+    {
+      "name": "Collect git snapshot",
+      "required": false,
+      "success": true,
+      "duration_sec": 0.96,
+      "message": "ok"
+    }
+  ],
+  "git": {
+    "branch": "main",
+    "changed_files": 28,
+    "staged_files": 4,
+    "unstaged_files": 28,
+    "sample": [
+      " M docs/always-on-optimization-guide.md",
+      " M docs/onboarding.md",
+      " M observability/evals/routing-eval-report.json",
+      " M observability/logs/routing-decisions.jsonl",
+      " M orchestrator/router.md",
+      " M repo-intake/generated/reports/SUMMARY.json",
+      " M repo-intake/generated/reports/repo-registry-validation.json",
+      " M repo-intake/generated/v2/boost_azure_iot_edge/1.0.0/audit/audit-log.jsonl",
+      " M repo-intake/generated/v2/boost_azure_iot_edge/1.0.0/capabilities/capability.json",
+      " M repo-intake/generated/v2/boost_azure_iot_edge/1.0.0/context-manifests/manifest.json",
+      " M repo-intake/generated/v2/boost_azure_rag/1.0.0/audit/audit-log.jsonl",
+      " M repo-intake/generated/v2/boost_azure_rag/1.0.0/capabilities/capability.json",
+      " M repo-intake/generated/v2/boost_azure_rag/1.0.0/context-manifests/manifest.json",
+      " M repo-intake/generated/v2/boost_backend/1.0.0/audit/audit-log.jsonl",
+      " M repo-intake/generated/v2/boost_backend/1.0.0/capabilities/capability.json",
+      " M repo-intake/generated/v2/boost_backend/1.0.0/context-manifests/manifest.json",
+      " M repo-intake/generated/v2/boost_dba/1.0.0/audit/audit-log.jsonl",
+      " M repo-intake/generated/v2/boost_dba/1.0.0/capabilities/capability.json",
+      " M repo-intake/generated/v2/boost_dba/1.0.0/context-manifests/manifest.json",
+      " M repo-intake/generated/v2/boost_dev_core/1.0.0/audit/audit-log.jsonl"
+    ]
+  }
+}

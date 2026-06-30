@@ -1,0 +1,71 @@
+{
+  "timestamp": "2026-06-29T20:47:38.730753+00:00",
+  "sources": {
+    "routing": "C:\\repo\\mcp-first-enterprise-full\\observability\\logs\\routing-decisions.jsonl",
+    "feedback": "C:\\repo\\mcp-first-enterprise-full\\observability\\logs\\learning-feedback.jsonl",
+    "metrics": "C:\\repo\\mcp-first-enterprise-full\\observability\\logs\\iteration-metrics.jsonl"
+  },
+  "totals": {
+    "events": 56,
+    "events_with_event_id": 5,
+    "metrics_covered": 5,
+    "feedback_confirmed": 5,
+    "confirmed_success": 5
+  },
+  "kpis": {
+    "metrics_coverage_rate": 1.0,
+    "confirmed_feedback_rate": 1.0,
+    "confirmed_success_rate": 1.0,
+    "total_tokens": 6000,
+    "total_cost_usd": 0.05,
+    "tokens_per_confirmed_success": 1200.0,
+    "cost_per_confirmed_success_usd": 0.01
+  },
+  "breakdown": {
+    "tool_mode": {
+      "hybrid": {
+        "count": 2,
+        "tokens": 2400,
+        "cost_usd": 0.02
+      },
+      "local-only": {
+        "count": 3,
+        "tokens": 3600,
+        "cost_usd": 0.03
+      }
+    },
+    "model": {
+      "GPT-5.3-Codex": {
+        "count": 5,
+        "tokens": 6000,
+        "cost_usd": 0.05
+      }
+    },
+    "engine": {
+      "Azure RAG Builder": {
+        "count": 1,
+        "tokens": 1200,
+        "cost_usd": 0.01
+      },
+      "CodeGraph": {
+        "count": 2,
+        "tokens": 2400,
+        "cost_usd": 0.02
+      },
+      "GitNexus": {
+        "count": 1,
+        "tokens": 1200,
+        "cost_usd": 0.01
+      },
+      "Graphify": {
+        "count": 1,
+        "tokens": 1200,
+        "cost_usd": 0.01
+      }
+    }
+  },
+  "assessment": {
+    "has_value_signal": true,
+    "notes": "Value signal available. Track trend, not one-point absolute values."
+  }
+}

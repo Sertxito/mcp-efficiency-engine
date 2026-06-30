@@ -1,0 +1,9 @@
+{
+  "capability": "dev-coding",
+  "repo": "boost_backend",
+  "domain": "dev",
+  "agent": "dev-agent",
+  "engine": "CodeGraph",
+  "dependencies": [],
+  "generated_at": "2026-06-30T17:24:02.429896+00:00"
+}

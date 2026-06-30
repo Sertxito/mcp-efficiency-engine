@@ -30,7 +30,7 @@ Reducir coste, contexto y ruido en cualquier herramienta o agente.
 - dev-agent: CodeGraph con símbolo/call path.
 - legacy-agent: GitNexus con flow/dependency concreto.
 - dba-agent: Graphify con schema/query relevante.
-- rag-agent: Graphify con nodos/fuentes.
-- azure-rag-agent: Azure RAG Builder con fuentes y top-k limitado.
+- rag-local-agent: Graphify con nodos/fuentes.
+- rag-azure-agent: Azure RAG Builder con fuentes y top-k limitado.
 - iot-agent: combinar solo si hace falta.
 - community-manager-agent: contexto suficiente, no todo el corpus.

@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0",
+  "repo": "boost_azure_rag",
+  "slug": "boost_azure_rag",
+  "version": "0",
+  "domain": "azure-rag",
+  "location": "../boost_RAG-Azure-Builder",
+  "resolved_path": "C:/repo/boost_RAG-Azure-Builder",
+  "generated_at": "2026-06-30T17:24:02.382163+00:00",
+  "exists": true,
+  "top_level": {
+    "dirs": [
+      ".agents",
+      ".git",
+      ".github",
+      "assets"
+    ],
+    "files": [
+      ".env",
+      ".markdownlint.json",
+      "deploy-attempt8.log",
+      "deploy-final-attempt.log",
+      "deploy-final.log",
+      "deploy-full.log",
+      "deploy.log",
+      "deployment-eastus.txt",
+      "deployment-final.txt",
+      "deployment-output.txt",
+      "deployment-westeurope.txt",
+      "skills-lock.json"
+    ],
+    "counts": {
+      "dirs": 4,
+      "files": 12
+    }
+  },
+  "key_artifacts": [
+    {
+      "path": "AGENTS.md",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": "README.md",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": "ARCHITECTURE.md",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": ".github/skills",
+      "exists": true,
+      "kind": "dir",
+      "sample_children": [
+        "rag-agent-instrumentation",
+        "rag-api-server",
+        "rag-architecture-optimizer",
+        "rag-cost-analyst",
+        "rag-cost-scaler",
+        "rag-deployment-templates",
+        "rag-diagnostics",
+        "rag-indexer",
+        "rag-orchestration",
+        "rag-qa-engine",
+        "rag-query-cli",
+        "rag-report-generator",
+        "rag-sharepoint-connector",
+        "rag-storage-connector",
+        "rag-validator"
+      ],
+      "sample_truncated": false
+    },
+    {
+      "path": ".github/prompts",
+      "exists": true,
+      "kind": "dir",
+      "sample_children": [
+        "implement.prompt.md",
+        "onboarding.prompt.md",
+        "plan.prompt.md",
+        "specify.prompt.md",
+        "tasks.prompt.md"
+      ],
+      "sample_truncated": false
+    },
+    {
+      "path": "scripts",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": "specs",
+      "exists": false,
+      "kind": "missing"
+    }
+  ],
+  "cache_fingerprint": "e43ca5193da0ac69"
+}

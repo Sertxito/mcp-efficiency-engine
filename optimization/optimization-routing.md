@@ -4,10 +4,12 @@
 
 Token Saver y Caveman están siempre activos.
 
+Memory MCP y Learning son transversales (always-on), pero la eleccion de engine es propiedad del routing segun intencion/contexto.
+
 ## Perfil por tipo de tarea
 
 | Tarea | Token Saver | Caveman |
-|---|---|---|
+| --- | --- | --- |
 | Debug / bug / CLI | strict | full |
 | Refactor | strict | full/lite |
 | Legacy impact | balanced | lite |

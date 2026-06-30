@@ -16,6 +16,7 @@
     "sources"
   ],
   "properties": {
+    "event_id": { "type": "string", "minLength": 1 },
     "timestamp": { "type": "string", "format": "date-time" },
     "input": { "type": "string", "minLength": 1 },
     "intent": { "type": "string", "minLength": 1 },
@@ -66,9 +67,26 @@
       "type": "object",
       "properties": {
         "used_pattern": { "type": "string" },
-        "success": { "type": "boolean" },
+        "success": { "type": ["boolean", "null"] },
+        "outcome_status": {
+          "type": "string",
+          "enum": ["pending", "confirmed"]
+        },
         "fallback": { "type": "boolean" },
         "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": true
+    },
+    "hitl": {
+      "type": "object",
+      "properties": {
+        "mode": { "type": "string", "enum": ["always_on_auto"] },
+        "required": { "type": "boolean" },
+        "action": {
+          "type": "string",
+          "enum": ["none", "request_human_confirmation", "block_until_human_approval"]
+        },
+        "reason": { "type": "string" }
       },
       "additionalProperties": true
     }

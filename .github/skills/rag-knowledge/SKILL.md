@@ -1,3 +1,21 @@
-# rag-knowledge
+# RAG Knowledge Skill
 
-Skill reutilizable para `rag-knowledge`.
+## Purpose
+
+Answer technical/local documentation questions from local knowledge sources.
+
+## When To Use
+
+- source_type is `technical-docs`
+- agent route is `rag-local-agent`
+
+## Workflow
+
+1. Retrieve minimal relevant local nodes/chunks.
+2. Synthesize concise technical answer.
+3. Mention evidence basis or declare a gap.
+
+## Guardrails
+
+- No unsupported claims.
+- Keep context scope minimal.
