@@ -12,7 +12,7 @@
       "domain": "dba",
       "type": "github",
       "repo_url": "https://github.com/Sertxito/boostDBA.git",
-      "branch": "main",
+      "branch": "master",
       "cache_location": ".cache/github-repos/boost_dba",
       "dependencies": [],
       "approval": {
@@ -111,6 +111,26 @@
       },
       "engines": {
         "knowledge": "codegraph",
+        "execution": "none",
+        "snapshot": "repomix"
+      }
+    },
+    {
+      "name": "boost_design_ux_with_intent",
+      "domain": "ux-ui",
+      "type": "github",
+      "repo_url": "https://github.com/Sertxito/boost_design-UX-with-Intent.git",
+      "branch": "master",
+      "cache_location": ".cache/github-repos/boost_design_ux_with_intent",
+      "dependencies": [],
+      "approval": {
+        "status": "approved",
+        "approved_by": "platform-team",
+        "approved_date": "2026-07-03",
+        "review_ticket": "PLATFORM-UX-1001"
+      },
+      "engines": {
+        "knowledge": "graphify",
         "execution": "none",
         "snapshot": "repomix"
       }

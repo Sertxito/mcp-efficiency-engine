@@ -78,6 +78,7 @@ def domain_defaults(domain: str) -> dict[str, str]:
         "azure-rag": {"agent": "rag-azure-agent", "engine": "Azure RAG Builder", "capability": "azure-rag-enterprise"},
         "rag": {"agent": "rag-local-agent", "engine": "Graphify", "capability": "rag-knowledge"},
         "backend": {"agent": "dev-agent", "engine": "CodeGraph", "capability": "backend-coding"},
+        "ux-ui": {"agent": "ux-ui-agent", "engine": "Graphify", "capability": "ux-ui-governance"},
         "community-content": {"agent": "community-manager-agent", "engine": "Graphify", "capability": "community-content"},
         "legacy": {"agent": "legacy-agent", "engine": "GitNexus", "capability": "legacy-migration"},
     }
@@ -314,6 +315,8 @@ def select_prompt_for_route(
         candidate = ".github/prompts/backend.fix-bug.prompt.md"
     elif domain == "community-content" or agent == "community-manager-agent":
         candidate = ".github/prompts/community.post.prompt.md"
+    elif domain == "ux-ui" or agent == "ux-ui-agent":
+        candidate = ".github/prompts/ux-ui.review.prompt.md"
     elif domain == "legacy":
         candidate = ".github/prompts/legacy.impact-analysis.prompt.md"
     # Data/document technical flows.

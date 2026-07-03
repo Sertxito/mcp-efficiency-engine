@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0",
+  "repo": "boost_design_ux_with_intent",
+  "slug": "boost_design_ux_with_intent",
+  "version": "0",
+  "domain": "ux-ui",
+  "location": "",
+  "resolved_path": "C:/repo/mcp-efficiency-engine/.cache/github-repos/boost_design_ux_with_intent",
+  "generated_at": "2026-07-03T19:28:22.341182+00:00",
+  "exists": true,
+  "sync": {
+    "mode": "github",
+    "repo_url": "https://github.com/Sertxito/boost_design-UX-with-Intent.git",
+    "branch": "master",
+    "resolved_path": "C:/repo/mcp-efficiency-engine/.cache/github-repos/boost_design_ux_with_intent",
+    "status": "updated"
+  },
+  "top_level": {
+    "dirs": [
+      ".git",
+      ".github",
+      "demo",
+      "docs"
+    ],
+    "files": [
+      "README.md"
+    ],
+    "counts": {
+      "dirs": 4,
+      "files": 1
+    }
+  },
+  "key_artifacts": [
+    {
+      "path": "AGENTS.md",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": "README.md",
+      "exists": true,
+      "kind": "file",
+      "fingerprint": {
+        "size_bytes": 6818,
+        "mtime_utc": "2026-07-03T19:23:18.725410+00:00",
+        "sha256_16": "a2af0b1dcab40391"
+      }
+    },
+    {
+      "path": "ARCHITECTURE.md",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": ".github/skills",
+      "exists": true,
+      "kind": "dir",
+      "sample_children": [
+        "aria-accessibility-patterns",
+        "component-inventory",
+        "css-scss-best-practices",
+        "design-patterns-library",
+        "design-system-generator",
+        "devops-connector",
+        "figma-integration",
+        "functional-to-ux-spec",
+        "react-component-styling",
+        "screenshot-reporter",
+        "storybook-component-documentation",
+        "ux-audit",
+        "vue-component-styling"
+      ],
+      "sample_truncated": false
+    },
+    {
+      "path": ".github/prompts",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": "scripts",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": "specs",
+      "exists": false,
+      "kind": "missing"
+    }
+  ],
+  "cache_fingerprint": "55f519eaedc176d2"
+}

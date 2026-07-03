@@ -6,6 +6,7 @@ Matriz de decision rapida para resolver agente y motor por tipo de entrada.
 | --- | --- | --- | --- | --- |
 | Codigo repo unico | dev | dev-agent | CodeGraph | symbol/callpath/blast radius |
 | Codigo legacy o multi-repo | legacy | legacy-agent | GitNexus | impacto/dependencias/fallback controlado |
+| Guias UX/UI y design intent | ux-ui | ux-ui-agent | Graphify | patrones UI/reutilizacion/consistencia |
 | Documentacion tecnica local | dba/iot/rag-local | dba-agent / iot-agent / rag-local-agent | Graphify | nodos/relaciones/manifest |
 | Documentacion corporativa | azure-rag | rag-azure-agent | Azure RAG Builder | grounded=true y fuentes |
 | Snapshot/export contexto | snapshot | snapshot-agent | Repomix | scope acotado |

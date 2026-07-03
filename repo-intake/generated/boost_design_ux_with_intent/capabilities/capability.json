@@ -1,0 +1,9 @@
+{
+  "capability": "ux-ui-governance",
+  "repo": "boost_design_ux_with_intent",
+  "domain": "ux-ui",
+  "agent": "ux-ui-agent",
+  "engine": "Graphify",
+  "dependencies": [],
+  "generated_at": "2026-07-03T19:28:22.352442+00:00"
+}
