@@ -1,0 +1,6 @@
+Validating repo registry (strict mode)...
+Repo registry validation OK.
+Report: C:\repo\mcp-efficiency-engine\repo-intake\generated\reports\repo-registry-validation.json
+Running repo intake generation...
+Generated intake artifacts for 5 repositories
+Repo intake completed.

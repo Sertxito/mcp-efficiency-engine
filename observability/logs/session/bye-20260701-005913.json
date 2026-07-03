@@ -1,0 +1,138 @@
+{
+  "session": "bye",
+  "started_at": "2026-07-01T00:58:33.2755807+02:00",
+  "ended_at": "2026-07-01T00:59:13.5852487+02:00",
+  "duration_sec": 40.31,
+  "repo": "C:\\repo\\mcp-efficiency-engine",
+  "success": true,
+  "summary": {
+    "result": "ok",
+    "started_at": "2026-07-01T00:58:33.2755807+02:00",
+    "ended_at": "2026-07-01T00:59:13.5852487+02:00",
+    "duration_sec": 40.31,
+    "steps": {
+      "total": 11,
+      "ok": 11,
+      "failed_required": 0,
+      "failed_optional": 0,
+      "skipped": 0
+    },
+    "engines": {
+      "codegraph": {
+        "command_available": true,
+        "index_present": true,
+        "sync": "ok",
+        "status": "ok"
+      },
+      "git": {
+        "command_available": true,
+        "snapshot": "ok"
+      },
+      "repomix": {
+        "refresh": "ok"
+      }
+    },
+    "artifacts": {
+      "repo_registry": "ok",
+      "repo_intake": "ok",
+      "routing_evals": "ok",
+      "sibling_discovery": "ok",
+      "project_notes": "ok",
+      "learning_loop": "ok",
+      "iteration_value": "ok",
+      "repomix_output": true
+    },
+    "skipped_steps": []
+  },
+  "step_logs": {
+    "repo-registry-validation": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\session\\repo-registry-validation-20260701-005833.log",
+    "routing-evals": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\session\\routing-evals-20260701-005834.log",
+    "codegraph-sync": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\session\\codegraph-sync-20260701-005840.log",
+    "repo-intake-refresh": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\session\\repo-intake-refresh-20260701-005847.log",
+    "sibling-discovery-refresh": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\session\\sibling-discovery-refresh-20260701-005850.log",
+    "repomix-refresh": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\session\\repomix-refresh-20260701-005850.log",
+    "project-notes-refresh": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\session\\project-notes-refresh-20260701-005906.log",
+    "learning-loop-refresh": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\session\\learning-loop-refresh-20260701-005906.log",
+    "iteration-value-refresh": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\session\\iteration-value-refresh-20260701-005907.log",
+    "codegraph-status": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\session\\codegraph-status-20260701-005908.log"
+  },
+  "steps": [
+    {
+      "name": "Validate repo registry (strict)",
+      "required": true,
+      "success": true,
+      "duration_sec": 1.26,
+      "message": "ok"
+    },
+    {
+      "name": "Run routing evals",
+      "required": true,
+      "success": true,
+      "duration_sec": 6.02,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh codegraph index sync",
+      "required": false,
+      "success": true,
+      "duration_sec": 6.55,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh repo intake artifacts",
+      "required": true,
+      "success": true,
+      "duration_sec": 3.02,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh sibling repos discovery proposal",
+      "required": false,
+      "success": true,
+      "duration_sec": 0.82,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh repomix context export",
+      "required": false,
+      "success": true,
+      "duration_sec": 15.28,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh project notes from observability",
+      "required": false,
+      "success": true,
+      "duration_sec": 0.71,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh learning loop report",
+      "required": false,
+      "success": true,
+      "duration_sec": 0.78,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh iteration value report",
+      "required": false,
+      "success": true,
+      "duration_sec": 0.83,
+      "message": "ok"
+    },
+    {
+      "name": "Check codegraph status",
+      "required": false,
+      "success": true,
+      "duration_sec": 4.41,
+      "message": "ok"
+    },
+    {
+      "name": "Collect git snapshot",
+      "required": false,
+      "success": true,
+      "duration_sec": 0.59,
+      "message": "ok"
+    }
+  ]
+}

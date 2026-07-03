@@ -1,4 +1,4 @@
-# Arquitectura final v6
+# Arquitectura de MCP Efficiency Engine
 
 ```mermaid
 flowchart TD

@@ -1,6 +1,6 @@
-# MCP-First Enterprise Full v6 — Optimization Edition
+# MCP Efficiency Engine — Optimization Edition
 
-Versión final unificada con:
+Plataforma unificada con:
 
 - Agentes especializados.
 - Routing corporativo.
@@ -13,6 +13,18 @@ Versión final unificada con:
 - **Token Saver** para optimizar contexto/coste.
 - **Token Saver MCP** como runtime MCP local para optimización operativa.
 - **Caveman Mode** para optimizar interacción/respuesta.
+
+## Alcance operativo de proyectos
+
+- El espacio canonico para proyectos analizados o trabajados por la plataforma
+  es `projects/`.
+- Si el trabajo es especifico de un proyecto, el contexto,
+  la documentacion derivada y los artefactos generados deben vivir dentro de
+  `projects/<nombre-proyecto>/`.
+- Los artefactos globales de plataforma permanecen en las rutas raiz ya
+  definidas (`observability/`, `context/`, `repo-intake/`, `optimization/`),
+  pero no deben absorber salida especifica de un proyecto.
+- Esta regla prevalece aunque un subagente sugiera escribir fuera de `projects/`.
 
 ## Idea clave
 
@@ -157,7 +169,7 @@ Orden de lectura recomendado:
 
 ## Always-On Optimization
 
-En esta versión, **Token Saver y Caveman Mode están siempre activos**.
+En este runtime, **Token Saver y Caveman Mode están siempre activos**.
 
 Documentación principal:
 
@@ -279,7 +291,6 @@ gitnexus status
 codebase-memory-mcp config list
 ```
 
-<!-- diagramas-v1 -->
 ## Diagrama Visual Del Repositorio
 
 ```mermaid

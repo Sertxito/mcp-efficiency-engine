@@ -1,4 +1,4 @@
-## v10 Extension — Memory-first + Learning
+## Memory-first + Learning
 
 Pipeline actualizado:
 

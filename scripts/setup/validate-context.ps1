@@ -57,7 +57,7 @@ if ($PortableMode) {
   Write-Host "Validating portable core..."
 }
 else {
-  Write-Host "Validating full v7 always-on..."
+  Write-Host "Validating MCP Efficiency Engine always-on..."
 }
 
 $requiredCore = @(

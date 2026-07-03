@@ -1,6 +1,6 @@
 ---
 name: intake
-description: "Skill for the Intake area of mcpFirst. 39 symbols across 5 files."
+description: "Skill for the Intake area of MCP Efficiency Engine. 39 symbols across 5 files."
 ---
 
 # Intake

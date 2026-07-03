@@ -11,6 +11,11 @@ Incorporar repos al ecosistema sin clonar dentro de este repositorio y con metad
 3. Ejecutar intake para extraer capacidades, dependencias y manifiestos.
 4. Mantener contrato de naming y reglas de governance del registry.
 5. Tratar repos opcionales como warning, no como bloqueo, si asi esta definido.
+6. El trabajo especifico de proyectos gestionados dentro de este repositorio
+   debe vivir bajo `projects/`.
+7. Todo artefacto especifico de un proyecto debe guardarse en
+   `projects/<nombre-proyecto>/` y no en la raiz, salvo artefactos globales de
+   plataforma expresamente definidos.
 
 ## Flujo minimo
 

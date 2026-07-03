@@ -43,6 +43,163 @@ function New-StepResult {
     }
 }
 
+function Get-StepStatus {
+    param(
+        [string]$Name
+    )
+
+    $step = $script:Steps | Where-Object { $_.name -eq $Name } | Select-Object -Last 1
+    if ($null -eq $step) {
+        return 'skipped'
+    }
+
+    if ([bool]$step.success) {
+        return 'ok'
+    }
+
+    return 'failed'
+}
+
+function Test-CommandAvailable {
+    param(
+        [string]$Name
+    )
+
+    return [bool](Get-Command $Name -ErrorAction SilentlyContinue)
+}
+
+function New-StepLogPath {
+    param(
+        [string]$StepName
+    )
+
+    $logDir = Join-Path $repoRoot 'observability/logs/session'
+    New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+    $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+    $safeName = ($StepName.ToLowerInvariant() -replace '[^a-z0-9]+', '-') -replace '(^-|-$)', ''
+    return Join-Path $logDir ("{0}-{1}.log" -f $safeName, $stamp)
+}
+
+function Invoke-LoggedAction {
+    param(
+        [string]$StepName,
+        [scriptblock]$Action,
+        [string[]]$InfoLines = @()
+    )
+
+    $logPath = New-StepLogPath -StepName $StepName
+    & $Action *> $logPath
+    $exitCode = $LASTEXITCODE
+    if ($exitCode -ne 0) {
+        throw "$StepName failed with exit code $exitCode. Log: $logPath"
+    }
+
+    foreach ($infoLine in $InfoLines) {
+        Write-Host ("[info] {0}" -f $infoLine)
+    }
+    Write-Host ("[info] Log: {0}" -f $logPath)
+
+    return $logPath
+}
+
+function Get-ByeSummary {
+    param(
+        [string]$RepoRoot,
+        [datetime]$StartedAt,
+        [datetime]$EndedAt
+    )
+
+    $okCount = @($script:Steps | Where-Object { $_.success }).Count
+    $failedCount = @($script:Steps | Where-Object { -not $_.success -and $_.required }).Count
+    $optionalFailedCount = @($script:Steps | Where-Object { -not $_.success -and -not $_.required }).Count
+    $skipped = @()
+
+    if ($SkipRegistryValidation) { $skipped += 'Validate repo registry (strict)' }
+    if ($SkipRoutingEvals) { $skipped += 'Run routing evals' }
+    if ($SkipGraphRefresh) { $skipped += 'Refresh codegraph index sync' }
+    if ($SkipIntakeRefresh) { $skipped += 'Refresh repo intake artifacts' }
+    if ($SkipSiblingDiscoveryRefresh) { $skipped += 'Refresh sibling repos discovery proposal' }
+    if ($SkipRepomixRefresh) { $skipped += 'Refresh repomix context export' }
+    if ($SkipProjectNotesRefresh) { $skipped += 'Refresh project notes from observability' }
+    if ($SkipLearningRefresh) { $skipped += 'Refresh learning loop report' }
+    if ($SkipIterationValueRefresh) { $skipped += 'Refresh iteration value report' }
+    if ($SkipCodegraphStatus) { $skipped += 'Check codegraph status' }
+    if ($SkipGitSnapshot) { $skipped += 'Collect git snapshot' }
+
+    $engineSummary = [ordered]@{
+        codegraph = [ordered]@{
+            command_available = Test-CommandAvailable -Name 'codegraph'
+            index_present = Test-Path (Join-Path $RepoRoot '.codegraph')
+            sync = Get-StepStatus -Name 'Refresh codegraph index sync'
+            status = Get-StepStatus -Name 'Check codegraph status'
+        }
+        git = [ordered]@{
+            command_available = Test-CommandAvailable -Name 'git'
+            snapshot = Get-StepStatus -Name 'Collect git snapshot'
+        }
+        repomix = [ordered]@{
+            refresh = Get-StepStatus -Name 'Refresh repomix context export'
+        }
+    }
+
+    $artifactSummary = [ordered]@{
+        repo_registry = Get-StepStatus -Name 'Validate repo registry (strict)'
+        repo_intake = Get-StepStatus -Name 'Refresh repo intake artifacts'
+        routing_evals = Get-StepStatus -Name 'Run routing evals'
+        sibling_discovery = Get-StepStatus -Name 'Refresh sibling repos discovery proposal'
+        project_notes = Get-StepStatus -Name 'Refresh project notes from observability'
+        learning_loop = Get-StepStatus -Name 'Refresh learning loop report'
+        iteration_value = Get-StepStatus -Name 'Refresh iteration value report'
+        repomix_output = Test-Path (Join-Path $RepoRoot 'context/repomix/repomix-output.xml')
+    }
+
+    return [ordered]@{
+        result = if ($script:HasFailures) { 'failed' } else { 'ok' }
+        started_at = $StartedAt.ToString('o')
+        ended_at = $EndedAt.ToString('o')
+        duration_sec = [math]::Round((($EndedAt - $StartedAt).TotalSeconds), 2)
+        steps = [ordered]@{
+            total = @($script:Steps).Count
+            ok = $okCount
+            failed_required = $failedCount
+            failed_optional = $optionalFailedCount
+            skipped = $skipped.Count
+        }
+        engines = $engineSummary
+        artifacts = $artifactSummary
+        skipped_steps = $skipped
+    }
+}
+
+function Write-ByeSummary {
+    param(
+        [object]$Summary,
+        [string]$ReportPath
+    )
+
+    Write-Host ''
+    Write-Host '=== BYE SUMMARY ===' -ForegroundColor Cyan
+    Write-Host ("Result: {0} | Duration: {1}s" -f $Summary.result.ToUpperInvariant(), $Summary.duration_sec)
+    Write-Host ("Steps: total={0}, ok={1}, failed_required={2}, failed_optional={3}, skipped={4}" -f $Summary.steps.total, $Summary.steps.ok, $Summary.steps.failed_required, $Summary.steps.failed_optional, $Summary.steps.skipped)
+    Write-Host 'Engines:'
+    Write-Host ("- codegraph: command={0}, index={1}, sync={2}, status={3}" -f $Summary.engines.codegraph.command_available, $Summary.engines.codegraph.index_present, $Summary.engines.codegraph.sync, $Summary.engines.codegraph.status)
+    Write-Host ("- git: command={0}, snapshot={1}" -f $Summary.engines.git.command_available, $Summary.engines.git.snapshot)
+    Write-Host ("- repomix: refresh={0}" -f $Summary.engines.repomix.refresh)
+    Write-Host 'Artifacts:'
+    Write-Host ("- repo-registry: {0}" -f $Summary.artifacts.repo_registry)
+    Write-Host ("- repo-intake: {0}" -f $Summary.artifacts.repo_intake)
+    Write-Host ("- routing-evals: {0}" -f $Summary.artifacts.routing_evals)
+    Write-Host ("- sibling-discovery: {0}" -f $Summary.artifacts.sibling_discovery)
+    Write-Host ("- project-notes: {0}" -f $Summary.artifacts.project_notes)
+    Write-Host ("- learning-loop: {0}" -f $Summary.artifacts.learning_loop)
+    Write-Host ("- iteration-value: {0}" -f $Summary.artifacts.iteration_value)
+    Write-Host ("- repomix-output: {0}" -f $Summary.artifacts.repomix_output)
+    if (@($Summary.skipped_steps).Count -gt 0) {
+        Write-Host ("Skipped: {0}" -f (($Summary.skipped_steps) -join ', '))
+    }
+    Write-Host ("Report: {0}" -f $ReportPath)
+}
+
 function Invoke-Step {
     param(
         [string]$Name,
@@ -79,6 +236,7 @@ Set-Location $repoRoot
 
 $script:Steps = @()
 $script:HasFailures = $false
+$script:StepLogs = [ordered]@{}
 $startedAt = Get-Date
 
 Write-Host '=== BYE SHUTDOWN ===' -ForegroundColor Cyan
@@ -87,9 +245,8 @@ Write-Host "Time: $startedAt"
 
 if (-not $SkipRegistryValidation) {
     Invoke-Step -Name 'Validate repo registry (strict)' -Action {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\intake\validate-repo-registry.ps1 -Strict
-        if ($LASTEXITCODE -ne 0) {
-            throw "validate-repo-registry failed with exit code $LASTEXITCODE"
+        $script:StepLogs['repo-registry-validation'] = Invoke-LoggedAction -StepName 'repo-registry-validation' -Action {
+            & pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\intake\validate-repo-registry.ps1 -Strict
         }
     } -Required $true
 }
@@ -106,9 +263,8 @@ if (-not $SkipRoutingEvals) {
             $pyParts = $py[1..($py.Length - 1)]
         }
 
-        & $cmd @pyParts .\scripts\intake\run-routing-evals.py
-        if ($LASTEXITCODE -ne 0) {
-            throw "run-routing-evals failed with exit code $LASTEXITCODE"
+        $script:StepLogs['routing-evals'] = Invoke-LoggedAction -StepName 'routing-evals' -Action {
+            & $cmd @pyParts .\scripts\intake\run-routing-evals.py
         }
     } -Required $true
 }
@@ -122,9 +278,8 @@ if (-not $SkipGraphRefresh) {
             throw 'codegraph command not found'
         }
 
-        & codegraph sync
-        if ($LASTEXITCODE -ne 0) {
-            throw "codegraph sync failed with exit code $LASTEXITCODE"
+        $script:StepLogs['codegraph-sync'] = Invoke-LoggedAction -StepName 'codegraph-sync' -Action {
+            & codegraph sync
         }
     } -Required $false
 }
@@ -134,9 +289,8 @@ else {
 
 if (-not $SkipIntakeRefresh) {
     Invoke-Step -Name 'Refresh repo intake artifacts' -Action {
-        & .\scripts\intake\run-repo-intake.cmd
-        if ($LASTEXITCODE -ne 0) {
-            throw "run-repo-intake failed with exit code $LASTEXITCODE"
+        $script:StepLogs['repo-intake-refresh'] = Invoke-LoggedAction -StepName 'repo-intake-refresh' -Action {
+            & .\scripts\intake\run-repo-intake.cmd
         }
     } -Required $true
 }
@@ -153,9 +307,8 @@ if (-not $SkipSiblingDiscoveryRefresh) {
             $pyParts = $py[1..($py.Length - 1)]
         }
 
-        & $cmd @pyParts .\scripts\discovery\discover-boost-repos.py --root C:/repo
-        if ($LASTEXITCODE -ne 0) {
-            throw "discover-boost-repos failed with exit code $LASTEXITCODE"
+        $script:StepLogs['sibling-discovery-refresh'] = Invoke-LoggedAction -StepName 'sibling-discovery-refresh' -Action {
+            & $cmd @pyParts .\scripts\discovery\discover-boost-repos.py --root C:/repo
         }
     } -Required $false
 }
@@ -165,10 +318,14 @@ else {
 
 if (-not $SkipRepomixRefresh) {
     Invoke-Step -Name 'Refresh repomix context export' -Action {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\context\build-repomix.ps1
-        if ($LASTEXITCODE -ne 0) {
-            throw "build-repomix failed with exit code $LASTEXITCODE"
+        $repomixLogPath = Invoke-LoggedAction -StepName 'repomix-refresh' -Action {
+            & pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\context\build-repomix.ps1
         }
+
+        $repomixOutputPath = Join-Path $repoRoot 'context/repomix/repomix-output.xml'
+        Write-Host ("[info] Repomix output: {0}" -f $repomixOutputPath)
+        Write-Host ("[info] Repomix log: {0}" -f $repomixLogPath)
+        $script:StepLogs['repomix-refresh'] = $repomixLogPath
     } -Required $false
 }
 else {
@@ -184,9 +341,8 @@ if (-not $SkipProjectNotesRefresh) {
             $pyParts = $py[1..($py.Length - 1)]
         }
 
-        & $cmd @pyParts .\scripts\discovery\refresh-project-notes.py
-        if ($LASTEXITCODE -ne 0) {
-            throw "refresh-project-notes failed with exit code $LASTEXITCODE"
+        $script:StepLogs['project-notes-refresh'] = Invoke-LoggedAction -StepName 'project-notes-refresh' -Action {
+            & $cmd @pyParts .\scripts\discovery\refresh-project-notes.py
         }
     } -Required $false
 }
@@ -203,9 +359,8 @@ if (-not $SkipLearningRefresh) {
             $pyParts = $py[1..($py.Length - 1)]
         }
 
-        & $cmd @pyParts .\scripts\learning\learning-loop-report.py
-        if ($LASTEXITCODE -ne 0) {
-            throw "learning-loop-report failed with exit code $LASTEXITCODE"
+        $script:StepLogs['learning-loop-refresh'] = Invoke-LoggedAction -StepName 'learning-loop-refresh' -Action {
+            & $cmd @pyParts .\scripts\learning\learning-loop-report.py
         }
     } -Required $false
 }
@@ -222,9 +377,8 @@ if (-not $SkipIterationValueRefresh) {
             $pyParts = $py[1..($py.Length - 1)]
         }
 
-        & $cmd @pyParts .\scripts\learning\iteration-value-report.py
-        if ($LASTEXITCODE -ne 0) {
-            throw "iteration-value-report failed with exit code $LASTEXITCODE"
+        $script:StepLogs['iteration-value-refresh'] = Invoke-LoggedAction -StepName 'iteration-value-refresh' -Action {
+            & $cmd @pyParts .\scripts\learning\iteration-value-report.py
         }
     } -Required $false
 }
@@ -238,9 +392,8 @@ if (-not $SkipCodegraphStatus) {
             throw 'codegraph command not found'
         }
 
-        & codegraph status
-        if ($LASTEXITCODE -ne 0) {
-            throw "codegraph status failed with exit code $LASTEXITCODE"
+        $script:StepLogs['codegraph-status'] = Invoke-LoggedAction -StepName 'codegraph-status' -Action {
+            & codegraph status
         }
     } -Required $false
 }
@@ -277,6 +430,7 @@ else {
 }
 
 $endedAt = Get-Date
+$summary = Get-ByeSummary -RepoRoot $repoRoot -StartedAt $startedAt -EndedAt $endedAt
 $report = [ordered]@{
     session = 'bye'
     started_at = $startedAt.ToString('o')
@@ -284,6 +438,8 @@ $report = [ordered]@{
     duration_sec = [math]::Round((($endedAt - $startedAt).TotalSeconds), 2)
     repo = $repoRoot
     success = (-not $script:HasFailures)
+    summary = $summary
+    step_logs = $script:StepLogs
     steps = $script:Steps
 }
 
@@ -293,7 +449,7 @@ $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $reportPath = Join-Path $reportDir "bye-$stamp.json"
 $report | ConvertTo-Json -Depth 8 | Set-Content -Path $reportPath -Encoding UTF8
 
-Write-Host "Report: $reportPath"
+Write-ByeSummary -Summary $summary -ReportPath $reportPath
 
 if ($script:HasFailures) {
     Write-Host 'BYE shutdown checks finished with errors.' -ForegroundColor Red

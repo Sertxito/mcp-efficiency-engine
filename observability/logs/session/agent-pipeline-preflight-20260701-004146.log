@@ -1,0 +1,8 @@
+Agent Pipeline Preflight
+- agents_dir: C:\repo\mcp-efficiency-engine\.github\agents
+- required_agents: 8
+- missing_agents: 0
+- missing_boost_paths: 0
+- missing_manifests: 0
+- missing_capabilities: 0
+Preflight OK. Agent pipeline can route to skills and boost platforms.

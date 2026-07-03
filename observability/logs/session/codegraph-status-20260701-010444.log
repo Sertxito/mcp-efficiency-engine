@@ -1,0 +1,39 @@
+[1m
+CodeGraph Status
+[0m
+[36mProject:[0m C:\repo\mcp-efficiency-engine
+
+[1mIndex Statistics:[0m
+  Files:     421
+  Nodes:     6129
+  Edges:     10.492
+  DB Size:   18.58 MB
+  Backend:   [32mnode:sqlite - built-in (full WAL)[0m
+  Journal:   [32mwal[0m
+
+[1mNodes by Kind:[0m
+  property        1565
+  method          1401
+  import          1208
+  class           539
+  file            417
+  namespace       399
+  field           167
+  route           139
+  constant        111
+  function        91
+  interface       61
+  enum_member     18
+  variable        7
+  enum            6
+
+[1mFiles by Language:[0m
+  csharp          402
+  python          13
+  yaml            4
+  javascript      2
+
+[1mPending Changes:[0m
+  Added:     1 files
+[34m[i][0m Run "codegraph sync" to update the index
+

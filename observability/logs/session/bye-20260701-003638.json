@@ -1,0 +1,126 @@
+{
+  "session": "bye",
+  "started_at": "2026-07-01T00:35:01.6564655+02:00",
+  "ended_at": "2026-07-01T00:36:38.5937061+02:00",
+  "duration_sec": 96.94,
+  "repo": "C:\\repo\\mcp-efficiency-engine",
+  "success": true,
+  "summary": {
+    "result": "ok",
+    "started_at": "2026-07-01T00:35:01.6564655+02:00",
+    "ended_at": "2026-07-01T00:36:38.5937061+02:00",
+    "duration_sec": 96.94,
+    "steps": {
+      "total": 11,
+      "ok": 11,
+      "failed_required": 0,
+      "failed_optional": 0,
+      "skipped": 0
+    },
+    "engines": {
+      "codegraph": {
+        "command_available": true,
+        "index_present": true,
+        "sync": "ok",
+        "status": "ok"
+      },
+      "git": {
+        "command_available": true,
+        "snapshot": "ok"
+      },
+      "repomix": {
+        "refresh": "ok"
+      }
+    },
+    "artifacts": {
+      "repo_registry": "ok",
+      "repo_intake": "ok",
+      "routing_evals": "ok",
+      "sibling_discovery": "ok",
+      "project_notes": "ok",
+      "learning_loop": "ok",
+      "iteration_value": "ok",
+      "repomix_output": true
+    },
+    "skipped_steps": []
+  },
+  "steps": [
+    {
+      "name": "Validate repo registry (strict)",
+      "required": true,
+      "success": true,
+      "duration_sec": 1.42,
+      "message": "ok"
+    },
+    {
+      "name": "Run routing evals",
+      "required": true,
+      "success": true,
+      "duration_sec": 6.6,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh codegraph index sync",
+      "required": false,
+      "success": true,
+      "duration_sec": 6.5,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh repo intake artifacts",
+      "required": true,
+      "success": true,
+      "duration_sec": 3.11,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh sibling repos discovery proposal",
+      "required": false,
+      "success": true,
+      "duration_sec": 0.86,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh repomix context export",
+      "required": false,
+      "success": true,
+      "duration_sec": 70.86,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh project notes from observability",
+      "required": false,
+      "success": true,
+      "duration_sec": 0.88,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh learning loop report",
+      "required": false,
+      "success": true,
+      "duration_sec": 0.83,
+      "message": "ok"
+    },
+    {
+      "name": "Refresh iteration value report",
+      "required": false,
+      "success": true,
+      "duration_sec": 0.8,
+      "message": "ok"
+    },
+    {
+      "name": "Check codegraph status",
+      "required": false,
+      "success": true,
+      "duration_sec": 4.4,
+      "message": "ok"
+    },
+    {
+      "name": "Collect git snapshot",
+      "required": false,
+      "success": true,
+      "duration_sec": 0.67,
+      "message": "ok"
+    }
+  ]
+}

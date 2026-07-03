@@ -1,4 +1,4 @@
-# AGENTS.md — Enterprise Global Contract v6
+# AGENTS.md — Enterprise Global Contract
 
 ## Routing base
 
@@ -27,6 +27,24 @@
 - No usar Repomix como contexto vivo.
 - Si no hay grounding suficiente, declarar gap.
 
+## Primera Pasada Por Boost
+
+Regla obligatoria para todos los agentes:
+
+1. La primera pasada sobre un boost, capability o proyecto nuevo debe ser de
+  onboarding profundo y con grounding máximo relevante, aunque tarde más.
+2. En esa primera pasada se debe recuperar la mayor cantidad de contexto útil
+  y verificable posible desde las fuentes canónicas del boost: repo-intake,
+  onboarding, instrucciones, prompts, skills, agentes locales y documentación
+  del propio proyecto.
+3. Si el boost o proyecto define agentes o subagentes especializados, el
+  agente principal debe usarlos cuando estén disponibles o, como mínimo,
+  leerlos y aplicar sus reglas como contrato operativo explícito.
+4. Token Saver sigue activo: no implica lectura masiva ciega, sino pocas
+  recuperaciones grandes, estructuradas y con alta densidad de evidencia.
+5. Tras esa primera pasada profunda, las siguientes iteraciones vuelven al
+  modo optimizado normal.
+
 ## Always-On Optimization
 
 Caveman Mode y Token Saver están siempre activos para todos los agentes.
@@ -43,7 +61,7 @@ Aplicar a toda respuesta. Por defecto usar Caveman Lite/Full según tarea.
 
 No eliminar explicación necesaria, fuentes, validación ni contexto crítico. Si hace falta más detalle, cambiar intensidad, no desactivar la optimización.
 
-## v10 Extension — Memory-first + Learning
+## Memory-first + Learning
 
 All agents MUST:
 
@@ -57,7 +75,6 @@ Execution order:
 
 Memory → Reasoning → Tool (if needed) → Learning
 
-<!-- diagramas-v1 -->
 ## Diagrama Visual De Routing
 
 ```mermaid
@@ -82,7 +99,7 @@ flowchart LR
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **mcpFirst** (808 symbols, 971 relationships, 17 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **mcp-efficiency-engine**. Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
 
@@ -106,10 +123,10 @@ This project is indexed by GitNexus as **mcpFirst** (808 symbols, 971 relationsh
 
 | Resource | Use for |
 |----------|---------|
-| `gitnexus://repo/mcpFirst/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/mcpFirst/clusters` | All functional areas |
-| `gitnexus://repo/mcpFirst/processes` | All execution flows |
-| `gitnexus://repo/mcpFirst/process/{name}` | Step-by-step execution trace |
+| `gitnexus://repo/mcp-efficiency-engine/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/mcp-efficiency-engine/clusters` | All functional areas |
+| `gitnexus://repo/mcp-efficiency-engine/processes` | All execution flows |
+| `gitnexus://repo/mcp-efficiency-engine/process/{name}` | Step-by-step execution trace |
 
 ## CLI
 

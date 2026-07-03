@@ -1,10 +1,9 @@
 # Known Risks
 
 <!-- AUTO-GENERATED:START -->
-- updated_at: 2026-06-30T21:25:29.277053+00:00
-- high_fallback: fallback_rate=26.25% supera max=20.0%.
-- low_grounding: grounded_rate=77.5% por debajo de min=80.0%.
-- pending_feedback: pending_events=155/160 (96.88%).
-- incomplete_metrics: metrics_coverage_rate=4.59%.
-- incomplete_feedback: confirmed_feedback_rate=4.59%.
+- updated_at: 2026-06-30T23:07:45.881432+00:00
+- high_fallback: fallback_rate=20.66% supera max=20.0%.
+- pending_feedback: pending_events=163/213 (76.53%).
+- incomplete_metrics: metrics_coverage_rate=3.09%.
+- incomplete_feedback: confirmed_feedback_rate=30.86%.
 <!-- AUTO-GENERATED:END -->

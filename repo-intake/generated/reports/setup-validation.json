@@ -1,58 +1,58 @@
 {
+  "manifest_path": "tooling/tooling.manifest.json",
+  "overall_status": "ok",
+  "mode": "enterprise",
+  "warnings": [],
+  "external_clis": [
+    {
+      "name": "codebase-memory-mcp",
+      "command": "codebase-memory-mcp",
+      "installed": true,
+      "install_kind": "powershell-script",
+      "package": ""
+    },
+    {
+      "name": "token-saver-mcp",
+      "command": "token-saver-mcp",
+      "installed": true,
+      "install_kind": "npm-global",
+      "package": "token-saver-mcp"
+    },
+    {
+      "name": "codegraph",
+      "command": "codegraph",
+      "installed": true,
+      "install_kind": "npm-global",
+      "package": "@colbymchenry/codegraph"
+    },
+    {
+      "name": "gitnexus",
+      "command": "gitnexus",
+      "installed": true,
+      "install_kind": "npm-global",
+      "package": "gitnexus@latest"
+    },
+    {
+      "name": "repomix",
+      "command": "repomix",
+      "installed": true,
+      "install_kind": "npm-global",
+      "package": "repomix@latest"
+    }
+  ],
+  "timestamp": "2026-07-01T17:24:34.9696881Z",
+  "requirements_file": "requirements.txt",
   "python_modules": [
     {
-      "import_ok": true,
+      "launcher": "py",
       "args": [
         "-3.14",
         "-c",
         "import graphify.serve, mcp; print('ok')"
       ],
-      "launcher": "py"
+      "import_ok": true
     }
   ],
-  "external_clis": [
-    {
-      "name": "codebase-memory-mcp",
-      "package": "",
-      "installed": true,
-      "install_kind": "powershell-script",
-      "command": "codebase-memory-mcp"
-    },
-    {
-      "name": "token-saver-mcp",
-      "package": "token-saver-mcp",
-      "installed": true,
-      "install_kind": "npm-global",
-      "command": "token-saver-mcp"
-    },
-    {
-      "name": "codegraph",
-      "package": "@colbymchenry/codegraph",
-      "installed": true,
-      "install_kind": "npm-global",
-      "command": "codegraph"
-    },
-    {
-      "name": "gitnexus",
-      "package": "gitnexus@latest",
-      "installed": true,
-      "install_kind": "npm-global",
-      "command": "gitnexus"
-    },
-    {
-      "name": "repomix",
-      "package": "repomix@latest",
-      "installed": true,
-      "install_kind": "npm-global",
-      "command": "repomix"
-    }
-  ],
-  "overall_status": "ok",
   "errors": [],
-  "requirements_file": "requirements.txt",
-  "timestamp": "2026-06-30T21:17:10.3133686Z",
-  "mode": "enterprise",
-  "warnings": [],
-  "python_requirements_ok": true,
-  "manifest_path": "tooling/tooling.manifest.json"
+  "python_requirements_ok": true
 }

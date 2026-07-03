@@ -1,6 +1,6 @@
 ---
 name: discovery
-description: "Skill for the Discovery area of mcpFirst. 15 symbols across 2 files."
+description: "Skill for the Discovery area of MCP Efficiency Engine. 15 symbols across 2 files."
 ---
 
 # Discovery

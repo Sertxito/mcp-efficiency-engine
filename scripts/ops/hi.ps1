@@ -41,6 +41,253 @@ function New-StepResult {
     }
 }
 
+function Get-StepStatus {
+    param(
+        [string]$Name
+    )
+
+    $step = $script:Steps | Where-Object { $_.name -eq $Name } | Select-Object -Last 1
+    if ($null -eq $step) {
+        return 'skipped'
+    }
+
+    if ([bool]$step.success) {
+        return 'ok'
+    }
+
+    return 'failed'
+}
+
+function Test-CommandAvailable {
+    param(
+        [string]$Name
+    )
+
+    return [bool](Get-Command $Name -ErrorAction SilentlyContinue)
+}
+
+function Get-TokenSaverConfigPath {
+    param(
+        [string]$RepoRoot
+    )
+
+    return Join-Path $RepoRoot '.token-saver.json'
+}
+
+function Get-TokenSaverMode {
+    param(
+        [string]$RepoRoot
+    )
+
+    $configPath = Get-TokenSaverConfigPath -RepoRoot $RepoRoot
+    if (-not (Test-Path $configPath)) {
+        return 'off'
+    }
+
+    try {
+        $config = Get-Content $configPath -Raw | ConvertFrom-Json -Depth 10
+        $mode = [string]$config.mode
+        if ([string]::IsNullOrWhiteSpace($mode)) {
+            return 'off'
+        }
+
+        return $mode
+    }
+    catch {
+        return 'off'
+    }
+}
+
+function Ensure-TokenSaverActivated {
+    param(
+        [string]$RepoRoot,
+        [string]$DefaultMode = 'monitor'
+    )
+
+    $configPath = Get-TokenSaverConfigPath -RepoRoot $RepoRoot
+    $config = [ordered]@{}
+
+    if (Test-Path $configPath) {
+        try {
+            $existing = Get-Content $configPath -Raw | ConvertFrom-Json -Depth 20
+            foreach ($property in $existing.PSObject.Properties) {
+                $config[$property.Name] = $property.Value
+            }
+        }
+        catch {
+            # Si el JSON está corrupto, se regenera con configuración mínima segura.
+            $config = [ordered]@{}
+        }
+    }
+
+    $currentMode = ''
+    if ($config.Contains('mode')) {
+        $currentMode = [string]$config.mode
+    }
+
+    if ([string]::IsNullOrWhiteSpace($currentMode) -or $currentMode -eq 'off') {
+        $config.mode = $DefaultMode
+    }
+
+    if (-not $config.Contains('suppressLogs')) {
+        $config.suppressLogs = $true
+    }
+
+    if (-not $config.Contains('suppressRepetitiveHistory')) {
+        $config.suppressRepetitiveHistory = $true
+    }
+
+    $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath -Encoding UTF8
+}
+
+function New-StepLogPath {
+    param(
+        [string]$StepName
+    )
+
+    $logDir = Join-Path $repoRoot 'observability/logs/session'
+    New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+    $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+    $safeName = ($StepName.ToLowerInvariant() -replace '[^a-z0-9]+', '-') -replace '(^-|-$)', ''
+    return Join-Path $logDir ("{0}-{1}.log" -f $safeName, $stamp)
+}
+
+function Invoke-LoggedAction {
+    param(
+        [string]$StepName,
+        [scriptblock]$Action,
+        [string[]]$InfoLines = @()
+    )
+
+    $logPath = New-StepLogPath -StepName $StepName
+    & $Action *> $logPath
+    $exitCode = $LASTEXITCODE
+    if ($exitCode -ne 0) {
+        throw "$StepName failed with exit code $exitCode. Log: $logPath"
+    }
+
+    foreach ($infoLine in $InfoLines) {
+        Write-Host ("[info] {0}" -f $infoLine)
+    }
+    Write-Host ("[info] Log: {0}" -f $logPath)
+
+    return $logPath
+}
+
+function Get-HiSummary {
+    param(
+        [string]$RepoRoot,
+        [datetime]$StartedAt,
+        [datetime]$EndedAt
+    )
+
+    $okCount = @($script:Steps | Where-Object { $_.success }).Count
+    $failedCount = @($script:Steps | Where-Object { -not $_.success -and $_.required }).Count
+    $optionalFailedCount = @($script:Steps | Where-Object { -not $_.success -and -not $_.required }).Count
+    $skipped = @()
+
+    if ($SkipSiblingReposChecks) { $skipped += 'Validate sibling repos operability' }
+    if ($SkipAgentPipelinePreflight) { $skipped += 'Validate agent pipeline preflight' }
+    if ($SkipMcpStartupChecks) { $skipped += 'Validate MCP servers start/listen capability' }
+    if ($SkipGraphRefresh) { $skipped += 'Refresh codegraph index sync' }
+    if ($SkipIntake) { $skipped += 'Run repo intake' }
+    if ($SkipRoutingEvals) { $skipped += 'Run routing evals' }
+    if ($SkipProjectNotesRefresh) { $skipped += 'Refresh project notes from observability' }
+    if ($SkipCodegraphStatus) { $skipped += 'Check codegraph status' }
+
+    $engineSummary = [ordered]@{
+        memory = [ordered]@{
+            command_available = Test-CommandAvailable -Name 'codebase-memory-mcp'
+            startup_check = Get-StepStatus -Name 'Validate MCP servers start/listen capability'
+        }
+        token_saver = [ordered]@{
+            command_available = Test-CommandAvailable -Name 'token-saver-mcp'
+            mode = Get-TokenSaverMode -RepoRoot $RepoRoot
+            startup_check = Get-StepStatus -Name 'Validate MCP servers start/listen capability'
+        }
+        codegraph = [ordered]@{
+            command_available = Test-CommandAvailable -Name 'codegraph'
+            index_present = Test-Path (Join-Path $RepoRoot '.codegraph')
+            sync = Get-StepStatus -Name 'Refresh codegraph index sync'
+            status = Get-StepStatus -Name 'Check codegraph status'
+        }
+        gitnexus = [ordered]@{
+            command_available = Test-CommandAvailable -Name 'npx'
+            index_present = Test-Path (Join-Path $RepoRoot '.gitnexus')
+            startup_check = Get-StepStatus -Name 'Validate MCP servers start/listen capability'
+        }
+        repomix = [ordered]@{
+            command_available = Test-CommandAvailable -Name 'npx'
+            startup_check = Get-StepStatus -Name 'Validate MCP servers start/listen capability'
+        }
+        graphify = [ordered]@{
+            graph_present = Test-Path (Join-Path $RepoRoot 'context/graphify-out/graph.json')
+            manifest_present = Test-Path (Join-Path $RepoRoot 'context/graphify-out/manifest.json')
+            startup_check = Get-StepStatus -Name 'Validate MCP servers start/listen capability'
+        }
+    }
+
+    $artifactSummary = [ordered]@{
+        repo_registry_report = Test-Path (Join-Path $RepoRoot 'repo-intake/generated/reports/repo-registry-validation.json')
+        repo_intake = Get-StepStatus -Name 'Run repo intake'
+        routing_evals = Get-StepStatus -Name 'Run routing evals'
+        project_notes = Get-StepStatus -Name 'Refresh project notes from observability'
+        sibling_repos = Get-StepStatus -Name 'Validate sibling repos operability'
+        structure_cache = [ordered]@{
+            refreshed = [bool]$script:StructureCacheReport.refreshed
+            refresh_reason = [string]$script:StructureCacheReport.refresh_reason
+            changed_repos = @($script:StructureCacheReport.changed_repos).Count
+        }
+    }
+
+    return [ordered]@{
+        result = if ($script:HasFailures) { 'failed' } else { 'ok' }
+        started_at = $StartedAt.ToString('o')
+        ended_at = $EndedAt.ToString('o')
+        duration_sec = [math]::Round((($EndedAt - $StartedAt).TotalSeconds), 2)
+        steps = [ordered]@{
+            total = @($script:Steps).Count
+            ok = $okCount
+            failed_required = $failedCount
+            failed_optional = $optionalFailedCount
+            skipped = $skipped.Count
+        }
+        engines = $engineSummary
+        artifacts = $artifactSummary
+        skipped_steps = $skipped
+    }
+}
+
+function Write-HiSummary {
+    param(
+        [object]$Summary,
+        [string]$ReportPath
+    )
+
+    Write-Host ''
+    Write-Host '=== HI SUMMARY ===' -ForegroundColor Cyan
+    Write-Host ("Result: {0} | Duration: {1}s" -f $Summary.result.ToUpperInvariant(), $Summary.duration_sec)
+    Write-Host ("Steps: total={0}, ok={1}, failed_required={2}, failed_optional={3}, skipped={4}" -f $Summary.steps.total, $Summary.steps.ok, $Summary.steps.failed_required, $Summary.steps.failed_optional, $Summary.steps.skipped)
+    Write-Host 'Engines:'
+    Write-Host ("- memory: command={0}, startup={1}" -f $Summary.engines.memory.command_available, $Summary.engines.memory.startup_check)
+    Write-Host ("- token-saver: command={0}, mode={1}, startup={2}" -f $Summary.engines.token_saver.command_available, $Summary.engines.token_saver.mode, $Summary.engines.token_saver.startup_check)
+    Write-Host ("- codegraph: command={0}, index={1}, sync={2}, status={3}" -f $Summary.engines.codegraph.command_available, $Summary.engines.codegraph.index_present, $Summary.engines.codegraph.sync, $Summary.engines.codegraph.status)
+    Write-Host ("- gitnexus: command={0}, index={1}, startup={2}" -f $Summary.engines.gitnexus.command_available, $Summary.engines.gitnexus.index_present, $Summary.engines.gitnexus.startup_check)
+    Write-Host ("- repomix: command={0}, startup={1}" -f $Summary.engines.repomix.command_available, $Summary.engines.repomix.startup_check)
+    Write-Host ("- graphify: graph={0}, manifest={1}, startup={2}" -f $Summary.engines.graphify.graph_present, $Summary.engines.graphify.manifest_present, $Summary.engines.graphify.startup_check)
+    Write-Host 'Artifacts:'
+    Write-Host ("- repo-registry-report: {0}" -f $Summary.artifacts.repo_registry_report)
+    Write-Host ("- repo-intake: {0}" -f $Summary.artifacts.repo_intake)
+    Write-Host ("- routing-evals: {0}" -f $Summary.artifacts.routing_evals)
+    Write-Host ("- project-notes: {0}" -f $Summary.artifacts.project_notes)
+    Write-Host ("- sibling-repos: {0}" -f $Summary.artifacts.sibling_repos)
+    Write-Host ("- structure-cache: refreshed={0}, reason={1}, changed_repos={2}" -f $Summary.artifacts.structure_cache.refreshed, $Summary.artifacts.structure_cache.refresh_reason, $Summary.artifacts.structure_cache.changed_repos)
+    if (@($Summary.skipped_steps).Count -gt 0) {
+        Write-Host ("Skipped: {0}" -f (($Summary.skipped_steps) -join ', '))
+    }
+    Write-Host ("Report: {0}" -f $ReportPath)
+}
+
 function Invoke-Step {
     param(
         [string]$Name,
@@ -313,6 +560,7 @@ $script:StructureCacheReport = [ordered]@{
     after = @()
     changed_repos = @()
 }
+$script:StepLogs = [ordered]@{}
 $startedAt = Get-Date
 
 Write-Host '=== HI STARTUP ===' -ForegroundColor Cyan
@@ -354,9 +602,8 @@ Invoke-Step -Name 'Validate memory/cache artifacts' -Action {
 
     if ($missingArtifacts.Count -gt 0 -and -not $SkipIntake) {
         Write-Host '[info] Missing generated artifacts detected. Running repo intake automatically...' -ForegroundColor DarkYellow
-        & .\scripts\intake\run-repo-intake.cmd
-        if ($LASTEXITCODE -ne 0) {
-            throw "run-repo-intake failed while recovering missing artifacts with exit code $LASTEXITCODE"
+        $script:StepLogs['recover-missing-artifacts'] = Invoke-LoggedAction -StepName 'recover-missing-artifacts' -Action {
+            & .\scripts\intake\run-repo-intake.cmd
         }
     }
 
@@ -373,6 +620,24 @@ Invoke-Step -Name 'Validate memory/cache artifacts' -Action {
     if (-not (Get-Command codebase-memory-mcp -ErrorAction SilentlyContinue)) {
         throw 'codebase-memory-mcp command not found (memory layer unavailable)'
     }
+} -Required $true
+
+Invoke-Step -Name 'Activate token-saver mode' -Action {
+    if (-not (Test-CommandAvailable -Name 'token-saver-mcp')) {
+        [void](Ensure-SetupPrerequisites)
+    }
+
+    if (-not (Test-CommandAvailable -Name 'token-saver-mcp')) {
+        throw 'token-saver-mcp command not found'
+    }
+
+    Ensure-TokenSaverActivated -RepoRoot $repoRoot -DefaultMode 'monitor'
+    $mode = Get-TokenSaverMode -RepoRoot $repoRoot
+    if ($mode -eq 'off') {
+        throw 'Token Saver remains in off mode after activation step'
+    }
+
+    Write-Host ("Token Saver mode: {0}" -f $mode)
 } -Required $true
 
 Invoke-Step -Name 'Check structure cache freshness' -Action {
@@ -397,9 +662,8 @@ Invoke-Step -Name 'Check structure cache freshness' -Action {
     }
 
     if ($needsRefresh -and -not $SkipIntake) {
-        & .\scripts\intake\run-repo-intake.cmd
-        if ($LASTEXITCODE -ne 0) {
-            throw "run-repo-intake failed during structure cache refresh with exit code $LASTEXITCODE"
+        $script:StepLogs['structure-cache-refresh'] = Invoke-LoggedAction -StepName 'structure-cache-refresh' -Action {
+            & .\scripts\intake\run-repo-intake.cmd
         }
         $script:StructureCacheReport.refreshed = $true
     }
@@ -481,9 +745,8 @@ if (-not $SkipAgentPipelinePreflight) {
             $pyParts = $py[1..($py.Length - 1)]
         }
 
-        & $cmd @pyParts .\scripts\intake\agent-pipeline-preflight.py
-        if ($LASTEXITCODE -ne 0) {
-            throw "agent-pipeline-preflight failed with exit code $LASTEXITCODE"
+        $script:StepLogs['agent-pipeline-preflight'] = Invoke-LoggedAction -StepName 'agent-pipeline-preflight' -Action {
+            & $cmd @pyParts .\scripts\intake\agent-pipeline-preflight.py
         }
     } -Required $true
 }
@@ -538,9 +801,8 @@ if (-not $SkipGraphRefresh) {
 
         [void](Ensure-CodegraphInitialized -RepoRootPath $repoRoot)
 
-        & codegraph sync
-        if ($LASTEXITCODE -ne 0) {
-            throw "codegraph sync failed with exit code $LASTEXITCODE"
+        $script:StepLogs['codegraph-sync'] = Invoke-LoggedAction -StepName 'codegraph-sync' -Action {
+            & codegraph sync
         }
     } -Required $false
 }
@@ -550,9 +812,8 @@ else {
 
 if (-not $SkipIntake) {
     Invoke-Step -Name 'Run repo intake' -Action {
-        & .\scripts\intake\run-repo-intake.cmd
-        if ($LASTEXITCODE -ne 0) {
-            throw "run-repo-intake failed with exit code $LASTEXITCODE"
+        $script:StepLogs['repo-intake'] = Invoke-LoggedAction -StepName 'repo-intake' -Action {
+            & .\scripts\intake\run-repo-intake.cmd
         }
     } -Required $true
 }
@@ -569,9 +830,8 @@ if (-not $SkipRoutingEvals) {
             $pyParts = $py[1..($py.Length - 1)]
         }
 
-        & $cmd @pyParts .\scripts\intake\run-routing-evals.py
-        if ($LASTEXITCODE -ne 0) {
-            throw "run-routing-evals failed with exit code $LASTEXITCODE"
+        $script:StepLogs['routing-evals'] = Invoke-LoggedAction -StepName 'routing-evals' -Action {
+            & $cmd @pyParts .\scripts\intake\run-routing-evals.py
         }
     } -Required $true
 }
@@ -588,9 +848,8 @@ if (-not $SkipProjectNotesRefresh) {
             $pyParts = $py[1..($py.Length - 1)]
         }
 
-        & $cmd @pyParts .\scripts\discovery\refresh-project-notes.py
-        if ($LASTEXITCODE -ne 0) {
-            throw "refresh-project-notes failed with exit code $LASTEXITCODE"
+        $script:StepLogs['project-notes-refresh'] = Invoke-LoggedAction -StepName 'project-notes-refresh' -Action {
+            & $cmd @pyParts .\scripts\discovery\refresh-project-notes.py
         }
     } -Required $false
 }
@@ -610,9 +869,8 @@ if (-not $SkipCodegraphStatus) {
 
         [void](Ensure-CodegraphInitialized -RepoRootPath $repoRoot)
 
-        & codegraph status
-        if ($LASTEXITCODE -ne 0) {
-            throw "codegraph status failed with exit code $LASTEXITCODE"
+        $script:StepLogs['codegraph-status'] = Invoke-LoggedAction -StepName 'codegraph-status' -Action {
+            & codegraph status
         }
     } -Required $false
 }
@@ -621,6 +879,7 @@ else {
 }
 
 $endedAt = Get-Date
+$summary = Get-HiSummary -RepoRoot $repoRoot -StartedAt $startedAt -EndedAt $endedAt
 $report = [ordered]@{
     session = 'hi'
     started_at = $startedAt.ToString('o')
@@ -628,6 +887,8 @@ $report = [ordered]@{
     duration_sec = [math]::Round((($endedAt - $startedAt).TotalSeconds), 2)
     repo = $repoRoot
     success = (-not $script:HasFailures)
+    summary = $summary
+    step_logs = $script:StepLogs
     structure_cache = $script:StructureCacheReport
     steps = $script:Steps
 }
@@ -638,7 +899,7 @@ $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $reportPath = Join-Path $reportDir "hi-$stamp.json"
 $report | ConvertTo-Json -Depth 8 | Set-Content -Path $reportPath -Encoding UTF8
 
-Write-Host "Report: $reportPath"
+Write-HiSummary -Summary $summary -ReportPath $reportPath
 
 if ($script:HasFailures) {
     Write-Host 'HI startup finished with errors.' -ForegroundColor Red

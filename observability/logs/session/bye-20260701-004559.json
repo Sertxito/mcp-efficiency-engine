@@ -1,0 +1,76 @@
+{
+  "session": "bye",
+  "started_at": "2026-07-01T00:45:56.8910356+02:00",
+  "ended_at": "2026-07-01T00:45:59.5727009+02:00",
+  "duration_sec": 2.68,
+  "repo": "C:\\repo\\mcp-efficiency-engine",
+  "success": true,
+  "summary": {
+    "result": "ok",
+    "started_at": "2026-07-01T00:45:56.8910356+02:00",
+    "ended_at": "2026-07-01T00:45:59.5727009+02:00",
+    "duration_sec": 2.68,
+    "steps": {
+      "total": 2,
+      "ok": 2,
+      "failed_required": 0,
+      "failed_optional": 0,
+      "skipped": 9
+    },
+    "engines": {
+      "codegraph": {
+        "command_available": true,
+        "index_present": true,
+        "sync": "skipped",
+        "status": "skipped"
+      },
+      "git": {
+        "command_available": true,
+        "snapshot": "ok"
+      },
+      "repomix": {
+        "refresh": "skipped"
+      }
+    },
+    "artifacts": {
+      "repo_registry": "ok",
+      "repo_intake": "skipped",
+      "routing_evals": "skipped",
+      "sibling_discovery": "skipped",
+      "project_notes": "skipped",
+      "learning_loop": "skipped",
+      "iteration_value": "skipped",
+      "repomix_output": true
+    },
+    "skipped_steps": [
+      "Run routing evals",
+      "Refresh codegraph index sync",
+      "Refresh repo intake artifacts",
+      "Refresh sibling repos discovery proposal",
+      "Refresh repomix context export",
+      "Refresh project notes from observability",
+      "Refresh learning loop report",
+      "Refresh iteration value report",
+      "Check codegraph status"
+    ]
+  },
+  "step_logs": {
+    "repo-registry-validation": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\session\\repo-registry-validation-20260701-004556.log"
+  },
+  "steps": [
+    {
+      "name": "Validate repo registry (strict)",
+      "required": true,
+      "success": true,
+      "duration_sec": 1.81,
+      "message": "ok"
+    },
+    {
+      "name": "Collect git snapshot",
+      "required": false,
+      "success": true,
+      "duration_sec": 0.8,
+      "message": "ok"
+    }
+  ]
+}

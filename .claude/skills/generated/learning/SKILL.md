@@ -1,6 +1,6 @@
 ---
 name: learning
-description: "Skill for the Learning area of mcpFirst. 23 symbols across 4 files."
+description: "Skill for the Learning area of MCP Efficiency Engine. 23 symbols across 4 files."
 ---
 
 # Learning

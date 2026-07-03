@@ -41,6 +41,36 @@ Mapa de politicas:
 - Gobierno: `policies/*.md`
 - Optimizacion always-on: `optimization/policies/*.md`
 
+## 4.1) Regla de alcance para proyectos
+
+- El trabajo operativo sobre proyectos debe centrarse en `projects/`.
+- Todo entregable, nota, documento o artefacto especifico de un proyecto debe
+  guardarse dentro de `projects/<nombre-proyecto>/`.
+- Los analisis y diagnosticos generados por MCP Efficiency Engine deben
+  guardarse preferentemente en `projects/<nombre-proyecto>/analysis_mcpee/`.
+- Los subagentes no deben sacar artefactos especificos de proyecto a la raiz
+  del repositorio.
+
+## 4.2) Primera pasada profunda por boost
+
+- La primera vez que un agente entre en un boost, capability o proyecto nuevo,
+  debe hacer onboarding profundo antes de pasar a modo optimizado.
+- Esa primera pasada debe intentar recuperar la maxima informacion verificable
+  relevante, aunque tarde mas, priorizando fuentes canonicas sobre resumenes
+  parciales.
+- Orden recomendado de contexto en la primera pasada:
+  1. `repo-intake/generated/<slug>/`
+  2. `docs/01-onboarding.md` y documentacion base del repo
+  3. instrucciones locales `.github/instructions/`
+  4. skills locales `.github/skills/`
+  5. agentes locales `.github/agents/`
+  6. prompts locales `.github/prompts/`
+  7. documentacion y artefactos especificos del proyecto en `projects/`
+- Si hay agentes o subagentes especializados del boost, deben usarse o, como
+  minimo, leerse y aplicarse como marco operativo de la tarea.
+- Tras esa primera pasada, el agente puede volver a estrategia de contexto
+  minimo y ejecucion optimizada.
+
 ## 5) Arranque y cierre diarios
 
 Arranque automatizado profundo (valida contexto + memoria/cache + MCP operativos + repos hermanos + intake + evals + estado CodeGraph):

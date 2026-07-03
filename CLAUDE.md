@@ -1,7 +1,7 @@
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **mcpFirst** (808 symbols, 971 relationships, 17 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **mcp-efficiency-engine**. Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
 
@@ -25,10 +25,10 @@ This project is indexed by GitNexus as **mcpFirst** (808 symbols, 971 relationsh
 
 | Resource | Use for |
 |----------|---------|
-| `gitnexus://repo/mcpFirst/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/mcpFirst/clusters` | All functional areas |
-| `gitnexus://repo/mcpFirst/processes` | All execution flows |
-| `gitnexus://repo/mcpFirst/process/{name}` | Step-by-step execution trace |
+| `gitnexus://repo/mcp-efficiency-engine/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/mcp-efficiency-engine/clusters` | All functional areas |
+| `gitnexus://repo/mcp-efficiency-engine/processes` | All execution flows |
+| `gitnexus://repo/mcp-efficiency-engine/process/{name}` | Step-by-step execution trace |
 
 ## CLI
 

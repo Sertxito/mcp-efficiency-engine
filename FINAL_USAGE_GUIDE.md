@@ -1,4 +1,4 @@
-# Guía final de uso — MCP-First Enterprise Full v6
+# Guía de uso — MCP Efficiency Engine
 
 ## 1. Cómo queda finalmente todo
 
@@ -85,7 +85,6 @@ Esto significa:
 - las fuentes se conservan cuando sean obligatorias,
 - el sistema solo aumenta detalle si el usuario o el caso lo requiere.
 
-<!-- diagramas-v1 -->
 ## Diagrama Visual De Uso Diario
 
 ```mermaid
