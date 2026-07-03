@@ -253,9 +253,9 @@ def main() -> int:
         latest_by_event(feedback_rows),
         latest_by_event(metrics_rows),
         {
-            "routing": str(routing_path),
-            "feedback": str(feedback_path),
-            "metrics": str(metrics_path),
+            "routing": args.routing_log.replace("\\", "/"),
+            "feedback": args.feedback_log.replace("\\", "/"),
+            "metrics": args.metrics_log.replace("\\", "/"),
         },
     )
 

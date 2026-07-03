@@ -1,25 +1,25 @@
 {
-  "timestamp": "2026-06-30T23:07:47.889857+00:00",
+  "timestamp": "2026-07-03T17:40:38.467528+00:00",
   "sources": {
-    "routing": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\routing-decisions.jsonl",
-    "feedback": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\learning-feedback.jsonl",
-    "metrics": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\iteration-metrics.jsonl"
+    "routing": "observability/logs/routing-decisions.jsonl",
+    "feedback": "observability/logs/learning-feedback.jsonl",
+    "metrics": "observability/logs/iteration-metrics.jsonl"
   },
   "totals": {
-    "events": 223,
-    "events_with_event_id": 172,
-    "metrics_covered": 5,
-    "feedback_confirmed": 60,
-    "confirmed_success": 60
+    "events": 176,
+    "events_with_event_id": 125,
+    "metrics_covered": 7,
+    "feedback_confirmed": 10,
+    "confirmed_success": 10
   },
   "kpis": {
-    "metrics_coverage_rate": 0.0291,
-    "confirmed_feedback_rate": 0.3488,
+    "metrics_coverage_rate": 0.056,
+    "confirmed_feedback_rate": 0.08,
     "confirmed_success_rate": 1.0,
-    "total_tokens": 6000,
-    "total_cost_usd": 0.05,
-    "tokens_per_confirmed_success": 100.0,
-    "cost_per_confirmed_success_usd": 0.000833
+    "total_tokens": 6474,
+    "total_cost_usd": 0.0542,
+    "tokens_per_confirmed_success": 647.4,
+    "cost_per_confirmed_success_usd": 0.00542
   },
   "breakdown": {
     "tool_mode": {
@@ -29,16 +29,21 @@
         "cost_usd": 0.02
       },
       "local-only": {
-        "count": 3,
-        "tokens": 3600,
-        "cost_usd": 0.03
+        "count": 4,
+        "tokens": 4044,
+        "cost_usd": 0.0342
+      },
+      "model-only": {
+        "count": 1,
+        "tokens": 30,
+        "cost_usd": 0.0
       }
     },
     "model": {
       "GPT-5.3-Codex": {
-        "count": 5,
-        "tokens": 6000,
-        "cost_usd": 0.05
+        "count": 7,
+        "tokens": 6474,
+        "cost_usd": 0.054200000000000005
       }
     },
     "engine": {
@@ -48,9 +53,9 @@
         "cost_usd": 0.01
       },
       "CodeGraph": {
-        "count": 2,
-        "tokens": 2400,
-        "cost_usd": 0.02
+        "count": 4,
+        "tokens": 2874,
+        "cost_usd": 0.0242
       },
       "GitNexus": {
         "count": 1,

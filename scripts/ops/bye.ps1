@@ -9,7 +9,9 @@ param(
     [switch]$SkipRepomixRefresh,
     [switch]$SkipProjectNotesRefresh,
     [switch]$SkipLearningRefresh,
-    [switch]$SkipIterationValueRefresh
+    [switch]$SkipIterationValueRefresh,
+    [switch]$SkipCopilotUsageIngest,
+    [switch]$SkipChatTokenUsageReport
 )
 
 Set-StrictMode -Version Latest
@@ -368,6 +370,55 @@ else {
     Write-Host '[skip] Refresh learning loop report'
 }
 
+if (-not $SkipCopilotUsageIngest) {
+    Invoke-Step -Name 'Ingest Copilot session token usage (best effort)' -Action {
+        $py = Get-PythonCommand
+        $cmd = $py[0]
+        $pyParts = @()
+        if ($py.Length -gt 1) {
+            $pyParts = $py[1..($py.Length - 1)]
+        }
+
+        & $cmd @pyParts .\scripts\learning\ingest-copilot-session-usage.py
+        if ($LASTEXITCODE -ne 0) {
+            throw "ingest-copilot-session-usage failed with exit code $LASTEXITCODE"
+        }
+    } -Required $false
+}
+else {
+    Write-Host '[skip] Ingest Copilot session token usage (best effort)'
+}
+
+if (-not $SkipChatTokenUsageReport) {
+    Invoke-Step -Name 'Refresh chat token usage report' -Action {
+        $py = Get-PythonCommand
+        $cmd = $py[0]
+        $pyParts = @()
+        if ($py.Length -gt 1) {
+            $pyParts = $py[1..($py.Length - 1)]
+        }
+
+        $plan = $env:COPILOT_PLAN
+        if ([string]::IsNullOrWhiteSpace($plan)) {
+            $plan = 'business'
+        }
+
+        $seats = $env:COPILOT_SEATS
+        if ([string]::IsNullOrWhiteSpace($seats)) {
+            $seats = '1'
+        }
+
+        Write-Host "[info] chat-token-usage-report plan=$plan seats=$seats"
+        & $cmd @pyParts .\scripts\learning\chat-token-usage-report.py --plan $plan --seats $seats
+        if ($LASTEXITCODE -ne 0) {
+            throw "chat-token-usage-report failed with exit code $LASTEXITCODE"
+        }
+    } -Required $false
+}
+else {
+    Write-Host '[skip] Refresh chat token usage report'
+}
+
 if (-not $SkipIterationValueRefresh) {
     Invoke-Step -Name 'Refresh iteration value report' -Action {
         $py = Get-PythonCommand
@@ -436,7 +487,7 @@ $report = [ordered]@{
     started_at = $startedAt.ToString('o')
     ended_at = $endedAt.ToString('o')
     duration_sec = [math]::Round((($endedAt - $startedAt).TotalSeconds), 2)
-    repo = $repoRoot
+    repo = 'workspace-root'
     success = (-not $script:HasFailures)
     summary = $summary
     step_logs = $script:StepLogs
