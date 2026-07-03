@@ -78,6 +78,10 @@ Salidas:
 - observability/evals/iteration-value-report.json
 - observability/evals/iteration-value-report.md
 
+Para contrastar planes, creditos incluidos o precio oficial de Copilot cuando sea necesario:
+
+- https://github.com/features/copilot/plans?ref_cta=View+pricing+and+plans&ref_loc=hero&ref_page=%2Ffeatures_copilot_copilot_business&plans=business
+
 ## Criterios minimos de salud
 
 1. fallback_rate <= 0.20 (global) salvo dominios de baja cobertura declarados.

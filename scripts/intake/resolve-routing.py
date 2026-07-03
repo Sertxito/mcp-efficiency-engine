@@ -77,10 +77,11 @@ def domain_defaults(domain: str) -> dict[str, str]:
         "iot": {"agent": "iot-agent", "engine": "GitNexus/CodeGraph + Graphify", "capability": "iot-architecture"},
         "azure-rag": {"agent": "rag-azure-agent", "engine": "Azure RAG Builder", "capability": "azure-rag-enterprise"},
         "rag": {"agent": "rag-local-agent", "engine": "Graphify", "capability": "rag-knowledge"},
-        "dev": {"agent": "dev-agent", "engine": "CodeGraph", "capability": "dev-coding"},
+        "backend": {"agent": "dev-agent", "engine": "CodeGraph", "capability": "backend-coding"},
+        "community-content": {"agent": "community-manager-agent", "engine": "Graphify", "capability": "community-content"},
         "legacy": {"agent": "legacy-agent", "engine": "GitNexus", "capability": "legacy-migration"},
     }
-    return defaults.get(domain, defaults["dev"])
+    return defaults.get(domain, defaults["backend"])
 
 
 def is_repo_approved(repo: dict[str, Any]) -> bool:
@@ -148,7 +149,7 @@ def pick_route(
         route = {
             "agent": str(candidate.get("agent", "dev-agent")),
             "engine": str(candidate.get("engine", "CodeGraph")),
-            "capability": str(candidate.get("capability", "dev-coding")),
+            "capability": str(candidate.get("capability", "backend-coding")),
             "repo": str(candidate.get("repo", "")),
         }
         return route, notes
@@ -309,8 +310,10 @@ def select_prompt_for_route(
     if source_type == "corporate-docs" or domain == "azure-rag" or agent == "rag-azure-agent":
         candidate = ".github/prompts/azure-rag.query.prompt.md"
     # Code-centric workflows.
-    elif domain == "dev" and ("bug" in intent or intent == "bug-fix"):
-        candidate = ".github/prompts/dev.fix-bug.prompt.md"
+    elif domain == "backend" and ("bug" in intent or intent == "bug-fix"):
+        candidate = ".github/prompts/backend.fix-bug.prompt.md"
+    elif domain == "community-content" or agent == "community-manager-agent":
+        candidate = ".github/prompts/community.post.prompt.md"
     elif domain == "legacy":
         candidate = ".github/prompts/legacy.impact-analysis.prompt.md"
     # Data/document technical flows.

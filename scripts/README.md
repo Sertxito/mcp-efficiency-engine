@@ -67,7 +67,7 @@ Todas las ejecuciones deben usar rutas canonicas por subcarpeta.
 - `learning/record-learning-feedback.py`: registro de feedback de ejecucion.
 - `learning/record-iteration-metrics.py`: registro de metricas por iteracion.
 - `learning/ingest-copilot-session-usage.py`: ingesta best-effort de uso de tokens desde logs de sesion de VS Code Copilot hacia `iteration-metrics.jsonl` (incluye `copilot_credits` cuando el log lo expone).
-- `learning/chat-token-usage-report.py`: reporte agregado de tokens y costo en creditos solo de chat (`usage.source=copilot-session`) con salida JSON+Markdown. Soporta `--plan` (`free|pro|pro+|max|business|enterprise`) y `--seats` para calcular presupuesto mensual incluido y sobreconsumo.
+- `learning/chat-token-usage-report.py`: reporte agregado de tokens y costo en creditos solo de chat (`usage.source=copilot-session`) con salida JSON+Markdown. Soporta `--plan` (`free|pro|pro+|max|business|enterprise`) y `--seats` para calcular presupuesto mensual incluido y sobreconsumo. Referencia oficial de planes/precio cuando haga falta validar creditos incluidos: https://github.com/features/copilot/plans?ref_cta=View+pricing+and+plans&ref_loc=hero&ref_page=%2Ffeatures_copilot_copilot_business&plans=business
 - `learning/learning-loop-report.py`: reporte de aprendizaje continuo.
 - `learning/iteration-value-report.py`: reporte de valor por iteracion.
 - `learning/autolearning-gate.py`: gate automatizado de aprendizaje.

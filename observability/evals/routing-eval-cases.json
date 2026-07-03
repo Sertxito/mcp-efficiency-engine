@@ -4,9 +4,9 @@
       "id": "case-login-bug",
       "input": "Arregla bug de login",
       "intent": "bug-fix",
-      "domain": "dev",
+      "domain": "backend",
       "source_type": "code",
-      "capability": "dev-coding"
+      "capability": "backend-coding"
     },
     {
       "id": "case-sla-grounding",

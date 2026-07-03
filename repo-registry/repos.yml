@@ -70,9 +70,9 @@
       }
     },
     {
-      "name": "boost_dev_core",
-      "domain": "dev",
-      "location": "../sertxIA",
+      "name": "boost_community_content",
+      "domain": "community-content",
+      "location": "../boost_sertxIA",
       "type": "local",
       "dependencies": [],
       "approval": {
@@ -82,14 +82,14 @@
         "review_ticket": "PLATFORM-1004"
       },
       "engines": {
-        "knowledge": "codegraph",
+        "knowledge": "graphify",
         "execution": "none",
         "snapshot": "repomix"
       }
     },
     {
       "name": "boost_backend",
-      "domain": "dev",
+      "domain": "backend",
       "location": "../boost_backend",
       "type": "local",
       "dependencies": [],

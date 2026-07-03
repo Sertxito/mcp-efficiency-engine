@@ -2,11 +2,11 @@
   "repo": "boost_backend",
   "slug": "boost_backend",
   "schema_version": "2.0",
-  "domain": "dev",
+  "domain": "backend",
   "location": "../boost_backend",
   "type": "local",
   "agent": "dev-agent",
-  "skill": "dev-coding",
+  "skill": "backend-coding",
   "engine": "CodeGraph",
   "engines": {
     "knowledge": "codegraph",
@@ -20,5 +20,5 @@
     "approved_date": "2026-06-29",
     "review_ticket": "PLATFORM-1006"
   },
-  "generated_at": "2026-06-30T23:06:18.794741+00:00"
+  "generated_at": "2026-07-03T18:12:45.089549+00:00"
 }

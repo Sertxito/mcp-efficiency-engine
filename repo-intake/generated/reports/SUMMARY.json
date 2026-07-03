@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-30T23:06:18.742562+00:00",
+  "timestamp": "2026-07-03T18:12:44.971092+00:00",
   "schema_version": "2.0",
   "repos_count": 5,
   "repos": [
@@ -25,16 +25,16 @@
       "engine": "GitNexus/CodeGraph + Graphify"
     },
     {
-      "name": "boost_dev_core",
-      "slug": "boost_dev_core",
-      "domain": "dev",
-      "agent": "dev-agent",
-      "engine": "CodeGraph"
+      "name": "boost_community_content",
+      "slug": "boost_community_content",
+      "domain": "community-content",
+      "agent": "community-manager-agent",
+      "engine": "Graphify"
     },
     {
       "name": "boost_backend",
       "slug": "boost_backend",
-      "domain": "dev",
+      "domain": "backend",
       "agent": "dev-agent",
       "engine": "CodeGraph"
     }

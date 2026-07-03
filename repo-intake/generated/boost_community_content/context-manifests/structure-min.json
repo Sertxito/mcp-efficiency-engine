@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "repo": "boost_dev_core",
-  "slug": "boost_dev_core",
+  "repo": "boost_community_content",
+  "slug": "boost_community_content",
   "version": "0",
-  "domain": "dev",
-  "location": "../sertxIA",
-  "resolved_path": "C:/repo/sertxIA",
-  "generated_at": "2026-06-30T23:06:18.777627+00:00",
+  "domain": "community-content",
+  "location": "../boost_sertxIA",
+  "resolved_path": "C:/repo/boost_sertxIA",
+  "generated_at": "2026-07-03T18:12:45.049308+00:00",
   "exists": true,
   "top_level": {
     "dirs": [

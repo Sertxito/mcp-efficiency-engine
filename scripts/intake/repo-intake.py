@@ -157,7 +157,8 @@ def main():
         'dba': ('dba-agent', 'database-analysis', 'Graphify'),
         'iot': ('iot-agent', 'iot-architecture', 'GitNexus/CodeGraph + Graphify'),
         'azure-rag': ('rag-azure-agent', 'azure-rag-enterprise', 'Azure RAG Builder'),
-        'dev': ('dev-agent', 'dev-coding', 'CodeGraph'),
+        'backend': ('dev-agent', 'backend-coding', 'CodeGraph'),
+        'community-content': ('community-manager-agent', 'community-content', 'Graphify'),
         'legacy': ('legacy-agent', 'legacy-migration', 'GitNexus')
     }
 
@@ -173,8 +174,8 @@ def main():
     }
 
     for r in repos:
-        dom = r.get('domain', 'dev')
-        ag, sk, en = defaults.get(dom, defaults['dev'])
+        dom = r.get('domain', 'backend')
+        ag, sk, en = defaults.get(dom, defaults['backend'])
         name = r['name']
         s = slug(name)
 

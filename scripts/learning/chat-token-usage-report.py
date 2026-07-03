@@ -17,6 +17,11 @@ PLAN_INCLUDED_CREDITS_PER_USER = {
     "enterprise": 39.0,
 }
 
+OFFICIAL_COPILOT_PLANS_URL = (
+    "https://github.com/features/copilot/plans?ref_cta=View+pricing+and+plans"
+    "&ref_loc=hero&ref_page=%2Ffeatures_copilot_copilot_business&plans=business"
+)
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -182,6 +187,7 @@ def build_report(
         "seats": seats,
         "included_credits_per_user_month": included_per_user,
         "included_credits_total_month": round(included_total, 6),
+        "official_plans_url": OFFICIAL_COPILOT_PLANS_URL,
     }
     report["budget"] = {
         "used_copilot_credits": round(used_credits, 6),
@@ -211,6 +217,7 @@ def to_markdown(report: dict[str, Any]) -> str:
         f"- filter.to: {filters.get('to', '')}",
         f"- plan: {license_info.get('plan', '')}",
         f"- seats: {license_info.get('seats', 0)}",
+        f"- official_plans_url: {license_info.get('official_plans_url', '')}",
         "",
         "## Totals",
         "",
@@ -265,7 +272,7 @@ def main() -> int:
         "--plan",
         default="business",
         choices=["free", "pro", "pro+", "max", "business", "enterprise"],
-        help="Copilot plan for budget context",
+        help="Copilot plan for budget context. Verify current pricing/allowances at the official Copilot plans URL.",
     )
     parser.add_argument("--seats", type=int, default=1, help="Number of licensed users for pooled monthly credits")
     parser.add_argument("--out-json", default="observability/evals/chat-token-usage-report.json")

@@ -1,0 +1,24 @@
+{
+  "repo": "boost_community_content",
+  "slug": "boost_community_content",
+  "schema_version": "2.0",
+  "domain": "community-content",
+  "location": "../boost_sertxIA",
+  "type": "local",
+  "agent": "community-manager-agent",
+  "skill": "community-content",
+  "engine": "Graphify",
+  "engines": {
+    "knowledge": "graphify",
+    "execution": "none",
+    "snapshot": "repomix"
+  },
+  "dependencies": [],
+  "approval": {
+    "status": "approved",
+    "approved_by": "platform-team",
+    "approved_date": "2026-06-29",
+    "review_ticket": "PLATFORM-1004"
+  },
+  "generated_at": "2026-07-03T18:12:45.048715+00:00"
+}
