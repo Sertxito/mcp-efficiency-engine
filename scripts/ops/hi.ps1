@@ -331,6 +331,51 @@ function Resolve-RepoPath {
     return [System.IO.Path]::GetFullPath((Join-Path $Root $RelativePath))
 }
 
+function Get-RepoField {
+    param(
+        [object]$Repo,
+        [string]$Name,
+        [string]$Default = ''
+    )
+
+    if ($null -eq $Repo) {
+        return $Default
+    }
+
+    $prop = $Repo.PSObject.Properties[$Name]
+    if ($null -eq $prop -or $null -eq $prop.Value) {
+        return $Default
+    }
+
+    return [string]$prop.Value
+}
+
+function Resolve-RegistryRepoPath {
+    param(
+        [string]$Root,
+        [object]$Repo
+    )
+
+    $repoType = (Get-RepoField -Repo $Repo -Name 'type' -Default 'local').ToLowerInvariant()
+    if ($repoType -eq 'github') {
+        $cacheLocation = Get-RepoField -Repo $Repo -Name 'cache_location'
+        if (-not [string]::IsNullOrWhiteSpace($cacheLocation)) {
+            return Resolve-RepoPath -Root $Root -RelativePath $cacheLocation
+        }
+
+        $repoName = Get-RepoField -Repo $Repo -Name 'name' -Default 'unknown'
+        $slug = $repoName.ToLowerInvariant() -replace '[^a-z0-9_-]+', '-'
+        return [System.IO.Path]::GetFullPath((Join-Path $Root (".cache/github-repos/{0}" -f $slug)))
+    }
+
+    $location = Get-RepoField -Repo $Repo -Name 'location'
+    if ([string]::IsNullOrWhiteSpace($location)) {
+        throw "Registry repo is missing location: $(Get-RepoField -Repo $Repo -Name 'name' -Default '<unknown>')"
+    }
+
+    return Resolve-RepoPath -Root $Root -RelativePath $location
+}
+
 function Get-PathLastWriteUtc {
     param(
         [string]$Path
@@ -362,9 +407,9 @@ function Get-StructureSnapshot {
         [object]$Repo
     )
 
-    $repoName = [string]$Repo.name
+    $repoName = Get-RepoField -Repo $Repo -Name 'name'
     $slug = $repoName.ToLower() -replace '[^a-z0-9_-]+', '-'
-    $repoPath = Resolve-RepoPath -Root $RepoRoot -RelativePath ([string]$Repo.location)
+    $repoPath = Resolve-RegistryRepoPath -Root $RepoRoot -Repo $Repo
     $structurePath = Join-Path $RepoRoot ("repo-intake/generated/{0}/context-manifests/structure-min.json" -f $slug)
 
     $repoLatest = [datetime]::MinValue
@@ -702,12 +747,13 @@ if (-not $SkipSiblingReposChecks) {
         $registry = Get-Content $registryPath -Raw | ConvertFrom-Json -Depth 20
 
         foreach ($repo in $registry.repos) {
-            $location = Resolve-RepoPath -Root $repoRoot -RelativePath ([string]$repo.location)
+            $repoName = Get-RepoField -Repo $repo -Name 'name'
+            $location = Resolve-RegistryRepoPath -Root $repoRoot -Repo $repo
             if (-not (Test-Path $location)) {
-                throw "Sibling repo path not found: $($repo.name) -> $location"
+                throw "Sibling repo path not found: $repoName -> $location"
             }
 
-            $slug = ([string]$repo.name).ToLower() -replace '[^a-z0-9_-]+', '-'
+            $slug = $repoName.ToLower() -replace '[^a-z0-9_-]+', '-'
             $manifest = Join-Path $repoRoot ("repo-intake/generated/{0}/context-manifests/manifest.json" -f $slug)
             $structure = Join-Path $repoRoot ("repo-intake/generated/{0}/context-manifests/structure-min.json" -f $slug)
             $capability = Join-Path $repoRoot ("repo-intake/generated/{0}/capabilities/capability.json" -f $slug)
@@ -723,11 +769,12 @@ if (-not $SkipSiblingReposChecks) {
             }
 
             $structureData = Get-Content $structure -Raw | ConvertFrom-Json -Depth 20
-            if ([string]$structureData.repo -ne [string]$repo.name) {
-                throw "Structure cache repo mismatch for $($repo.name): found '$($structureData.repo)'"
+            if ([string]$structureData.repo -ne $repoName) {
+                throw "Structure cache repo mismatch for ${repoName}: found '$($structureData.repo)'"
             }
-            if (-not [bool]$structureData.exists -and -not [bool]$repo.optional) {
-                throw "Structure cache indicates missing path for required repo '$($repo.name)'"
+            $isOptional = (Get-RepoField -Repo $repo -Name 'optional' -Default 'false') -eq 'true'
+            if (-not [bool]$structureData.exists -and -not $isOptional) {
+                throw "Structure cache indicates missing path for required repo '$repoName'"
             }
         }
     } -Required $true

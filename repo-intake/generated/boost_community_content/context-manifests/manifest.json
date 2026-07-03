@@ -3,8 +3,19 @@
   "slug": "boost_community_content",
   "schema_version": "2.0",
   "domain": "community-content",
-  "location": "../boost_sertxIA",
-  "type": "local",
+  "location": "",
+  "type": "github",
+  "repo_url": "https://github.com/Sertxito/boost_sertxIA.git",
+  "branch": "main",
+  "cache_location": ".cache/github-repos/boost_community_content",
+  "resolved_path": "C:/repo/mcp-efficiency-engine/.cache/github-repos/boost_community_content",
+  "sync": {
+    "mode": "github",
+    "repo_url": "https://github.com/Sertxito/boost_sertxIA.git",
+    "branch": "main",
+    "resolved_path": "C:/repo/mcp-efficiency-engine/.cache/github-repos/boost_community_content",
+    "status": "updated"
+  },
   "agent": "community-manager-agent",
   "skill": "community-content",
   "engine": "Graphify",
@@ -20,5 +31,5 @@
     "approved_date": "2026-06-29",
     "review_ticket": "PLATFORM-1004"
   },
-  "generated_at": "2026-07-03T18:12:45.048715+00:00"
+  "generated_at": "2026-07-03T19:08:39.734971+00:00"
 }

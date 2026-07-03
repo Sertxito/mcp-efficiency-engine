@@ -10,8 +10,10 @@
     {
       "name": "boost_dba",
       "domain": "dba",
-      "location": "../boost_DBA",
-      "type": "local",
+      "type": "github",
+      "repo_url": "https://github.com/Sertxito/boostDBA.git",
+      "branch": "main",
+      "cache_location": ".cache/github-repos/boost_dba",
       "dependencies": [],
       "approval": {
         "status": "approved",
@@ -28,8 +30,10 @@
     {
       "name": "boost_azure_rag",
       "domain": "azure-rag",
-      "location": "../boost_RAG-Azure-Builder",
-      "type": "local",
+      "type": "github",
+      "repo_url": "https://github.com/Sertxito/boost_RAG-Azure.git",
+      "branch": "main",
+      "cache_location": ".cache/github-repos/boost_azure_rag",
       "dependencies": [
         {
           "ref": "boost_dba"
@@ -50,8 +54,10 @@
     {
       "name": "boost_azure_iot_edge",
       "domain": "iot",
-      "location": "../boost_azure-iot-edge",
-      "type": "local",
+      "type": "github",
+      "repo_url": "https://github.com/Sertxito/boost_azure-iot-edge.git",
+      "branch": "main",
+      "cache_location": ".cache/github-repos/boost_azure_iot_edge",
       "dependencies": [
         {
           "ref": "boost_dba"
@@ -72,8 +78,10 @@
     {
       "name": "boost_community_content",
       "domain": "community-content",
-      "location": "../boost_sertxIA",
-      "type": "local",
+      "type": "github",
+      "repo_url": "https://github.com/Sertxito/boost_sertxIA.git",
+      "branch": "main",
+      "cache_location": ".cache/github-repos/boost_community_content",
       "dependencies": [],
       "approval": {
         "status": "approved",
@@ -90,8 +98,10 @@
     {
       "name": "boost_backend",
       "domain": "backend",
-      "location": "../boost_backend",
-      "type": "local",
+      "type": "github",
+      "repo_url": "https://github.com/Sertxito/boost_backend.git",
+      "branch": "main",
+      "cache_location": ".cache/github-repos/boost_backend",
       "dependencies": [],
       "approval": {
         "status": "approved",

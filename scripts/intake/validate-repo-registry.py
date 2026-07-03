@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -31,7 +32,7 @@ def parse_simple_yml(path: Path) -> dict[str, Any]:
             k, v = st.split(":", 1)
             k = k.strip()
             v = v.strip().strip('"')
-            if k in {"domain", "location", "type"}:
+            if k in {"domain", "location", "type", "repo_url", "branch", "cache_location"}:
                 current[k] = v
     if current:
         repos.append(current)
@@ -57,6 +58,19 @@ def load_registry(path: Path) -> dict[str, Any]:
 class ValidationResult:
     errors: list[str]
     warnings: list[str]
+
+
+def command_exists(name: str) -> bool:
+    try:
+        completed = subprocess.run(
+            [name, "--version"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        return False
+    return completed.returncode == 0
 
 
 def validate(registry: dict[str, Any], strict: bool, repo_root: Path) -> ValidationResult:
@@ -103,21 +117,42 @@ def validate(registry: dict[str, Any], strict: bool, repo_root: Path) -> Validat
             continue
         names.add(name)
 
-        for field in ("domain", "location", "type"):
+        for field in ("domain", "type"):
             if not str(repo.get(field, "")).strip():
                 errors.append(f"Repo '{name}' is missing required field: {field}")
 
-        if str(repo.get("type", "")).strip() and repo.get("type") != "local":
-            errors.append(f"Repo '{name}' type must be 'local' in this phase.")
+        repo_type = str(repo.get("type", "")).strip().lower()
+        if repo_type not in {"local", "github"}:
+            errors.append(f"Repo '{name}' type must be 'local' or 'github'.")
 
         location = str(repo.get("location", "")).strip()
-        if location:
-            resolved = (repo_root / location).resolve()
-            if not resolved.exists():
-                if bool(repo.get("optional", False)):
-                    warnings.append(f"Optional repo '{name}' location does not exist: {location}")
-                else:
-                    errors.append(f"Repo '{name}' location does not exist: {location}")
+        if repo_type == "local":
+            if not location:
+                errors.append(f"Repo '{name}' is missing required field: location")
+            elif location:
+                resolved = (repo_root / location).resolve()
+                if not resolved.exists():
+                    if bool(repo.get("optional", False)):
+                        warnings.append(f"Optional repo '{name}' location does not exist: {location}")
+                    else:
+                        errors.append(f"Repo '{name}' location does not exist: {location}")
+        elif repo_type == "github":
+            repo_url = str(repo.get("repo_url", "")).strip()
+            if not repo_url:
+                errors.append(f"Repo '{name}' is missing required field: repo_url")
+            elif not re.match(r"^https://github\.com/[^/]+/[^/]+(?:\.git)?$", repo_url):
+                errors.append(f"Repo '{name}' repo_url must be a valid https GitHub repository URL.")
+            branch = str(repo.get("branch", "")).strip()
+            if branch and not re.match(r"^[A-Za-z0-9._\/-]+$", branch):
+                errors.append(f"Repo '{name}' branch contains invalid characters: {branch}")
+            cache_location = str(repo.get("cache_location", "")).strip()
+            if cache_location:
+                cache_resolved = (repo_root / cache_location).resolve()
+                cache_parent = cache_resolved.parent
+                if not cache_parent.exists():
+                    warnings.append(f"GitHub repo '{name}' cache parent does not exist yet: {cache_parent}")
+            if strict and not command_exists("git"):
+                errors.append(f"Repo '{name}' requires git command for type 'github'.")
 
         deps = repo.get("dependencies", [])
         dep_refs: list[str] = []

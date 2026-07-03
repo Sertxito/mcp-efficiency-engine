@@ -4,22 +4,28 @@
   "slug": "boost_azure_rag",
   "version": "0",
   "domain": "azure-rag",
-  "location": "../boost_RAG-Azure-Builder",
-  "resolved_path": "C:/repo/boost_RAG-Azure-Builder",
-  "generated_at": "2026-06-30T23:06:18.754180+00:00",
+  "location": "",
+  "resolved_path": "C:/repo/mcp-efficiency-engine/.cache/github-repos/boost_azure_rag",
+  "generated_at": "2026-07-03T19:08:32.514660+00:00",
   "exists": true,
+  "sync": {
+    "mode": "github",
+    "repo_url": "https://github.com/Sertxito/boost_RAG-Azure.git",
+    "branch": "main",
+    "resolved_path": "C:/repo/mcp-efficiency-engine/.cache/github-repos/boost_azure_rag",
+    "status": "updated"
+  },
   "top_level": {
     "dirs": [
       ".git",
       ".github",
-      ".venv",
       "assets"
     ],
     "files": [
       ".markdownlint.json"
     ],
     "counts": {
-      "dirs": 4,
+      "dirs": 3,
       "files": 1
     }
   },
@@ -86,5 +92,5 @@
       "kind": "missing"
     }
   ],
-  "cache_fingerprint": "6facbcb3dbcba957"
+  "cache_fingerprint": "0bdc504f67398b0a"
 }

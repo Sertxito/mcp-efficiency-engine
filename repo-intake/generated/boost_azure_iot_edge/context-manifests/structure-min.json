@@ -4,10 +4,17 @@
   "slug": "boost_azure_iot_edge",
   "version": "0",
   "domain": "iot",
-  "location": "../boost_azure-iot-edge",
-  "resolved_path": "C:/repo/boost_azure-iot-edge",
-  "generated_at": "2026-06-30T23:06:18.762310+00:00",
+  "location": "",
+  "resolved_path": "C:/repo/mcp-efficiency-engine/.cache/github-repos/boost_azure_iot_edge",
+  "generated_at": "2026-07-03T19:08:34.665363+00:00",
   "exists": true,
+  "sync": {
+    "mode": "github",
+    "repo_url": "https://github.com/Sertxito/boost_azure-iot-edge.git",
+    "branch": "main",
+    "resolved_path": "C:/repo/mcp-efficiency-engine/.cache/github-repos/boost_azure_iot_edge",
+    "status": "updated"
+  },
   "top_level": {
     "dirs": [
       ".git",
@@ -45,7 +52,7 @@
       "kind": "file",
       "fingerprint": {
         "size_bytes": 8614,
-        "mtime_utc": "2026-06-29T17:15:44.746731+00:00",
+        "mtime_utc": "2026-07-03T18:56:59.300094+00:00",
         "sha256_16": "ceb4e11a350913d5"
       }
     },
@@ -96,5 +103,5 @@
       "kind": "missing"
     }
   ],
-  "cache_fingerprint": "3cc58b50a6794b0d"
+  "cache_fingerprint": "a12f404ecf5ade66"
 }

@@ -4,22 +4,27 @@
   "slug": "boost_dba",
   "version": "0",
   "domain": "dba",
-  "location": "../boost_DBA",
-  "resolved_path": "C:/repo/boost_DBA",
-  "generated_at": "2026-06-30T23:06:18.743290+00:00",
+  "location": "",
+  "resolved_path": "C:/repo/mcp-efficiency-engine/.cache/github-repos/boost_dba",
+  "generated_at": "2026-07-03T19:08:30.348645+00:00",
   "exists": true,
+  "sync": {
+    "mode": "github",
+    "repo_url": "https://github.com/Sertxito/boostDBA.git",
+    "branch": "main",
+    "resolved_path": "C:/repo/mcp-efficiency-engine/.cache/github-repos/boost_dba",
+    "status": "updated"
+  },
   "top_level": {
     "dirs": [
       ".git",
-      ".github",
-      "input",
-      "workspaces"
+      ".github"
     ],
     "files": [
       ".gitignore"
     ],
     "counts": {
-      "dirs": 4,
+      "dirs": 2,
       "files": 1
     }
   },
@@ -83,5 +88,5 @@
       "kind": "missing"
     }
   ],
-  "cache_fingerprint": "ef9546bf252c15dd"
+  "cache_fingerprint": "8caa7ccee8ae6d44"
 }

@@ -4,20 +4,24 @@
   "slug": "boost_community_content",
   "version": "0",
   "domain": "community-content",
-  "location": "../boost_sertxIA",
-  "resolved_path": "C:/repo/boost_sertxIA",
-  "generated_at": "2026-07-03T18:12:45.049308+00:00",
+  "location": "",
+  "resolved_path": "C:/repo/mcp-efficiency-engine/.cache/github-repos/boost_community_content",
+  "generated_at": "2026-07-03T19:08:39.734992+00:00",
   "exists": true,
+  "sync": {
+    "mode": "github",
+    "repo_url": "https://github.com/Sertxito/boost_sertxIA.git",
+    "branch": "main",
+    "resolved_path": "C:/repo/mcp-efficiency-engine/.cache/github-repos/boost_community_content",
+    "status": "updated"
+  },
   "top_level": {
     "dirs": [
       ".git",
       ".github",
-      ".venv",
       ".vscode",
-      "archive",
       "editorial",
       "ego",
-      "node_modules",
       "presentations"
     ],
     "files": [
@@ -26,7 +30,7 @@
       "README.md"
     ],
     "counts": {
-      "dirs": 9,
+      "dirs": 6,
       "files": 3
     }
   },
@@ -42,7 +46,7 @@
       "kind": "file",
       "fingerprint": {
         "size_bytes": 14368,
-        "mtime_utc": "2026-06-21T15:46:40.220488+00:00",
+        "mtime_utc": "2026-07-03T18:59:38.834034+00:00",
         "sha256_16": "662753df4466f49c"
       }
     },
@@ -90,5 +94,5 @@
       "kind": "missing"
     }
   ],
-  "cache_fingerprint": "a8ae224391bc64a4"
+  "cache_fingerprint": "94e2c78eee29efbd"
 }

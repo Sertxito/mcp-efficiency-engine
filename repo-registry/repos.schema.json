@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://mcp-first-enterprise/repo-registry/repos.schema.json",
   "title": "Repo Registry Schema",
-  "description": "Schema for local-first repo registry.",
+  "description": "Schema for hybrid repo registry with local and GitHub-backed sources.",
   "type": "object",
   "required": ["repos"],
   "properties": {
@@ -28,15 +28,18 @@
       "minItems": 0,
       "items": {
         "type": "object",
-        "required": ["name", "domain", "location", "type"],
+        "required": ["name", "domain", "type"],
         "properties": {
           "name": { "type": "string", "minLength": 1 },
           "domain": {
             "type": "string",
-            "enum": ["dev", "legacy", "dba", "iot", "azure-rag"]
+            "enum": ["backend", "community-content", "legacy", "dba", "iot", "azure-rag", "rag"]
           },
           "location": { "type": "string", "minLength": 1 },
-          "type": { "type": "string", "enum": ["local"] },
+          "type": { "type": "string", "enum": ["local", "github"] },
+          "repo_url": { "type": "string", "minLength": 1 },
+          "branch": { "type": "string", "minLength": 1 },
+          "cache_location": { "type": "string", "minLength": 1 },
           "optional": { "type": "boolean" },
           "engines": {
             "type": "object",
@@ -69,6 +72,28 @@
             "additionalProperties": true
           }
         },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": { "const": "local" }
+              }
+            },
+            "then": {
+              "required": ["location"]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": { "const": "github" }
+              }
+            },
+            "then": {
+              "required": ["repo_url"]
+            }
+          }
+        ],
         "additionalProperties": true
       }
     }

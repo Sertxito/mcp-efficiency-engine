@@ -88,6 +88,8 @@ Contrato de registry portable:
 - `repo-registry/repos.template.json` es la plantilla portable para nuevos repos.
 - `registry_mode: "template"` permite `repos: []` solo en validacion no estricta.
 - `registry_mode: "enterprise"` mantiene el comportamiento actual de gobierno y repos no vacios.
+- Los repos del registry pueden ser `type: "local"` o `type: "github"`.
+- En `type: "github"`, el sistema materializa una copia cacheada en `.cache/github-repos/` y el resto del pipeline opera sobre esa copia local.
 
 Automatizacion recomendada para un repo nuevo:
 

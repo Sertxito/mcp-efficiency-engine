@@ -6,5 +6,21 @@
     "approval_required": false,
     "repo_name_prefix": "your-prefix_"
   },
-  "repos": []
+  "repos": [],
+  "repo_examples": {
+    "local": {
+      "name": "your-prefix_backend_local",
+      "domain": "backend",
+      "type": "local",
+      "location": "../your-backend-repo"
+    },
+    "github": {
+      "name": "your-prefix_backend_remote",
+      "domain": "backend",
+      "type": "github",
+      "repo_url": "https://github.com/your-org/your-repo.git",
+      "branch": "main",
+      "cache_location": ".cache/github-repos/your-prefix_backend_remote"
+    }
+  }
 }

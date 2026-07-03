@@ -1,8 +1,10 @@
+import argparse
 from pathlib import Path
 import json
 import re
 import shutil
 import hashlib
+import subprocess
 from datetime import datetime, timezone
 
 try:
@@ -23,7 +25,7 @@ def parse_simple_yml(path):
             k, v = st.split(':', 1)
             k = k.strip()
             v = v.strip().strip('"')
-            if k in ['domain', 'location', 'type', 'version']:
+            if k in ['domain', 'location', 'type', 'version', 'repo_url', 'branch', 'cache_location']:
                 cur[k] = v
     if cur:
         repos.append(cur)
@@ -55,6 +57,58 @@ def resolve_repo_path(repo_root: Path, location: str) -> Path:
     return (repo_root / path).resolve()
 
 
+def github_cache_path(repo_root: Path, repo_name: str, explicit_cache_location: str = '') -> Path:
+    if explicit_cache_location:
+        return resolve_repo_path(repo_root, explicit_cache_location)
+    return (repo_root / '.cache' / 'github-repos' / slug(repo_name)).resolve()
+
+
+def materialize_repo(repo_root: Path, repo: dict) -> tuple[Path, dict]:
+    repo_type = str(repo.get('type', 'local')).strip().lower() or 'local'
+    location = str(repo.get('location', '')).strip()
+    if repo_type == 'local':
+        repo_path = resolve_repo_path(repo_root, location)
+        return repo_path, {
+            'mode': 'local',
+            'source': location,
+            'resolved_path': str(repo_path).replace('\\', '/'),
+            'status': 'ok' if repo_path.exists() else 'missing',
+        }
+
+    repo_name = str(repo.get('name', '')).strip()
+    repo_url = str(repo.get('repo_url', '')).strip()
+    branch = str(repo.get('branch', '')).strip() or 'main'
+    cache_location = str(repo.get('cache_location', '')).strip()
+    cache_path = github_cache_path(repo_root, repo_name, cache_location)
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+
+    sync_meta = {
+        'mode': 'github',
+        'repo_url': repo_url,
+        'branch': branch,
+        'resolved_path': str(cache_path).replace('\\', '/'),
+        'status': 'pending',
+    }
+
+    if not repo_url:
+        sync_meta['status'] = 'missing_repo_url'
+        return cache_path, sync_meta
+
+    try:
+        if (cache_path / '.git').exists():
+            subprocess.run(['git', '-C', str(cache_path), 'fetch', '--depth', '1', 'origin', branch], check=True, capture_output=True, text=True)
+            subprocess.run(['git', '-C', str(cache_path), 'checkout', '--force', 'FETCH_HEAD'], check=True, capture_output=True, text=True)
+            sync_meta['status'] = 'updated'
+        else:
+            subprocess.run(['git', 'clone', '--depth', '1', '--branch', branch, repo_url, str(cache_path)], check=True, capture_output=True, text=True)
+            sync_meta['status'] = 'cloned'
+    except subprocess.CalledProcessError as exc:
+        sync_meta['status'] = 'sync_failed'
+        sync_meta['error'] = (exc.stderr or exc.stdout or str(exc)).strip()
+
+    return cache_path, sync_meta
+
+
 def file_fingerprint(path: Path) -> dict:
     stat = path.stat()
     digest = hashlib.sha256(path.read_bytes()).hexdigest()[:16]
@@ -65,8 +119,8 @@ def file_fingerprint(path: Path) -> dict:
     }
 
 
-def build_structure_manifest(repo_root: Path, repo_name: str, slug_name: str, version: str, domain: str, location: str) -> dict:
-    repo_path = resolve_repo_path(repo_root, location)
+def build_structure_manifest(repo_root: Path, repo_name: str, slug_name: str, version: str, domain: str, location: str, repo_path: Path | None = None, sync: dict | None = None) -> dict:
+    repo_path = repo_path or resolve_repo_path(repo_root, location)
     structure = {
         'schema_version': '1.0',
         'repo': repo_name,
@@ -78,6 +132,8 @@ def build_structure_manifest(repo_root: Path, repo_name: str, slug_name: str, ve
         'generated_at': utc_now(),
         'exists': repo_path.exists(),
     }
+    if sync is not None:
+        structure['sync'] = sync
 
     if not repo_path.exists():
         structure['top_level'] = {'dirs': [], 'files': [], 'counts': {'dirs': 0, 'files': 0}}
@@ -148,9 +204,15 @@ def ensure_dirs(base):
         (base / d).mkdir(parents=True, exist_ok=True)
 
 def main():
+    parser = argparse.ArgumentParser(description='Generate intake artifacts from repo-registry, including github-backed cached repos.')
+    parser.add_argument('--registry', default='repo-registry/repos.yml', help='Registry file path')
+    parser.add_argument('--generated-root', default='repo-intake/generated', help='Output directory for generated artifacts')
+    args = parser.parse_args()
+
     repo_root = Path(__file__).resolve().parents[2]
 
-    legacy_out = Path('repo-intake/generated')
+    registry_path = (repo_root / args.registry).resolve()
+    legacy_out = (repo_root / args.generated_root).resolve()
     ensure_dirs(legacy_out)
 
     defaults = {
@@ -162,7 +224,7 @@ def main():
         'legacy': ('legacy-agent', 'legacy-migration', 'GitNexus')
     }
 
-    registry = load_registry('repo-registry/repos.yml')
+    registry = load_registry(registry_path)
     schema_version = str(registry.get('schema_version', '1.0'))
     repos = registry.get('repos', [])
 
@@ -178,9 +240,10 @@ def main():
         ag, sk, en = defaults.get(dom, defaults['backend'])
         name = r['name']
         s = slug(name)
+        repo_path, sync_meta = materialize_repo(repo_root, r)
 
         # Flat JSON-first output (no v2/version folders)
-        flat_base = Path('repo-intake/generated') / s
+        flat_base = legacy_out / s
         (flat_base / 'context-manifests').mkdir(parents=True, exist_ok=True)
         (flat_base / 'capabilities').mkdir(parents=True, exist_ok=True)
         (flat_base / 'audit').mkdir(parents=True, exist_ok=True)
@@ -196,6 +259,11 @@ def main():
             'domain': dom,
             'location': r.get('location', ''),
             'type': r.get('type', 'local'),
+            'repo_url': r.get('repo_url', ''),
+            'branch': r.get('branch', ''),
+            'cache_location': r.get('cache_location', ''),
+            'resolved_path': str(repo_path).replace('\\', '/'),
+            'sync': sync_meta,
             'agent': ag,
             'skill': sk,
             'engine': en,
@@ -212,6 +280,8 @@ def main():
             version='0',
             domain=dom,
             location=str(r.get('location', '')),
+            repo_path=repo_path,
+            sync=sync_meta,
         )
 
         capability = {
@@ -229,8 +299,9 @@ def main():
             'action': 'repo_intake_generate',
             'repo': name,
             'slug': s,
-            'status': 'success',
+            'status': 'success' if sync_meta.get('status') not in {'missing_repo_url', 'sync_failed'} else 'warning',
             'schema_version': schema_version,
+            'sync': sync_meta,
             'artifacts': ['manifest.json', 'capability.json', 'structure-min.json', 'audit-log.jsonl']
         }
 
@@ -256,7 +327,7 @@ def main():
         })
 
     # Remove stale flat repo folders that are no longer present in registry.
-    generated_root = Path('repo-intake/generated')
+    generated_root = legacy_out
     active_slugs = {slug(r['name']) for r in repos if isinstance(r, dict) and 'name' in r}
     reserved_dirs = {'reports'}
     if generated_root.exists():
@@ -265,7 +336,7 @@ def main():
                 shutil.rmtree(child, ignore_errors=True)
 
     # Remove legacy versioned tree if present.
-    legacy_v2 = Path('repo-intake/generated/v2')
+    legacy_v2 = legacy_out / 'v2'
     if legacy_v2.exists() and legacy_v2.is_dir():
         shutil.rmtree(legacy_v2, ignore_errors=True)
 

@@ -34,11 +34,11 @@ Todas las ejecuciones deben usar rutas canonicas por subcarpeta.
 
 ## Repo intake y routing
 
-- `intake/validate-repo-registry.py`: valida `repo-registry/repos.yml` (strict opcional).
+- `intake/validate-repo-registry.py`: valida `repo-registry/repos.yml` (strict opcional). Soporta `type=local` y `type=github`.
 - `intake/validate-repo-registry.ps1`: wrapper PowerShell de validacion del registry.
 - `intake/init-template-registry.ps1`: inicializa `repo-registry/repos.yml` desde la plantilla portable.
 - `intake/init-template-registry.cmd`: wrapper CMD recomendado en Windows para inicializar el registry plantilla.
-- `intake/repo-intake.py`: genera artefactos intake por repo.
+- `intake/repo-intake.py`: genera artefactos intake por repo. Para `type=github` materializa/actualiza una cache local y luego genera manifests/capabilities igual que para repos locales.
 - `intake/run-repo-intake.cmd`: wrapper recomendado en Windows para intake.
 - `intake/run-repo-intake.ps1`: wrapper PowerShell para intake.
 - `intake/resolve-routing.py`: resuelve ruta por capabilities/engine/fallback y puede registrar metricas de tokens por llamada con `--input-tokens --output-tokens`.
