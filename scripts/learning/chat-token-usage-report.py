@@ -88,7 +88,7 @@ def row_timestamp(row: dict[str, Any]) -> datetime | None:
 
 def build_report(
     rows: list[dict[str, Any]],
-    source_path: Path,
+    source_label: str,
     dt_from: datetime | None,
     dt_to: datetime | None,
     plan: str,
@@ -145,7 +145,7 @@ def build_report(
 
     report = {
         "timestamp": utc_now(),
-        "source": str(source_path),
+        "source": source_label,
         "filters": {
             "source": "copilot-session",
             "from": dt_from.isoformat() if dt_from is not None else "",
@@ -301,7 +301,7 @@ def main() -> int:
     out_md = (repo_root / args.out_md).resolve()
 
     rows = parse_jsonl(metrics_path)
-    report = build_report(rows, metrics_path, dt_from, dt_to, args.plan, args.seats)
+    report = build_report(rows, args.metrics_log.replace("\\", "/"), dt_from, dt_to, args.plan, args.seats)
 
     out_json.parent.mkdir(parents=True, exist_ok=True)
     out_json.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

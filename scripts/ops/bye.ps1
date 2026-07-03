@@ -333,7 +333,7 @@ $report = [ordered]@{
     started_at = $startedAt.ToString('o')
     ended_at = $endedAt.ToString('o')
     duration_sec = [math]::Round((($endedAt - $startedAt).TotalSeconds), 2)
-    repo = $repoRoot
+    repo = 'workspace-root'
     success = (-not $script:HasFailures)
     steps = $script:Steps
 }

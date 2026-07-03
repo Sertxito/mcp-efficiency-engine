@@ -1,23 +1,23 @@
 {
   "session": "bye",
-  "started_at": "2026-07-03T19:36:29.3160646+02:00",
-  "ended_at": "2026-07-03T19:36:34.5493174+02:00",
-  "duration_sec": 5.23,
-  "repo": "C:\\repo\\TSS2026-mcp-efficiency-engine",
+  "started_at": "2026-07-03T19:41:03.8146711+02:00",
+  "ended_at": "2026-07-03T19:41:06.6207832+02:00",
+  "duration_sec": 2.81,
+  "repo": "workspace-root",
   "success": true,
   "steps": [
     {
       "name": "Ingest Copilot session token usage (best effort)",
       "required": false,
       "success": false,
-      "duration_sec": 2.92,
+      "duration_sec": 1.42,
       "message": "ingest-copilot-session-usage failed with exit code 1"
     },
     {
       "name": "Refresh chat token usage report",
       "required": false,
       "success": true,
-      "duration_sec": 2.14,
+      "duration_sec": 1.27,
       "message": "ok"
     }
   ]

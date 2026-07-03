@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-07-03T17:07:47.352824+00:00",
+  "timestamp": "2026-07-03T17:40:38.467528+00:00",
   "sources": {
-    "routing": "C:\\repo\\TSS2026-mcp-efficiency-engine\\observability\\logs\\routing-decisions.jsonl",
-    "feedback": "C:\\repo\\TSS2026-mcp-efficiency-engine\\observability\\logs\\learning-feedback.jsonl",
-    "metrics": "C:\\repo\\TSS2026-mcp-efficiency-engine\\observability\\logs\\iteration-metrics.jsonl"
+    "routing": "observability/logs/routing-decisions.jsonl",
+    "feedback": "observability/logs/learning-feedback.jsonl",
+    "metrics": "observability/logs/iteration-metrics.jsonl"
   },
   "totals": {
     "events": 176,

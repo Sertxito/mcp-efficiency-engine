@@ -534,7 +534,7 @@ def main() -> int:
         metrics_path = (repo_root / args.metrics_output).resolve()
         append_jsonl(metrics_path, metric)
         metrics_recorded = True
-        metrics_output_path = str(metrics_path)
+        metrics_output_path = args.metrics_output.replace("\\", "/")
 
     event["telemetry"] = {
         "iteration_metrics_recorded": metrics_recorded,

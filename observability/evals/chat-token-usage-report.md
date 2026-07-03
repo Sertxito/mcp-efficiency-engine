@@ -1,7 +1,7 @@
 # Chat Token Usage Report
 
-- timestamp: 2026-07-03T17:36:34.454858+00:00
-- source: C:\repo\TSS2026-mcp-efficiency-engine\observability\logs\iteration-metrics.jsonl
+- timestamp: 2026-07-03T17:41:06.556548+00:00
+- source: observability/logs/iteration-metrics.jsonl
 - filter.source: copilot-session
 - filter.from: 
 - filter.to: 
@@ -10,21 +10,21 @@
 
 ## Totals
 
-- events: 7
-- input_tokens: 829588
-- output_tokens: 30435
-- total_tokens: 860023
-- copilot_credits: 232.061853
+- events: 12
+- input_tokens: 1327927
+- output_tokens: 41868
+- total_tokens: 1369795
+- copilot_credits: 321.253882
 - included_credits_total_month: 2907.0
-- budget_utilization_rate: 0.079829
+- budget_utilization_rate: 0.11051
 - overage_credits: 0.0
-- equivalent_seats_used: 12.213782
-- percent_of_one_seat: 1221.38
+- equivalent_seats_used: 16.908099
+- percent_of_one_seat: 1690.81
 
 ## Breakdown by Model
 
-- copilot/auto: count=7, input=829588, output=30435, total=860023, credits=232.061853
+- copilot/auto: count=12, input=1327927, output=41868, total=1369795, credits=321.253882
 
 ## Breakdown by Day
 
-- 2026-07-03: count=7, input=829588, output=30435, total=860023, credits=232.061853
+- 2026-07-03: count=12, input=1327927, output=41868, total=1369795, credits=321.253882

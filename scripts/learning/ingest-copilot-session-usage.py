@@ -400,7 +400,7 @@ def main() -> int:
         "timestamp": utc_now(),
         "session_log": str(session_path),
         "chat_session_log": str(chat_session_path) if chat_session_path is not None else "",
-        "metrics_log": str(metrics_path),
+        "metrics_log": args.metrics_log.replace("\\", "/"),
         "scanned_events": scanned,
         "usage_events_detected": usage_found,
         "inserted": len(to_append),
