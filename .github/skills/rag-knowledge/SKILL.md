@@ -7,7 +7,7 @@ Answer technical/local documentation questions from local knowledge sources.
 ## When To Use
 
 - source_type is `technical-docs`
-- agent route is `rag-local-agent`
+- agent route is `rag-local`
 
 ## Workflow
 

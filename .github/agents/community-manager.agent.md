@@ -1,4 +1,4 @@
-# community-manager-agent
+# community-manager
 
 ## Purpose
 

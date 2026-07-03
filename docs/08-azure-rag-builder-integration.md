@@ -1,6 +1,6 @@
 # Azure RAG Builder Integration
 
-RAG Azure Builder es el backend de grounding corporativo. El routing decide cuando invocarlo con `rag-azure-agent`.
+RAG Azure Builder es el backend de grounding corporativo. El routing decide cuando invocarlo con `rag-azure`.
 
 ## Cuando usarlo
 
@@ -11,7 +11,7 @@ RAG Azure Builder es el backend de grounding corporativo. El routing decide cuan
 
 1. Entrada de usuario.
 2. `resolve-routing.py` detecta `domain=azure-rag` o `corporate-docs`.
-3. Selecciona `rag-azure-agent`.
+3. Selecciona `rag-azure`.
 4. Se aplica prompt de consulta documental.
 5. Se devuelve respuesta con grounding.
 
@@ -23,7 +23,7 @@ py -3 .\scripts\intake\resolve-routing.py --input "Que dice la politica de reten
 
 Esperado:
 
-- `agent = rag-azure-agent`
+- `agent = rag-azure`
 - `engine` asociado a Azure RAG
 - `prompt.selected` de consulta documental
 
@@ -40,7 +40,8 @@ Esperado:
 flowchart LR
   DOCS[Documentos corporativos] --> IDX[Azure AI Search Index]
   IDX --> RET[Retriever]
-  RET --> RAG[rag-azure-agent]
+  RET --> RAG[rag-azure]
   RAG --> ORQ[Orchestrator]
   ORQ --> USER[Respuesta con fuentes]
 ```
+

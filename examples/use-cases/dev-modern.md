@@ -10,7 +10,7 @@ Corregir bug en codigo moderno de un repo unico.
 
 ## Ruta esperada
 
-- `agent`: `dev-agent`
+- `agent`: `backend`
 - `engine`: CodeGraph
 - `intent`: `bug-fix`
 
@@ -25,7 +25,8 @@ py -3 .\scripts\intake\resolve-routing.py --input "Arregla el bug de autenticaci
 
 ```mermaid
 flowchart LR
-  TASK[Tarea de desarrollo] --> DEV[dev-agent]
+  TASK[Tarea de desarrollo] --> DEV[backend]
   DEV --> CG[CodeGraph]
   CG --> FIX[Cambio validado]
 ```
+

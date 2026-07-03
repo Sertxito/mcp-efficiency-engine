@@ -11,7 +11,7 @@ Definir reglas para tareas de SQL/esquema/procedimientos en el routing corporati
 
 ## Reglas
 
-1. Para intenciones SQL, el agente objetivo es `dba-agent`.
+1. Para intenciones SQL, el agente objetivo es `dba`.
 2. Si falta esquema/fuente, declarar gap y pedir minimo dato faltante.
 3. No ejecutar cambios destructivos sin confirmacion explicita.
 4. Mantener trazabilidad de decisiones en logs de routing.
@@ -23,5 +23,6 @@ Definir reglas para tareas de SQL/esquema/procedimientos en el routing corporati
 
 ## Validacion minima
 
-1. Evento de routing para `intent=sql` selecciona `dba-agent`.
+1. Evento de routing para `intent=sql` selecciona `dba`.
 2. El evento declara `grounded=false` si no hay fuente resoluble.
+

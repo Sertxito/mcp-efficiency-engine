@@ -216,14 +216,14 @@ def main():
     ensure_dirs(legacy_out)
 
     defaults = {
-        'dba': ('dba-agent', 'database-analysis', 'Graphify'),
-        'iot': ('iot-agent', 'iot-architecture', 'GitNexus/CodeGraph + Graphify'),
-        'azure-rag': ('rag-azure-agent', 'azure-rag-enterprise', 'Azure RAG Builder'),
-        'backend': ('dev-agent', 'backend-coding', 'CodeGraph'),
+        'dba': ('dba', 'database-analysis', 'Graphify'),
+        'iot': ('iot', 'iot-architecture', 'GitNexus/CodeGraph + Graphify'),
+        'azure-rag': ('rag-azure', 'azure-rag-enterprise', 'Azure RAG Builder'),
+        'backend': ('backend', 'backend-coding', 'CodeGraph'),
         'frontend': ('frontend-agent', 'frontend-coding', 'CodeGraph'),
-        'ux-ui': ('ux-ui-agent', 'ux-ui-governance', 'Graphify'),
-        'community-content': ('community-manager-agent', 'community-content', 'Graphify'),
-        'legacy': ('legacy-agent', 'legacy-migration', 'GitNexus')
+        'ux-ui': ('ux-ui', 'ux-ui-governance', 'Graphify'),
+        'community-content': ('community-manager', 'community-content', 'Graphify'),
+        'legacy': ('legacy', 'legacy-migration', 'GitNexus')
     }
 
     registry = load_registry(registry_path)
@@ -351,3 +351,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

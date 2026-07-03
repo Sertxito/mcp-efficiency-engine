@@ -4,16 +4,16 @@
 
 | Intención | Fuente | Agente | Motor |
 |---|---|---|---|
-| Bug/fix/refactor/test | Código repo único | dev-agent | CodeGraph |
+| Bug/fix/refactor/test | Código repo único | backend | CodeGraph |
 | Frontend/UI implementación | Código frontend repo único | frontend-agent | CodeGraph |
-| Legacy/migración/multi-repo | Código legacy | legacy-agent | GitNexus |
-| SQL/schema/procedure | SQL/docs técnicas | dba-agent | Graphify |
-| UX/UI/design system | Guías de diseño y patrones UI | ux-ui-agent | Graphify |
-| Knowledge local/docs técnicas | Docs locales | rag-local-agent | Graphify |
-| Contratos/SLA/SharePoint/políticas | Docs corporativos | rag-azure-agent | Azure RAG Builder |
-| IoT/edge/telemetría | Código + docs | iot-agent | GitNexus/CodeGraph + Graphify |
-| Formación/posts/storytelling | Knowledge generado | community-manager-agent | Graphify |
-| Exportar contexto | Repo/docs | snapshot-agent | Repomix |
+| Legacy/migración/multi-repo | Código legacy | legacy | GitNexus |
+| SQL/schema/procedure | SQL/docs técnicas | dba | Graphify |
+| UX/UI/design system | Guías de diseño y patrones UI | ux-ui | Graphify |
+| Knowledge local/docs técnicas | Docs locales | rag-local | Graphify |
+| Contratos/SLA/SharePoint/políticas | Docs corporativos | rag-azure | Azure RAG Builder |
+| IoT/edge/telemetría | Código + docs | iot | GitNexus/CodeGraph + Graphify |
+| Formación/posts/storytelling | Knowledge generado | community-manager | Graphify |
+| Exportar contexto | Repo/docs | snapshot | Repomix |
 
 ## Optimización obligatoria
 
@@ -82,15 +82,15 @@ Memory → Reasoning → Tool (if needed) → Learning
 ```mermaid
 flowchart LR
   I[Intencion] --> RT[Router]
-  RT --> DEV[dev-agent]
+  RT --> DEV[backend]
   RT --> FE[frontend-agent]
-  RT --> LEG[legacy-agent]
-  RT --> DBA[dba-agent]
-  RT --> RLOCAL[rag-local-agent]
-  RT --> RAZ[rag-azure-agent]
-  RT --> IOT[iot-agent]
-  RT --> COM[community-manager-agent]
-  RT --> SNAP[snapshot-agent]
+  RT --> LEG[legacy]
+  RT --> DBA[dba]
+  RT --> RLOCAL[rag-local]
+  RT --> RAZ[rag-azure]
+  RT --> IOT[iot]
+  RT --> COM[community-manager]
+  RT --> SNAP[snapshot]
   DEV --> CG[CodeGraph]
   FE --> CG
   LEG --> GN[GitNexus]

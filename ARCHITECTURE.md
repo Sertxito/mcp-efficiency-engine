@@ -6,14 +6,14 @@ flowchart TD
     CM --> O[Orchestrator / Corporate Router]
     O --> A[Agents Layer]
 
-    A --> DEV[dev-agent]
-    A --> LEG[legacy-agent]
-    A --> DBA[dba-agent]
-    A --> RAG[rag-local-agent]
-    A --> AZ[rag-azure-agent]
-    A --> IOT[iot-agent]
-    A --> COM[community-manager-agent]
-    A --> SNAP[snapshot-agent]
+    A --> DEV[backend]
+    A --> LEG[legacy]
+    A --> DBA[dba]
+    A --> RAG[rag-local]
+    A --> AZ[rag-azure]
+    A --> IOT[iot]
+    A --> COM[community-manager]
+    A --> SNAP[snapshot]
 
     DEV --> TS[Token Saver Policy]
     LEG --> TS

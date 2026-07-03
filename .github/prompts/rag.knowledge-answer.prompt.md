@@ -1,6 +1,6 @@
 # rag.knowledge-answer.prompt.md
 
-Objetivo: responder preguntas tecnicas con rag-local-agent y Graphify.
+Objetivo: responder preguntas tecnicas con rag-local y Graphify.
 
 Flujo:
 1. Recuperar solo nodos/chunks relevantes.

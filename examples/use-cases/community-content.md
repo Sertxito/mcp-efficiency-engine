@@ -10,7 +10,7 @@ Generar contenido tecnico para comunidad (post, hilo, resumen didactico).
 
 ## Ruta esperada
 
-- `agent`: `community-manager-agent`
+- `agent`: `community-manager`
 - `engine`: Graphify
 - `domain`: community/content
 
@@ -25,7 +25,8 @@ py -3 .\scripts\intake\resolve-routing.py --input "Prepara un post tecnico sobre
 
 ```mermaid
 flowchart LR
-  IDEA[Idea] --> CM[community-manager-agent]
+  IDEA[Idea] --> CM[community-manager]
   CM --> GUIDE[Guidelines]
   GUIDE --> POST[Contenido final]
 ```
+

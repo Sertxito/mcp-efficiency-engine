@@ -19,5 +19,6 @@ Definir el contrato de enrutamiento entre intencion, dominio, agente, motor y ni
 
 ## Validacion minima
 
-1. `py -3 .\scripts\intake\resolve-routing.py --input "consulta contrato" --intent info --domain azure-rag --source-type corporate-docs` debe enrutar a `rag-azure-agent`.
+1. `py -3 .\scripts\intake\resolve-routing.py --input "consulta contrato" --intent info --domain azure-rag --source-type corporate-docs` debe enrutar a `rag-azure`.
 2. `py -3 .\scripts\intake\run-routing-evals.py` debe pasar sin casos fallidos.
+

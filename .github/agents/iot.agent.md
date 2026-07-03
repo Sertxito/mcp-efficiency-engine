@@ -1,4 +1,4 @@
-# iot-agent
+# iot
 
 ## Purpose
 

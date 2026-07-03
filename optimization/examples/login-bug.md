@@ -6,7 +6,7 @@ Arregla login.
 
 ## Ruta esperada
 
-- `agent`: `dev-agent`
+- `agent`: `backend`
 - `engine`: `CodeGraph`
 - `token_saver_profile`: `strict`
 - `caveman_profile`: `full`
@@ -22,3 +22,4 @@ py -3 .\scripts\intake\resolve-routing.py --input "Arregla bug de login" --inten
 1. `fallback=false`
 1. `prompt.exists=true`
 1. `hitl.required=false` (si no hay accion de alto riesgo)
+

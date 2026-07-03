@@ -7,16 +7,16 @@ from typing import Any
 
 
 REQUIRED_AGENT_ALIASES: dict[str, list[str]] = {
-    "backend": ["backend", "dev-agent"],
+    "backend": ["backend", "backend"],
     "frontend": ["frontend-agent"],
-    "legacy": ["legacy", "legacy-agent"],
-    "dba": ["dba", "dba-agent"],
-    "rag-local": ["rag-local", "rag-local-agent"],
-    "rag-azure": ["rag-azure", "rag-azure-agent"],
-    "iot": ["iot", "iot-agent"],
-    "ux-ui": ["ux-ui", "ux-ui-agent"],
-    "community-manager": ["community-manager", "community-manager-agent"],
-    "snapshot": ["snapshot", "snapshot-agent"],
+    "legacy": ["legacy", "legacy"],
+    "dba": ["dba", "dba"],
+    "rag-local": ["rag-local", "rag-local"],
+    "rag-azure": ["rag-azure", "rag-azure"],
+    "iot": ["iot", "iot"],
+    "ux-ui": ["ux-ui", "ux-ui"],
+    "community-manager": ["community-manager", "community-manager"],
+    "snapshot": ["snapshot", "snapshot"],
 }
 
 AGENT_TEMPLATE: dict[str, str] = {
@@ -148,3 +148,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

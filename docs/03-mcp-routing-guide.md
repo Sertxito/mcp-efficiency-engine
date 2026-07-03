@@ -31,12 +31,12 @@ py -3 .\scripts\intake\resolve-routing.py --input "Plan de migracion legacy" --i
 
 ## Reglas practicas
 
-1. Si el problema es de codigo vivo de backend en repo unico: prioriza `dev-agent` con CodeGraph.
+1. Si el problema es de codigo vivo de backend en repo unico: prioriza `backend` con CodeGraph.
 2. Si el problema es de implementacion/correccion de UI en codigo frontend: prioriza `frontend-agent` con CodeGraph.
-3. Si el problema es de criterios de diseno, accesibilidad, consistencia o design system: prioriza `ux-ui-agent` con Graphify.
-4. Si es legacy/migracion/multi-repo: prioriza `legacy-agent` con GitNexus.
-5. Si es conocimiento tecnico local: prioriza `rag-local-agent` con Graphify.
-6. Si es contrato/politica corporativa: prioriza `rag-azure-agent` con Azure RAG.
+3. Si el problema es de criterios de diseno, accesibilidad, consistencia o design system: prioriza `ux-ui` con Graphify.
+4. Si es legacy/migracion/multi-repo: prioriza `legacy` con GitNexus.
+5. Si es conocimiento tecnico local: prioriza `rag-local` con Graphify.
+6. Si es contrato/politica corporativa: prioriza `rag-azure` con Azure RAG.
 7. Si hay riesgo alto o fallback: HITL en modo auto pide confirmacion.
 
 ## Frontera frontend vs ux-ui
@@ -50,13 +50,13 @@ py -3 .\scripts\intake\resolve-routing.py --input "Plan de migracion legacy" --i
 
 | Intencion/Dominio | Agente esperado | Motor esperado |
 | --- | --- | --- |
-| bug-fix + backend | dev-agent | CodeGraph |
+| bug-fix + backend | backend | CodeGraph |
 | feature/bug-fix + frontend | frontend-agent | CodeGraph |
-| review/accesibilidad/design-system + ux-ui | ux-ui-agent | Graphify |
-| migration + legacy | legacy-agent | GitNexus |
-| query + dba | dba-agent | Graphify |
-| docs tecnicas locales | rag-local-agent | Graphify |
-| contratos/SLA/politicas | rag-azure-agent | Azure RAG Builder |
+| review/accesibilidad/design-system + ux-ui | ux-ui | Graphify |
+| migration + legacy | legacy | GitNexus |
+| query + dba | dba | Graphify |
+| docs tecnicas locales | rag-local | Graphify |
+| contratos/SLA/politicas | rag-azure | Azure RAG Builder |
 
 ## Validacion minima
 
@@ -80,3 +80,4 @@ flowchart TD
   REQ --> HITL[HITL si riesgo]
   HITL --> OUT[Respuesta con grounding]
 ```
+

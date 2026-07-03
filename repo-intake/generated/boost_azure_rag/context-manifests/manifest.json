@@ -16,7 +16,7 @@
     "resolved_path": "C:/repo/mcp-efficiency-engine/.cache/github-repos/boost_azure_rag",
     "status": "updated"
   },
-  "agent": "rag-azure-agent",
+  "agent": "rag-azure",
   "skill": "azure-rag-enterprise",
   "engine": "Azure RAG Builder",
   "engines": {
@@ -37,3 +37,4 @@
   },
   "generated_at": "2026-07-03T21:29:42.475688+00:00"
 }
+

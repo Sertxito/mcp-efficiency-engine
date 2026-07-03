@@ -17,7 +17,7 @@
     "status": "sync_failed",
     "error": "fatal: couldn't find remote ref master"
   },
-  "agent": "dba-agent",
+  "agent": "dba",
   "skill": "database-analysis",
   "engine": "Graphify",
   "engines": {
@@ -34,3 +34,4 @@
   },
   "generated_at": "2026-07-03T21:29:37.789143+00:00"
 }
+

@@ -1,4 +1,4 @@
-# rag-local-agent
+# rag-local
 
 ## Purpose
 

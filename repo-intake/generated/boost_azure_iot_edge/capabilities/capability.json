@@ -2,7 +2,7 @@
   "capability": "iot-architecture",
   "repo": "boost_azure_iot_edge",
   "domain": "iot",
-  "agent": "iot-agent",
+  "agent": "iot",
   "engine": "GitNexus/CodeGraph + Graphify",
   "dependencies": [
     {
@@ -11,3 +11,4 @@
   ],
   "generated_at": "2026-07-03T21:29:46.634275+00:00"
 }
+

@@ -1,6 +1,6 @@
 # azure-rag.query.prompt.md
 
-Objetivo: responder consultas corporativas con rag-azure-agent usando Azure RAG Builder.
+Objetivo: responder consultas corporativas con rag-azure usando Azure RAG Builder.
 
 Instrucciones:
 1. Reformular la pregunta en terminos de evidencia.

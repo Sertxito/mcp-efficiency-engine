@@ -16,7 +16,7 @@
     "resolved_path": "C:/repo/mcp-efficiency-engine/.cache/github-repos/boost_azure_iot_edge",
     "status": "updated"
   },
-  "agent": "iot-agent",
+  "agent": "iot",
   "skill": "iot-architecture",
   "engine": "GitNexus/CodeGraph + Graphify",
   "engines": {
@@ -37,3 +37,4 @@
   },
   "generated_at": "2026-07-03T21:29:46.619473+00:00"
 }
+

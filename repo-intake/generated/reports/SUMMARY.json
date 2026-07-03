@@ -7,42 +7,42 @@
       "name": "boost_dba",
       "slug": "boost_dba",
       "domain": "dba",
-      "agent": "dba-agent",
+      "agent": "dba",
       "engine": "Graphify"
     },
     {
       "name": "boost_azure_rag",
       "slug": "boost_azure_rag",
       "domain": "azure-rag",
-      "agent": "rag-azure-agent",
+      "agent": "rag-azure",
       "engine": "Azure RAG Builder"
     },
     {
       "name": "boost_azure_iot_edge",
       "slug": "boost_azure_iot_edge",
       "domain": "iot",
-      "agent": "iot-agent",
+      "agent": "iot",
       "engine": "GitNexus/CodeGraph + Graphify"
     },
     {
       "name": "boost_community_content",
       "slug": "boost_community_content",
       "domain": "community-content",
-      "agent": "community-manager-agent",
+      "agent": "community-manager",
       "engine": "Graphify"
     },
     {
       "name": "boost_backend",
       "slug": "boost_backend",
       "domain": "backend",
-      "agent": "dev-agent",
+      "agent": "backend",
       "engine": "CodeGraph"
     },
     {
       "name": "boost_design_ux_with_intent",
       "slug": "boost_design_ux_with_intent",
       "domain": "ux-ui",
-      "agent": "ux-ui-agent",
+      "agent": "ux-ui",
       "engine": "Graphify"
     },
     {
@@ -54,3 +54,4 @@
     }
   ]
 }
+

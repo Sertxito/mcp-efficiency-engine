@@ -2,8 +2,9 @@
   "capability": "community-content",
   "repo": "boost_community_content",
   "domain": "community-content",
-  "agent": "community-manager-agent",
+  "agent": "community-manager",
   "engine": "Graphify",
   "dependencies": [],
   "generated_at": "2026-07-03T21:29:56.159017+00:00"
 }
+

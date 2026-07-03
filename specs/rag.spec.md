@@ -24,5 +24,6 @@ Definir el uso de RAG local para documentacion tecnica del repo y artefactos int
 
 ## Validacion minima
 
-1. La decision de routing para docs locales selecciona `rag-local-agent`.
+1. La decision de routing para docs locales selecciona `rag-local`.
 2. La salida mantiene grounding explicito a fuentes del repo.
+

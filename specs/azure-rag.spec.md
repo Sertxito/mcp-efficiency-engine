@@ -23,5 +23,6 @@ Definir cuando usar Azure RAG Builder para conocimiento corporativo y como evita
 
 ## Validacion minima
 
-1. El evento de routing debe seleccionar `rag-azure-agent` cuando `source_type=corporate-docs`.
+1. El evento de routing debe seleccionar `rag-azure` cuando `source_type=corporate-docs`.
 2. Debe existir traza en `observability/logs/routing-decisions.jsonl` con `grounded=true` solo si hay fuentes.
+

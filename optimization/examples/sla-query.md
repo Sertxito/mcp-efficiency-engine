@@ -6,7 +6,7 @@ Que dice el SLA.
 
 ## Ruta esperada
 
-- `agent`: `rag-azure-agent`
+- `agent`: `rag-azure`
 - `engine`: `Azure RAG Builder`
 - `token_saver_profile`: `evidence-first`
 - `caveman_profile`: `evidence-first` o `lite`
@@ -22,3 +22,4 @@ py -3 .\scripts\intake\resolve-routing.py --input "Que dice el SLA sobre inciden
 1. `grounded=true`
 1. `sources` no vacio
 1. `prompt.exists=true`
+

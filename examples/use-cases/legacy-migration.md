@@ -10,7 +10,7 @@ Analizar impacto previo a migracion o refactor en stack legacy.
 
 ## Ruta esperada
 
-- `agent`: `legacy-agent`
+- `agent`: `legacy`
 - `engine`: GitNexus
 - `intent`: `migration`
 
@@ -25,8 +25,9 @@ py -3 .\scripts\intake\resolve-routing.py --input "Analiza impacto de migrar mod
 
 ```mermaid
 flowchart LR
-  LEG[Codigo legacy] --> LAG[legacy-agent]
+  LEG[Codigo legacy] --> LAG[legacy]
   LAG --> GN[GitNexus]
   GN --> PLAN[Plan de migracion]
   PLAN --> EXEC[Ejecucion incremental]
 ```
+

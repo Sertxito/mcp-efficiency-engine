@@ -16,7 +16,7 @@
     "resolved_path": "C:/repo/mcp-efficiency-engine/.cache/github-repos/boost_backend",
     "status": "updated"
   },
-  "agent": "dev-agent",
+  "agent": "backend",
   "skill": "backend-coding",
   "engine": "CodeGraph",
   "engines": {
@@ -33,3 +33,4 @@
   },
   "generated_at": "2026-07-03T21:30:00.673205+00:00"
 }
+

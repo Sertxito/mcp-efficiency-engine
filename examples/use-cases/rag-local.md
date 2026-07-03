@@ -10,7 +10,7 @@ Responder preguntas de arquitectura usando documentacion tecnica local del works
 
 ## Ruta esperada
 
-- `agent`: `rag-local-agent`
+- `agent`: `rag-local`
 - `engine`: Graphify
 - `source_type`: `technical-docs`
 
@@ -25,7 +25,8 @@ py -3 .\scripts\intake\resolve-routing.py --input "Explica la arquitectura local
 
 ```mermaid
 flowchart LR
-  Q[Pregunta tecnica] --> RLOCAL[rag-local-agent]
+  Q[Pregunta tecnica] --> RLOCAL[rag-local]
   RLOCAL --> GF[Graphify]
   GF --> RESP[Respuesta con conocimiento local]
 ```
+

@@ -1,4 +1,4 @@
-# rag-azure-agent
+# rag-azure
 
 ## Purpose
 

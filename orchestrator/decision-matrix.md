@@ -4,13 +4,13 @@ Matriz de decision rapida para resolver agente y motor por tipo de entrada.
 
 | Entrada dominante | Dominio | Agente esperado | Motor esperado | Criteria clave |
 | --- | --- | --- | --- | --- |
-| Codigo repo unico | dev | dev-agent | CodeGraph | symbol/callpath/blast radius |
+| Codigo repo unico | dev | backend | CodeGraph | symbol/callpath/blast radius |
 | Codigo frontend repo unico | frontend | frontend-agent | CodeGraph | componentes/rutas/estado/UI impact |
-| Codigo legacy o multi-repo | legacy | legacy-agent | GitNexus | impacto/dependencias/fallback controlado |
-| Guias UX/UI y design intent | ux-ui | ux-ui-agent | Graphify | patrones UI/reutilizacion/consistencia |
-| Documentacion tecnica local | dba/iot/rag-local | dba-agent / iot-agent / rag-local-agent | Graphify | nodos/relaciones/manifest |
-| Documentacion corporativa | azure-rag | rag-azure-agent | Azure RAG Builder | grounded=true y fuentes |
-| Snapshot/export contexto | snapshot | snapshot-agent | Repomix | scope acotado |
+| Codigo legacy o multi-repo | legacy | legacy | GitNexus | impacto/dependencias/fallback controlado |
+| Guias UX/UI y design intent | ux-ui | ux-ui | Graphify | patrones UI/reutilizacion/consistencia |
+| Documentacion tecnica local | dba/iot/rag-local | dba / iot / rag-local | Graphify | nodos/relaciones/manifest |
+| Documentacion corporativa | azure-rag | rag-azure | Azure RAG Builder | grounded=true y fuentes |
+| Snapshot/export contexto | snapshot | snapshot | Repomix | scope acotado |
 
 ## Frontera frontend vs ux-ui
 
@@ -30,3 +30,4 @@ Matriz de decision rapida para resolver agente y motor por tipo de entrada.
 1. Repo no aprobado -> no enrutar por capability.
 2. Dependencia no resuelta -> fallback de dominio.
 3. Accion destructiva -> HITL bloqueante.
+

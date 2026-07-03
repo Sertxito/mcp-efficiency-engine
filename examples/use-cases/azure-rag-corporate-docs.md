@@ -10,7 +10,7 @@ Consulta de SLA/politica corporativa con necesidad de fuentes verificables.
 
 ## Ruta esperada
 
-- `agent`: `rag-azure-agent`
+- `agent`: `rag-azure`
 - `engine`: Azure RAG Builder
 - `source_type`: `corporate-docs`
 
@@ -25,7 +25,8 @@ py -3 .\scripts\intake\resolve-routing.py --input "Que dice el SLA sobre tiempos
 
 ```mermaid
 flowchart LR
-  Q[Pregunta de negocio] --> RAG[rag-azure-agent]
+  Q[Pregunta de negocio] --> RAG[rag-azure]
   RAG --> SRC[Fuentes corporativas]
   SRC --> A[Respuesta trazable]
 ```
+

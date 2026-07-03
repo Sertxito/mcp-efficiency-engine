@@ -1,4 +1,4 @@
-# legacy-agent
+# legacy
 
 ## Purpose
 

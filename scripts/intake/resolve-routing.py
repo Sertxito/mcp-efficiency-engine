@@ -73,15 +73,15 @@ def load_manifest_index(generated_root: Path) -> dict[str, dict[str, Any]]:
 
 def domain_defaults(domain: str) -> dict[str, str]:
     defaults = {
-        "dba": {"agent": "dba-agent", "engine": "Graphify", "capability": "database-analysis"},
-        "iot": {"agent": "iot-agent", "engine": "GitNexus/CodeGraph + Graphify", "capability": "iot-architecture"},
-        "azure-rag": {"agent": "rag-azure-agent", "engine": "Azure RAG Builder", "capability": "azure-rag-enterprise"},
-        "rag": {"agent": "rag-local-agent", "engine": "Graphify", "capability": "rag-knowledge"},
-        "backend": {"agent": "dev-agent", "engine": "CodeGraph", "capability": "backend-coding"},
+        "dba": {"agent": "dba", "engine": "Graphify", "capability": "database-analysis"},
+        "iot": {"agent": "iot", "engine": "GitNexus/CodeGraph + Graphify", "capability": "iot-architecture"},
+        "azure-rag": {"agent": "rag-azure", "engine": "Azure RAG Builder", "capability": "azure-rag-enterprise"},
+        "rag": {"agent": "rag-local", "engine": "Graphify", "capability": "rag-knowledge"},
+        "backend": {"agent": "backend", "engine": "CodeGraph", "capability": "backend-coding"},
         "frontend": {"agent": "frontend-agent", "engine": "CodeGraph", "capability": "frontend-coding"},
-        "ux-ui": {"agent": "ux-ui-agent", "engine": "Graphify", "capability": "ux-ui-governance"},
-        "community-content": {"agent": "community-manager-agent", "engine": "Graphify", "capability": "community-content"},
-        "legacy": {"agent": "legacy-agent", "engine": "GitNexus", "capability": "legacy-migration"},
+        "ux-ui": {"agent": "ux-ui", "engine": "Graphify", "capability": "ux-ui-governance"},
+        "community-content": {"agent": "community-manager", "engine": "Graphify", "capability": "community-content"},
+        "legacy": {"agent": "legacy", "engine": "GitNexus", "capability": "legacy-migration"},
     }
     return defaults.get(domain, defaults["backend"])
 
@@ -195,7 +195,7 @@ def pick_route(
 
     if candidate is not None:
         route = {
-            "agent": str(candidate.get("agent", "dev-agent")),
+            "agent": str(candidate.get("agent", "backend")),
             "engine": str(candidate.get("engine", "CodeGraph")),
             "capability": str(candidate.get("capability", "backend-coding")),
             "repo": str(candidate.get("repo", "")),
@@ -355,23 +355,23 @@ def select_prompt_for_route(
 ) -> tuple[str, bool]:
     """Return prompt path relative to repo root and whether it exists."""
     # Highest-priority route: corporate evidence questions.
-    if source_type == "corporate-docs" or domain == "azure-rag" or agent == "rag-azure-agent":
+    if source_type == "corporate-docs" or domain == "azure-rag" or agent == "rag-azure":
         candidate = ".github/prompts/azure-rag.query.prompt.md"
     # Code-centric workflows.
     elif domain == "frontend":
         candidate = ".github/prompts/frontend.code.prompt.md"
     elif domain == "backend" and ("bug" in intent or intent == "bug-fix"):
         candidate = ".github/prompts/backend.fix-bug.prompt.md"
-    elif domain == "community-content" or agent == "community-manager-agent":
+    elif domain == "community-content" or agent == "community-manager":
         candidate = ".github/prompts/community.post.prompt.md"
-    elif domain == "ux-ui" or agent == "ux-ui-agent":
+    elif domain == "ux-ui" or agent == "ux-ui":
         candidate = ".github/prompts/ux-ui.review.prompt.md"
     elif domain == "legacy":
         candidate = ".github/prompts/legacy.impact-analysis.prompt.md"
     # Data/document technical flows.
     elif domain == "dba":
         candidate = ".github/prompts/dba.query-review.prompt.md"
-    elif agent == "rag-local-agent" or source_type == "technical-docs":
+    elif agent == "rag-local" or source_type == "technical-docs":
         candidate = ".github/prompts/rag.knowledge-answer.prompt.md"
     elif domain == "snapshot" or source_type == "snapshot":
         candidate = ".github/prompts/cavecrew.prompt.md"
@@ -617,3 +617,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

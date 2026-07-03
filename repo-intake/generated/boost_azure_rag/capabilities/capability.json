@@ -2,7 +2,7 @@
   "capability": "azure-rag-enterprise",
   "repo": "boost_azure_rag",
   "domain": "azure-rag",
-  "agent": "rag-azure-agent",
+  "agent": "rag-azure",
   "engine": "Azure RAG Builder",
   "dependencies": [
     {
@@ -11,3 +11,4 @@
   ],
   "generated_at": "2026-07-03T21:29:42.488463+00:00"
 }
+

@@ -35,7 +35,7 @@
         "Azure RAG Builder": 1
       },
       "agents": {
-        "rag-azure-agent": 1
+        "rag-azure": 1
       }
     },
     {
@@ -51,7 +51,7 @@
         "Azure RAG Builder": 50
       },
       "agents": {
-        "rag-azure-agent": 50
+        "rag-azure": 50
       }
     },
     {
@@ -67,7 +67,7 @@
         "Graphify": 49
       },
       "agents": {
-        "dba-agent": 49
+        "dba": 49
       }
     },
     {
@@ -83,7 +83,7 @@
         "Graphify": 1
       },
       "agents": {
-        "dba-agent": 1
+        "dba": 1
       }
     },
     {
@@ -99,7 +99,7 @@
         "CodeGraph": 57
       },
       "agents": {
-        "dev-agent": 57
+        "backend": 57
       }
     },
     {
@@ -115,7 +115,7 @@
         "CodeGraph": 1
       },
       "agents": {
-        "dev-agent": 1
+        "backend": 1
       }
     },
     {
@@ -131,7 +131,7 @@
         "GitNexus/CodeGraph + Graphify": 1
       },
       "agents": {
-        "iot-agent": 1
+        "iot": 1
       }
     },
     {
@@ -147,7 +147,7 @@
         "GitNexus": 50
       },
       "agents": {
-        "legacy-agent": 50
+        "legacy": 50
       }
     },
     {
@@ -164,9 +164,10 @@
         "Graphify": 12
       },
       "agents": {
-        "dev-agent": 1,
-        "rag-local-agent": 12
+        "backend": 1,
+        "rag-local": 12
       }
     }
   ]
 }
+
