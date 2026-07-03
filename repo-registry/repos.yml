@@ -134,6 +134,26 @@
         "execution": "none",
         "snapshot": "repomix"
       }
+    },
+    {
+      "name": "boost_frontend",
+      "domain": "frontend",
+      "type": "github",
+      "repo_url": "https://github.com/Sertxito/boost_frontend.git",
+      "branch": "main",
+      "cache_location": ".cache/github-repos/boost_frontend",
+      "dependencies": [],
+      "approval": {
+        "status": "approved",
+        "approved_by": "platform-team",
+        "approved_date": "2026-07-03",
+        "review_ticket": "PLATFORM-FE-1001"
+      },
+      "engines": {
+        "knowledge": "codegraph",
+        "execution": "none",
+        "snapshot": "repomix"
+      }
     }
   ]
 }

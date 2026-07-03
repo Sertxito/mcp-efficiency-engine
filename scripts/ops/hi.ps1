@@ -3,6 +3,8 @@ param(
     [switch]$SkipIntake,
     [switch]$SkipRoutingEvals,
     [switch]$SkipProjectNotesRefresh,
+    [switch]$SkipCopilotUsageIngest,
+    [switch]$SkipChatTokenUsageReport,
     [switch]$SkipCodegraphStatus,
     [switch]$SkipMcpStartupChecks,
     [switch]$SkipSiblingReposChecks,
@@ -174,6 +176,30 @@ function Invoke-LoggedAction {
     return $logPath
 }
 
+function Resolve-CopilotSessionLogPath {
+    $fromEnv = [string]$env:VSCODE_TARGET_SESSION_LOG
+    if (-not [string]::IsNullOrWhiteSpace($fromEnv)) {
+        if (Test-Path $fromEnv) {
+            return (Resolve-Path $fromEnv).Path
+        }
+    }
+
+    $workspaceStorage = Join-Path $env:APPDATA 'Code\User\workspaceStorage'
+    if (-not (Test-Path $workspaceStorage)) {
+        return ''
+    }
+
+    $candidates = Get-ChildItem -Path $workspaceStorage -Recurse -File -Filter 'main.jsonl' -ErrorAction SilentlyContinue |
+        Where-Object { $_.FullName -match 'GitHub\.copilot-chat[\\/]debug-logs[\\/][0-9a-fA-F-]{36}[\\/]main\.jsonl$' } |
+        Sort-Object LastWriteTime -Descending
+
+    if ($null -eq $candidates -or $candidates.Count -eq 0) {
+        return ''
+    }
+
+    return $candidates[0].FullName
+}
+
 function Get-HiSummary {
     param(
         [string]$RepoRoot,
@@ -193,6 +219,8 @@ function Get-HiSummary {
     if ($SkipIntake) { $skipped += 'Run repo intake' }
     if ($SkipRoutingEvals) { $skipped += 'Run routing evals' }
     if ($SkipProjectNotesRefresh) { $skipped += 'Refresh project notes from observability' }
+    if ($SkipCopilotUsageIngest) { $skipped += 'Ingest Copilot session token usage (best effort)' }
+    if ($SkipChatTokenUsageReport) { $skipped += 'Refresh chat token usage report' }
     if ($SkipCodegraphStatus) { $skipped += 'Check codegraph status' }
 
     $engineSummary = [ordered]@{
@@ -232,6 +260,8 @@ function Get-HiSummary {
         repo_intake = Get-StepStatus -Name 'Run repo intake'
         routing_evals = Get-StepStatus -Name 'Run routing evals'
         project_notes = Get-StepStatus -Name 'Refresh project notes from observability'
+        copilot_usage_ingest = Get-StepStatus -Name 'Ingest Copilot session token usage (best effort)'
+        chat_token_usage_report = Get-StepStatus -Name 'Refresh chat token usage report'
         sibling_repos = Get-StepStatus -Name 'Validate sibling repos operability'
         structure_cache = [ordered]@{
             refreshed = [bool]$script:StructureCacheReport.refreshed
@@ -280,6 +310,8 @@ function Write-HiSummary {
     Write-Host ("- repo-intake: {0}" -f $Summary.artifacts.repo_intake)
     Write-Host ("- routing-evals: {0}" -f $Summary.artifacts.routing_evals)
     Write-Host ("- project-notes: {0}" -f $Summary.artifacts.project_notes)
+    Write-Host ("- copilot-usage-ingest: {0}" -f $Summary.artifacts.copilot_usage_ingest)
+    Write-Host ("- chat-token-usage-report: {0}" -f $Summary.artifacts.chat_token_usage_report)
     Write-Host ("- sibling-repos: {0}" -f $Summary.artifacts.sibling_repos)
     Write-Host ("- structure-cache: refreshed={0}, reason={1}, changed_repos={2}" -f $Summary.artifacts.structure_cache.refreshed, $Summary.artifacts.structure_cache.refresh_reason, $Summary.artifacts.structure_cache.changed_repos)
     if (@($Summary.skipped_steps).Count -gt 0) {
@@ -902,6 +934,62 @@ if (-not $SkipProjectNotesRefresh) {
 }
 else {
     Write-Host '[skip] Refresh project notes from observability'
+}
+
+if (-not $SkipCopilotUsageIngest) {
+    Invoke-Step -Name 'Ingest Copilot session token usage (best effort)' -Action {
+        $py = Get-PythonCommand
+        $cmd = $py[0]
+        $pyParts = @()
+        if ($py.Length -gt 1) {
+            $pyParts = $py[1..($py.Length - 1)]
+        }
+
+        $sessionLogPath = Resolve-CopilotSessionLogPath
+        if ([string]::IsNullOrWhiteSpace($sessionLogPath)) {
+            Write-Host '[info] No Copilot session log found. Skipping ingest step without error.'
+            return
+        }
+
+        Write-Host ("[info] Using Copilot session log: {0}" -f $sessionLogPath)
+        & $cmd @pyParts .\scripts\learning\ingest-copilot-session-usage.py --session-log $sessionLogPath
+        if ($LASTEXITCODE -ne 0) {
+            throw "ingest-copilot-session-usage failed with exit code $LASTEXITCODE"
+        }
+    } -Required $false
+}
+else {
+    Write-Host '[skip] Ingest Copilot session token usage (best effort)'
+}
+
+if (-not $SkipChatTokenUsageReport) {
+    Invoke-Step -Name 'Refresh chat token usage report' -Action {
+        $py = Get-PythonCommand
+        $cmd = $py[0]
+        $pyParts = @()
+        if ($py.Length -gt 1) {
+            $pyParts = $py[1..($py.Length - 1)]
+        }
+
+        $plan = $env:COPILOT_PLAN
+        if ([string]::IsNullOrWhiteSpace($plan)) {
+            $plan = 'business'
+        }
+
+        $seats = $env:COPILOT_SEATS
+        if ([string]::IsNullOrWhiteSpace($seats)) {
+            $seats = '1'
+        }
+
+        Write-Host "[info] chat-token-usage-report plan=$plan seats=$seats"
+        & $cmd @pyParts .\scripts\learning\chat-token-usage-report.py --plan $plan --seats $seats
+        if ($LASTEXITCODE -ne 0) {
+            throw "chat-token-usage-report failed with exit code $LASTEXITCODE"
+        }
+    } -Required $false
+}
+else {
+    Write-Host '[skip] Refresh chat token usage report'
 }
 
 if (-not $SkipCodegraphStatus) {

@@ -1,58 +1,58 @@
 {
-  "manifest_path": "tooling/tooling.manifest.json",
-  "overall_status": "ok",
-  "mode": "enterprise",
-  "warnings": [],
-  "external_clis": [
-    {
-      "name": "codebase-memory-mcp",
-      "command": "codebase-memory-mcp",
-      "installed": true,
-      "install_kind": "powershell-script",
-      "package": ""
-    },
-    {
-      "name": "token-saver-mcp",
-      "command": "token-saver-mcp",
-      "installed": true,
-      "install_kind": "npm-global",
-      "package": "token-saver-mcp"
-    },
-    {
-      "name": "codegraph",
-      "command": "codegraph",
-      "installed": true,
-      "install_kind": "npm-global",
-      "package": "@colbymchenry/codegraph"
-    },
-    {
-      "name": "gitnexus",
-      "command": "gitnexus",
-      "installed": true,
-      "install_kind": "npm-global",
-      "package": "gitnexus@latest"
-    },
-    {
-      "name": "repomix",
-      "command": "repomix",
-      "installed": true,
-      "install_kind": "npm-global",
-      "package": "repomix@latest"
-    }
-  ],
-  "timestamp": "2026-07-01T17:24:34.9696881Z",
-  "requirements_file": "requirements.txt",
   "python_modules": [
     {
+      "import_ok": true,
       "launcher": "py",
       "args": [
         "-3.14",
         "-c",
         "import graphify.serve, mcp; print('ok')"
-      ],
-      "import_ok": true
+      ]
     }
   ],
+  "requirements_file": "requirements.txt",
+  "mode": "enterprise",
+  "python_requirements_ok": true,
+  "timestamp": "2026-07-03T21:50:23.8346079Z",
+  "external_clis": [
+    {
+      "package": "",
+      "command": "codebase-memory-mcp",
+      "installed": true,
+      "name": "codebase-memory-mcp",
+      "install_kind": "powershell-script"
+    },
+    {
+      "package": "token-saver-mcp",
+      "command": "token-saver-mcp",
+      "installed": true,
+      "name": "token-saver-mcp",
+      "install_kind": "npm-global"
+    },
+    {
+      "package": "@colbymchenry/codegraph",
+      "command": "codegraph",
+      "installed": true,
+      "name": "codegraph",
+      "install_kind": "npm-global"
+    },
+    {
+      "package": "gitnexus@latest",
+      "command": "gitnexus",
+      "installed": true,
+      "name": "gitnexus",
+      "install_kind": "npm-global"
+    },
+    {
+      "package": "repomix@latest",
+      "command": "repomix",
+      "installed": true,
+      "name": "repomix",
+      "install_kind": "npm-global"
+    }
+  ],
+  "manifest_path": "tooling/tooling.manifest.json",
   "errors": [],
-  "python_requirements_ok": true
+  "overall_status": "ok",
+  "warnings": []
 }

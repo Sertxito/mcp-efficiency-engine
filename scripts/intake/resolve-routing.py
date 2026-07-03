@@ -78,11 +78,58 @@ def domain_defaults(domain: str) -> dict[str, str]:
         "azure-rag": {"agent": "rag-azure-agent", "engine": "Azure RAG Builder", "capability": "azure-rag-enterprise"},
         "rag": {"agent": "rag-local-agent", "engine": "Graphify", "capability": "rag-knowledge"},
         "backend": {"agent": "dev-agent", "engine": "CodeGraph", "capability": "backend-coding"},
+        "frontend": {"agent": "frontend-agent", "engine": "CodeGraph", "capability": "frontend-coding"},
         "ux-ui": {"agent": "ux-ui-agent", "engine": "Graphify", "capability": "ux-ui-governance"},
         "community-content": {"agent": "community-manager-agent", "engine": "Graphify", "capability": "community-content"},
         "legacy": {"agent": "legacy-agent", "engine": "GitNexus", "capability": "legacy-migration"},
     }
     return defaults.get(domain, defaults["backend"])
+
+
+def normalize_frontend_vs_ux_ui(*, domain: str, intent: str, source_type: str) -> tuple[str, str | None]:
+    if domain not in {"frontend", "ux-ui"}:
+        return domain, None
+
+    intent_l = intent.lower()
+    source_l = source_type.lower()
+
+    ux_ui_keywords = {
+        "review",
+        "design",
+        "design-system",
+        "accesibilidad",
+        "accessibility",
+        "usabilidad",
+        "usability",
+        "consistency",
+        "consistencia",
+        "governance",
+        "heuristic",
+        "heuristica",
+    }
+    frontend_keywords = {
+        "bug",
+        "bug-fix",
+        "fix",
+        "feature",
+        "implement",
+        "implementation",
+        "refactor",
+        "ui",
+        "component",
+        "frontend",
+    }
+
+    if source_l == "technical-docs" or any(k in intent_l for k in ux_ui_keywords):
+        normalized = "ux-ui"
+    elif source_l == "code" and any(k in intent_l for k in frontend_keywords):
+        normalized = "frontend"
+    else:
+        normalized = domain
+
+    if normalized != domain:
+        return normalized, f"domain_normalized={domain}->{normalized}"
+    return normalized, None
 
 
 def is_repo_approved(repo: dict[str, Any]) -> bool:
@@ -311,6 +358,8 @@ def select_prompt_for_route(
     if source_type == "corporate-docs" or domain == "azure-rag" or agent == "rag-azure-agent":
         candidate = ".github/prompts/azure-rag.query.prompt.md"
     # Code-centric workflows.
+    elif domain == "frontend":
+        candidate = ".github/prompts/frontend.code.prompt.md"
     elif domain == "backend" and ("bug" in intent or intent == "bug-fix"):
         candidate = ".github/prompts/backend.fix-bug.prompt.md"
     elif domain == "community-content" or agent == "community-manager-agent":
@@ -432,13 +481,21 @@ def main() -> int:
     capabilities = load_capability_index((repo_root / args.generated_root).resolve())
     manifests = load_manifest_index((repo_root / args.generated_root).resolve())
 
+    normalized_domain, normalized_note = normalize_frontend_vs_ux_ui(
+        domain=args.domain,
+        intent=args.intent,
+        source_type=args.source_type,
+    )
+
     route, notes = pick_route(
         registry=registry,
         capabilities=capabilities,
         manifests=manifests,
-        domain=args.domain,
+        domain=normalized_domain,
         capability=args.capability.strip() or None,
     )
+    if normalized_note:
+        notes.append(normalized_note)
 
     token_saver_profile, caveman_profile, context_strategy = profile_for_source(args.source_type)
     fallback = any(n == "selected_by=domain_default" for n in notes)
@@ -447,7 +504,7 @@ def main() -> int:
     selected_memories, memory_reason = memory_selection_for_source(args.source_type)
     selected_prompt, prompt_exists = select_prompt_for_route(
         intent=args.intent,
-        domain=args.domain,
+        domain=normalized_domain,
         source_type=args.source_type,
         agent=route["agent"],
         prompt_root=repo_root,
@@ -463,7 +520,7 @@ def main() -> int:
     event_id = str(uuid.uuid4())
     hitl = hitl_policy_for_event(
         intent=args.intent,
-        domain=args.domain,
+        domain=normalized_domain,
         source_type=args.source_type,
         fallback=fallback,
         notes=notes,
@@ -473,6 +530,7 @@ def main() -> int:
         "timestamp": utc_now(),
         "input": args.input,
         "intent": args.intent,
+        "domain": normalized_domain,
         "source_type": args.source_type,
         "agent": route["agent"],
         "engine": route["engine"],
@@ -505,7 +563,7 @@ def main() -> int:
         },
         "requirements": runtime_requirements_for_route(args.source_type, route["engine"]),
         "learning": {
-            "used_pattern": f"{args.domain}+{args.intent}",
+            "used_pattern": f"{normalized_domain}+{args.intent}",
             # Real success must be written post-execution by the feedback updater.
             "success": None,
             "outcome_status": "pending",

@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-07-03T19:08:28.022453+00:00",
+  "timestamp": "2026-07-03T21:29:35.174864+00:00",
   "schema_version": "2.0",
-  "repos_count": 5,
+  "repos_count": 7,
   "repos": [
     {
       "name": "boost_dba",
@@ -36,6 +36,20 @@
       "slug": "boost_backend",
       "domain": "backend",
       "agent": "dev-agent",
+      "engine": "CodeGraph"
+    },
+    {
+      "name": "boost_design_ux_with_intent",
+      "slug": "boost_design_ux_with_intent",
+      "domain": "ux-ui",
+      "agent": "ux-ui-agent",
+      "engine": "Graphify"
+    },
+    {
+      "name": "boost_frontend",
+      "slug": "boost_frontend",
+      "domain": "frontend",
+      "agent": "frontend-agent",
       "engine": "CodeGraph"
     }
   ]

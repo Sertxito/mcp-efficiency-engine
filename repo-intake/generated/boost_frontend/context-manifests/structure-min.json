@@ -1,0 +1,125 @@
+{
+  "schema_version": "1.0",
+  "repo": "boost_frontend",
+  "slug": "boost_frontend",
+  "version": "0",
+  "domain": "frontend",
+  "location": "",
+  "resolved_path": "C:/repo/mcp-efficiency-engine/.cache/github-repos/boost_frontend",
+  "generated_at": "2026-07-03T21:30:17.843674+00:00",
+  "exists": true,
+  "sync": {
+    "mode": "github",
+    "repo_url": "https://github.com/Sertxito/boost_frontend.git",
+    "branch": "main",
+    "resolved_path": "C:/repo/mcp-efficiency-engine/.cache/github-repos/boost_frontend",
+    "status": "updated"
+  },
+  "top_level": {
+    "dirs": [
+      ".git",
+      ".github",
+      "docs",
+      "examples",
+      "specs",
+      "templates"
+    ],
+    "files": [
+      "AGENTS.md",
+      "plugin.json",
+      "README.md"
+    ],
+    "counts": {
+      "dirs": 6,
+      "files": 3
+    }
+  },
+  "key_artifacts": [
+    {
+      "path": "AGENTS.md",
+      "exists": true,
+      "kind": "file",
+      "fingerprint": {
+        "size_bytes": 1171,
+        "mtime_utc": "2026-07-03T21:24:43.330877+00:00",
+        "sha256_16": "a5b94e21c1ab124c"
+      }
+    },
+    {
+      "path": "README.md",
+      "exists": true,
+      "kind": "file",
+      "fingerprint": {
+        "size_bytes": 10482,
+        "mtime_utc": "2026-07-03T21:24:43.332880+00:00",
+        "sha256_16": "4bf95fae554ff665"
+      }
+    },
+    {
+      "path": "ARCHITECTURE.md",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": ".github/skills",
+      "exists": true,
+      "kind": "dir",
+      "sample_children": [
+        "accessibility-wcag-aa",
+        "angular-production-review",
+        "design-system-governance",
+        "frontend-architecture-review",
+        "frontend-code-review",
+        "frontend-modernization-migration",
+        "frontend-testing-strategy",
+        "microfrontend-decision",
+        "performance-core-web-vitals",
+        "react-production-review",
+        "security-auth-frontend"
+      ],
+      "sample_truncated": false
+    },
+    {
+      "path": ".github/prompts",
+      "exists": true,
+      "kind": "dir",
+      "sample_children": [
+        "audit-accessibility.prompt.md",
+        "audit-performance.prompt.md",
+        "audit-security-auth.prompt.md",
+        "code-review-frontend.prompt.md",
+        "create-frontend-adr.prompt.md",
+        "define-testing-strategy.prompt.md",
+        "design-system-plan.prompt.md",
+        "frontend-architecture-review.prompt.md",
+        "frontend-modernization-plan.prompt.md",
+        "generate-angular-feature.prompt.md",
+        "generate-react-feature.prompt.md",
+        "microfrontend-decision.prompt.md"
+      ],
+      "sample_truncated": false
+    },
+    {
+      "path": "scripts",
+      "exists": false,
+      "kind": "missing"
+    },
+    {
+      "path": "specs",
+      "exists": true,
+      "kind": "dir",
+      "sample_children": [
+        "angular-modern.spec.md",
+        "design-system.spec.md",
+        "frontend-architecture.spec.md",
+        "microfrontends.spec.md",
+        "observability.spec.md",
+        "quality-gates.spec.md",
+        "react-modern.spec.md",
+        "security-auth.spec.md"
+      ],
+      "sample_truncated": false
+    }
+  ],
+  "cache_fingerprint": "0b95502634a1f68e"
+}

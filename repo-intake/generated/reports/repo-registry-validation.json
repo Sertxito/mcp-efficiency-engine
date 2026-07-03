@@ -1,10 +1,10 @@
 {
-  "timestamp": "2026-07-01T17:24:42.700782+00:00",
+  "timestamp": "2026-07-03T21:50:53.573095+00:00",
   "registry_path": "C:/repo/mcp-efficiency-engine/repo-registry/repos.yml",
   "registry_mode": "enterprise",
   "schema_version": "2.0",
   "strict_mode": true,
-  "repos_count": 5,
+  "repos_count": 7,
   "errors_count": 0,
   "warnings_count": 0,
   "errors": [],

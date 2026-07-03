@@ -233,6 +233,30 @@ function Invoke-Step {
     $script:Steps += (New-StepResult -Name $Name -Required $Required -Success $success -DurationSec $duration -Message $message)
 }
 
+function Resolve-CopilotSessionLogPath {
+    $fromEnv = [string]$env:VSCODE_TARGET_SESSION_LOG
+    if (-not [string]::IsNullOrWhiteSpace($fromEnv)) {
+        if (Test-Path $fromEnv) {
+            return (Resolve-Path $fromEnv).Path
+        }
+    }
+
+    $workspaceStorage = Join-Path $env:APPDATA 'Code\User\workspaceStorage'
+    if (-not (Test-Path $workspaceStorage)) {
+        return ''
+    }
+
+    $candidates = Get-ChildItem -Path $workspaceStorage -Recurse -File -Filter 'main.jsonl' -ErrorAction SilentlyContinue |
+        Where-Object { $_.FullName -match 'GitHub\.copilot-chat[\\/]debug-logs[\\/][0-9a-fA-F-]{36}[\\/]main\.jsonl$' } |
+        Sort-Object LastWriteTime -Descending
+
+    if ($null -eq $candidates -or $candidates.Count -eq 0) {
+        return ''
+    }
+
+    return $candidates[0].FullName
+}
+
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 Set-Location $repoRoot
 
@@ -379,7 +403,15 @@ if (-not $SkipCopilotUsageIngest) {
             $pyParts = $py[1..($py.Length - 1)]
         }
 
-        & $cmd @pyParts .\scripts\learning\ingest-copilot-session-usage.py
+        $sessionLogPath = Resolve-CopilotSessionLogPath
+        if ([string]::IsNullOrWhiteSpace($sessionLogPath)) {
+            Write-Host '[info] No Copilot session log found. Skipping ingest step without error.'
+            return
+        }
+
+        Write-Host ("[info] Using Copilot session log: {0}" -f $sessionLogPath)
+
+        & $cmd @pyParts .\scripts\learning\ingest-copilot-session-usage.py --session-log $sessionLogPath
         if ($LASTEXITCODE -ne 0) {
             throw "ingest-copilot-session-usage failed with exit code $LASTEXITCODE"
         }

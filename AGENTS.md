@@ -5,6 +5,7 @@
 | Intención | Fuente | Agente | Motor |
 |---|---|---|---|
 | Bug/fix/refactor/test | Código repo único | dev-agent | CodeGraph |
+| Frontend/UI implementación | Código frontend repo único | frontend-agent | CodeGraph |
 | Legacy/migración/multi-repo | Código legacy | legacy-agent | GitNexus |
 | SQL/schema/procedure | SQL/docs técnicas | dba-agent | Graphify |
 | UX/UI/design system | Guías de diseño y patrones UI | ux-ui-agent | Graphify |
@@ -82,6 +83,7 @@ Memory → Reasoning → Tool (if needed) → Learning
 flowchart LR
   I[Intencion] --> RT[Router]
   RT --> DEV[dev-agent]
+  RT --> FE[frontend-agent]
   RT --> LEG[legacy-agent]
   RT --> DBA[dba-agent]
   RT --> RLOCAL[rag-local-agent]
@@ -90,6 +92,7 @@ flowchart LR
   RT --> COM[community-manager-agent]
   RT --> SNAP[snapshot-agent]
   DEV --> CG[CodeGraph]
+  FE --> CG
   LEG --> GN[GitNexus]
   DBA --> GF[Graphify]
   RLOCAL --> GF

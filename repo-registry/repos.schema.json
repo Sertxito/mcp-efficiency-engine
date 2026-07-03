@@ -33,7 +33,7 @@
           "name": { "type": "string", "minLength": 1 },
           "domain": {
             "type": "string",
-            "enum": ["backend", "community-content", "legacy", "dba", "iot", "azure-rag", "rag"]
+            "enum": ["backend", "frontend", "community-content", "legacy", "dba", "iot", "ux-ui", "azure-rag", "rag"]
           },
           "location": { "type": "string", "minLength": 1 },
           "type": { "type": "string", "enum": ["local", "github"] },

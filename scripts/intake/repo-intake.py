@@ -220,6 +220,7 @@ def main():
         'iot': ('iot-agent', 'iot-architecture', 'GitNexus/CodeGraph + Graphify'),
         'azure-rag': ('rag-azure-agent', 'azure-rag-enterprise', 'Azure RAG Builder'),
         'backend': ('dev-agent', 'backend-coding', 'CodeGraph'),
+        'frontend': ('frontend-agent', 'frontend-coding', 'CodeGraph'),
         'ux-ui': ('ux-ui-agent', 'ux-ui-governance', 'Graphify'),
         'community-content': ('community-manager-agent', 'community-content', 'Graphify'),
         'legacy': ('legacy-agent', 'legacy-migration', 'GitNexus')

@@ -6,28 +6,30 @@ from pathlib import Path
 from typing import Any
 
 
-REQUIRED_AGENTS: list[str] = [
-    "dev-agent",
-    "legacy-agent",
-    "dba-agent",
-    "rag-local-agent",
-    "rag-azure-agent",
-    "iot-agent",
-    "ux-ui-agent",
-    "community-manager-agent",
-    "snapshot-agent",
-]
+REQUIRED_AGENT_ALIASES: dict[str, list[str]] = {
+    "backend": ["backend", "dev-agent"],
+    "frontend": ["frontend-agent"],
+    "legacy": ["legacy", "legacy-agent"],
+    "dba": ["dba", "dba-agent"],
+    "rag-local": ["rag-local", "rag-local-agent"],
+    "rag-azure": ["rag-azure", "rag-azure-agent"],
+    "iot": ["iot", "iot-agent"],
+    "ux-ui": ["ux-ui", "ux-ui-agent"],
+    "community-manager": ["community-manager", "community-manager-agent"],
+    "snapshot": ["snapshot", "snapshot-agent"],
+}
 
 AGENT_TEMPLATE: dict[str, str] = {
-    "dev-agent": "Modern development tasks on a single repository.",
-    "legacy-agent": "Legacy/migration and multi-repo impact analysis.",
-    "dba-agent": "SQL/schema/procedure and DBA analysis.",
-    "rag-local-agent": "Local technical docs and knowledge retrieval.",
-    "rag-azure-agent": "Corporate docs with mandatory evidence.",
-    "iot-agent": "IoT/edge/telemetry mixed code+docs workflow.",
-    "ux-ui-agent": "UX/UI governance and design-intent control workflow.",
-    "community-manager-agent": "Education/posts/storytelling from grounded knowledge.",
-    "snapshot-agent": "Portable scope-safe context export.",
+    "backend": "Modern development tasks on a single repository.",
+    "frontend-agent": "Frontend development tasks on a single repository.",
+    "legacy": "Legacy/migration and multi-repo impact analysis.",
+    "dba": "SQL/schema/procedure and DBA analysis.",
+    "rag-local": "Local technical docs and knowledge retrieval.",
+    "rag-azure": "Corporate docs with mandatory evidence.",
+    "iot": "IoT/edge/telemetry mixed code+docs workflow.",
+    "ux-ui": "UX/UI governance and design-intent control workflow.",
+    "community-manager": "Education/posts/storytelling from grounded knowledge.",
+    "snapshot": "Portable scope-safe context export.",
 }
 
 
@@ -71,14 +73,15 @@ def main() -> int:
     repos = registry.get("repos", []) if isinstance(registry.get("repos", []), list) else []
 
     missing_agents: list[str] = []
-    for name in REQUIRED_AGENTS:
-        p = agents_dir / f"{name}.agent.md"
-        if not p.exists():
-            missing_agents.append(name)
+    for logical_name, aliases in REQUIRED_AGENT_ALIASES.items():
+        candidates = [agents_dir / f"{alias}.agent.md" for alias in aliases]
+        if not any(path.exists() for path in candidates):
+            missing_agents.append(logical_name)
 
     if missing_agents and args.create_missing_templates:
-        for name in missing_agents:
-            write_agent_template(name, agents_dir / f"{name}.agent.md")
+        for logical_name in missing_agents:
+            preferred_name = REQUIRED_AGENT_ALIASES[logical_name][0]
+            write_agent_template(preferred_name, agents_dir / f"{preferred_name}.agent.md")
 
     missing_boost_paths: list[str] = []
     missing_manifests: list[str] = []
@@ -107,7 +110,7 @@ def main() -> int:
 
     print("Agent Pipeline Preflight")
     print(f"- agents_dir: {agents_dir}")
-    print(f"- required_agents: {len(REQUIRED_AGENTS)}")
+    print(f"- required_agents: {len(REQUIRED_AGENT_ALIASES)}")
     print(f"- missing_agents: {len(missing_agents)}")
     print(f"- missing_boost_paths: {len(missing_boost_paths)}")
     print(f"- missing_manifests: {len(missing_manifests)}")
@@ -116,7 +119,8 @@ def main() -> int:
     if missing_agents:
         print("\nMissing agent definitions:")
         for m in missing_agents:
-            print(f"  - {m}.agent.md")
+            accepted = ", ".join([f"{alias}.agent.md" for alias in REQUIRED_AGENT_ALIASES[m]])
+            print(f"  - {m} (accepted: {accepted})")
         if not args.create_missing_templates:
             print("Hint: run with --create-missing-templates to scaffold placeholders.")
 

@@ -1,0 +1,76 @@
+{
+  "session": "bye",
+  "started_at": "2026-07-03T23:34:38.1179734+02:00",
+  "ended_at": "2026-07-03T23:34:43.4095625+02:00",
+  "duration_sec": 5.29,
+  "repo": "workspace-root",
+  "success": true,
+  "summary": {
+    "result": "ok",
+    "started_at": "2026-07-03T23:34:38.1179734+02:00",
+    "ended_at": "2026-07-03T23:34:43.4095625+02:00",
+    "duration_sec": 5.29,
+    "steps": {
+      "total": 2,
+      "ok": 1,
+      "failed_required": 0,
+      "failed_optional": 1,
+      "skipped": 11
+    },
+    "engines": {
+      "codegraph": {
+        "command_available": true,
+        "index_present": true,
+        "sync": "skipped",
+        "status": "skipped"
+      },
+      "git": {
+        "command_available": true,
+        "snapshot": "skipped"
+      },
+      "repomix": {
+        "refresh": "skipped"
+      }
+    },
+    "artifacts": {
+      "repo_registry": "skipped",
+      "repo_intake": "skipped",
+      "routing_evals": "skipped",
+      "sibling_discovery": "skipped",
+      "project_notes": "skipped",
+      "learning_loop": "skipped",
+      "iteration_value": "skipped",
+      "repomix_output": true
+    },
+    "skipped_steps": [
+      "Validate repo registry (strict)",
+      "Run routing evals",
+      "Refresh codegraph index sync",
+      "Refresh repo intake artifacts",
+      "Refresh sibling repos discovery proposal",
+      "Refresh repomix context export",
+      "Refresh project notes from observability",
+      "Refresh learning loop report",
+      "Refresh iteration value report",
+      "Check codegraph status",
+      "Collect git snapshot"
+    ]
+  },
+  "step_logs": {},
+  "steps": [
+    {
+      "name": "Ingest Copilot session token usage (best effort)",
+      "required": false,
+      "success": false,
+      "duration_sec": 2.63,
+      "message": "ingest-copilot-session-usage failed with exit code 1"
+    },
+    {
+      "name": "Refresh chat token usage report",
+      "required": false,
+      "success": true,
+      "duration_sec": 2.36,
+      "message": "ok"
+    }
+  ]
+}

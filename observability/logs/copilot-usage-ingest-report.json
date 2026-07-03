@@ -1,13 +1,13 @@
 {
-  "timestamp": "2026-07-03T17:40:50.900598+00:00",
-  "session_log": "C:\\Users\\sergio.hierro.cinos\\AppData\\Roaming\\Code\\User\\workspaceStorage\\f612dee4512b4f73987e4693f555737c\\GitHub.copilot-chat\\debug-logs\\3fce3987-33b0-426f-81e1-b7d0c3ffa439\\main.jsonl",
-  "chat_session_log": "C:\\Users\\sergio.hierro.cinos\\AppData\\Roaming\\Code\\User\\workspaceStorage\\f612dee4512b4f73987e4693f555737c\\chatSessions\\3fce3987-33b0-426f-81e1-b7d0c3ffa439.jsonl",
+  "timestamp": "2026-07-03T21:44:46.636141+00:00",
+  "session_log": "C:\\Users\\sergio.hierro.cinos\\AppData\\Roaming\\Code\\User\\workspaceStorage\\52c8c5ec726bf4047d40cb00b7487a0b\\GitHub.copilot-chat\\debug-logs\\46f7b932-63b9-435a-8cd8-2b85fc02b740\\main.jsonl",
+  "chat_session_log": "C:\\Users\\sergio.hierro.cinos\\AppData\\Roaming\\Code\\User\\workspaceStorage\\52c8c5ec726bf4047d40cb00b7487a0b\\chatSessions\\46f7b932-63b9-435a-8cd8-2b85fc02b740.jsonl",
   "metrics_log": "observability/logs/iteration-metrics.jsonl",
-  "scanned_events": 13,
-  "usage_events_detected": 12,
-  "inserted": 5,
+  "scanned_events": 8,
+  "usage_events_detected": 7,
+  "inserted": 2,
   "updated_existing": 1,
-  "skipped_duplicates": 7,
+  "skipped_duplicates": 5,
   "status": "ok",
   "note": "If status=no-usage-fields-found, this VS Code debug log currently does not expose per-turn token usage in a parseable shape."
 }

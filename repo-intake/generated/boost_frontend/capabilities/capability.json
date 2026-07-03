@@ -1,0 +1,9 @@
+{
+  "capability": "frontend-coding",
+  "repo": "boost_frontend",
+  "domain": "frontend",
+  "agent": "frontend-agent",
+  "engine": "CodeGraph",
+  "dependencies": [],
+  "generated_at": "2026-07-03T21:30:17.852628+00:00"
+}

@@ -39,6 +39,22 @@
       "domain": "rag",
       "source_type": "technical-docs",
       "capability": "rag-knowledge"
+    },
+    {
+      "id": "case-frontend-feature",
+      "input": "Implementar nuevo componente de checkout",
+      "intent": "feature",
+      "domain": "frontend",
+      "source_type": "code",
+      "capability": "frontend-coding"
+    },
+    {
+      "id": "case-ux-ui-review",
+      "input": "Revisar consistencia y accesibilidad del design system",
+      "intent": "review",
+      "domain": "ux-ui",
+      "source_type": "technical-docs",
+      "capability": "ux-ui-governance"
     }
   ]
 }

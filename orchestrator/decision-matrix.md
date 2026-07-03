@@ -5,11 +5,19 @@ Matriz de decision rapida para resolver agente y motor por tipo de entrada.
 | Entrada dominante | Dominio | Agente esperado | Motor esperado | Criteria clave |
 | --- | --- | --- | --- | --- |
 | Codigo repo unico | dev | dev-agent | CodeGraph | symbol/callpath/blast radius |
+| Codigo frontend repo unico | frontend | frontend-agent | CodeGraph | componentes/rutas/estado/UI impact |
 | Codigo legacy o multi-repo | legacy | legacy-agent | GitNexus | impacto/dependencias/fallback controlado |
 | Guias UX/UI y design intent | ux-ui | ux-ui-agent | Graphify | patrones UI/reutilizacion/consistencia |
 | Documentacion tecnica local | dba/iot/rag-local | dba-agent / iot-agent / rag-local-agent | Graphify | nodos/relaciones/manifest |
 | Documentacion corporativa | azure-rag | rag-azure-agent | Azure RAG Builder | grounded=true y fuentes |
 | Snapshot/export contexto | snapshot | snapshot-agent | Repomix | scope acotado |
+
+## Frontera frontend vs ux-ui
+
+1. `frontend`: cambios en codigo UI ejecutable (componentes, rutas, estado, handlers, render).
+2. `ux-ui`: auditoria y gobierno de calidad UX/UI (accesibilidad, consistencia, design system, design intent).
+3. Si la entrada es `source_type=technical-docs` y hay ambiguedad, resolver hacia `ux-ui`.
+4. Si la entrada es `source_type=code` con implementacion/fix/refactor UI, resolver hacia `frontend`.
 
 ## Regla de desempate
 

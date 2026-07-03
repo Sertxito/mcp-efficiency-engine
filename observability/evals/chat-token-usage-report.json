@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-03T17:41:06.556548+00:00",
+  "timestamp": "2026-07-03T21:44:48.583407+00:00",
   "source": "observability/logs/iteration-metrics.jsonl",
   "filters": {
     "source": "copilot-session",
@@ -7,43 +7,44 @@
     "to": ""
   },
   "totals": {
-    "events": 12,
-    "input_tokens": 1327927,
-    "output_tokens": 41868,
-    "total_tokens": 1369795,
-    "copilot_credits": 321.253882
+    "events": 19,
+    "input_tokens": 2219137,
+    "output_tokens": 67846,
+    "total_tokens": 2286983,
+    "copilot_credits": 492.070886
   },
   "breakdown": {
     "model": {
       "copilot/auto": {
-        "count": 12,
-        "input_tokens": 1327927,
-        "output_tokens": 41868,
-        "total_tokens": 1369795,
-        "copilot_credits": 321.25388200000003
+        "count": 19,
+        "input_tokens": 2219137,
+        "output_tokens": 67846,
+        "total_tokens": 2286983,
+        "copilot_credits": 492.07088600000003
       }
     },
     "day": {
       "2026-07-03": {
-        "count": 12,
-        "input_tokens": 1327927,
-        "output_tokens": 41868,
-        "total_tokens": 1369795,
-        "copilot_credits": 321.25388200000003
+        "count": 19,
+        "input_tokens": 2219137,
+        "output_tokens": 67846,
+        "total_tokens": 2286983,
+        "copilot_credits": 492.07088600000003
       }
     }
   },
   "license": {
     "plan": "business",
-    "seats": 153,
+    "seats": 1,
     "included_credits_per_user_month": 19.0,
-    "included_credits_total_month": 2907.0
+    "included_credits_total_month": 19.0,
+    "official_plans_url": "https://github.com/features/copilot/plans?ref_cta=View+pricing+and+plans&ref_loc=hero&ref_page=%2Ffeatures_copilot_copilot_business&plans=business"
   },
   "budget": {
-    "used_copilot_credits": 321.253882,
-    "budget_utilization_rate": 0.11051,
-    "overage_credits": 0.0,
-    "equivalent_seats_used": 16.908099,
-    "percent_of_one_seat": 1690.81
+    "used_copilot_credits": 492.070886,
+    "budget_utilization_rate": 25.898468,
+    "overage_credits": 473.070886,
+    "equivalent_seats_used": 25.898468,
+    "percent_of_one_seat": 2589.85
   }
 }
