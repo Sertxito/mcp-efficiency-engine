@@ -13,6 +13,7 @@ REQUIRED_AGENTS: list[str] = [
     "rag-local-agent",
     "rag-azure-agent",
     "iot-agent",
+    "ux-ui-agent",
     "community-manager-agent",
     "snapshot-agent",
 ]
@@ -24,6 +25,7 @@ AGENT_TEMPLATE: dict[str, str] = {
     "rag-local-agent": "Local technical docs and knowledge retrieval.",
     "rag-azure-agent": "Corporate docs with mandatory evidence.",
     "iot-agent": "IoT/edge/telemetry mixed code+docs workflow.",
+    "ux-ui-agent": "UX/UI governance and design-intent control workflow.",
     "community-manager-agent": "Education/posts/storytelling from grounded knowledge.",
     "snapshot-agent": "Portable scope-safe context export.",
 }
