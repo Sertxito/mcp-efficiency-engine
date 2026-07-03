@@ -1,0 +1,49 @@
+{
+  "timestamp": "2026-07-03T17:36:34.454858+00:00",
+  "source": "C:\\repo\\TSS2026-mcp-efficiency-engine\\observability\\logs\\iteration-metrics.jsonl",
+  "filters": {
+    "source": "copilot-session",
+    "from": "",
+    "to": ""
+  },
+  "totals": {
+    "events": 7,
+    "input_tokens": 829588,
+    "output_tokens": 30435,
+    "total_tokens": 860023,
+    "copilot_credits": 232.061853
+  },
+  "breakdown": {
+    "model": {
+      "copilot/auto": {
+        "count": 7,
+        "input_tokens": 829588,
+        "output_tokens": 30435,
+        "total_tokens": 860023,
+        "copilot_credits": 232.06185299999999
+      }
+    },
+    "day": {
+      "2026-07-03": {
+        "count": 7,
+        "input_tokens": 829588,
+        "output_tokens": 30435,
+        "total_tokens": 860023,
+        "copilot_credits": 232.06185299999999
+      }
+    }
+  },
+  "license": {
+    "plan": "business",
+    "seats": 153,
+    "included_credits_per_user_month": 19.0,
+    "included_credits_total_month": 2907.0
+  },
+  "budget": {
+    "used_copilot_credits": 232.061853,
+    "budget_utilization_rate": 0.079829,
+    "overage_credits": 0.0,
+    "equivalent_seats_used": 12.213782,
+    "percent_of_one_seat": 1221.38
+  }
+}

@@ -346,6 +346,47 @@ def append_jsonl(path: Path, event: dict[str, Any]) -> None:
         fh.write(json.dumps(event, ensure_ascii=False) + "\n")
 
 
+def build_tool_mode(local_tools: int, remote_tools: int) -> str:
+    if local_tools > 0 and remote_tools == 0:
+        return "local-only"
+    if local_tools == 0 and remote_tools > 0:
+        return "remote-only"
+    if local_tools > 0 and remote_tools > 0:
+        return "hybrid"
+    return "model-only"
+
+
+def build_iteration_metric(
+    *,
+    event_id: str,
+    model: str,
+    input_tokens: int,
+    output_tokens: int,
+    estimated_cost_usd: float,
+    local_tools: int,
+    remote_tools: int,
+    notes: str,
+) -> dict[str, Any]:
+    total_tokens = input_tokens + output_tokens
+    return {
+        "timestamp": utc_now(),
+        "event_id": event_id,
+        "model": model,
+        "cost": {
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+            "total_tokens": total_tokens,
+            "estimated_cost_usd": round(float(estimated_cost_usd), 6),
+        },
+        "execution": {
+            "local_tools": local_tools,
+            "remote_tools": remote_tools,
+            "tool_mode": build_tool_mode(local_tools, remote_tools),
+        },
+        "notes": notes,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Resolve routing with capability-aware local-first policy.")
     parser.add_argument("--input", required=True, help="Original user input for routing event")
@@ -356,7 +397,29 @@ def main() -> int:
     parser.add_argument("--registry", default="repo-registry/repos.yml")
     parser.add_argument("--generated-root", default="repo-intake/generated")
     parser.add_argument("--output", default="observability/logs/routing-decisions.jsonl")
+    parser.add_argument("--input-tokens", type=int, default=-1, help="Real input tokens for this call. Provide with --output-tokens.")
+    parser.add_argument("--output-tokens", type=int, default=-1, help="Real output tokens for this call. Provide with --input-tokens.")
+    parser.add_argument("--estimated-cost-usd", type=float, default=0.0, help="Estimated cost in USD for this call.")
+    parser.add_argument("--model", default="unknown", help="Model used by this call, e.g. GPT-5.3-Codex")
+    parser.add_argument("--local-tools", type=int, default=0, help="Count of local tools used by this call")
+    parser.add_argument("--remote-tools", type=int, default=0, help="Count of remote tools used by this call")
+    parser.add_argument("--metrics-output", default="observability/logs/iteration-metrics.jsonl", help="JSONL output for per-call token metrics")
     args = parser.parse_args()
+
+    has_input_tokens = args.input_tokens >= 0
+    has_output_tokens = args.output_tokens >= 0
+    if has_input_tokens != has_output_tokens:
+        print("Both --input-tokens and --output-tokens must be provided together (or omitted together).")
+        return 1
+    if args.input_tokens < -1 or args.output_tokens < -1:
+        print("Token values must be >= 0 when provided.")
+        return 1
+    if args.estimated_cost_usd < 0:
+        print("--estimated-cost-usd must be >= 0")
+        return 1
+    if args.local_tools < 0 or args.remote_tools < 0:
+        print("--local-tools and --remote-tools must be >= 0")
+        return 1
 
     repo_root = Path(__file__).resolve().parents[2]
     registry = load_registry((repo_root / args.registry).resolve())
@@ -446,10 +509,45 @@ def main() -> int:
         "hitl": hitl,
     }
 
+    if has_input_tokens and has_output_tokens:
+        total_tokens = args.input_tokens + args.output_tokens
+        event["usage"] = {
+            "input_tokens": args.input_tokens,
+            "output_tokens": args.output_tokens,
+            "total_tokens": total_tokens,
+            "estimated_cost_usd": round(float(args.estimated_cost_usd), 6),
+        }
+
+    metrics_recorded = False
+    metrics_output_path = ""
+    if has_input_tokens and has_output_tokens:
+        metric = build_iteration_metric(
+            event_id=event_id,
+            model=str(args.model),
+            input_tokens=args.input_tokens,
+            output_tokens=args.output_tokens,
+            estimated_cost_usd=float(args.estimated_cost_usd),
+            local_tools=args.local_tools,
+            remote_tools=args.remote_tools,
+            notes="auto-recorded by resolve-routing",
+        )
+        metrics_path = (repo_root / args.metrics_output).resolve()
+        append_jsonl(metrics_path, metric)
+        metrics_recorded = True
+        metrics_output_path = str(metrics_path)
+
+    event["telemetry"] = {
+        "iteration_metrics_recorded": metrics_recorded,
+        "metrics_output": metrics_output_path,
+    }
+
     output_path = (repo_root / args.output).resolve()
     append_jsonl(output_path, event)
+
     print(json.dumps(event, indent=2, ensure_ascii=False))
     print(f"Event appended to: {output_path}")
+    if metrics_recorded:
+        print(f"Metrics appended to: {metrics_output_path}")
     return 0
 
 

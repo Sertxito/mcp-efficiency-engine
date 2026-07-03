@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-07-03T17:26:29.562587+00:00",
+  "session_log": "C:\\Users\\sergio.hierro.cinos\\AppData\\Roaming\\Code\\User\\workspaceStorage\\f612dee4512b4f73987e4693f555737c\\GitHub.copilot-chat\\debug-logs\\3fce3987-33b0-426f-81e1-b7d0c3ffa439\\main.jsonl",
+  "chat_session_log": "C:\\Users\\sergio.hierro.cinos\\AppData\\Roaming\\Code\\User\\workspaceStorage\\f612dee4512b4f73987e4693f555737c\\chatSessions\\3fce3987-33b0-426f-81e1-b7d0c3ffa439.jsonl",
+  "metrics_log": "C:\\repo\\TSS2026-mcp-efficiency-engine\\observability\\logs\\iteration-metrics.jsonl",
+  "scanned_events": 8,
+  "usage_events_detected": 7,
+  "inserted": 2,
+  "updated_existing": 0,
+  "skipped_duplicates": 5,
+  "status": "ok",
+  "note": "If status=no-usage-fields-found, this VS Code debug log currently does not expose per-turn token usage in a parseable shape."
+}

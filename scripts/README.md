@@ -41,7 +41,7 @@ Todas las ejecuciones deben usar rutas canonicas por subcarpeta.
 - `intake/repo-intake.py`: genera artefactos intake por repo.
 - `intake/run-repo-intake.cmd`: wrapper recomendado en Windows para intake.
 - `intake/run-repo-intake.ps1`: wrapper PowerShell para intake.
-- `intake/resolve-routing.py`: resuelve ruta por capabilities/engine/fallback.
+- `intake/resolve-routing.py`: resuelve ruta por capabilities/engine/fallback y puede registrar metricas de tokens por llamada con `--input-tokens --output-tokens`.
 - `intake/run-routing-evals.py`: ejecuta casos de prueba de routing.
 - `intake/agent-pipeline-preflight.py`: chequea integridad agente -> skills -> repos.
 
@@ -66,6 +66,8 @@ Todas las ejecuciones deben usar rutas canonicas por subcarpeta.
 
 - `learning/record-learning-feedback.py`: registro de feedback de ejecucion.
 - `learning/record-iteration-metrics.py`: registro de metricas por iteracion.
+- `learning/ingest-copilot-session-usage.py`: ingesta best-effort de uso de tokens desde logs de sesion de VS Code Copilot hacia `iteration-metrics.jsonl` (incluye `copilot_credits` cuando el log lo expone).
+- `learning/chat-token-usage-report.py`: reporte agregado de tokens y costo en creditos solo de chat (`usage.source=copilot-session`) con salida JSON+Markdown. Soporta `--plan` (`free|pro|pro+|max|business|enterprise`) y `--seats` para calcular presupuesto mensual incluido y sobreconsumo.
 - `learning/learning-loop-report.py`: reporte de aprendizaje continuo.
 - `learning/iteration-value-report.py`: reporte de valor por iteracion.
 - `learning/autolearning-gate.py`: gate automatizado de aprendizaje.

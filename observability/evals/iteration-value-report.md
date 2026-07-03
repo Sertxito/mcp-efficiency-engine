@@ -1,34 +1,35 @@
 # Iteration Value Report
 
-- timestamp: 2026-06-30T21:30:54.672730+00:00
-- events: 173
-- events_with_event_id: 122
-- metrics_covered: 5
+- timestamp: 2026-07-03T17:07:47.352824+00:00
+- events: 176
+- events_with_event_id: 125
+- metrics_covered: 7
 - feedback_confirmed: 10
 - confirmed_success: 10
 
 ## KPI
 
-- metrics_coverage_rate: 4.1%
-- confirmed_feedback_rate: 8.2%
+- metrics_coverage_rate: 5.6%
+- confirmed_feedback_rate: 8.0%
 - confirmed_success_rate: 100.0%
-- total_tokens: 6000
-- total_cost_usd: 0.05
-- tokens_per_confirmed_success: 600.0
-- cost_per_confirmed_success_usd: 0.005
+- total_tokens: 6474
+- total_cost_usd: 0.0542
+- tokens_per_confirmed_success: 647.4
+- cost_per_confirmed_success_usd: 0.00542
 
 ## Breakdown
 
 ### Tool mode
 - hybrid: count=2, tokens=2400, cost_usd=0.02
-- local-only: count=3, tokens=3600, cost_usd=0.03
+- local-only: count=4, tokens=4044, cost_usd=0.0342
+- model-only: count=1, tokens=30, cost_usd=0.0
 
 ### Model
-- GPT-5.3-Codex: count=5, tokens=6000, cost_usd=0.05
+- GPT-5.3-Codex: count=7, tokens=6474, cost_usd=0.0542
 
 ### Engine
 - Azure RAG Builder: count=1, tokens=1200, cost_usd=0.01
-- CodeGraph: count=2, tokens=2400, cost_usd=0.02
+- CodeGraph: count=4, tokens=2874, cost_usd=0.0242
 - GitNexus: count=1, tokens=1200, cost_usd=0.01
 - Graphify: count=1, tokens=1200, cost_usd=0.01
 
