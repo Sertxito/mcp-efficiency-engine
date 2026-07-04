@@ -1,16 +1,13 @@
 # Boost Discovery Proposal
 
-- timestamp: 2026-06-30T23:06:19.805152+00:00
-- candidates: 0
-- skipped: 4
+- timestamp: 2026-07-04T13:02:39.671649+00:00
+- candidates: 1
+- skipped: 0
 
 ## Candidates
 
-- none
+- boost_sertxia (dev) -> ../boost_sertxIA
 
 ## Skipped
 
-- boost_azure-iot-edge: already_registered_name
-- boost_backend: already_registered_name
-- boost_DBA: already_registered_name
-- boost_RAG-Azure-Builder: already_registered_location
+- none

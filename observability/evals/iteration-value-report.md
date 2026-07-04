@@ -1,21 +1,21 @@
 # Iteration Value Report
 
-- timestamp: 2026-07-03T17:40:38.467528+00:00
-- events: 176
-- events_with_event_id: 125
+- timestamp: 2026-07-04T13:03:13.315559+00:00
+- events: 282
+- events_with_event_id: 231
 - metrics_covered: 7
-- feedback_confirmed: 10
-- confirmed_success: 10
+- feedback_confirmed: 85
+- confirmed_success: 85
 
 ## KPI
 
-- metrics_coverage_rate: 5.6%
-- confirmed_feedback_rate: 8.0%
+- metrics_coverage_rate: 3.03%
+- confirmed_feedback_rate: 36.8%
 - confirmed_success_rate: 100.0%
 - total_tokens: 6474
 - total_cost_usd: 0.0542
-- tokens_per_confirmed_success: 647.4
-- cost_per_confirmed_success_usd: 0.00542
+- tokens_per_confirmed_success: 76.16
+- cost_per_confirmed_success_usd: 0.000638
 
 ## Breakdown
 

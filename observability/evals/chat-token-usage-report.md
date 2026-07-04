@@ -1,6 +1,6 @@
 # Chat Token Usage Report
 
-- timestamp: 2026-07-03T21:44:48.583407+00:00
+- timestamp: 2026-07-04T13:03:12.574207+00:00
 - source: observability/logs/iteration-metrics.jsonl
 - filter.source: copilot-session
 - filter.from: 
@@ -11,21 +11,22 @@
 
 ## Totals
 
-- events: 19
-- input_tokens: 2219137
-- output_tokens: 67846
-- total_tokens: 2286983
-- copilot_credits: 492.070886
+- events: 21
+- input_tokens: 2337971
+- output_tokens: 73006
+- total_tokens: 2410977
+- copilot_credits: 518.971256
 - included_credits_total_month: 19.0
-- budget_utilization_rate: 25.898468
-- overage_credits: 473.070886
-- equivalent_seats_used: 25.898468
-- percent_of_one_seat: 2589.85
+- budget_utilization_rate: 27.314277
+- overage_credits: 499.971256
+- equivalent_seats_used: 27.314277
+- percent_of_one_seat: 2731.43
 
 ## Breakdown by Model
 
-- copilot/auto: count=19, input=2219137, output=67846, total=2286983, credits=492.070886
+- copilot/auto: count=21, input=2337971, output=73006, total=2410977, credits=518.971256
 
 ## Breakdown by Day
 
 - 2026-07-03: count=19, input=2219137, output=67846, total=2286983, credits=492.070886
+- 2026-07-04: count=2, input=118834, output=5160, total=123994, credits=26.90037

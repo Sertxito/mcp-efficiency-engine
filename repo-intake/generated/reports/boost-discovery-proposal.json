@@ -1,29 +1,32 @@
 {
-  "timestamp": "2026-06-30T23:06:19.805152+00:00",
+  "timestamp": "2026-07-04T13:02:39.671649+00:00",
   "root": "C:/repo",
   "prefix": "boost_",
   "registry": "C:/repo/mcp-efficiency-engine/repo-registry/repos.yml",
-  "existing_count": 5,
-  "candidates_count": 0,
-  "skipped_count": 4,
-  "candidates": [],
-  "skipped": [
+  "existing_count": 8,
+  "candidates_count": 1,
+  "skipped_count": 0,
+  "candidates": [
     {
-      "folder": "boost_azure-iot-edge",
-      "reason": "already_registered_name"
-    },
-    {
-      "folder": "boost_backend",
-      "reason": "already_registered_name"
-    },
-    {
-      "folder": "boost_DBA",
-      "reason": "already_registered_name"
-    },
-    {
-      "folder": "boost_RAG-Azure-Builder",
-      "reason": "already_registered_location"
+      "name": "boost_sertxia",
+      "domain": "dev",
+      "version": "1.0.0",
+      "location": "../boost_sertxIA",
+      "type": "local",
+      "dependencies": [],
+      "approval": {
+        "status": "approved",
+        "approved_by": "platform-team",
+        "approved_date": "2026-07-04",
+        "review_ticket": "PLATFORM-1001"
+      },
+      "engines": {
+        "knowledge": "codegraph",
+        "execution": "none",
+        "snapshot": "repomix"
+      }
     }
   ],
+  "skipped": [],
   "apply_mode": false
 }
