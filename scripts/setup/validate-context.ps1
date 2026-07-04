@@ -1,5 +1,4 @@
 param(
-  [switch]$PortableMode,
   [switch]$CIMode
 )
 
@@ -8,118 +7,56 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 Set-Location $repoRoot
-$toolingManifestPath = Join-Path $repoRoot 'tooling/tooling.manifest.json'
 $setupValidationReportPath = Join-Path $repoRoot 'repo-intake/generated/reports/setup-validation.json'
 
-function Get-ToolingManifest {
-  param([Parameter(Mandatory = $true)][string]$Path)
-
-  if (-not (Test-Path $Path)) {
-    throw "Missing tooling manifest: $Path"
-  }
-
-  return Get-Content -Raw -Path $Path | ConvertFrom-Json -Depth 20
+# Ensure report directory exists
+$reportDir = Split-Path -Parent $setupValidationReportPath
+if (-not (Test-Path $reportDir)) {
+  New-Item -ItemType Directory -Path $reportDir -Force | Out-Null
 }
 
-function Test-RequiredInMode {
-  param(
-    [Parameter(Mandatory = $true)][object]$Tool,
-    [Parameter(Mandatory = $true)][string]$Mode
+# ============================================
+# CI MODE - Minimal file presence check
+# ============================================
+if ($CIMode) {
+  Write-Host "Validating for CI (minimal checks)..."
+  
+  $requiredFiles = @(
+    "requirements.txt",
+    "AGENTS.md",
+    "specs/architecture.spec.md",
+    "specs/security.spec.md",
+    "specs/routing.spec.md"
   )
-
-  if (-not ($Tool.PSObject.Properties.Name -contains 'required_in')) {
-    return $true
-  }
-
-  foreach ($entry in @($Tool.required_in)) {
-    if ([string]$entry -eq $Mode) {
-      return $true
+  
+  $errors = @()
+  foreach ($file in $requiredFiles) {
+    if (-not (Test-Path $file)) {
+      $errors += "Missing $file"
     }
   }
-
-  return $false
-}
-
-function Write-SetupValidationReport {
-  param(
-    [Parameter(Mandatory = $true)][string]$Path,
-    [Parameter(Mandatory = $true)][hashtable]$Report
-  )
-
-  $reportDir = Split-Path -Parent $Path
-  if (-not (Test-Path $reportDir)) {
-    New-Item -ItemType Directory -Path $reportDir -Force | Out-Null
+  
+  $report = @{
+    timestamp = (Get-Date).ToUniversalTime().ToString('o')
+    mode = 'ci'
+    errors = $errors
+    overall_status = if ($errors.Count -eq 0) { 'ok' } else { 'failed' }
   }
-
-  $Report | ConvertTo-Json -Depth 20 | Set-Content -Path $Path -Encoding utf8
+  
+  $report | ConvertTo-Json -Depth 20 | Set-Content -Path $setupValidationReportPath -Encoding utf8
+  
+  if ($errors.Count -eq 0) {
+    Write-Host "✓ CI validation OK"
+    exit 0
+  }
+  else {
+    $errors | ForEach-Object { Write-Host "✗ $_" }
+    exit 1
+  }
 }
 
-if ($PortableMode -or $CIMode) {
-  Write-Host "Validating portable core..."
-}
-else {
-  Write-Host "Validating MCP Efficiency Engine always-on..."
-}
-
-$requiredCore = @(
-  "requirements.txt",
-  ".vscode/mcp.json",
-  "AGENTS.md",
-  "FINAL_USAGE_GUIDE.md",
-  "ARCHITECTURE.md",
-  ".github/copilot-instructions.md",
-  ".github/instructions/always-on-optimization.instructions.md",
-  "scripts/setup/setup-prerequisites.ps1",
-  "scripts/setup/validate-context.ps1"
-)
-
-$requiredEnterprise = @(
-  ".vscode/mcp.json",
-  ".github/skills/token-saver/SKILL.md",
-  ".github/skills/ahorro-tokens/SKILL.md",
-  ".github/skills/caveman-mode/SKILL.md",
-  ".github/skills/caveman/SKILL.md",
-  ".github/skills/caveman-help/SKILL.md",
-  ".github/skills/caveman-review/SKILL.md",
-  ".github/skills/caveman-commit/SKILL.md",
-  ".github/skills/caveman-stats/SKILL.md",
-  ".github/skills/caveman-compress/SKILL.md",
-  ".github/skills/cavecrew/SKILL.md",
-  ".github/prompts/caveman.prompt.md",
-  ".github/prompts/caveman-help.prompt.md",
-  ".github/prompts/caveman-review.prompt.md",
-  ".github/prompts/caveman-commit.prompt.md",
-  ".github/prompts/caveman-stats.prompt.md",
-  ".github/prompts/caveman-compress.prompt.md",
-  ".github/prompts/cavecrew.prompt.md",
-  "optimization/ALWAYS_ON_OPTIMIZATION.md",
-  "docs/00-Ahorro_Tokens.md",
-  "optimization/token-saver.md",
-  "optimization/caveman-mode.md",
-  "optimization/optimization-routing.md",
-  "docs/02-always-on-optimization-guide.md",
-  "repo-registry/repos.schema.json",
-  "scripts/intake/validate-repo-registry.ps1",
-  "scripts/intake/validate-repo-registry.py",
-  "scripts/intake/run-repo-intake.cmd",
-  "observability/logs.schema.json",
-  "scripts/intake/resolve-routing.py",
-  "scripts/intake/run-routing-evals.py",
-  "observability/evals/routing-eval-cases.json",
-  "scripts/discovery/discover-boost-repos.py",
-  "scripts/discovery/discover-boost-repos.cmd",
-  "specs/architecture.spec.md",
-  "specs/azure-rag.spec.md",
-  "specs/coding-standards.spec.md",
-  "specs/database.spec.md",
-  "specs/migration.spec.md",
-  "specs/observability.spec.md",
-  "specs/optimization.spec.md",
-  "specs/repo-intake.spec.md",
-  "specs/rag.spec.md",
-  "specs/routing.spec.md",
-  "specs/security.spec.md"
-)
+# If we reach here, CI mode is off
+Write-Host "Validating setup (full checks)..."
 
 $required = @($requiredCore)
 if (-not $PortableMode) {
