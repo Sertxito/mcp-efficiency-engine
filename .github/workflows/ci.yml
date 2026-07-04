@@ -55,7 +55,7 @@ jobs:
           PYTHONIOENCODING: utf-8
 
       - name: Validate context
-        run: pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup\validate-context.ps1
+        run: pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup\validate-context.ps1 -CIMode
         shell: pwsh
 
       - name: Upload eval report
