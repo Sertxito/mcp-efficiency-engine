@@ -1,90 +1,90 @@
-# 👋 Sertxito — AI Engineering & Cloud Architecture
+# 👋 Sertxito — Ingeniería de IA & Arquitectura Cloud
 
-**Cloud Architect | AI/ML Ops | Agent Engineering**
+**Arquitecto Cloud | AI/ML Ops | Ingeniería de Agentes**
 
-Welcome to my GitHub profile. I'm focused on building enterprise-grade AI systems, cloud infrastructure, and specialized agent frameworks on Azure.
-
----
-
-## 🎯 Mission
-
-Accelerating AI adoption through **modular, reusable, spec-driven** architecture. All work is organized around **boost_*** repositories — each a self-contained capability that fits into a larger platform.
+Bienvenido a mi perfil de GitHub. Me enfoco en construir sistemas de IA empresariales, infraestructura cloud y frameworks especializados de agentes en Azure.
 
 ---
 
-## 🚀 Main Projects
+## 🎯 Misión
 
-### Primary Platform
-- **[mcp-efficiency-engine](https://github.com/Sertxito/mcp-efficiency-engine)** — Enterprise MCP routing, optimization, and agent orchestration platform  
-  ↳ Spec-driven | Token optimization | Multi-agent coordination | GitHub Actions automation
-
-### Boost Repositories (Specialized Agents & Capabilities)
-
-| Repo | Focus | Status |
-|------|-------|--------|
-| **[boost_RAG-Azure](https://github.com/Sertxito/boost_RAG-Azure)** | Enterprise RAG with Azure AI Search, semantic caching, multi-turn context | Public |
-| **[boost_backend](https://github.com/Sertxito/boost_backend)** | Backend patterns, APIs, database routing, CRUD optimization | Public |
-| **[boost_azure-iot-edge](https://github.com/Sertxito/boost_azure-iot-edge)** | IoT Edge deployment, device management, telemetry pipelines | Public |
-| boost_frontend | UI/UX patterns, component libraries, design systems | Private |
-| boost_sertxIA | AI agent framework, tool orchestration, execution flows | Private |
-| boost_architect-forensics-expert | Infrastructure forensics, cost analysis, compliance audits | Private |
-| boost_design-UX-with-Intent | Intent-driven design, accessibility, user experience patterns | Private |
+Acelerar la adopción de IA a través de arquitectura **modular, reutilizable y driven by specs**. Todo el trabajo está organizado alrededor de **boost_*** repositories — cada una es una capacidad auto-contenida que encaja en una plataforma mayor.
 
 ---
 
-## 📚 Resources
+## 🚀 Proyectos Principales
 
-### Documentation
-- **[Onboarding Guide](https://github.com/Sertxito/mcp-efficiency-engine/blob/main/docs/01-onboarding.md)** — Quick start for platform
-- **[Spec-Driven Development](https://github.com/Sertxito/mcp-efficiency-engine/tree/main/specs)** — 11 architectural specifications
-- **[Agent Routing](https://github.com/Sertxito/mcp-efficiency-engine/blob/main/orchestrator/router.md)** — How agents are selected and coordinated
-- **[Token Optimization](https://github.com/Sertxito/mcp-efficiency-engine/blob/main/optimization/token-saver.md)** — Cost efficiency patterns
+### Plataforma Primaria
+- **[mcp-efficiency-engine](https://github.com/Sertxito/mcp-efficiency-engine)** — Plataforma empresarial de routing MCP, optimización y orquestación de agentes  
+  ↳ Spec-driven | Optimización de tokens | Coordinación multi-agente | Automatización GitHub Actions
 
-### Tools & Scripts
-- **[Validation Framework](https://github.com/Sertxito/mcp-efficiency-engine/tree/main/scripts/intake)** — Database/RAG routing compliance
-- **[GitHub Automation](https://github.com/Sertxito/mcp-efficiency-engine/tree/main/scripts/github)** — Repo sync, devlog generation, issue management via gh CLI
-- **[Setup & CI/CD](https://github.com/Sertxito/mcp-efficiency-engine/tree/main/.github/workflows)** — GitHub Actions for validation, pages deployment, multi-repo orchestration
+### Boost Repositories (Agentes Especializados & Capacidades)
+
+| Repo | Enfoque | Estado |
+|------|---------|--------|
+| **[boost_RAG-Azure](https://github.com/Sertxito/boost_RAG-Azure)** | RAG empresarial con Azure AI Search, semantic caching, contexto multi-turno | Público |
+| **[boost_backend](https://github.com/Sertxito/boost_backend)** | Patrones backend, APIs, routing de base datos, optimización CRUD | Público |
+| **[boost_azure-iot-edge](https://github.com/Sertxito/boost_azure-iot-edge)** | Despliegue IoT Edge, gestión de dispositivos, pipelines de telemetría | Público |
+| boost_frontend | Patrones UI/UX, librerías de componentes, design systems | Privado |
+| boost_sertxIA | Framework de agentes IA, orquestación de herramientas, execution flows | Privado |
+| boost_architect-forensics-expert | Forensics de infraestructura, análisis de costos, auditorías de compliance | Privado |
+| boost_design-UX-with-Intent | Diseño intent-driven, accesibilidad, patrones de experiencia de usuario | Privado |
+
+---
+
+## 📚 Recursos
+
+### Documentación
+- **[Guía de Onboarding](https://github.com/Sertxito/mcp-efficiency-engine/blob/main/docs/01-onboarding.md)** — Quick start de la plataforma
+- **[Desarrollo Spec-Driven](https://github.com/Sertxito/mcp-efficiency-engine/tree/main/specs)** — 11 especificaciones arquitectónicas
+- **[Agent Routing](https://github.com/Sertxito/mcp-efficiency-engine/blob/main/orchestrator/router.md)** — Cómo se seleccionan y coordinan agentes
+- **[Optimización de Tokens](https://github.com/Sertxito/mcp-efficiency-engine/blob/main/optimization/token-saver.md)** — Patrones de eficiencia de costos
+
+### Herramientas & Scripts
+- **[Framework de Validación](https://github.com/Sertxito/mcp-efficiency-engine/tree/main/scripts/intake)** — Compliance de routing Database/RAG
+- **[Automatización GitHub](https://github.com/Sertxito/mcp-efficiency-engine/tree/main/scripts/github)** — Sincronización de repos, generación de devlog, gestión de issues via gh CLI
+- **[Setup & CI/CD](https://github.com/Sertxito/mcp-efficiency-engine/tree/main/.github/workflows)** — GitHub Actions para validación, despliegue de pages, orquestación multi-repo
 
 ---
 
 ## 🔧 Tech Stack
 
 - **Cloud**: Azure (App Service, Functions, Container Apps, AKS, Cosmos DB, Cognitive Search, OpenAI)
-- **AI/ML**: Model routing, prompt engineering, RAG patterns, agent orchestration
-- **IaC**: Bicep, Terraform (planned)
-- **Automation**: GitHub Actions, PowerShell 7, Python 3.11+
-- **Tools**: gh CLI, Azure CLI, Docker, Kubernetes
+- **AI/ML**: Routing de modelos, prompt engineering, patrones RAG, orquestación de agentes
+- **IaC**: Bicep, Terraform (planeado)
+- **Automatización**: GitHub Actions, PowerShell 7, Python 3.11+
+- **Herramientas**: gh CLI, Azure CLI, Docker, Kubernetes
 - **Code Intelligence**: GitNexus, CodeGraph, Repomix
 
 ---
 
-## 📊 GitHub Stats
+## 📊 Estadísticas GitHub
 
 ![GitHub Stats](https://github-readme-stats.vercel.app/api?username=Sertxito&show_icons=true&theme=dark)
 
 ---
 
-## 🎓 Learning & Contributions
+## 🎓 Aprendizaje & Contribuciones
 
-- 📖 Wrote: [Spec-Driven Architecture Guide](https://github.com/Sertxito/mcp-efficiency-engine/blob/main/ARCHITECTURE.md)
-- 📝 Published: [Token Optimization Patterns](https://github.com/Sertxito/mcp-efficiency-engine/blob/main/docs/00-Ahorro_Tokens.md)
-- 🛠️ Built: [Multi-repo synchronization workflows](https://github.com/Sertxito/mcp-efficiency-engine/blob/main/.github/workflows/auto-sync.yml)
-- 🤖 Maintained: [Enterprise routing framework](https://github.com/Sertxito/mcp-efficiency-engine/blob/main/AGENTS.md)
-
----
-
-## 📬 Get in Touch
-
-- **GitHub Issues**: Use the [mcp-efficiency-engine discussions](https://github.com/Sertxito/mcp-efficiency-engine/discussions)
-- **Collaboration**: Open to enterprise partnerships on AI/cloud projects
+- 📖 Escribí: [Guía de Arquitectura Spec-Driven](https://github.com/Sertxito/mcp-efficiency-engine/blob/main/ARCHITECTURE.md)
+- 📝 Publicado: [Patrones de Optimización de Tokens](https://github.com/Sertxito/mcp-efficiency-engine/blob/main/docs/00-Ahorro_Tokens.md)
+- 🛠️ Construí: [Workflows de sincronización multi-repo](https://github.com/Sertxito/mcp-efficiency-engine/blob/main/.github/workflows/auto-sync.yml)
+- 🤖 Mantengo: [Framework de routing empresarial](https://github.com/Sertxito/mcp-efficiency-engine/blob/main/AGENTS.md)
 
 ---
 
-## 📜 License
+## 📬 Contacto
 
-All public repositories are licensed under **MIT License** — see individual repos for details.
+- **GitHub Issues**: Usa las [discussions de mcp-efficiency-engine](https://github.com/Sertxito/mcp-efficiency-engine/discussions)
+- **Colaboración**: Abierto a partnerships empresariales en proyectos de IA/cloud
 
 ---
 
-**Last Updated**: 2026-07-04  
-**Status**: 🟢 Active Development
+## 📜 Licencia
+
+Todos los repositorios públicos están bajo licencia **MIT License** — ver repos individuales para detalles.
+
+---
+
+**Última Actualización**: 2026-07-04  
+**Estado**: 🟢 Desarrollo Activo
