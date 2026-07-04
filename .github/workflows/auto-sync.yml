@@ -1,0 +1,62 @@
+name: Auto-Sync to boost_sertxIA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'projects/**'
+      - '.github/specs/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - uses: azure/setup-kubectl@v3
+
+      - name: Install PowerShell
+        run: sudo apt-get update && sudo apt-get install -y powershell
+
+      - name: Configure GitHub CLI
+        run: |
+          gh auth status || echo "✓ GitHub CLI disponible"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run sync script
+        run: pwsh scripts/github/sync-repo.ps1 -SourceRepo "Sertxito/mcp-efficiency-engine" -TargetRepo "Sertxito/boost_sertxIA" -FilesPattern "projects/**"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create issue if sync fails
+        if: failure()
+        run: |
+          gh issue create \
+            --title "⚠️ Auto-Sync to boost_sertxIA failed" \
+            --body "Sync workflow falló en commit: ${{ github.sha }}\n\nRevisa: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --label "sync-failed"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment on created PR
+        if: success()
+        run: |
+          PR_URL=$(gh pr list --repo Sertxito/boost_sertxIA --state open --search "sync:" --json url --jq '.[0].url' | head -1)
+          if [ ! -z "$PR_URL" ]; then
+            echo "✓ PR creada: $PR_URL"
+            gh pr comment $PR_URL --body "🔗 Sincronización automática desde [mcp-efficiency-engine/${{ github.sha }}](https://github.com/Sertxito/mcp-efficiency-engine/commit/${{ github.sha }})"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

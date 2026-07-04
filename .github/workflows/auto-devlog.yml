@@ -1,0 +1,74 @@
+name: Auto-Generate DevLog
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      commits_to_analyze:
+        description: 'Commits to analyze'
+        required: false
+        default: '10'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  devlog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 100
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install PowerShell
+        run: sudo apt-get update && sudo apt-get install -y powershell
+
+      - name: Generate devlog
+        run: |
+          pwsh scripts/github/create-devlog.ps1 \
+            -Repo "Sertxito/mcp-efficiency-engine" \
+            -CommitsToAnalyze "${{ github.event.inputs.commits_to_analyze || '10' }}" \
+            -OutputDir "docs/devlog"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if devlog was created
+        id: check_devlog
+        run: |
+          if [ -f "docs/devlog/devlog-$(date +%Y-%m-%d).md" ]; then
+            echo "created=true" >> $GITHUB_OUTPUT
+            echo "filename=devlog-$(date +%Y-%m-%d).md" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create PR with devlog
+        if: steps.check_devlog.outputs.created == 'true'
+        run: |
+          BRANCH_NAME="devlog/$(date +%Y%m%d-%H%M%S)"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git checkout -b $BRANCH_NAME
+          git add docs/devlog/
+          git commit -m "docs: auto-generated devlog — $(date +%Y-%m-%d)" || echo "No changes to commit"
+          git push origin $BRANCH_NAME
+          
+          gh pr create \
+            --title "📝 DevLog: $(date +%Y-%m-%d)" \
+            --body "Devlog automático de commits recientes\n\n📄 Archivo: docs/devlog/${{ steps.check_devlog.outputs.filename }}\n\n✨ Categorización automática de cambios\n\nGenerado por: GitHub Action" \
+            --draft \
+            --repo Sertxito/mcp-efficiency-engine || echo "PR ya existe"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload devlog artifact
+        if: steps.check_devlog.outputs.created == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: devlog-${{ steps.check_devlog.outputs.filename }}
+          path: docs/devlog/${{ steps.check_devlog.outputs.filename }}
+          retention-days: 30

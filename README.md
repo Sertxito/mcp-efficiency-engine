@@ -51,36 +51,36 @@ Motor correcto
 Respuesta trazable + observabilidad
 ```
 
-## Control de Repositorio vía GitHub MCP
+## 🎮 Control de Repositorio vía GitHub Actions
 
-Control total del repositorio mediante **GitHub MCP Server** — inspirado en estrategia de [boost_sertxIA](https://github.com/Sertxito/boost_sertxIA):
+**Todo controlado automáticamente desde workflows** — inspirado en estrategia de [boost_sertxIA](https://github.com/Sertxito/boost_sertxIA):
 
-- 🔄 **Sincronización Multi-Repo** — `scripts/github/sync-repo.ps1`
-- 📝 **DevLog Automático** — `scripts/github/create-devlog.ps1`  
-- 🎯 **Gestión de Issues** — `scripts/github/manage-issues.ps1`
+| Workflow | Trigger | Función |
+|----------|---------|---------|
+| **CI** | Push a main/develop | ✅ Validación de specs + routing |
+| **Routing-Evals** | Push | ✅ Evaluación de compliance |
+| **Pages** | Push | ✅ Deploy de documentación a GitHub Pages |
+| **Auto-Sync** | Push (projects/) | 🔄 Sincroniza a boost_sertxIA |
+| **Auto-DevLog** | Push a main | 📝 Genera devlog de commits |
+| **Auto-Manage-Issues** | Lunes 9 AM | 🤖 Gestiona issues automáticamente |
+
+### No necesitas instalar nada globalmente
+
+Solo necesitas **GitHub CLI** (`gh`) que está disponible en todas partes:
+
+```bash
+# Setup rápido
+gh auth login
+
+# Test local (opcional)
+pwsh scripts/github/sync-repo.ps1 -DryRun
+```
 
 **Documentación:**
-- [GitHub MCP Integration Guide](./.github/GITHUB_MCP_INTEGRATION.md)
-- [GitHub Scripts README](./scripts/github/README.md)
-- [GitHub Repository Manager Agent](./.github/agents/github-repository-manager.agent.md)
-
-**Quick Start:**
-```powershell
-# Instalación MCP GitHub Server
-npm install -g @github/mcp-github-server
-
-# Configurar token
-$env:GITHUB_TOKEN = "ghp_xxxxxxxxxxxx"
-
-# Sincronizar repos
-pwsh scripts/github/sync-repo.ps1 -DryRun
-
-# Generar devlog
-pwsh scripts/github/create-devlog.ps1
-
-# Gestionar issues
-pwsh scripts/github/manage-issues.ps1 -Action assign
-```
+- [📋 Guía de Instalación](./scripts/github/INSTALL.md) — Setup local + CI/CD
+- [🔧 GitHub MCP Integration Guide](./.github/GITHUB_MCP_INTEGRATION.md)
+- [📚 Scripts README](./scripts/github/README.md)
+- [🤖 Repository Manager Agent](./.github/agents/github-repository-manager.agent.md)
 
 ---
 

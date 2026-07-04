@@ -1,6 +1,10 @@
 # GitHub MCP Scripts
 
-Scripts PowerShell para automatización de repositorio mediante GitHub MCP Server.
+Scripts PowerShell para automatización de repositorio mediante GitHub CLI.
+
+⚠️ **IMPORTANTE:** Solo necesitas `gh` CLI + PowerShell 7. No necesitas `npm install -g`.
+
+→ **[GUÍA DE INSTALACIÓN AQUÍ](./INSTALL.md)**
 
 ## Scripts Disponibles
 

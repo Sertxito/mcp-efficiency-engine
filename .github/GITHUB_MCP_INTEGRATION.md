@@ -139,48 +139,52 @@ Cambio en mcp-efficiency-engine
 
 ## Configuración Requerida
 
-### 1. GitHub Personal Access Token (PAT)
+### ⚠️ IMPORTANTE: No Necesitas Instalar MCP Server
+
+Los scripts usan **GitHub CLI (`gh`)** que está disponible por defecto. No necesitas `@github/mcp-github-server` en npm.
+
+### 1. GitHub CLI Setup (Obligatorio)
 
 ```bash
-# En VS Code / GitHub Copilot workspace:
-# Guardar token en .env o secrets manager
+# Windows
+winget install GitHub.cli
 
-GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
-GITHUB_OWNER=Sertxito
-GITHUB_REPO=mcp-efficiency-engine
-```
+# macOS
+brew install gh
 
-### 2. MCP Server Configuration
+# Linux
+sudo apt install gh
 
-Archivo `.vscode/mcp.json` (o `settings.json`):
-
-```json
-{
-  "mcpServers": {
-    "github": {
-      "type": "github",
-      "config": {
-        "auth": "pat",
-        "token": "${env:GITHUB_TOKEN}"
-      }
-    }
-  }
-}
-```
-
-### 3. Environment Setup
-
-```bash
-# 1. Instalar MCP GitHub server
-npm install -g @github/mcp-github-server
-
-# 2. Configurar PAT en sistema
-# - Windows: Guardar en Windows Credential Manager
-# - Linux/Mac: Guardar en ~/.github/token
-# - CI/CD: Usar GitHub Actions secrets
-
-# 3. Verificar acceso
+# Verificar
 gh auth status
+```
+
+### 2. GitHub Personal Access Token (PAT)
+
+```bash
+# En Windows - Credential Manager:
+cmdkey /add:github.com /user:your-username /pass:ghp_xxxxxxxxxxxxxxxxxxxx
+
+# En PowerShell (sesión):
+$env:GITHUB_TOKEN = "ghp_xxxxxxxxxxxxxxxxxxxx"
+
+# En PowerShell (permanente):
+Add-Content $PROFILE "`n`$env:GITHUB_TOKEN = 'ghp_xxxxxxxxxxxxxxxxxxxx'"
+
+# En Linux/macOS:
+export GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxx"
+echo 'export GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxx"' >> ~/.bashrc
+```
+
+**Token requerido con scopes:**
+- `repo` — Acceso a repositorios
+- `workflow` — Permisos para workflows
+
+### 3. Verificar Setup
+
+```powershell
+gh auth status
+gh repo view Sertxito/mcp-efficiency-engine
 ```
 
 ## Scripts de Automatización
