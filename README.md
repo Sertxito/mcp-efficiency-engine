@@ -51,6 +51,39 @@ Motor correcto
 Respuesta trazable + observabilidad
 ```
 
+## Control de Repositorio vía GitHub MCP
+
+Control total del repositorio mediante **GitHub MCP Server** — inspirado en estrategia de [boost_sertxIA](https://github.com/Sertxito/boost_sertxIA):
+
+- 🔄 **Sincronización Multi-Repo** — `scripts/github/sync-repo.ps1`
+- 📝 **DevLog Automático** — `scripts/github/create-devlog.ps1`  
+- 🎯 **Gestión de Issues** — `scripts/github/manage-issues.ps1`
+
+**Documentación:**
+- [GitHub MCP Integration Guide](./.github/GITHUB_MCP_INTEGRATION.md)
+- [GitHub Scripts README](./scripts/github/README.md)
+- [GitHub Repository Manager Agent](./.github/agents/github-repository-manager.agent.md)
+
+**Quick Start:**
+```powershell
+# Instalación MCP GitHub Server
+npm install -g @github/mcp-github-server
+
+# Configurar token
+$env:GITHUB_TOKEN = "ghp_xxxxxxxxxxxx"
+
+# Sincronizar repos
+pwsh scripts/github/sync-repo.ps1 -DryRun
+
+# Generar devlog
+pwsh scripts/github/create-devlog.ps1
+
+# Gestionar issues
+pwsh scripts/github/manage-issues.ps1 -Action assign
+```
+
+---
+
 ## Uso rápido
 
 Setup inicial (Windows, una sola vez):
