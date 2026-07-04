@@ -1,4 +1,4 @@
-name: CI — Spec Validation
+name: CI General — Spec Validation
 
 on:
   push:

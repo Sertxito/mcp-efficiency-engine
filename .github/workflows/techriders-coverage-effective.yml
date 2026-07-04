@@ -1,0 +1,76 @@
+name: TechRiders Effective Coverage Gate
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'projects/techriders/**'
+      - '.github/workflows/techriders-coverage-effective.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'projects/techriders/**'
+      - '.github/workflows/techriders-coverage-effective.yml'
+
+permissions:
+  contents: read
+
+env:
+  TECHRIDERS_EFFECTIVE_COVERAGE_MIN: '80'
+
+jobs:
+  techriders-coverage-effective:
+    name: TechRiders Effective Coverage Gate (Windows)
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Run TechRiders tests with effective coverage
+        working-directory: projects/techriders/backend
+        run: |
+          dotnet test .\tests\TechRiders.Api.Tests\TechRiders.Api.Tests.csproj --collect:"XPlat Code Coverage" --settings .\tests\coverage.effective.runsettings
+        shell: pwsh
+
+      - name: Evaluate effective coverage threshold
+        id: coverage_gate
+        working-directory: projects/techriders/backend
+        run: |
+          $coverageFile = Get-ChildItem -Path .\tests\TechRiders.Api.Tests\TestResults -Recurse -Filter coverage.cobertura.xml |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+
+          if (-not $coverageFile) {
+            throw "coverage.cobertura.xml was not generated."
+          }
+
+          [xml]$coverageXml = Get-Content $coverageFile.FullName
+          $overall = [math]::Round(([double]$coverageXml.coverage.'line-rate') * 100, 2)
+          $minimum = [double]$env:TECHRIDERS_EFFECTIVE_COVERAGE_MIN
+
+          "coverage_file=$($coverageFile.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "coverage_overall=$overall" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+          "## TechRiders Effective Coverage" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          "- Coverage file: $($coverageFile.FullName)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          "- Overall line coverage: $overall%" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          "- Minimum required: $minimum%" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+
+          if ($overall -lt $minimum) {
+            throw "Effective coverage gate failed: $overall% < $minimum%"
+          }
+        shell: pwsh
+
+      - name: Upload effective coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: techriders-effective-coverage
+          path: projects/techriders/backend/tests/TechRiders.Api.Tests/TestResults/**/coverage.cobertura.xml
+          retention-days: 30
