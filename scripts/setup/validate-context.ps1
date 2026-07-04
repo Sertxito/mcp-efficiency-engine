@@ -1,5 +1,6 @@
 param(
-  [switch]$CIMode
+  [switch]$CIMode,
+  [switch]$PortableMode
 )
 
 Set-StrictMode -Version Latest
@@ -7,7 +8,66 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 Set-Location $repoRoot
+$toolingManifestPath = Join-Path $repoRoot 'tooling/tooling.manifest.json'
 $setupValidationReportPath = Join-Path $repoRoot 'repo-intake/generated/reports/setup-validation.json'
+
+$requiredCore = @(
+  'requirements.txt',
+  'tooling/tooling.manifest.json',
+  '.vscode/mcp.json',
+  'AGENTS.md',
+  'specs/architecture.spec.md',
+  'specs/security.spec.md',
+  'specs/routing.spec.md'
+)
+
+$requiredEnterprise = @(
+  'orchestrator/router.md',
+  'policies/security-policy.md',
+  'repo-registry/repos.yml'
+)
+
+function Get-ToolingManifest {
+  param([Parameter(Mandatory = $true)][string]$Path)
+
+  if (-not (Test-Path $Path)) {
+    throw "Missing tooling manifest: $Path"
+  }
+
+  return Get-Content -Raw -Path $Path | ConvertFrom-Json -Depth 20
+}
+
+function Test-RequiredInMode {
+  param(
+    [Parameter(Mandatory = $true)][object]$Tool,
+    [Parameter(Mandatory = $true)][string]$Mode
+  )
+
+  if (-not ($Tool.PSObject.Properties.Name -contains 'required_in')) {
+    return $true
+  }
+
+  $requiredModes = @($Tool.required_in | ForEach-Object { [string]$_ })
+  if ($requiredModes.Count -eq 0) {
+    return $true
+  }
+
+  return ($requiredModes -contains $Mode)
+}
+
+function Write-SetupValidationReport {
+  param(
+    [Parameter(Mandatory = $true)][string]$Path,
+    [Parameter(Mandatory = $true)][hashtable]$Report
+  )
+
+  $dir = Split-Path -Parent $Path
+  if (-not (Test-Path $dir)) {
+    New-Item -ItemType Directory -Path $dir -Force | Out-Null
+  }
+
+  $Report | ConvertTo-Json -Depth 20 | Set-Content -Path $Path -Encoding utf8
+}
 
 # Ensure report directory exists
 $reportDir = Split-Path -Parent $setupValidationReportPath

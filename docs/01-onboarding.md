@@ -88,6 +88,7 @@ Cierre automatizado (valida registry + refresca grafo/intake/discovery + evals +
 ```
 
 `bye.ps1` tambien refresca automaticamente `context/repomix/repomix-output.xml` y `context/project-notes/*`.
+Ademas, aplica retencion automatica en `observability/logs/session` conservando por defecto los ultimos 15 dias.
 
 Confirmaciones humanas:
 
@@ -106,6 +107,8 @@ Opciones utiles:
 .\scripts\ops\bye.ps1 -SkipGraphRefresh -SkipIntakeRefresh -SkipSiblingDiscoveryRefresh
 .\scripts\ops\bye.ps1 -SkipRepomixRefresh
 .\scripts\ops\bye.ps1 -SkipProjectNotesRefresh
+.\scripts\ops\bye.ps1 -RetentionDays 30
+.\scripts\ops\bye.ps1 -SkipRetentionCleanup
 ```
 
 ## 6) Agentes ad-hoc en VS Code

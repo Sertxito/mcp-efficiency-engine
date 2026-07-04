@@ -1,9 +1,0 @@
-{
-  "capability": "backend-coding",
-  "repo": "boost_backend",
-  "domain": "backend",
-  "agent": "backend",
-  "engine": "CodeGraph",
-  "dependencies": [],
-  "generated_at": "2026-07-04T11:46:29.890194+00:00"
-}
