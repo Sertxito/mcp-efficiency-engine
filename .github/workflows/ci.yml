@@ -27,22 +27,32 @@ jobs:
       - name: Compile Python scripts
         run: python -m compileall -q .\scripts
         shell: pwsh
+        env:
+          PYTHONIOENCODING: utf-8
 
       - name: Validate routing evals
         run: py -3 .\scripts\intake\run-routing-evals.py
         shell: pwsh
+        env:
+          PYTHONIOENCODING: utf-8
 
       - name: Validate security
         run: py -3 .\scripts\intake\validate-security.py
         shell: pwsh
+        env:
+          PYTHONIOENCODING: utf-8
 
       - name: Validate database routing
         run: py -3 .\scripts\intake\validate-database-routing.py
         shell: pwsh
+        env:
+          PYTHONIOENCODING: utf-8
 
       - name: Validate RAG routing
         run: py -3 .\scripts\intake\validate-rag-routing.py
         shell: pwsh
+        env:
+          PYTHONIOENCODING: utf-8
 
       - name: Validate context
         run: pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup\validate-context.ps1
