@@ -22,7 +22,15 @@ def run_routing(**kwargs: str) -> dict:
     cmd = [sys.executable, str(RESOLVE_SCRIPT)]
     for k, v in kwargs.items():
         cmd += [f"--{k.replace('_', '-')}", v]
-    proc = subprocess.run(cmd, cwd=str(REPO_ROOT), capture_output=True, text=True, encoding="utf-8")
+    # Use utf-8 encoding and errors='replace' to handle non-ASCII chars
+    proc = subprocess.run(
+        cmd,
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace"
+    )
     # Output contains a JSON block followed by a trailing log line; extract JSON.
     stdout = proc.stdout or ""
     brace = stdout.find("{")
