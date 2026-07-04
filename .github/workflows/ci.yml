@@ -16,49 +16,36 @@ jobs:
     runs-on: windows-latest
     
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Python compile check
-        run: |
-          python -m compileall -q .\scripts
-          if ($LASTEXITCODE -ne 0) { exit 1 }
+      - name: Compile Python scripts
+        run: python -m compileall -q .\scripts
         shell: pwsh
 
-      - name: Run routing evals (spec: architecture, routing, observability, optimization)
-        run: |
-          py -3 .\scripts\intake\run-routing-evals.py
-          if ($LASTEXITCODE -ne 0) { exit 1 }
+      - name: Validate routing evals
+        run: py -3 .\scripts\intake\run-routing-evals.py
         shell: pwsh
 
-      - name: Validate security (spec: security)
-        run: |
-          py -3 .\scripts\intake\validate-security.py
-          if ($LASTEXITCODE -ne 0) { exit 1 }
+      - name: Validate security
+        run: py -3 .\scripts\intake\validate-security.py
         shell: pwsh
 
-      - name: Validate database routing (spec: database)
-        run: |
-          py -3 .\scripts\intake\validate-database-routing.py
-          if ($LASTEXITCODE -ne 0) { exit 1 }
+      - name: Validate database routing
+        run: py -3 .\scripts\intake\validate-database-routing.py
         shell: pwsh
 
-      - name: Validate RAG local routing (spec: rag)
-        run: |
-          py -3 .\scripts\intake\validate-rag-routing.py
-          if ($LASTEXITCODE -ne 0) { exit 1 }
+      - name: Validate RAG routing
+        run: py -3 .\scripts\intake\validate-rag-routing.py
         shell: pwsh
 
       - name: Validate context
-        run: |
-          pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup\validate-context.ps1
-          if ($LASTEXITCODE -ne 0) { exit 1 }
+        run: pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup\validate-context.ps1
         shell: pwsh
 
       - name: Upload eval report
@@ -68,41 +55,4 @@ jobs:
           name: routing-eval-report
           path: observability/evals/routing-eval-report.json
           retention-days: 30
-
-      - name: Report results
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            let passed = "?";
-            let total = "?";
-            let status = "✅ PASS";
-            
-            try {
-              const fs = require('fs');
-              const report = JSON.parse(fs.readFileSync('observability/evals/routing-eval-report.json', 'utf8'));
-              passed = report.cases_passed || 0;
-              total = report.cases_total || 0;
-              status = report.cases_failed === 0 ? '✅ PASS' : '❌ FAIL';
-            } catch (e) {
-              status = '⚠️ REPORT MISSING';
-            }
-            
-            const comment = `## CI Validation Results
-
-${status}
-
-- Routing Evals: ${passed}/${total} passed
-- Python Compile: ✅
-- Security Validation: ✅
-- Database Routing: ✅
-- RAG Routing: ✅
-- Context Validation: ✅`;
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
 
