@@ -1,4 +1,24 @@
-.cache/
+# Python
 __pycache__/
 *.pyc
+*.pyo
+
+# Cache local
+.cache/
+
+# Proyectos gestionados externamente
 projects/
+
+# Logs de runtime (se regeneran en cada ejecucion)
+observability/logs/*.jsonl
+observability/logs/session/
+observability/logs/*.json
+
+# Reportes generados (artefactos de CI/validacion local)
+observability/evals/routing-eval-report.json
+observability/evals/chat-token-usage-report.*
+observability/evals/iteration-value-report.*
+observability/evals/learning-loop-report.*
+
+# Reports de repo-intake (generados por validate-context y run-routing-evals)
+repo-intake/generated/reports/
