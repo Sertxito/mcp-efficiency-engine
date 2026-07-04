@@ -24,6 +24,7 @@ Definir el uso de RAG local para documentacion tecnica del repo y artefactos int
 
 ## Validacion minima
 
-1. La decision de routing para docs locales selecciona `rag-local`.
-2. La salida mantiene grounding explicito a fuentes del repo.
+1. `py -3 .\scripts\intake\validate-rag-routing.py` completa sin errores.
+2. La decision de routing para docs locales selecciona `rag-local` (verificado por el script anterior).
+3. La salida mantiene grounding explicito a fuentes del repo (verificado por el script anterior).
 

@@ -25,5 +25,6 @@ Definir reglas de seguridad para routing, memoria, snapshots y respuestas.
 
 ## Validacion minima
 
-1. Alineado con `policies/security-policy.md`.
-2. Eventos de riesgo alto deben reflejar ruta HITL en observabilidad.
+1. `py -3 .\scripts\intake\validate-security.py` completa sin errores.
+2. Alineado con `policies/security-policy.md` (verificado por el script anterior).
+3. Eventos de riesgo alto deben reflejar ruta HITL en observabilidad (verificado por el script anterior).

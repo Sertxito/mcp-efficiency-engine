@@ -25,6 +25,14 @@
       "capability": "database-analysis"
     },
     {
+      "id": "case-dba-sql-intent",
+      "input": "Analiza esquema SQL de la tabla de pedidos",
+      "intent": "sql",
+      "domain": "dba",
+      "source_type": "technical-docs",
+      "capability": "database-analysis"
+    },
+    {
       "id": "case-legacy-migration",
       "input": "Plan de migracion legacy",
       "intent": "migration",

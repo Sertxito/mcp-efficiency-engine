@@ -23,3 +23,9 @@ Contrato operativo de optimizacion always-on para routing, contexto y enforcemen
 
 1. Antes de merge, ejecutar `py -3 .\\scripts\\intake\\run-routing-evals.py`.
 2. El merge queda bloqueado si `cases_failed > 0` en `observability/evals/routing-eval-report.json`.
+
+## Validacion minima
+
+1. `py -3 .\scripts\intake\run-routing-evals.py` completa con `cases_failed=0`.
+2. `py -3 .\scripts\intake\resolve-routing.py --input "test" --intent info --domain dev --source-type code` emite evento con `agent` y `grounded` presentes.
+3. El reporte `observability/evals/routing-eval-report.json` existe y refleja `cases_failed=0`.

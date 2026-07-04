@@ -23,6 +23,7 @@ Definir reglas para tareas de SQL/esquema/procedimientos en el routing corporati
 
 ## Validacion minima
 
-1. Evento de routing para `intent=sql` selecciona `dba`.
-2. El evento declara `grounded=false` si no hay fuente resoluble.
+1. `py -3 .\scripts\intake\validate-database-routing.py` completa sin errores.
+2. Evento de routing para `intent=sql` selecciona `dba` (verificado por el script anterior).
+3. El evento declara `grounded=false` si no hay fuente resoluble (verificado por el script anterior).
 
