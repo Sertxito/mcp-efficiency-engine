@@ -1,0 +1,40 @@
+# Code Owners for MCP Efficiency Engine
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Specs and architecture
+/specs/                                   @Sertxito
+/AGENTS.md                                @Sertxito
+/ARCHITECTURE.md                          @Sertxito
+/CLAUDE.md                                @Sertxito
+
+# Routing and orchestration
+/scripts/intake/                          @Sertxito
+/orchestrator/                            @Sertxito
+/observability/                           @Sertxito
+
+# Skills and agents configuration
+/.github/skills/                          @Sertxito
+/.github/agents/                          @Sertxito
+/.github/prompts/                         @Sertxito
+
+# Policies and standards
+/policies/                                @Sertxito
+/optimization/                            @Sertxito
+/docs/                                    @Sertxito
+
+# Repository intake and context
+/repo-intake/                             @Sertxito
+/context/                                 @Sertxito
+/repo-registry/                           @Sertxito
+
+# Project structure
+/projects/                                @Sertxito
+
+# Root configuration files
+/.gitignore                               @Sertxito
+/README.md                                @Sertxito
+/requirements.txt                         @Sertxito
+
+# GitHub workflows and automation
+/.github/workflows/                       @Sertxito
+/.github/instructions/                    @Sertxito
