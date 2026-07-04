@@ -6,7 +6,7 @@
   "domain": "iot",
   "location": "",
   "resolved_path": "C:/repo/mcp-efficiency-engine/.cache/github-repos/boost_azure_iot_edge",
-  "generated_at": "2026-07-03T21:29:46.619520+00:00",
+  "generated_at": "2026-07-04T11:46:20.958889+00:00",
   "exists": true,
   "sync": {
     "mode": "github",
@@ -32,12 +32,13 @@
       ".gitignore",
       "config.py",
       "Dockerfile",
+      "LICENSE",
       "README.md",
       "requirements.txt"
     ],
     "counts": {
       "dirs": 9,
-      "files": 6
+      "files": 7
     }
   },
   "key_artifacts": [
@@ -51,9 +52,9 @@
       "exists": true,
       "kind": "file",
       "fingerprint": {
-        "size_bytes": 8614,
-        "mtime_utc": "2026-07-03T18:56:59.300094+00:00",
-        "sha256_16": "ceb4e11a350913d5"
+        "size_bytes": 1691,
+        "mtime_utc": "2026-07-04T11:46:20.896608+00:00",
+        "sha256_16": "76673e62d0b761a1"
       }
     },
     {
@@ -103,5 +104,5 @@
       "kind": "missing"
     }
   ],
-  "cache_fingerprint": "a12f404ecf5ade66"
+  "cache_fingerprint": "2a10834651a66efb"
 }

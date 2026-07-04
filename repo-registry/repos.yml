@@ -154,6 +154,26 @@
         "execution": "none",
         "snapshot": "repomix"
       }
+    },
+    {
+      "name": "boost_architect_forensics_expert",
+      "domain": "legacy",
+      "type": "github",
+      "repo_url": "https://github.com/Sertxito/boost_architect-forensics-expert.git",
+      "branch": "main",
+      "cache_location": ".cache/github-repos/boost_architect_forensics_expert",
+      "dependencies": [],
+      "approval": {
+        "status": "approved",
+        "approved_by": "platform-team",
+        "approved_date": "2026-07-04",
+        "review_ticket": "PLATFORM-LEG-1001"
+      },
+      "engines": {
+        "knowledge": "gitnexus",
+        "execution": "gitnexus",
+        "snapshot": "repomix"
+      }
     }
   ]
 }
