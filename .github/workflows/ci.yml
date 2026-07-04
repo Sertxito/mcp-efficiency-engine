@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   validate:
-    name: Validate Specs & Code
+    name: Validate Specs & Code (Windows)
     runs-on: windows-latest
     
     steps:
