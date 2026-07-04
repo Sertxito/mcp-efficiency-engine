@@ -22,3 +22,9 @@ observability/evals/learning-loop-report.*
 
 # Reports de repo-intake (generados por validate-context y run-routing-evals)
 repo-intake/generated/reports/
+
+# Artefactos generados de contexto/intake (no versionar por defecto)
+repo-intake/generated/
+context/repomix/repomix-output.xml
+observability/logs/copilot-usage-ingest-report.json
+observability/logs/iteration-metrics.jsonl
