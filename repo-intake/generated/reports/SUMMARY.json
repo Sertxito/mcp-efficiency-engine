@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-07-03T21:29:35.174864+00:00",
+  "timestamp": "2026-07-04T11:46:13.219260+00:00",
   "schema_version": "2.0",
-  "repos_count": 7,
+  "repos_count": 8,
   "repos": [
     {
       "name": "boost_dba",
@@ -51,7 +51,13 @@
       "domain": "frontend",
       "agent": "frontend-agent",
       "engine": "CodeGraph"
+    },
+    {
+      "name": "boost_architect_forensics_expert",
+      "slug": "boost_architect_forensics_expert",
+      "domain": "legacy",
+      "agent": "legacy",
+      "engine": "GitNexus"
     }
   ]
 }
-
