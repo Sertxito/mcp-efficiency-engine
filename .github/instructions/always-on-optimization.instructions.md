@@ -12,6 +12,8 @@ Este archivo es la fuente canonica de la capa Always-On.
 - Memory MCP siempre activo (`codebase-memory-mcp`) para memoria/patrones persistentes.
 - Learning siempre activo como registro de feedback y mejoras post-ejecucion.
 - Human-in-the-Loop (HITL) siempre activo en modo auto para decisiones de riesgo.
+- Boost-first siempre activo: seleccionar boost/agente/skill antes de editar o ejecutar cambios.
+- Evidencia always-on: cada tarea debe dejar traza minima de boost/agente/skill, motor, fallback (si aplica) y validacion.
 
 ## Politica de memoria y confirmaciones
 

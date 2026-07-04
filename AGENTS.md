@@ -29,6 +29,15 @@
 - No usar Repomix como contexto vivo.
 - Si no hay grounding suficiente, declarar gap.
 
+## Boost-First Always-On
+
+Regla obligatoria para todos los agentes:
+
+1. Antes de cualquier edicion o ejecucion de cambios, aplicar seleccion explicita de boost/agente/skill.
+2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion.
+3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.
+4. Si no se puede aplicar el motor esperado (index stale, tool no disponible, etc.), declarar gap y fallback en la salida.
+
 ## Primera Pasada Por Boost
 
 Regla obligatoria para todos los agentes:
