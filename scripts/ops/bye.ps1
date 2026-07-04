@@ -11,7 +11,10 @@ param(
     [switch]$SkipLearningRefresh,
     [switch]$SkipIterationValueRefresh,
     [switch]$SkipCopilotUsageIngest,
-    [switch]$SkipChatTokenUsageReport
+    [switch]$SkipChatTokenUsageReport,
+    [switch]$SkipRetentionCleanup,
+    [ValidateRange(1, 3650)]
+    [int]$RetentionDays = 15
 )
 
 Set-StrictMode -Version Latest
@@ -70,6 +73,53 @@ function Test-CommandAvailable {
     return [bool](Get-Command $Name -ErrorAction SilentlyContinue)
 }
 
+function Invoke-ObservabilityRetentionCleanup {
+    param(
+        [string]$RepoRoot,
+        [int]$DaysToKeep
+    )
+
+    $sessionDir = Join-Path $RepoRoot 'observability/logs/session'
+    if (-not (Test-Path $sessionDir)) {
+        return [ordered]@{
+            applied = $true
+            days = $DaysToKeep
+            session_dir = $sessionDir
+            deleted_files = 0
+            deleted_bytes = 0
+            cutoff_utc = (Get-Date).ToUniversalTime().AddDays(-$DaysToKeep).ToString('o')
+            note = 'session directory does not exist'
+        }
+    }
+
+    $cutoffUtc = (Get-Date).ToUniversalTime().AddDays(-$DaysToKeep)
+    $candidates = @(Get-ChildItem -Path $sessionDir -File -ErrorAction SilentlyContinue |
+        Where-Object { $_.LastWriteTimeUtc -lt $cutoffUtc })
+
+    $deletedFiles = 0
+    $deletedBytes = 0L
+    foreach ($file in $candidates) {
+        try {
+            $deletedBytes += [int64]$file.Length
+            Remove-Item -Path $file.FullName -Force -ErrorAction Stop
+            $deletedFiles += 1
+        }
+        catch {
+            Write-Host ("[info] Retention skip delete: {0} -> {1}" -f $file.FullName, $_.Exception.Message) -ForegroundColor DarkYellow
+        }
+    }
+
+    return [ordered]@{
+        applied = $true
+        days = $DaysToKeep
+        session_dir = $sessionDir
+        deleted_files = $deletedFiles
+        deleted_bytes = $deletedBytes
+        cutoff_utc = $cutoffUtc.ToString('o')
+        note = ''
+    }
+}
+
 function New-StepLogPath {
     param(
         [string]$StepName
@@ -125,6 +175,7 @@ function Get-ByeSummary {
     if ($SkipProjectNotesRefresh) { $skipped += 'Refresh project notes from observability' }
     if ($SkipLearningRefresh) { $skipped += 'Refresh learning loop report' }
     if ($SkipIterationValueRefresh) { $skipped += 'Refresh iteration value report' }
+    if ($SkipRetentionCleanup) { $skipped += 'Apply observability retention cleanup' }
     if ($SkipCodegraphStatus) { $skipped += 'Check codegraph status' }
     if ($SkipGitSnapshot) { $skipped += 'Collect git snapshot' }
 
@@ -153,6 +204,12 @@ function Get-ByeSummary {
         learning_loop = Get-StepStatus -Name 'Refresh learning loop report'
         iteration_value = Get-StepStatus -Name 'Refresh iteration value report'
         repomix_output = Test-Path (Join-Path $RepoRoot 'context/repomix/repomix-output.xml')
+        retention_cleanup = [ordered]@{
+            status = Get-StepStatus -Name 'Apply observability retention cleanup'
+            days = $RetentionDays
+            deleted_files = [int]$script:RetentionCleanupReport.deleted_files
+            deleted_bytes = [int64]$script:RetentionCleanupReport.deleted_bytes
+        }
     }
 
     return [ordered]@{
@@ -196,6 +253,7 @@ function Write-ByeSummary {
     Write-Host ("- learning-loop: {0}" -f $Summary.artifacts.learning_loop)
     Write-Host ("- iteration-value: {0}" -f $Summary.artifacts.iteration_value)
     Write-Host ("- repomix-output: {0}" -f $Summary.artifacts.repomix_output)
+    Write-Host ("- retention-cleanup: status={0}, days={1}, deleted_files={2}, deleted_bytes={3}" -f $Summary.artifacts.retention_cleanup.status, $Summary.artifacts.retention_cleanup.days, $Summary.artifacts.retention_cleanup.deleted_files, $Summary.artifacts.retention_cleanup.deleted_bytes)
     if (@($Summary.skipped_steps).Count -gt 0) {
         Write-Host ("Skipped: {0}" -f (($Summary.skipped_steps) -join ', '))
     }
@@ -263,6 +321,15 @@ Set-Location $repoRoot
 $script:Steps = @()
 $script:HasFailures = $false
 $script:StepLogs = [ordered]@{}
+$script:RetentionCleanupReport = [ordered]@{
+    applied = $false
+    days = $RetentionDays
+    session_dir = (Join-Path $repoRoot 'observability/logs/session')
+    deleted_files = 0
+    deleted_bytes = 0
+    cutoff_utc = ''
+    note = ''
+}
 $startedAt = Get-Date
 
 Write-Host '=== BYE SHUTDOWN ===' -ForegroundColor Cyan
@@ -467,6 +534,16 @@ if (-not $SkipIterationValueRefresh) {
 }
 else {
     Write-Host '[skip] Refresh iteration value report'
+}
+
+if (-not $SkipRetentionCleanup) {
+    Invoke-Step -Name 'Apply observability retention cleanup' -Action {
+        $script:RetentionCleanupReport = Invoke-ObservabilityRetentionCleanup -RepoRoot $repoRoot -DaysToKeep $RetentionDays
+        Write-Host ("[info] Retention policy: keep_last_days={0}, deleted_files={1}, deleted_bytes={2}" -f $script:RetentionCleanupReport.days, $script:RetentionCleanupReport.deleted_files, $script:RetentionCleanupReport.deleted_bytes)
+    } -Required $false
+}
+else {
+    Write-Host '[skip] Apply observability retention cleanup'
 }
 
 if (-not $SkipCodegraphStatus) {

@@ -48,7 +48,7 @@ Todas las ejecuciones deben usar rutas canonicas por subcarpeta.
 ## Operacion diaria
 
 - `ops/hi.ps1`: preflight de inicio (contexto, intake, routing, salud).
-- `ops/bye.ps1`: cierre con refreshes y reportes.
+- `ops/bye.ps1`: cierre con refreshes, reportes y retencion automatica de logs de sesion (`observability/logs/session`) con `RetentionDays=15` por defecto.
 
 ## Descubrimiento y sincronizacion
 
