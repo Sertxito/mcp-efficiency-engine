@@ -1,9 +1,0 @@
-{
-  "capability": "legacy-migration",
-  "repo": "boost_architect_forensics_expert",
-  "domain": "legacy",
-  "agent": "legacy",
-  "engine": "GitNexus",
-  "dependencies": [],
-  "generated_at": "2026-07-04T13:02:38.882302+00:00"
-}

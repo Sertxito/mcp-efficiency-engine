@@ -1,9 +1,0 @@
-{
-  "capability": "database-analysis",
-  "repo": "boost_dba",
-  "domain": "dba",
-  "agent": "dba",
-  "engine": "Graphify",
-  "dependencies": [],
-  "generated_at": "2026-07-04T13:02:14.629532+00:00"
-}
