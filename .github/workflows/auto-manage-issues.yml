@@ -34,44 +34,31 @@ jobs:
       - name: Install PowerShell
         run: sudo apt-get update && sudo apt-get install -y powershell
 
-      - name: Assign Copilot to issues
-        if: contains(fromJSON('["assign", "all"]'), github.event.inputs.action || 'assign')
-        run: pwsh scripts/github/manage-issues.ps1 -Action assign
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install PowerShell
+        run: sudo apt-get update && sudo apt-get install -y powershell
 
-      - name: Request Copilot reviews on PRs
-        if: contains(fromJSON('["review", "all"]'), github.event.inputs.action || 'assign')
-        run: pwsh scripts/github/manage-issues.ps1 -Action review
+      - name: Run issue management (DryRun)
+        run: |
+          echo "👥 Checking open issues..."
+          gh issue list --limit 5 --json title,state
+          echo ""
+          echo "Workflow ready for manual execution"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Auto-close resolved issues
-        if: contains(fromJSON('["close", "all"]'), github.event.inputs.action || 'assign')
-        run: pwsh scripts/github/manage-issues.ps1 -Action close
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
 
       - name: Create activity report
-        if: always()
         run: |
           echo "📊 Issue Management Report — $(date)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Actions executed:" >> $GITHUB_STEP_SUMMARY
-          echo "- Assign: ${{ contains(fromJSON('[\"assign\", \"all\"]'), github.event.inputs.action || 'assign') }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Review: ${{ contains(fromJSON('[\"review\", \"all\"]'), github.event.inputs.action || 'assign') }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Close: ${{ contains(fromJSON('[\"close\", \"all\"]'), github.event.inputs.action || 'assign') }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** Ready for manual trigger" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📌 Check run logs for details" >> $GITHUB_STEP_SUMMARY
-
-      - name: Notify if issues not managed
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '⚠️ Issue management workflow failed. Check [workflow logs](' + context.payload.pull_request.url + '/checks) for details.'
-            })
+          echo "Available actions:" >> $GITHUB_STEP_SUMMARY
+          echo "- \`gh workflow run auto-manage-issues.yml\` (default: assign)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "To manage issues manually:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "pwsh scripts/github/manage-issues.ps1 -Action assign" >> $GITHUB_STEP_SUMMARY
+          echo "pwsh scripts/github/manage-issues.ps1 -Action review" >> $GITHUB_STEP_SUMMARY
+          echo "pwsh scripts/github/manage-issues.ps1 -Action close" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

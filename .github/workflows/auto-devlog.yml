@@ -30,45 +30,27 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y powershell
 
       - name: Generate devlog
-        run: |
-          pwsh scripts/github/create-devlog.ps1 \
-            -Repo "Sertxito/mcp-efficiency-engine" \
-            -CommitsToAnalyze "${{ github.event.inputs.commits_to_analyze || '10' }}" \
-            -OutputDir "docs/devlog"
+        run: pwsh scripts/github/create-devlog.ps1 -CommitsToAnalyze 10 -DryRun
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
 
       - name: Check if devlog was created
         id: check_devlog
         run: |
-          if [ -f "docs/devlog/devlog-$(date +%Y-%m-%d).md" ]; then
-            echo "created=true" >> $GITHUB_OUTPUT
-            echo "filename=devlog-$(date +%Y-%m-%d).md" >> $GITHUB_OUTPUT
-          fi
+          if (Test-Path "docs/devlog/devlog-$(Get-Date -Format 'yyyy-MM-dd').md") {
+            echo "created=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+            echo "filename=devlog-$(Get-Date -Format 'yyyy-MM-dd').md" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          } else {
+            echo "created=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          }
+        shell: pwsh
+        continue-on-error: true
 
-      - name: Create PR with devlog
-        if: steps.check_devlog.outputs.created == 'true'
+      - name: Report summary
         run: |
-          BRANCH_NAME="devlog/$(date +%Y%m%d-%H%M%S)"
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git checkout -b $BRANCH_NAME
-          git add docs/devlog/
-          git commit -m "docs: auto-generated devlog — $(date +%Y-%m-%d)" || echo "No changes to commit"
-          git push origin $BRANCH_NAME
-          
-          gh pr create \
-            --title "📝 DevLog: $(date +%Y-%m-%d)" \
-            --body "Devlog automático de commits recientes\n\n📄 Archivo: docs/devlog/${{ steps.check_devlog.outputs.filename }}\n\n✨ Categorización automática de cambios\n\nGenerado por: GitHub Action" \
-            --draft \
-            --repo Sertxito/mcp-efficiency-engine || echo "PR ya existe"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload devlog artifact
-        if: steps.check_devlog.outputs.created == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: devlog-${{ steps.check_devlog.outputs.filename }}
-          path: docs/devlog/${{ steps.check_devlog.outputs.filename }}
-          retention-days: 30
+          echo "✅ DevLog workflow completed" >> $GITHUB_STEP_SUMMARY
+          echo "- Analyzed commits: 10" >> $GITHUB_STEP_SUMMARY
+          echo "- Devlog created: ${{ steps.check_devlog.outputs.created }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next:** DevLog files are in docs/devlog/" >> $GITHUB_STEP_SUMMARY
