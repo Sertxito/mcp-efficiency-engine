@@ -1,0 +1,13 @@
+theme: jekyll-theme-minimal
+title: MCP Efficiency Engine
+description: Enterprise-grade MCP orchestration, observability, and spec-driven development
+show_downloads: false
+google_analytics: false
+
+# Jekyll configuration
+markdown: kramdown
+highlighter: rouge
+permalink: /:path/
+plugins:
+  - jekyll-sitemap
+  - jekyll-feed
