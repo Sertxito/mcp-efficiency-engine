@@ -28,3 +28,4 @@ repo-intake/generated/
 context/repomix/repomix-output.xml
 observability/logs/copilot-usage-ingest-report.json
 observability/logs/iteration-metrics.jsonl
+node_modules

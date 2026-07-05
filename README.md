@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 -->
+
 # MCP Efficiency Engine
 
 Motor de orquestación para agentes MCP con routing por dominio, optimización always-on y contratos de intake JSON-first.
@@ -35,6 +37,23 @@ flowchart LR
 ```
 
 ## Flujos Operativos
+
+### Flujo AutoDocs (wiki-agent)
+
+Proyeccion incremental de conocimiento tecnico a Markdown:
+
+```powershell
+py -3 -m scripts.wiki.wiki_compiler
+```
+
+Artefactos de salida:
+
+- `repo-intake/generated/wiki/unified-graph.json`
+- `projects/openwiki_projection/`
+
+Automatizacion CI:
+
+- `.github/workflows/autodocs-sync.yml`
 
 ### Flujo End-to-End De Routing
 

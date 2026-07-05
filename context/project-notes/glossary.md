@@ -1,7 +1,7 @@
 # Glossary
 
 <!-- AUTO-GENERATED:START -->
-- updated_at: 2026-07-04T13:44:43.249454+00:00
+- updated_at: 2026-07-05T09:54:50.417719+00:00
 - fallback_rate: porcentaje de rutas en fallback. valor_actual=15.96%.
 - grounded_rate: porcentaje de rutas con fuentes validas. valor_actual=83.69%.
 - confirmed_success_rate: tasa de exito con feedback confirmado. valor_actual=100.0%.

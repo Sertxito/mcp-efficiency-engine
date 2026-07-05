@@ -1,0 +1,16 @@
+{
+  "skills": [
+    {
+      "name": "compile_autodocs",
+      "description": "Ejecuta de forma incremental el compilador de AutoDocs para procesar nodos sucios de conocimiento y proyectarlos a Markdown.",
+      "command": "py -3 -m scripts.wiki.wiki_compiler",
+      "parameters": {}
+    },
+    {
+      "name": "query_autodocs_graph",
+      "description": "Consulta directa del Grafo de Conocimiento Unificado estructurado en formato JSON.",
+      "command": "py -3 -c \"import json; print(json.load(open('repo-intake/generated/wiki/unified-graph.json', encoding='utf-8')))\"",
+      "parameters": {}
+    }
+  ]
+}

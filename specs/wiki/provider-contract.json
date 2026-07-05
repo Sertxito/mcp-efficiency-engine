@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org",
+  "title": "WikiProviderContract",
+  "type": "object",
+  "properties": {
+    "provider_id": { "type": "string" },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "type": "string" },
+          "checksum": { "type": "string" },
+          "raw_data": { "type": "object" },
+          "relations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "target": { "type": "string" },
+                "type": { "type": "string" }
+              },
+              "required": ["target", "type"]
+            }
+          }
+        },
+        "required": ["id", "type", "checksum", "raw_data", "relations"]
+      }
+    }
+  },
+  "required": ["provider_id", "entities"]
+}
