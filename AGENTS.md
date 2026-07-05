@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 -->
+
 # AGENTS.md — Enterprise Global Contract
 
 ## Routing base
@@ -13,6 +15,7 @@
 | Contratos/SLA/SharePoint/políticas | Docs corporativos | rag-azure | Azure RAG Builder |
 | IoT/edge/telemetría | Código + docs | iot | GitNexus/CodeGraph + Graphify |
 | Formación/posts/storytelling | Knowledge generado | community-manager | Graphify |
+| Documentación técnica incremental / proyección wiki | Artefactos `repo-intake/generated` | wiki-agent | CodeGraph (fallback Graphify) |
 | Exportar contexto | Repo/docs | snapshot | Repomix |
 
 ## Optimización obligatoria
@@ -99,6 +102,7 @@ flowchart LR
   RT --> RAZ[rag-azure]
   RT --> IOT[iot]
   RT --> COM[community-manager]
+  RT --> WIKI[wiki-agent]
   RT --> SNAP[snapshot]
   DEV --> CG[CodeGraph]
   FE --> CG
@@ -106,6 +110,7 @@ flowchart LR
   DBA --> GF[Graphify]
   RLOCAL --> GF
   RAZ --> AZRAG[Azure RAG Builder]
+  WIKI --> CG
   SNAP --> RPX[Repomix]
 ```
 

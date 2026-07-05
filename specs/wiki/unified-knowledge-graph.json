@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org",
+  "title": "UnifiedKnowledgeGraph",
+  "type": "object",
+  "properties": {
+    "last_updated": { "type": "string" },
+    "nodes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "node_id": { "type": "string" },
+          "provider": { "type": "string" },
+          "type": { "type": "string" },
+          "checksum": { "type": "string" },
+          "metadata": { "type": "object" },
+          "relations": { "type": "array" },
+          "semantic_summary": { "type": "string" }
+        },
+        "required": ["node_id", "provider", "type", "checksum", "relations"]
+      }
+    }
+  },
+  "required": ["last_updated", "nodes"]
+}

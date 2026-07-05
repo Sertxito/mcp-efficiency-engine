@@ -2,7 +2,8 @@ Usa prompts naturales. El orchestrator decide agente/motor.
 
 ## Hook Automatico De Prompts
 
-El routing selecciona un prompt automaticamente en cada decision y lo registra en el evento de observabilidad.
+El routing selecciona un prompt automaticamente en cada decision y lo
+registra en el evento de observabilidad.
 
 Archivo de implementacion:
 - `scripts/intake/resolve-routing.py`
@@ -37,4 +38,24 @@ sequenceDiagram
   M-->>A: Contexto relevante
   A-->>U: Resultado validado
 ```
+
+## wiki-agent (AutoDocs)
+
+Casos de uso:
+
+- consolidar conocimiento tecnico desde `repo-intake/generated/`
+- recalcular grafo unificado incremental
+- proyectar Markdown en `projects/openwiki_projection/`
+
+Comando canónico:
+
+```powershell
+py -3 -m scripts.wiki.wiki_compiler
+```
+
+Automatizacion:
+
+- workflow: `.github/workflows/autodocs-sync.yml`
+- agente local: `.github/agents/wiki-agent.agent.md`
+- skill: `.github/skills/wiki-tools.json`
 

@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 -->
+
 # MCP Routing Guide
 
 No usar todos los MCP a la vez. Usar routing corporativo para elegir 1 agente + 1 motor principal por tarea.
@@ -38,6 +40,8 @@ py -3 .\scripts\intake\resolve-routing.py --input "Plan de migracion legacy" --i
 5. Si es conocimiento tecnico local: prioriza `rag-local` con Graphify.
 6. Si es contrato/politica corporativa: prioriza `rag-azure` con Azure RAG.
 7. Si hay riesgo alto o fallback: HITL en modo auto pide confirmacion.
+8. Si la tarea es consolidar/proyectar conocimiento tecnico incremental a wiki:
+  prioriza `wiki-agent` con CodeGraph (fallback Graphify).
 
 ## Frontera frontend vs ux-ui
 
@@ -55,6 +59,7 @@ py -3 .\scripts\intake\resolve-routing.py --input "Plan de migracion legacy" --i
 | review/accesibilidad/design-system + ux-ui | ux-ui | Graphify |
 | migration + legacy | legacy | GitNexus |
 | query + dba | dba | Graphify |
+| compile/proyeccion wiki | wiki-agent | CodeGraph |
 | docs tecnicas locales | rag-local | Graphify |
 | contratos/SLA/politicas | rag-azure | Azure RAG Builder |
 
