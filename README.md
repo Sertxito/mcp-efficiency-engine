@@ -175,6 +175,37 @@ flowchart TB
 .\scripts\setup\setup-prerequisites.ps1
 ```
 
+### Alternativa npm
+
+Si quieres dejarlo auto-instalable en cualquier proyecto, el paquete ahora scaffoldéa el engine en el proyecto host durante `npm install` y luego ejecuta el bootstrap allí mismo.
+
+Instalacion directa en un proyecto nuevo o existente:
+
+```powershell
+npm install mcp-efficiency-engine
+```
+
+Comportamiento esperado:
+
+- copia al proyecto host los artefactos canonicos del engine (`scripts`, `.github`, `.vscode`, `repo-intake`, `orchestrator`, `policies`, `observability`, `autodocs/schema`, `memory`, etc.)
+- instala motores y herramientas via bootstrap portable
+- si no existe `repo-registry/repos.yml`, pregunta por owner/prefix y si quieres registrar un repo inicial para intake
+- si no añades repos en ese momento, deja el registry plantilla listo para añadirlos despues y rerun de intake
+
+Tambien puedes relanzar la instalacion manualmente sobre el proyecto actual:
+
+```powershell
+npx mcp-efficiency-engine install
+npx mcp-efficiency-engine validate -PortableMode
+```
+
+Tambien puedes instalarlo globalmente y usar:
+
+```powershell
+npm install -g mcp-efficiency-engine
+mcpee install
+```
+
 ### 2) Validación mínima
 
 ```powershell

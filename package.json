@@ -1,4 +1,65 @@
 {
+  "name": "mcp-efficiency-engine",
+  "version": "0.1.0",
+  "description": "Motor de orquestacion para agentes MCP con routing por dominio y bootstrap portable.",
+  "license": "MIT",
+  "type": "commonjs",
+  "bin": {
+    "mcpee": "./bin/mcpee.js",
+    "mcp-efficiency-engine": "./bin/mcpee.js"
+  },
+  "files": [
+    "bin/",
+    "autodocs/README.md",
+    "autodocs/schema/",
+    "autolearning/",
+    "scripts/",
+    "tooling/",
+    "templates/",
+    "repo-intake/",
+    "repo-registry/repos.schema.json",
+    "repo-registry/repos.template.json",
+    "orchestrator/",
+    "observability/",
+    "optimization/",
+    "policies/",
+    "specs/",
+    "memory/",
+    "context/repomix/repomix.config.json",
+    ".github/",
+    ".vscode/mcp.json",
+    "AGENTS.md",
+    "ARCHITECTURE.md",
+    "FINAL_USAGE_GUIDE.md",
+    "README.md",
+    "README_WIKI.md",
+    "LICENSE",
+    "requirements.txt"
+  ],
+  "scripts": {
+    "postinstall": "node ./bin/install-host.js --postinstall",
+    "install:host": "node ./bin/install-host.js",
+    "bootstrap": "node ./bin/mcpee.js bootstrap",
+    "validate": "node ./bin/mcpee.js validate",
+    "hi": "node ./bin/mcpee.js hi",
+    "bye": "node ./bin/mcpee.js bye",
+    "intake": "node ./bin/mcpee.js intake",
+    "pack:check": "npm pack --dry-run"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "mcp",
+    "agents",
+    "routing",
+    "codegraph",
+    "gitnexus",
+    "bootstrap",
+    "autodocs",
+    "autolearning",
+    "observability"
+  ],
   "devDependencies": {
     "@storybook/addon-a11y": "^10.4.6",
     "@storybook/addon-essentials": "^8.6.14",
