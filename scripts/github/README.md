@@ -70,7 +70,7 @@ Genera devlog automático a partir de commits recientes.
 **Parámetros:**
 - `-Repo` — Repositorio (default: Sertxito/mcp-efficiency-engine)
 - `-CommitsToAnalyze` — Cantidad de commits (default: 10)
-- `-OutputDir` — Directorio de salida (default: docs/devlog)
+- `-OutputDir` — Directorio de salida (default: autodocs/site/devlog)
 - `-DryRun` — Mostrar contenido sin crear archivo
 
 **Ejemplos:**
@@ -109,7 +109,7 @@ Obteniendo últimos 10 commits de Sertxito/mcp-efficiency-engine...
   ✅ Tests: 1
   📌 Otros: 1
 
-✓ Archivo devlog creado: docs/devlog/devlog-2026-07-04.md
+✓ Archivo devlog creado: autodocs/site/devlog/devlog-2026-07-04.md
 
 [DevLog markdown structure generated with all commits categorized]
 ```
@@ -317,7 +317,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add docs/devlog/
+          git add autodocs/site/devlog/
           git commit -m "docs: auto-generated devlog" || exit 0
           git push
 ```

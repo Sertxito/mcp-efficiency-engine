@@ -38,7 +38,7 @@ jobs:
       - name: Check if devlog was created
         id: check_devlog
         run: |
-          if (Test-Path "docs/devlog/devlog-$(Get-Date -Format 'yyyy-MM-dd').md") {
+          if (Test-Path "autodocs/site/devlog/devlog-$(Get-Date -Format 'yyyy-MM-dd').md") {
             echo "created=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
             echo "filename=devlog-$(Get-Date -Format 'yyyy-MM-dd').md" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           } else {
@@ -53,4 +53,4 @@ jobs:
           echo "- Analyzed commits: 10" >> $GITHUB_STEP_SUMMARY
           echo "- Devlog created: ${{ steps.check_devlog.outputs.created }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Next:** DevLog files are in docs/devlog/" >> $GITHUB_STEP_SUMMARY
+          echo "**Next:** DevLog files are in autodocs/site/devlog/" >> $GITHUB_STEP_SUMMARY

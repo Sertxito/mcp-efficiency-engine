@@ -6,7 +6,7 @@ Genera devlog técnico automático a partir de commits recientes.
 
 .DESCRIPTION
 Analiza últimos N commits, extrae cambios significativos, y genera markdown
-con insights técnicos. Crea archivo en docs/devlog/ y abre PR automáticamente.
+con insights técnicos. Crea archivo en autodocs/site/devlog/ y abre PR automáticamente.
 
 .PARAMETER Repo
 Repositorio (owner/repo). Por defecto: Sertxito/mcp-efficiency-engine
@@ -15,7 +15,7 @@ Repositorio (owner/repo). Por defecto: Sertxito/mcp-efficiency-engine
 Número de commits a analizar. Por defecto: 10
 
 .PARAMETER OutputDir
-Directorio de salida. Por defecto: docs/devlog
+Directorio de salida. Por defecto: autodocs/site/devlog
 
 .PARAMETER DryRun
 No crear archivos ni PR, solo mostrar lo que haría.
@@ -31,7 +31,7 @@ No crear archivos ni PR, solo mostrar lo que haría.
 param(
   [string]$Repo = "Sertxito/mcp-efficiency-engine",
   [int]$CommitsToAnalyze = 10,
-  [string]$OutputDir = "docs/devlog",
+  [string]$OutputDir = "autodocs/site/devlog",
   [switch]$DryRun
 )
 
@@ -280,7 +280,7 @@ Se ha generado devlog técnico con análisis de últimos $CommitCount commits.
 - ✅ Tests y validación
 
 ### Archivo
-- **$FileName** en `docs/devlog/`
+- **$FileName** en `autodocs/site/devlog/`
 
 ### Acción Sugerida
 1. Revisar contenido del devlog
@@ -308,7 +308,7 @@ Se ha generado devlog técnico con análisis de últimos $CommitCount commits.
     Write-Host "⚠ Creación de PR requiere configuración local de git"
     Write-Host "  Ejecutar manualmente:"
     Write-Host "  git checkout -b $branchName"
-    Write-Host "  git add docs/devlog/$FileName"
+    Write-Host "  git add autodocs/site/devlog/$FileName"
     Write-Host "  git commit -m '$title'"
     Write-Host "  git push origin $branchName"
     

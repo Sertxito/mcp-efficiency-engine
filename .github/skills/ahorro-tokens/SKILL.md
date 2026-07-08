@@ -22,7 +22,7 @@ Aplicar ahorro de tokens sin perder calidad, evidencia ni trazabilidad.
 ## Mapeo en este repo
 
 Fuente canonica:
-- `docs/00-Ahorro_Tokens.md`
+- `autodocs/site/guides/00-Ahorro_Tokens.md`
 
 Soporte always-on:
 - `.github/skills/token-saver/SKILL.md`

@@ -123,7 +123,7 @@ Issue creado → Copilot asignado automáticamente
 (Similar a boost_sertxIA GitHub Devlog Maintainer)
 Repo update → Detecta cambios significativos
           → Genera análisis técnico
-          → Crea devlog en docs/
+          → Crea devlog en autodocs/site/devlog/
           → Genera posts para LinkedIn
           → Crea Issues de tracking
 ```
@@ -218,7 +218,7 @@ param(
 # 1. Obtener últimos N commits
 # 2. Analizar cambios (análisis MCP via codegraph)
 # 3. Generar markdown con insights
-# 4. Crear file en docs/devlog/
+# 4. Crear file en autodocs/site/devlog/
 # 5. Abrir PR automáticamente
 ```
 

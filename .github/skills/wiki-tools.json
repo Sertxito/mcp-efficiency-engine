@@ -9,8 +9,16 @@
     {
       "name": "query_autodocs_graph",
       "description": "Consulta directa del Grafo de Conocimiento Unificado estructurado en formato JSON.",
-      "command": "py -3 -c \"import json; print(json.load(open('repo-intake/generated/wiki/unified-graph.json', encoding='utf-8')))\"",
+      "command": "py -3 -c \"import json; print(json.load(open('autodocs/generated/unified-graph.json', encoding='utf-8')))\"",
       "parameters": {}
+    },
+    {
+      "name": "query_autodocs_search",
+      "description": "Busqueda local simple sobre el manifest de AutoDocs por titulo, resumen, kind o tags.",
+      "command": "py -3 -m scripts.wiki.query_autodocs",
+      "parameters": {
+        "query": "string"
+      }
     }
   ]
 }

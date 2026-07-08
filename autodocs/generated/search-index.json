@@ -1,0 +1,929 @@
+[
+  {
+    "title": "Mission",
+    "summary": "name: GitHub Repository Manager description: Automatizaci\u00f3n completa del repositorio mediante GitHub MCP. Control total de branches, PRs, issues, releases y sincronizaci\u00f3n multi-repo.",
+    "kind": "agent",
+    "domain": "agents",
+    "section": "agents",
+    "tags": [
+      "agent",
+      "agents",
+      "agents"
+    ],
+    "path": "agents/agent-github-repository-manager-agent-md.md"
+  },
+  {
+    "title": "backend",
+    "summary": "Modern development tasks on a single repository: bug fix, refactor, tests, and debugging.",
+    "kind": "agent",
+    "domain": "agents",
+    "section": "agents",
+    "tags": [
+      "agent",
+      "agents",
+      "agents"
+    ],
+    "path": "agents/agent-backend-agent-md.md"
+  },
+  {
+    "title": "community-manager",
+    "summary": "Technical education, community posts, and storytelling grounded in repository knowledge.",
+    "kind": "agent",
+    "domain": "agents",
+    "section": "agents",
+    "tags": [
+      "agent",
+      "agents",
+      "agents"
+    ],
+    "path": "agents/agent-community-manager-agent-md.md"
+  },
+  {
+    "title": "dba",
+    "summary": "SQL/schema/procedure analysis and DBA-oriented technical diagnostics.",
+    "kind": "agent",
+    "domain": "agents",
+    "section": "agents",
+    "tags": [
+      "agent",
+      "agents",
+      "agents"
+    ],
+    "path": "agents/agent-dba-agent-md.md"
+  },
+  {
+    "title": "frontend-agent",
+    "summary": "Frontend development tasks on a single repository: UI feature implementation, bug fixes, refactors, and test support.",
+    "kind": "agent",
+    "domain": "agents",
+    "section": "agents",
+    "tags": [
+      "agent",
+      "agents",
+      "agents"
+    ],
+    "path": "agents/agent-frontend-agent-agent-md.md"
+  },
+  {
+    "title": "iot",
+    "summary": "IoT/edge/telemetry architecture and mixed code+docs analysis.",
+    "kind": "agent",
+    "domain": "agents",
+    "section": "agents",
+    "tags": [
+      "agent",
+      "agents",
+      "agents"
+    ],
+    "path": "agents/agent-iot-agent-md.md"
+  },
+  {
+    "title": "legacy",
+    "summary": "Legacy modernization, migration planning, and multi-repo impact analysis.",
+    "kind": "agent",
+    "domain": "agents",
+    "section": "agents",
+    "tags": [
+      "agent",
+      "agents",
+      "agents"
+    ],
+    "path": "agents/agent-legacy-agent-md.md"
+  },
+  {
+    "title": "rag-azure",
+    "summary": "Corporate documents retrieval with mandatory evidence and citations.",
+    "kind": "agent",
+    "domain": "agents",
+    "section": "agents",
+    "tags": [
+      "agent",
+      "agents",
+      "agents"
+    ],
+    "path": "agents/agent-rag-azure-agent-md.md"
+  },
+  {
+    "title": "rag-local",
+    "summary": "Local knowledge and technical documentation retrieval.",
+    "kind": "agent",
+    "domain": "agents",
+    "section": "agents",
+    "tags": [
+      "agent",
+      "agents",
+      "agents"
+    ],
+    "path": "agents/agent-rag-local-agent-md.md"
+  },
+  {
+    "title": "snapshot",
+    "summary": "Portable context export with scoped/safe packaging.",
+    "kind": "agent",
+    "domain": "agents",
+    "section": "agents",
+    "tags": [
+      "agent",
+      "agents",
+      "agents"
+    ],
+    "path": "agents/agent-snapshot-agent-md.md"
+  },
+  {
+    "title": "ux-ui",
+    "summary": "UX/UI governance and design intent control to keep interfaces consistent, intentional, and reusable across projects.",
+    "kind": "agent",
+    "domain": "agents",
+    "section": "agents",
+    "tags": [
+      "agent",
+      "agents",
+      "agents"
+    ],
+    "path": "agents/agent-ux-ui-agent-md.md"
+  },
+  {
+    "title": "wiki-agent",
+    "summary": "Gestion y proyeccion incremental de conocimiento tecnico hacia AutoDocs, con grafo estructural como fuente de verdad y Markdown como vista derivada.",
+    "kind": "agent",
+    "domain": "agents",
+    "section": "agents",
+    "tags": [
+      "agent",
+      "agents",
+      "agents"
+    ],
+    "path": "agents/agent-wiki-agent-agent-md.md"
+  },
+  {
+    "title": "boost_backend",
+    "summary": "boost_backend expone una capacidad del dominio backend llamada backend-coding, servida por el agente backend sobre CodeGraph.",
+    "kind": "capability",
+    "domain": "backend",
+    "section": "capabilities",
+    "tags": [
+      "codegraph",
+      "backend",
+      "capability"
+    ],
+    "path": "capabilities/codegraph-boost-backend.md"
+  },
+  {
+    "title": "boost_community_content",
+    "summary": "boost_community_content expone una capacidad del dominio community-content llamada community-content, servida por el agente community-manager sobre Graphify.",
+    "kind": "capability",
+    "domain": "community-content",
+    "section": "capabilities",
+    "tags": [
+      "graphify",
+      "community-content",
+      "capability",
+      "community-manager"
+    ],
+    "path": "capabilities/graphify-boost-community-content.md"
+  },
+  {
+    "title": "boost_dba",
+    "summary": "boost_dba expone una capacidad del dominio dba llamada database-analysis, servida por el agente dba sobre Graphify.",
+    "kind": "capability",
+    "domain": "dba",
+    "section": "capabilities",
+    "tags": [
+      "graphify",
+      "dba",
+      "capability"
+    ],
+    "path": "capabilities/graphify-boost-dba.md"
+  },
+  {
+    "title": "boost_design_ux_with_intent",
+    "summary": "boost_design_ux_with_intent expone una capacidad del dominio ux-ui llamada ux-ui-governance, servida por el agente ux-ui sobre Graphify.",
+    "kind": "capability",
+    "domain": "ux-ui",
+    "section": "capabilities",
+    "tags": [
+      "graphify",
+      "ux-ui",
+      "capability"
+    ],
+    "path": "capabilities/graphify-boost-design-ux-with-intent.md"
+  },
+  {
+    "title": "boost_frontend",
+    "summary": "boost_frontend expone una capacidad del dominio frontend llamada frontend-coding, servida por el agente frontend-agent sobre CodeGraph.",
+    "kind": "capability",
+    "domain": "frontend",
+    "section": "capabilities",
+    "tags": [
+      "codegraph",
+      "frontend",
+      "capability",
+      "frontend-agent"
+    ],
+    "path": "capabilities/codegraph-boost-frontend.md"
+  },
+  {
+    "title": "Evaluation",
+    "summary": "Evalua inputs esperados vs agente/motor real y perfil de optimizacion aplicado.",
+    "kind": "report",
+    "domain": "observability",
+    "section": "observability",
+    "tags": [
+      "report",
+      "observability",
+      "observability"
+    ],
+    "path": "observability/report-evaluation-md.md"
+  },
+  {
+    "title": "Metrics",
+    "summary": "M\u00e9tricas: routing accuracy, tool usage, tool misuse, tool switching, grounding quality, gaps, token efficiency, caveman effectiveness.",
+    "kind": "report",
+    "domain": "observability",
+    "section": "observability",
+    "tags": [
+      "report",
+      "observability",
+      "observability"
+    ],
+    "path": "observability/report-metrics-md.md"
+  },
+  {
+    "title": "Optimization fields",
+    "summary": "Schema: timestamp, input, intent, source_type, agent, engine, optimization_profile, fallback, grounded, sources, notes.",
+    "kind": "report",
+    "domain": "observability",
+    "section": "observability",
+    "tags": [
+      "report",
+      "observability",
+      "observability"
+    ],
+    "path": "observability/report-logs-schema-md.md"
+  },
+  {
+    "title": "Routing Decision Event",
+    "summary": "Artefacto JSON de tipo report en observability/logs.schema.json.",
+    "kind": "report",
+    "domain": "observability",
+    "section": "observability",
+    "tags": [
+      "report",
+      "observability",
+      "observability",
+      "json"
+    ],
+    "path": "observability/report-logs-schema-json.md"
+  },
+  {
+    "title": "Routing Evaluator",
+    "summary": "Comparar routing real contra matriz esperada.",
+    "kind": "report",
+    "domain": "observability",
+    "section": "observability",
+    "tags": [
+      "report",
+      "observability",
+      "observability"
+    ],
+    "path": "observability/report-routing-evaluator-md.md"
+  },
+  {
+    "title": "Scoring Rubric",
+    "summary": "Contenido report en observability/scoring-rubric.md.",
+    "kind": "report",
+    "domain": "observability",
+    "section": "observability",
+    "tags": [
+      "report",
+      "observability",
+      "observability"
+    ],
+    "path": "observability/report-scoring-rubric-md.md"
+  },
+  {
+    "title": "Context Policy",
+    "summary": "Usar solo el contexto necesario para resolver la tarea con evidencia trazable y sin retrieval redundante.",
+    "kind": "policy",
+    "domain": "governance",
+    "section": "policies",
+    "tags": [
+      "policy",
+      "policies",
+      "governance"
+    ],
+    "path": "policies/policy-context-policy-md.md"
+  },
+  {
+    "title": "Cost Policy",
+    "summary": "Minimizar coste operativo de tool calls y retrieval sin perder calidad ni trazabilidad.",
+    "kind": "policy",
+    "domain": "governance",
+    "section": "policies",
+    "tags": [
+      "policy",
+      "policies",
+      "governance"
+    ],
+    "path": "policies/policy-cost-policy-md.md"
+  },
+  {
+    "title": "Repo Intake Policy",
+    "summary": "Incorporar repos al ecosistema sin clonar dentro de este repositorio y con metadata valida para routing.",
+    "kind": "policy",
+    "domain": "governance",
+    "section": "policies",
+    "tags": [
+      "policy",
+      "policies",
+      "governance"
+    ],
+    "path": "policies/policy-repo-intake-policy-md.md"
+  },
+  {
+    "title": "Security Policy",
+    "summary": "Evitar exposicion de informacion sensible en indexacion, memoria, logs y respuestas.",
+    "kind": "policy",
+    "domain": "governance",
+    "section": "policies",
+    "tags": [
+      "policy",
+      "policies",
+      "governance"
+    ],
+    "path": "policies/policy-security-policy-md.md"
+  },
+  {
+    "title": "techriders",
+    "summary": "Espacio de proyecto interno ubicado en projects/techriders.",
+    "kind": "project",
+    "domain": "projects",
+    "section": "projects",
+    "tags": [
+      "project",
+      "workspace"
+    ],
+    "path": "projects/project-techriders.md"
+  },
+  {
+    "title": "AutoDocs Analysis",
+    "summary": "Artefactos de analisis y blueprint de la wiki interna del repositorio.",
+    "kind": "report",
+    "domain": "autodocs",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "autodocs"
+    ],
+    "path": "reports/report-autodocs-readme-md.md"
+  },
+  {
+    "title": "OpenWiki Internal Blueprint",
+    "summary": "Ubicacion canonica del blueprint y analisis de evolucion de AutoDocs como wiki interna de `mcp-efficiency-engine`.",
+    "kind": "report",
+    "domain": "autodocs",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "autodocs"
+    ],
+    "path": "reports/report-autodocs-openwiki-internal-blueprint-md.md"
+  },
+  {
+    "title": "openwiki-internal-blueprint",
+    "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/openwiki-internal-blueprint.json.",
+    "kind": "report",
+    "domain": "autodocs",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "autodocs",
+      "json"
+    ],
+    "path": "reports/report-autodocs-openwiki-internal-blueprint-json.md"
+  },
+  {
+    "title": "AGENTS.md \u2014 Enterprise Global Contract",
+    "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
+    "kind": "report",
+    "domain": "routing",
+    "section": "routing",
+    "tags": [
+      "report",
+      "routing",
+      "routing"
+    ],
+    "path": "routing/report-agents-md.md"
+  },
+  {
+    "title": "Arquitectura de MCP Efficiency Engine",
+    "summary": "Vista de arquitectura y flujo de agentes y motores.",
+    "kind": "report",
+    "domain": "routing",
+    "section": "routing",
+    "tags": [
+      "report",
+      "routing",
+      "routing"
+    ],
+    "path": "routing/report-architecture-md.md"
+  },
+  {
+    "title": "Corporate Routing",
+    "summary": "Definir reglas corporativas para seleccionar agente y motor principal por tarea sin mezclar engines de forma innecesaria.",
+    "kind": "report",
+    "domain": "routing",
+    "section": "routing",
+    "tags": [
+      "report",
+      "routing",
+      "routing"
+    ],
+    "path": "routing/report-corporate-routing-md.md"
+  },
+  {
+    "title": "Decision Matrix",
+    "summary": "Matriz de decision rapida para resolver agente y motor por tipo de entrada.",
+    "kind": "report",
+    "domain": "routing",
+    "section": "routing",
+    "tags": [
+      "report",
+      "routing",
+      "routing"
+    ],
+    "path": "routing/report-decision-matrix-md.md"
+  },
+  {
+    "title": "Fallback Strategy",
+    "summary": "Fallback: Graphify -> Azure RAG si faltan docs reales; Azure RAG -> Graphify si falta contexto tecnico; CodeGraph <-> GitNexus segun scope; si no hay fuente, gap.",
+    "kind": "report",
+    "domain": "routing",
+    "section": "routing",
+    "tags": [
+      "report",
+      "routing",
+      "routing"
+    ],
+    "path": "routing/report-fallback-md.md"
+  },
+  {
+    "title": "MCP Routing Guide",
+    "summary": "No usar todos los MCP a la vez. Usar routing corporativo para elegir 1 agente + 1 motor principal por tarea.",
+    "kind": "report",
+    "domain": "routing",
+    "section": "routing",
+    "tags": [
+      "report",
+      "routing",
+      "routing"
+    ],
+    "path": "routing/report-03-mcp-routing-guide-md.md"
+  },
+  {
+    "title": "Memory-first + Learning",
+    "summary": "2. Detect domain 3. **Select memory (memory layer)**",
+    "kind": "report",
+    "domain": "routing",
+    "section": "routing",
+    "tags": [
+      "report",
+      "routing",
+      "routing"
+    ],
+    "path": "routing/report-router-md.md"
+  },
+  {
+    "title": "Azure RAG Enterprise Skill",
+    "summary": "Answer corporate-document questions with grounding and mandatory evidence.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-azure-rag-enterprise.md"
+  },
+  {
+    "title": "Backend Coding Skill",
+    "summary": "Implement and validate code changes in single-repo backend tasks.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-backend-coding.md"
+  },
+  {
+    "title": "Cavecrew Skill \u2014 Local",
+    "summary": "Delegar trabajo a subagentes con salida comprimida para ahorrar contexto.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-cavecrew.md"
+  },
+  {
+    "title": "Caveman Commit Skill \u2014 Local",
+    "summary": "Generar mensajes de commit concisos en formato Conventional Commits.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-caveman-commit.md"
+  },
+  {
+    "title": "Caveman Compress Skill \u2014 Local",
+    "summary": "Comprimir archivos de memoria/documentaci\u00f3n manteniendo sustancia t\u00e9cnica.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-caveman-compress.md"
+  },
+  {
+    "title": "Caveman Help Skill \u2014 Local",
+    "summary": "Mostrar comandos caveman disponibles y su uso en este repositorio.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-caveman-help.md"
+  },
+  {
+    "title": "Caveman Mode Skill \u2014 Always On",
+    "summary": "Siempre activo por defecto.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-caveman-mode.md"
+  },
+  {
+    "title": "Caveman Review Skill \u2014 Local",
+    "summary": "Revisi\u00f3n de c\u00f3digo ultracompacta y accionable.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-caveman-review.md"
+  },
+  {
+    "title": "Caveman Skill \u2014 Local",
+    "summary": "Disponible como capacidad local del repositorio.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-caveman.md"
+  },
+  {
+    "title": "Caveman Stats Skill \u2014 Local",
+    "summary": "Mostrar consumo de tokens y ahorro estimado para la sesi\u00f3n.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-caveman-stats.md"
+  },
+  {
+    "title": "Community Content Skill",
+    "summary": "Create educational/community-facing content grounded in repo knowledge.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-community-content.md"
+  },
+  {
+    "title": "Database Analysis Skill",
+    "summary": "Review SQL/schema/procedure questions with performance and safety focus.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-database-analysis.md"
+  },
+  {
+    "title": "Dev Coding Skill",
+    "summary": "Implement and validate code changes in single-repo development tasks.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-dev-coding.md"
+  },
+  {
+    "title": "Frontend Coding Skill",
+    "summary": "Implement and validate code changes in single-repo frontend tasks.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-frontend-coding.md"
+  },
+  {
+    "title": "Human In The Loop (HITL)",
+    "summary": "Asegurar confirmacion humana solo cuando una decision o accion tiene riesgo alto, impacto externo o potencial destructivo.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-human-in-the-loop.md"
+  },
+  {
+    "title": "IoT Architecture Skill",
+    "summary": "Handle IoT/edge/telemetry tasks combining code and technical docs.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-iot-architecture.md"
+  },
+  {
+    "title": "Legacy Migration Skill",
+    "summary": "Assess legacy and multi-repo change impact before execution.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-legacy-migration.md"
+  },
+  {
+    "title": "RAG Knowledge Skill",
+    "summary": "Answer technical/local documentation questions from local knowledge sources.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-rag-knowledge.md"
+  },
+  {
+    "title": "Skill: ahorro-tokens",
+    "summary": "Aplicar ahorro de tokens sin perder calidad, evidencia ni trazabilidad.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-ahorro-tokens.md"
+  },
+  {
+    "title": "Token Saver Skill \u2014 Always On",
+    "summary": "Contenido skill en .github/skills/token-saver/SKILL.md.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-token-saver.md"
+  },
+  {
+    "title": "UX UI Governance Skill",
+    "summary": "Apply UX/UI quality gates and design-intent controls grounded in project guidelines.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills"
+    ],
+    "path": "skills/skill-ux-ui-governance.md"
+  },
+  {
+    "title": "wiki-tools",
+    "summary": "Artefacto JSON de tipo skill en .github/skills/wiki-tools.json.",
+    "kind": "skill",
+    "domain": "skills",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "skills",
+      "json"
+    ],
+    "path": "skills/skill-wiki-tools-json.md"
+  },
+  {
+    "title": "architecture spec",
+    "summary": "Definir la arquitectura operativa del repo y el contrato entre orquestacion, agentes, motores de contexto y observabilidad.",
+    "kind": "spec",
+    "domain": "specifications",
+    "section": "specs",
+    "tags": [
+      "spec",
+      "specs",
+      "specifications"
+    ],
+    "path": "specs/spec-architecture-spec-md.md"
+  },
+  {
+    "title": "azure-rag spec",
+    "summary": "Definir cuando usar Azure RAG Builder para conocimiento corporativo y como evitar respuestas sin fuente.",
+    "kind": "spec",
+    "domain": "specifications",
+    "section": "specs",
+    "tags": [
+      "spec",
+      "specs",
+      "specifications"
+    ],
+    "path": "specs/spec-azure-rag-spec-md.md"
+  },
+  {
+    "title": "coding-standards spec",
+    "summary": "Establecer reglas de cambio seguro y minimo para scripts, docs operativas y artefactos de soporte.",
+    "kind": "spec",
+    "domain": "specifications",
+    "section": "specs",
+    "tags": [
+      "spec",
+      "specs",
+      "specifications"
+    ],
+    "path": "specs/spec-coding-standards-spec-md.md"
+  },
+  {
+    "title": "database spec",
+    "summary": "Definir reglas para tareas de SQL/esquema/procedimientos en el routing corporativo.",
+    "kind": "spec",
+    "domain": "specifications",
+    "section": "specs",
+    "tags": [
+      "spec",
+      "specs",
+      "specifications"
+    ],
+    "path": "specs/spec-database-spec-md.md"
+  },
+  {
+    "title": "migration spec",
+    "summary": "Definir el contrato para migraciones de repos, rutas y componentes sin romper operatividad.",
+    "kind": "spec",
+    "domain": "specifications",
+    "section": "specs",
+    "tags": [
+      "spec",
+      "specs",
+      "specifications"
+    ],
+    "path": "specs/spec-migration-spec-md.md"
+  },
+  {
+    "title": "observability spec",
+    "summary": "Definir el contrato de telemetria para decisiones de routing, evaluacion y trazabilidad operacional.",
+    "kind": "spec",
+    "domain": "specifications",
+    "section": "specs",
+    "tags": [
+      "spec",
+      "specs",
+      "specifications"
+    ],
+    "path": "specs/spec-observability-spec-md.md"
+  },
+  {
+    "title": "optimization spec",
+    "summary": "Contrato operativo de optimizacion always-on para routing, contexto y enforcement.",
+    "kind": "spec",
+    "domain": "specifications",
+    "section": "specs",
+    "tags": [
+      "spec",
+      "specs",
+      "specifications"
+    ],
+    "path": "specs/spec-optimization-spec-md.md"
+  },
+  {
+    "title": "rag spec",
+    "summary": "Definir el uso de RAG local para documentacion tecnica del repo y artefactos internos.",
+    "kind": "spec",
+    "domain": "specifications",
+    "section": "specs",
+    "tags": [
+      "spec",
+      "specs",
+      "specifications"
+    ],
+    "path": "specs/spec-rag-spec-md.md"
+  },
+  {
+    "title": "repo-intake spec",
+    "summary": "Definir el contrato de intake para mantener metadata de repos consistente y utilizable por routing.",
+    "kind": "spec",
+    "domain": "specifications",
+    "section": "specs",
+    "tags": [
+      "spec",
+      "specs",
+      "specifications"
+    ],
+    "path": "specs/spec-repo-intake-spec-md.md"
+  },
+  {
+    "title": "routing spec",
+    "summary": "Definir el contrato de enrutamiento entre intencion, dominio, agente, motor y nivel de grounding.",
+    "kind": "spec",
+    "domain": "specifications",
+    "section": "specs",
+    "tags": [
+      "spec",
+      "specs",
+      "specifications"
+    ],
+    "path": "specs/spec-routing-spec-md.md"
+  },
+  {
+    "title": "security spec",
+    "summary": "Definir reglas de seguridad para routing, memoria, snapshots y respuestas.",
+    "kind": "spec",
+    "domain": "specifications",
+    "section": "specs",
+    "tags": [
+      "spec",
+      "specs",
+      "specifications"
+    ],
+    "path": "specs/spec-security-spec-md.md"
+  }
+]

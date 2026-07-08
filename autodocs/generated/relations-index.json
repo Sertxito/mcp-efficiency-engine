@@ -1,0 +1,458 @@
+[
+  {
+    "source": "repo-content::techriders",
+    "source_title": "techriders",
+    "type": "consumes",
+    "target": "repo-content::specs/architecture.spec.md"
+  },
+  {
+    "source": "repo-content::techriders",
+    "source_title": "techriders",
+    "type": "consumes",
+    "target": "repo-content::specs/observability.spec.md"
+  },
+  {
+    "source": "repo-content::specs/observability.spec.md",
+    "source_title": "observability spec",
+    "type": "defines",
+    "target": "repo-content::observability/metrics.md"
+  },
+  {
+    "source": "repo-content::specs/observability.spec.md",
+    "source_title": "observability spec",
+    "type": "defines",
+    "target": "repo-content::observability/routing-evaluator.md"
+  },
+  {
+    "source": "repo-content::specs/routing.spec.md",
+    "source_title": "routing spec",
+    "type": "defines",
+    "target": "repo-content::AGENTS.md"
+  },
+  {
+    "source": "repo-content::specs/routing.spec.md",
+    "source_title": "routing spec",
+    "type": "defines",
+    "target": "repo-content::orchestrator/router.md"
+  },
+  {
+    "source": "repo-content::specs/routing.spec.md",
+    "source_title": "routing spec",
+    "type": "defines",
+    "target": "repo-content::orchestrator/corporate-routing.md"
+  },
+  {
+    "source": "repo-content::ARCHITECTURE.md",
+    "source_title": "Arquitectura de MCP Efficiency Engine",
+    "type": "explains",
+    "target": "repo-content::AGENTS.md"
+  },
+  {
+    "source": "repo-content::ARCHITECTURE.md",
+    "source_title": "Arquitectura de MCP Efficiency Engine",
+    "type": "explains",
+    "target": "repo-content::orchestrator/router.md"
+  },
+  {
+    "source": "repo-content::.github/agents/github-repository-manager.agent.md",
+    "source_title": "Mission",
+    "type": "follows",
+    "target": "repo-content::.github/skills/token-saver/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/github-repository-manager.agent.md",
+    "source_title": "Mission",
+    "type": "follows",
+    "target": "repo-content::.github/skills/caveman-mode/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/github-repository-manager.agent.md",
+    "source_title": "Mission",
+    "type": "follows",
+    "target": "repo-content::AGENTS.md"
+  },
+  {
+    "source": "repo-content::.github/agents/github-repository-manager.agent.md",
+    "source_title": "Mission",
+    "type": "follows",
+    "target": "repo-content::ARCHITECTURE.md"
+  },
+  {
+    "source": "repo-content::.github/agents/backend.agent.md",
+    "source_title": "backend",
+    "type": "follows",
+    "target": "repo-content::.github/skills/token-saver/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/backend.agent.md",
+    "source_title": "backend",
+    "type": "follows",
+    "target": "repo-content::.github/skills/caveman-mode/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/backend.agent.md",
+    "source_title": "backend",
+    "type": "follows",
+    "target": "repo-content::AGENTS.md"
+  },
+  {
+    "source": "repo-content::.github/agents/backend.agent.md",
+    "source_title": "backend",
+    "type": "follows",
+    "target": "repo-content::ARCHITECTURE.md"
+  },
+  {
+    "source": "repo-content::.github/agents/community-manager.agent.md",
+    "source_title": "community-manager",
+    "type": "follows",
+    "target": "repo-content::.github/skills/token-saver/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/community-manager.agent.md",
+    "source_title": "community-manager",
+    "type": "follows",
+    "target": "repo-content::.github/skills/caveman-mode/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/community-manager.agent.md",
+    "source_title": "community-manager",
+    "type": "follows",
+    "target": "repo-content::AGENTS.md"
+  },
+  {
+    "source": "repo-content::.github/agents/community-manager.agent.md",
+    "source_title": "community-manager",
+    "type": "follows",
+    "target": "repo-content::ARCHITECTURE.md"
+  },
+  {
+    "source": "repo-content::.github/agents/dba.agent.md",
+    "source_title": "dba",
+    "type": "follows",
+    "target": "repo-content::.github/skills/token-saver/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/dba.agent.md",
+    "source_title": "dba",
+    "type": "follows",
+    "target": "repo-content::.github/skills/caveman-mode/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/dba.agent.md",
+    "source_title": "dba",
+    "type": "follows",
+    "target": "repo-content::AGENTS.md"
+  },
+  {
+    "source": "repo-content::.github/agents/dba.agent.md",
+    "source_title": "dba",
+    "type": "follows",
+    "target": "repo-content::ARCHITECTURE.md"
+  },
+  {
+    "source": "repo-content::.github/agents/frontend-agent.agent.md",
+    "source_title": "frontend-agent",
+    "type": "follows",
+    "target": "repo-content::.github/skills/token-saver/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/frontend-agent.agent.md",
+    "source_title": "frontend-agent",
+    "type": "follows",
+    "target": "repo-content::.github/skills/caveman-mode/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/frontend-agent.agent.md",
+    "source_title": "frontend-agent",
+    "type": "follows",
+    "target": "repo-content::AGENTS.md"
+  },
+  {
+    "source": "repo-content::.github/agents/frontend-agent.agent.md",
+    "source_title": "frontend-agent",
+    "type": "follows",
+    "target": "repo-content::ARCHITECTURE.md"
+  },
+  {
+    "source": "repo-content::.github/agents/iot.agent.md",
+    "source_title": "iot",
+    "type": "follows",
+    "target": "repo-content::.github/skills/token-saver/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/iot.agent.md",
+    "source_title": "iot",
+    "type": "follows",
+    "target": "repo-content::.github/skills/caveman-mode/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/iot.agent.md",
+    "source_title": "iot",
+    "type": "follows",
+    "target": "repo-content::AGENTS.md"
+  },
+  {
+    "source": "repo-content::.github/agents/iot.agent.md",
+    "source_title": "iot",
+    "type": "follows",
+    "target": "repo-content::ARCHITECTURE.md"
+  },
+  {
+    "source": "repo-content::.github/agents/legacy.agent.md",
+    "source_title": "legacy",
+    "type": "follows",
+    "target": "repo-content::.github/skills/token-saver/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/legacy.agent.md",
+    "source_title": "legacy",
+    "type": "follows",
+    "target": "repo-content::.github/skills/caveman-mode/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/legacy.agent.md",
+    "source_title": "legacy",
+    "type": "follows",
+    "target": "repo-content::AGENTS.md"
+  },
+  {
+    "source": "repo-content::.github/agents/legacy.agent.md",
+    "source_title": "legacy",
+    "type": "follows",
+    "target": "repo-content::ARCHITECTURE.md"
+  },
+  {
+    "source": "repo-content::.github/agents/rag-azure.agent.md",
+    "source_title": "rag-azure",
+    "type": "follows",
+    "target": "repo-content::.github/skills/token-saver/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/rag-azure.agent.md",
+    "source_title": "rag-azure",
+    "type": "follows",
+    "target": "repo-content::.github/skills/caveman-mode/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/rag-azure.agent.md",
+    "source_title": "rag-azure",
+    "type": "follows",
+    "target": "repo-content::AGENTS.md"
+  },
+  {
+    "source": "repo-content::.github/agents/rag-azure.agent.md",
+    "source_title": "rag-azure",
+    "type": "follows",
+    "target": "repo-content::ARCHITECTURE.md"
+  },
+  {
+    "source": "repo-content::.github/agents/rag-local.agent.md",
+    "source_title": "rag-local",
+    "type": "follows",
+    "target": "repo-content::.github/skills/token-saver/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/rag-local.agent.md",
+    "source_title": "rag-local",
+    "type": "follows",
+    "target": "repo-content::.github/skills/caveman-mode/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/rag-local.agent.md",
+    "source_title": "rag-local",
+    "type": "follows",
+    "target": "repo-content::AGENTS.md"
+  },
+  {
+    "source": "repo-content::.github/agents/rag-local.agent.md",
+    "source_title": "rag-local",
+    "type": "follows",
+    "target": "repo-content::ARCHITECTURE.md"
+  },
+  {
+    "source": "repo-content::.github/agents/snapshot.agent.md",
+    "source_title": "snapshot",
+    "type": "follows",
+    "target": "repo-content::.github/skills/token-saver/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/snapshot.agent.md",
+    "source_title": "snapshot",
+    "type": "follows",
+    "target": "repo-content::.github/skills/caveman-mode/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/snapshot.agent.md",
+    "source_title": "snapshot",
+    "type": "follows",
+    "target": "repo-content::AGENTS.md"
+  },
+  {
+    "source": "repo-content::.github/agents/snapshot.agent.md",
+    "source_title": "snapshot",
+    "type": "follows",
+    "target": "repo-content::ARCHITECTURE.md"
+  },
+  {
+    "source": "repo-content::.github/agents/ux-ui.agent.md",
+    "source_title": "ux-ui",
+    "type": "follows",
+    "target": "repo-content::.github/skills/token-saver/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/ux-ui.agent.md",
+    "source_title": "ux-ui",
+    "type": "follows",
+    "target": "repo-content::.github/skills/caveman-mode/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/ux-ui.agent.md",
+    "source_title": "ux-ui",
+    "type": "follows",
+    "target": "repo-content::AGENTS.md"
+  },
+  {
+    "source": "repo-content::.github/agents/ux-ui.agent.md",
+    "source_title": "ux-ui",
+    "type": "follows",
+    "target": "repo-content::ARCHITECTURE.md"
+  },
+  {
+    "source": "repo-content::.github/agents/wiki-agent.agent.md",
+    "source_title": "wiki-agent",
+    "type": "follows",
+    "target": "repo-content::.github/skills/token-saver/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/wiki-agent.agent.md",
+    "source_title": "wiki-agent",
+    "type": "follows",
+    "target": "repo-content::.github/skills/caveman-mode/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/wiki-agent.agent.md",
+    "source_title": "wiki-agent",
+    "type": "follows",
+    "target": "repo-content::AGENTS.md"
+  },
+  {
+    "source": "repo-content::.github/agents/wiki-agent.agent.md",
+    "source_title": "wiki-agent",
+    "type": "follows",
+    "target": "repo-content::ARCHITECTURE.md"
+  },
+  {
+    "source": "repo-content::policies/context-policy.md",
+    "source_title": "Context Policy",
+    "type": "governs",
+    "target": "repo-content::specs/routing.spec.md"
+  },
+  {
+    "source": "repo-content::policies/cost-policy.md",
+    "source_title": "Cost Policy",
+    "type": "governs",
+    "target": "repo-content::specs/optimization.spec.md"
+  },
+  {
+    "source": "repo-content::policies/repo-intake-policy.md",
+    "source_title": "Repo Intake Policy",
+    "type": "governs",
+    "target": "repo-content::specs/repo-intake.spec.md"
+  },
+  {
+    "source": "repo-content::policies/security-policy.md",
+    "source_title": "Security Policy",
+    "type": "governs",
+    "target": "repo-content::specs/security.spec.md"
+  },
+  {
+    "source": "repo-content::observability/metrics.md",
+    "source_title": "Metrics",
+    "type": "implements",
+    "target": "repo-content::specs/observability.spec.md"
+  },
+  {
+    "source": "repo-content::.github/skills/caveman-mode/SKILL.md",
+    "source_title": "Caveman Mode Skill \u2014 Always On",
+    "type": "supports",
+    "target": "repo-content::specs/optimization.spec.md"
+  },
+  {
+    "source": "repo-content::.github/skills/caveman-mode/SKILL.md",
+    "source_title": "Caveman Mode Skill \u2014 Always On",
+    "type": "supports",
+    "target": "repo-content::observability/metrics.md"
+  },
+  {
+    "source": "repo-content::.github/skills/token-saver/SKILL.md",
+    "source_title": "Token Saver Skill \u2014 Always On",
+    "type": "supports",
+    "target": "repo-content::specs/optimization.spec.md"
+  },
+  {
+    "source": "repo-content::.github/skills/token-saver/SKILL.md",
+    "source_title": "Token Saver Skill \u2014 Always On",
+    "type": "supports",
+    "target": "repo-content::observability/metrics.md"
+  },
+  {
+    "source": "repo-content::.github/agents/backend.agent.md",
+    "source_title": "backend",
+    "type": "uses_skill",
+    "target": "repo-content::.github/skills/backend-coding/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/community-manager.agent.md",
+    "source_title": "community-manager",
+    "type": "uses_skill",
+    "target": "repo-content::.github/skills/community-content/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/dba.agent.md",
+    "source_title": "dba",
+    "type": "uses_skill",
+    "target": "repo-content::.github/skills/database-analysis/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/frontend-agent.agent.md",
+    "source_title": "frontend-agent",
+    "type": "uses_skill",
+    "target": "repo-content::.github/skills/frontend-coding/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/iot.agent.md",
+    "source_title": "iot",
+    "type": "uses_skill",
+    "target": "repo-content::.github/skills/iot-architecture/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/legacy.agent.md",
+    "source_title": "legacy",
+    "type": "uses_skill",
+    "target": "repo-content::.github/skills/legacy-migration/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/rag-azure.agent.md",
+    "source_title": "rag-azure",
+    "type": "uses_skill",
+    "target": "repo-content::.github/skills/azure-rag-enterprise/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/rag-local.agent.md",
+    "source_title": "rag-local",
+    "type": "uses_skill",
+    "target": "repo-content::.github/skills/rag-knowledge/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/ux-ui.agent.md",
+    "source_title": "ux-ui",
+    "type": "uses_skill",
+    "target": "repo-content::.github/skills/ux-ui-governance/SKILL.md"
+  },
+  {
+    "source": "repo-content::.github/agents/wiki-agent.agent.md",
+    "source_title": "wiki-agent",
+    "type": "uses_skill",
+    "target": "repo-content::.github/skills/wiki-tools.json"
+  }
+]

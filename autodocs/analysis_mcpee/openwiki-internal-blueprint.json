@@ -1,0 +1,13 @@
+{
+  "artifact": "openwiki-internal-blueprint",
+  "status": "implemented-mvp",
+  "runtime_root": "autodocs",
+  "capabilities": [
+    "wiki node normalization",
+    "structural validation",
+    "human markdown projection",
+    "navigation manifests",
+    "local search helper",
+    "ci sync to autodocs"
+  ]
+}

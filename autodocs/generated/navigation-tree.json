@@ -1,0 +1,438 @@
+{
+  "sections": [
+    {
+      "id": "capabilities",
+      "title": "Capabilities",
+      "description": "Capacidades operativas e integraciones disponibles en el motor.",
+      "page_count": 5,
+      "pages": [
+        {
+          "title": "boost_backend",
+          "slug": "codegraph-boost-backend",
+          "path": "capabilities/codegraph-boost-backend.md"
+        },
+        {
+          "title": "boost_community_content",
+          "slug": "graphify-boost-community-content",
+          "path": "capabilities/graphify-boost-community-content.md"
+        },
+        {
+          "title": "boost_dba",
+          "slug": "graphify-boost-dba",
+          "path": "capabilities/graphify-boost-dba.md"
+        },
+        {
+          "title": "boost_design_ux_with_intent",
+          "slug": "graphify-boost-design-ux-with-intent",
+          "path": "capabilities/graphify-boost-design-ux-with-intent.md"
+        },
+        {
+          "title": "boost_frontend",
+          "slug": "codegraph-boost-frontend",
+          "path": "capabilities/codegraph-boost-frontend.md"
+        }
+      ]
+    },
+    {
+      "id": "agents",
+      "title": "Agents",
+      "description": "Agentes y sus responsabilidades dentro del sistema.",
+      "page_count": 12,
+      "pages": [
+        {
+          "title": "Mission",
+          "slug": "agent-github-repository-manager-agent-md",
+          "path": "agents/agent-github-repository-manager-agent-md.md"
+        },
+        {
+          "title": "backend",
+          "slug": "agent-backend-agent-md",
+          "path": "agents/agent-backend-agent-md.md"
+        },
+        {
+          "title": "community-manager",
+          "slug": "agent-community-manager-agent-md",
+          "path": "agents/agent-community-manager-agent-md.md"
+        },
+        {
+          "title": "dba",
+          "slug": "agent-dba-agent-md",
+          "path": "agents/agent-dba-agent-md.md"
+        },
+        {
+          "title": "frontend-agent",
+          "slug": "agent-frontend-agent-agent-md",
+          "path": "agents/agent-frontend-agent-agent-md.md"
+        },
+        {
+          "title": "iot",
+          "slug": "agent-iot-agent-md",
+          "path": "agents/agent-iot-agent-md.md"
+        },
+        {
+          "title": "legacy",
+          "slug": "agent-legacy-agent-md",
+          "path": "agents/agent-legacy-agent-md.md"
+        },
+        {
+          "title": "rag-azure",
+          "slug": "agent-rag-azure-agent-md",
+          "path": "agents/agent-rag-azure-agent-md.md"
+        },
+        {
+          "title": "rag-local",
+          "slug": "agent-rag-local-agent-md",
+          "path": "agents/agent-rag-local-agent-md.md"
+        },
+        {
+          "title": "snapshot",
+          "slug": "agent-snapshot-agent-md",
+          "path": "agents/agent-snapshot-agent-md.md"
+        },
+        {
+          "title": "ux-ui",
+          "slug": "agent-ux-ui-agent-md",
+          "path": "agents/agent-ux-ui-agent-md.md"
+        },
+        {
+          "title": "wiki-agent",
+          "slug": "agent-wiki-agent-agent-md",
+          "path": "agents/agent-wiki-agent-agent-md.md"
+        }
+      ]
+    },
+    {
+      "id": "skills",
+      "title": "Skills",
+      "description": "Skills, comandos y utilidades operativas consumibles por agentes.",
+      "page_count": 22,
+      "pages": [
+        {
+          "title": "Azure RAG Enterprise Skill",
+          "slug": "skill-azure-rag-enterprise",
+          "path": "skills/skill-azure-rag-enterprise.md"
+        },
+        {
+          "title": "Backend Coding Skill",
+          "slug": "skill-backend-coding",
+          "path": "skills/skill-backend-coding.md"
+        },
+        {
+          "title": "Cavecrew Skill \u2014 Local",
+          "slug": "skill-cavecrew",
+          "path": "skills/skill-cavecrew.md"
+        },
+        {
+          "title": "Caveman Commit Skill \u2014 Local",
+          "slug": "skill-caveman-commit",
+          "path": "skills/skill-caveman-commit.md"
+        },
+        {
+          "title": "Caveman Compress Skill \u2014 Local",
+          "slug": "skill-caveman-compress",
+          "path": "skills/skill-caveman-compress.md"
+        },
+        {
+          "title": "Caveman Help Skill \u2014 Local",
+          "slug": "skill-caveman-help",
+          "path": "skills/skill-caveman-help.md"
+        },
+        {
+          "title": "Caveman Mode Skill \u2014 Always On",
+          "slug": "skill-caveman-mode",
+          "path": "skills/skill-caveman-mode.md"
+        },
+        {
+          "title": "Caveman Review Skill \u2014 Local",
+          "slug": "skill-caveman-review",
+          "path": "skills/skill-caveman-review.md"
+        },
+        {
+          "title": "Caveman Skill \u2014 Local",
+          "slug": "skill-caveman",
+          "path": "skills/skill-caveman.md"
+        },
+        {
+          "title": "Caveman Stats Skill \u2014 Local",
+          "slug": "skill-caveman-stats",
+          "path": "skills/skill-caveman-stats.md"
+        },
+        {
+          "title": "Community Content Skill",
+          "slug": "skill-community-content",
+          "path": "skills/skill-community-content.md"
+        },
+        {
+          "title": "Database Analysis Skill",
+          "slug": "skill-database-analysis",
+          "path": "skills/skill-database-analysis.md"
+        },
+        {
+          "title": "Dev Coding Skill",
+          "slug": "skill-dev-coding",
+          "path": "skills/skill-dev-coding.md"
+        },
+        {
+          "title": "Frontend Coding Skill",
+          "slug": "skill-frontend-coding",
+          "path": "skills/skill-frontend-coding.md"
+        },
+        {
+          "title": "Human In The Loop (HITL)",
+          "slug": "skill-human-in-the-loop",
+          "path": "skills/skill-human-in-the-loop.md"
+        },
+        {
+          "title": "IoT Architecture Skill",
+          "slug": "skill-iot-architecture",
+          "path": "skills/skill-iot-architecture.md"
+        },
+        {
+          "title": "Legacy Migration Skill",
+          "slug": "skill-legacy-migration",
+          "path": "skills/skill-legacy-migration.md"
+        },
+        {
+          "title": "RAG Knowledge Skill",
+          "slug": "skill-rag-knowledge",
+          "path": "skills/skill-rag-knowledge.md"
+        },
+        {
+          "title": "Skill: ahorro-tokens",
+          "slug": "skill-ahorro-tokens",
+          "path": "skills/skill-ahorro-tokens.md"
+        },
+        {
+          "title": "Token Saver Skill \u2014 Always On",
+          "slug": "skill-token-saver",
+          "path": "skills/skill-token-saver.md"
+        },
+        {
+          "title": "UX UI Governance Skill",
+          "slug": "skill-ux-ui-governance",
+          "path": "skills/skill-ux-ui-governance.md"
+        },
+        {
+          "title": "wiki-tools",
+          "slug": "skill-wiki-tools-json",
+          "path": "skills/skill-wiki-tools-json.md"
+        }
+      ]
+    },
+    {
+      "id": "routing",
+      "title": "Routing",
+      "description": "Reglas de orquestacion y decisiones de enrutado.",
+      "page_count": 7,
+      "pages": [
+        {
+          "title": "AGENTS.md \u2014 Enterprise Global Contract",
+          "slug": "report-agents-md",
+          "path": "routing/report-agents-md.md"
+        },
+        {
+          "title": "Arquitectura de MCP Efficiency Engine",
+          "slug": "report-architecture-md",
+          "path": "routing/report-architecture-md.md"
+        },
+        {
+          "title": "Corporate Routing",
+          "slug": "report-corporate-routing-md",
+          "path": "routing/report-corporate-routing-md.md"
+        },
+        {
+          "title": "Decision Matrix",
+          "slug": "report-decision-matrix-md",
+          "path": "routing/report-decision-matrix-md.md"
+        },
+        {
+          "title": "Fallback Strategy",
+          "slug": "report-fallback-md",
+          "path": "routing/report-fallback-md.md"
+        },
+        {
+          "title": "MCP Routing Guide",
+          "slug": "report-03-mcp-routing-guide-md",
+          "path": "routing/report-03-mcp-routing-guide-md.md"
+        },
+        {
+          "title": "Memory-first + Learning",
+          "slug": "report-router-md",
+          "path": "routing/report-router-md.md"
+        }
+      ]
+    },
+    {
+      "id": "projects",
+      "title": "Projects",
+      "description": "Proyectos o dominios servidos por MCP Efficiency Engine.",
+      "page_count": 1,
+      "pages": [
+        {
+          "title": "techriders",
+          "slug": "project-techriders",
+          "path": "projects/project-techriders.md"
+        }
+      ]
+    },
+    {
+      "id": "policies",
+      "title": "Policies",
+      "description": "Politicas y contratos operativos del repositorio.",
+      "page_count": 4,
+      "pages": [
+        {
+          "title": "Context Policy",
+          "slug": "policy-context-policy-md",
+          "path": "policies/policy-context-policy-md.md"
+        },
+        {
+          "title": "Cost Policy",
+          "slug": "policy-cost-policy-md",
+          "path": "policies/policy-cost-policy-md.md"
+        },
+        {
+          "title": "Repo Intake Policy",
+          "slug": "policy-repo-intake-policy-md",
+          "path": "policies/policy-repo-intake-policy-md.md"
+        },
+        {
+          "title": "Security Policy",
+          "slug": "policy-security-policy-md",
+          "path": "policies/policy-security-policy-md.md"
+        }
+      ]
+    },
+    {
+      "id": "specs",
+      "title": "Specs",
+      "description": "Especificaciones tecnicas y contratos declarativos.",
+      "page_count": 11,
+      "pages": [
+        {
+          "title": "architecture spec",
+          "slug": "spec-architecture-spec-md",
+          "path": "specs/spec-architecture-spec-md.md"
+        },
+        {
+          "title": "azure-rag spec",
+          "slug": "spec-azure-rag-spec-md",
+          "path": "specs/spec-azure-rag-spec-md.md"
+        },
+        {
+          "title": "coding-standards spec",
+          "slug": "spec-coding-standards-spec-md",
+          "path": "specs/spec-coding-standards-spec-md.md"
+        },
+        {
+          "title": "database spec",
+          "slug": "spec-database-spec-md",
+          "path": "specs/spec-database-spec-md.md"
+        },
+        {
+          "title": "migration spec",
+          "slug": "spec-migration-spec-md",
+          "path": "specs/spec-migration-spec-md.md"
+        },
+        {
+          "title": "observability spec",
+          "slug": "spec-observability-spec-md",
+          "path": "specs/spec-observability-spec-md.md"
+        },
+        {
+          "title": "optimization spec",
+          "slug": "spec-optimization-spec-md",
+          "path": "specs/spec-optimization-spec-md.md"
+        },
+        {
+          "title": "rag spec",
+          "slug": "spec-rag-spec-md",
+          "path": "specs/spec-rag-spec-md.md"
+        },
+        {
+          "title": "repo-intake spec",
+          "slug": "spec-repo-intake-spec-md",
+          "path": "specs/spec-repo-intake-spec-md.md"
+        },
+        {
+          "title": "routing spec",
+          "slug": "spec-routing-spec-md",
+          "path": "specs/spec-routing-spec-md.md"
+        },
+        {
+          "title": "security spec",
+          "slug": "spec-security-spec-md",
+          "path": "specs/spec-security-spec-md.md"
+        }
+      ]
+    },
+    {
+      "id": "observability",
+      "title": "Observability",
+      "description": "Telemetria, metricas y reportes del sistema.",
+      "page_count": 6,
+      "pages": [
+        {
+          "title": "Evaluation",
+          "slug": "report-evaluation-md",
+          "path": "observability/report-evaluation-md.md"
+        },
+        {
+          "title": "Metrics",
+          "slug": "report-metrics-md",
+          "path": "observability/report-metrics-md.md"
+        },
+        {
+          "title": "Optimization fields",
+          "slug": "report-logs-schema-md",
+          "path": "observability/report-logs-schema-md.md"
+        },
+        {
+          "title": "Routing Decision Event",
+          "slug": "report-logs-schema-json",
+          "path": "observability/report-logs-schema-json.md"
+        },
+        {
+          "title": "Routing Evaluator",
+          "slug": "report-routing-evaluator-md",
+          "path": "observability/report-routing-evaluator-md.md"
+        },
+        {
+          "title": "Scoring Rubric",
+          "slug": "report-scoring-rubric-md",
+          "path": "observability/report-scoring-rubric-md.md"
+        }
+      ]
+    },
+    {
+      "id": "reports",
+      "title": "Reports",
+      "description": "Reportes generados y artefactos de analisis.",
+      "page_count": 3,
+      "pages": [
+        {
+          "title": "AutoDocs Analysis",
+          "slug": "report-autodocs-readme-md",
+          "path": "reports/report-autodocs-readme-md.md"
+        },
+        {
+          "title": "OpenWiki Internal Blueprint",
+          "slug": "report-autodocs-openwiki-internal-blueprint-md",
+          "path": "reports/report-autodocs-openwiki-internal-blueprint-md.md"
+        },
+        {
+          "title": "openwiki-internal-blueprint",
+          "slug": "report-autodocs-openwiki-internal-blueprint-json",
+          "path": "reports/report-autodocs-openwiki-internal-blueprint-json.md"
+        }
+      ]
+    },
+    {
+      "id": "misc",
+      "title": "Misc",
+      "description": "Contenido no clasificado o pendiente de taxonomy.",
+      "page_count": 0,
+      "pages": []
+    }
+  ]
+}

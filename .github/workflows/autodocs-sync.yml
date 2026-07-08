@@ -5,6 +5,7 @@ on:
     branches: [ main, develop ]
     paths:
       - 'repo-intake/generated/**'
+      - 'autodocs/**'
       - 'scripts/wiki/**'
       - 'orchestrator/wiki/**'
       - '.github/skills/wiki-tools.json'
@@ -13,6 +14,7 @@ on:
     branches: [ main, develop ]
     paths:
       - 'repo-intake/generated/**'
+      - 'autodocs/**'
       - 'scripts/wiki/**'
       - 'orchestrator/wiki/**'
       - '.github/skills/wiki-tools.json'
@@ -45,8 +47,8 @@ jobs:
       - name: Validate generated artifacts are committed
         shell: pwsh
         run: |
-          git add repo-intake/generated/wiki/unified-graph.json
-          git add projects/openwiki_projection
+          git add autodocs/generated
+          git add autodocs/site
           if (git diff --cached --quiet) {
             Write-Host "AutoDocs artifacts are up to date"
           } else {
@@ -60,7 +62,7 @@ jobs:
           echo "## AutoDocs PR Check" >> $env:GITHUB_STEP_SUMMARY
           echo "- Validation mode: strict" >> $env:GITHUB_STEP_SUMMARY
           echo "- Entrypoint: py -3 -m scripts.wiki.wiki_compiler" >> $env:GITHUB_STEP_SUMMARY
-          echo "- Required artifacts: unified-graph + projection folder" >> $env:GITHUB_STEP_SUMMARY
+          echo "- Required artifacts: autodocs/generated + autodocs/site" >> $env:GITHUB_STEP_SUMMARY
 
   autodocs-sync:
     if: github.event_name != 'pull_request' && github.actor != 'github-actions[bot]'
@@ -88,8 +90,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add repo-intake/generated/wiki/unified-graph.json
-          git add projects/openwiki_projection
+          git add autodocs/generated
+          git add autodocs/site
           if (git diff --cached --quiet) {
             Write-Host "No AutoDocs changes to commit"
           } else {
@@ -102,5 +104,5 @@ jobs:
         run: |
           echo "## AutoDocs Sync" >> $env:GITHUB_STEP_SUMMARY
           echo "- Entrypoint: py -3 -m scripts.wiki.wiki_compiler" >> $env:GITHUB_STEP_SUMMARY
-          echo "- Output graph: repo-intake/generated/wiki/unified-graph.json" >> $env:GITHUB_STEP_SUMMARY
-          echo "- Projection dir: projects/openwiki_projection" >> $env:GITHUB_STEP_SUMMARY
+          echo "- Output graph: autodocs/generated/unified-graph.json" >> $env:GITHUB_STEP_SUMMARY
+          echo "- Projection dir: autodocs/site" >> $env:GITHUB_STEP_SUMMARY
