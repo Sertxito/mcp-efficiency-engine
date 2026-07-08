@@ -155,7 +155,7 @@ class RepoContentProvider(BaseWikiProvider):
             "section": section,
             "domain": domain,
             "summary": self._normalize_summary(summary, fallback_summary or f"Contenido {kind} en {self._relative(path)}."),
-            "owner": path.parent.name,
+            "owner": self._owner_for(path),
             "source_refs": [self._relative(path)],
             "tags": [kind, section, domain],
         }
@@ -172,7 +172,7 @@ class RepoContentProvider(BaseWikiProvider):
             "section": section,
             "domain": domain,
             "summary": self._normalize_summary(summary, f"Artefacto JSON de tipo {kind} en {self._relative(path)}."),
-            "owner": path.parent.name,
+            "owner": self._owner_for(path),
             "source_refs": [self._relative(path)],
             "tags": [kind, section, domain, "json"],
         }
@@ -399,3 +399,10 @@ class RepoContentProvider(BaseWikiProvider):
             return result.returncode == 0
         except OSError:
             return False
+
+    def _owner_for(self, path: Path) -> str:
+        relative = self._relative(path)
+        parts = [segment for segment in relative.split("/") if segment]
+        if len(parts) <= 1:
+            return "repo"
+        return parts[-2]

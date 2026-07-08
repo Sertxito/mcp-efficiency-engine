@@ -1,5 +1,5 @@
 {
-  "last_updated": "sha256:9f28c0b39428e53a8557d9662c3f17a753699dd0dd6d08cdd7ce259496183fc8",
+  "last_updated": "sha256:48345d96da995b9b406b4faf5649406ff74c32d8b9768d770a66fbb2f3906842",
   "nodes": {
     "repo-content::.github/agents/backend.agent.md": {
       "node_id": "repo-content::.github/agents/backend.agent.md",
@@ -3290,12 +3290,12 @@
       "node_id": "repo-content::AGENTS.md",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "4a5640fee3392b197692626633c2960347513bd0d919eb3019feb606474c2304",
+      "checksum": "f1baff8c1a7b2215d901f11c3b2b9d523d0479686a8950bdb398d62ce8ea5c68",
       "title": "AGENTS.md \u2014 Enterprise Global Contract",
       "slug": "report-agents-md",
       "kind": "report",
       "domain": "routing",
-      "owner": "mcp-efficiency-engine",
+      "owner": "repo",
       "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
       "source_refs": [
         "AGENTS.md"
@@ -3329,7 +3329,7 @@
         "section": "routing",
         "domain": "routing",
         "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
-        "owner": "mcp-efficiency-engine",
+        "owner": "repo",
         "source_refs": [
           "AGENTS.md"
         ],
@@ -3344,12 +3344,12 @@
       "node_id": "repo-content::ARCHITECTURE.md",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "40d5a08200174921127c3877479d92dc7cd45bea38f278a3b7d180ebd92a864b",
+      "checksum": "b83c796289040ff1b921f02c6400c5e63b7c940cf9c568a1d6cc095d04399f50",
       "title": "Arquitectura de MCP Efficiency Engine",
       "slug": "report-architecture-md",
       "kind": "report",
       "domain": "routing",
-      "owner": "mcp-efficiency-engine",
+      "owner": "repo",
       "summary": "Vista de arquitectura y flujo de agentes y motores.",
       "source_refs": [
         "ARCHITECTURE.md"
@@ -3392,7 +3392,7 @@
         "section": "routing",
         "domain": "routing",
         "summary": "Vista de arquitectura y flujo de agentes y motores.",
-        "owner": "mcp-efficiency-engine",
+        "owner": "repo",
         "source_refs": [
           "ARCHITECTURE.md"
         ],
@@ -5530,7 +5530,7 @@
       "node_id": "repo-content::AGENTS.md",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "4a5640fee3392b197692626633c2960347513bd0d919eb3019feb606474c2304",
+      "checksum": "f1baff8c1a7b2215d901f11c3b2b9d523d0479686a8950bdb398d62ce8ea5c68",
       "metadata": {
         "title": "AGENTS.md \u2014 Enterprise Global Contract",
         "slug": "report-agents-md",
@@ -5538,7 +5538,7 @@
         "section": "routing",
         "domain": "routing",
         "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
-        "owner": "mcp-efficiency-engine",
+        "owner": "repo",
         "source_refs": [
           "AGENTS.md"
         ],
@@ -5555,7 +5555,7 @@
       "node_id": "repo-content::ARCHITECTURE.md",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "40d5a08200174921127c3877479d92dc7cd45bea38f278a3b7d180ebd92a864b",
+      "checksum": "b83c796289040ff1b921f02c6400c5e63b7c940cf9c568a1d6cc095d04399f50",
       "metadata": {
         "title": "Arquitectura de MCP Efficiency Engine",
         "slug": "report-architecture-md",
@@ -5563,7 +5563,7 @@
         "section": "routing",
         "domain": "routing",
         "summary": "Vista de arquitectura y flujo de agentes y motores.",
-        "owner": "mcp-efficiency-engine",
+        "owner": "repo",
         "source_refs": [
           "ARCHITECTURE.md"
         ],
@@ -9077,12 +9077,12 @@
       "node_id": "repo-content::AGENTS.md",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "4a5640fee3392b197692626633c2960347513bd0d919eb3019feb606474c2304",
+      "checksum": "f1baff8c1a7b2215d901f11c3b2b9d523d0479686a8950bdb398d62ce8ea5c68",
       "title": "AGENTS.md \u2014 Enterprise Global Contract",
       "slug": "report-agents-md",
       "kind": "report",
       "domain": "routing",
-      "owner": "mcp-efficiency-engine",
+      "owner": "repo",
       "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
       "source_refs": [
         "AGENTS.md"
@@ -9116,7 +9116,7 @@
         "section": "routing",
         "domain": "routing",
         "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
-        "owner": "mcp-efficiency-engine",
+        "owner": "repo",
         "source_refs": [
           "AGENTS.md"
         ],
@@ -9131,12 +9131,12 @@
       "node_id": "repo-content::ARCHITECTURE.md",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "40d5a08200174921127c3877479d92dc7cd45bea38f278a3b7d180ebd92a864b",
+      "checksum": "b83c796289040ff1b921f02c6400c5e63b7c940cf9c568a1d6cc095d04399f50",
       "title": "Arquitectura de MCP Efficiency Engine",
       "slug": "report-architecture-md",
       "kind": "report",
       "domain": "routing",
-      "owner": "mcp-efficiency-engine",
+      "owner": "repo",
       "summary": "Vista de arquitectura y flujo de agentes y motores.",
       "source_refs": [
         "ARCHITECTURE.md"
@@ -9179,7 +9179,7 @@
         "section": "routing",
         "domain": "routing",
         "summary": "Vista de arquitectura y flujo de agentes y motores.",
-        "owner": "mcp-efficiency-engine",
+        "owner": "repo",
         "source_refs": [
           "ARCHITECTURE.md"
         ],

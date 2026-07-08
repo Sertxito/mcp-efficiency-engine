@@ -8,8 +8,8 @@
 - domain: routing
 - section: routing
 - provider: repo-content
-- checksum: 4a5640fee3392b197692626633c2960347513bd0d919eb3019feb606474c2304
-- owner: mcp-efficiency-engine
+- checksum: f1baff8c1a7b2215d901f11c3b2b9d523d0479686a8950bdb398d62ce8ea5c68
+- owner: repo
 - tags: report, routing, routing
 
 ## Navegacion
@@ -41,7 +41,7 @@
   "section": "routing",
   "domain": "routing",
   "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
-  "owner": "mcp-efficiency-engine",
+  "owner": "repo",
   "source_refs": [
     "AGENTS.md"
   ],

@@ -8,8 +8,8 @@ Vista de arquitectura y flujo de agentes y motores.
 - domain: routing
 - section: routing
 - provider: repo-content
-- checksum: 40d5a08200174921127c3877479d92dc7cd45bea38f278a3b7d180ebd92a864b
-- owner: mcp-efficiency-engine
+- checksum: b83c796289040ff1b921f02c6400c5e63b7c940cf9c568a1d6cc095d04399f50
+- owner: repo
 - tags: report, routing, routing
 
 ## Navegacion
@@ -42,7 +42,7 @@ Vista de arquitectura y flujo de agentes y motores.
   "section": "routing",
   "domain": "routing",
   "summary": "Vista de arquitectura y flujo de agentes y motores.",
-  "owner": "mcp-efficiency-engine",
+  "owner": "repo",
   "source_refs": [
     "ARCHITECTURE.md"
   ],
