@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime, timezone
+import hashlib
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -55,7 +55,7 @@ class GraphConsolidator:
         section_manifest = self._build_section_manifest(wiki_nodes)
 
         return {
-            "last_updated": datetime.now(timezone.utc).isoformat(),
+            "last_updated": self._deterministic_marker(wiki_nodes),
             "nodes": wiki_nodes,
             "raw_nodes": raw_nodes,
             "wiki_nodes": wiki_nodes,
@@ -64,6 +64,11 @@ class GraphConsolidator:
             "relations_index": relations_index,
             "section_manifest": section_manifest,
         }
+
+    def _deterministic_marker(self, wiki_nodes: Dict[str, Dict[str, Any]]) -> str:
+        payload = json.dumps(wiki_nodes, sort_keys=True, ensure_ascii=True, separators=(",", ":"))
+        digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+        return f"sha256:{digest}"
 
     def persist_graph(self, unified_graph: Dict[str, Any]) -> None:
         self.output_graph_path.parent.mkdir(parents=True, exist_ok=True)

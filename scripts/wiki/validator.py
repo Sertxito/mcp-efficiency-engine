@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+import hashlib
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -42,8 +42,12 @@ class WikiValidator:
         quality_score = self._quality_score(total=len(wiki_nodes), errors=len(errors), warnings=len(warnings))
         info.append(self._issue("summary", "quality_score", f"quality_score={quality_score}", "info"))
 
+        signature = hashlib.sha256(
+            json.dumps(wiki_nodes, sort_keys=True, ensure_ascii=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+
         return {
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": f"sha256:{signature}",
             "schema_path": self.schema_path.as_posix(),
             "summary": {
                 "node_count": len(wiki_nodes),
