@@ -5,7 +5,7 @@ unificado y el Markdown es una proyeccion derivada para lectura humana.
 
 ## Resumen
 
-- total_pages: 71
+- total_pages: 66
 - generated_graph: autodocs/generated/unified-graph.json
 - search_manifest: autodocs/generated/search-index.json
 - validation_report: autodocs/generated/validation-report.md
@@ -31,7 +31,7 @@ unificado y el Markdown es una proyeccion derivada para lectura humana.
 
 | section | description | pages |
 |---|---|---|
-| [Capabilities](capabilities/index.md) | Capacidades operativas e integraciones disponibles en el motor. | 5 |
+| [Capabilities](capabilities/index.md) | Capacidades operativas e integraciones disponibles en el motor. | 0 |
 | [Agents](agents/index.md) | Agentes y sus responsabilidades dentro del sistema. | 12 |
 | [Skills](skills/index.md) | Skills, comandos y utilidades operativas consumibles por agentes. | 22 |
 | [Routing](routing/index.md) | Reglas de orquestacion y decisiones de enrutado. | 7 |

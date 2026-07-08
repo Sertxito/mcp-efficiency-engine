@@ -4,34 +4,8 @@
       "id": "capabilities",
       "title": "Capabilities",
       "description": "Capacidades operativas e integraciones disponibles en el motor.",
-      "page_count": 5,
-      "pages": [
-        {
-          "title": "boost_backend",
-          "slug": "codegraph-boost-backend",
-          "path": "capabilities/codegraph-boost-backend.md"
-        },
-        {
-          "title": "boost_community_content",
-          "slug": "graphify-boost-community-content",
-          "path": "capabilities/graphify-boost-community-content.md"
-        },
-        {
-          "title": "boost_dba",
-          "slug": "graphify-boost-dba",
-          "path": "capabilities/graphify-boost-dba.md"
-        },
-        {
-          "title": "boost_design_ux_with_intent",
-          "slug": "graphify-boost-design-ux-with-intent",
-          "path": "capabilities/graphify-boost-design-ux-with-intent.md"
-        },
-        {
-          "title": "boost_frontend",
-          "slug": "codegraph-boost-frontend",
-          "path": "capabilities/codegraph-boost-frontend.md"
-        }
-      ]
+      "page_count": 0,
+      "pages": []
     },
     {
       "id": "agents",

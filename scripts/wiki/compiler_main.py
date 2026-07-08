@@ -108,8 +108,19 @@ def main() -> int:
     env_snapshot = _read_session_env()
 
     manager = PluginManager()
-    manager.register_provider(CodeGraphProvider(REPO_ROOT / "repo-intake" / "generated"))
-    manager.register_provider(GraphifyProvider(REPO_ROOT / "repo-intake" / "generated"))
+    include_external = str(os.getenv("AUTODOCS_INCLUDE_EXTERNAL_PROVIDERS", "")).strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+    # Keep CI output deterministic: external providers depend on local intake artifacts that
+    # may not exist on clean runners.
+    if include_external:
+        manager.register_provider(CodeGraphProvider(REPO_ROOT / "repo-intake" / "generated"))
+        manager.register_provider(GraphifyProvider(REPO_ROOT / "repo-intake" / "generated"))
+
     manager.register_provider(RepoContentProvider(REPO_ROOT))
 
     provider_result = manager.gather_all()
