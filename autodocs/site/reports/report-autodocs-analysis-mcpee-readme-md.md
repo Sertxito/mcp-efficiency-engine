@@ -8,7 +8,7 @@ Artefactos de analisis y blueprint de la wiki interna del repositorio.
 - domain: autodocs
 - section: reports
 - provider: repo-content
-- checksum: c29295f223d5759813354bf0821058fbb0004bf62979606debd833a3d732a0f8
+- checksum: 2cd395e5089ef618f108037428f22e4b02479387c40adcf46075b5e13f012d84
 - owner: analysis_mcpee
 - tags: report, reports, autodocs
 
@@ -16,7 +16,7 @@ Artefactos de analisis y blueprint de la wiki interna del repositorio.
 
 - section_index: [reports](index.md)
 - wiki_home: [autodocs](../index.md)
-- related_in_section: [OpenWiki Internal Blueprint](report-autodocs-openwiki-internal-blueprint-md.md), [openwiki-internal-blueprint](report-autodocs-openwiki-internal-blueprint-json.md)
+- related_in_section: [AutoDocs](report-autodocs-readme-md.md), [AutoDocs Projection Engine](report-readme-wiki-md.md), [File Index](report-file-index-md.md)
 
 ## Fuentes
 
@@ -36,7 +36,7 @@ Artefactos de analisis y blueprint de la wiki interna del repositorio.
 ```json
 {
   "title": "AutoDocs Analysis",
-  "slug": "report-autodocs-readme-md",
+  "slug": "report-autodocs-analysis-mcpee-readme-md",
   "kind": "report",
   "section": "reports",
   "domain": "autodocs",

@@ -376,17 +376,47 @@
       "id": "reports",
       "title": "Reports",
       "description": "Reportes generados y artefactos de analisis.",
-      "page_count": 3,
+      "page_count": 9,
       "pages": [
         {
-          "title": "AutoDocs Analysis",
+          "title": "AutoDocs",
           "slug": "report-autodocs-readme-md",
           "path": "reports/report-autodocs-readme-md.md"
+        },
+        {
+          "title": "AutoDocs Analysis",
+          "slug": "report-autodocs-analysis-mcpee-readme-md",
+          "path": "reports/report-autodocs-analysis-mcpee-readme-md.md"
+        },
+        {
+          "title": "AutoDocs Projection Engine",
+          "slug": "report-readme-wiki-md",
+          "path": "reports/report-readme-wiki-md.md"
+        },
+        {
+          "title": "File Index",
+          "slug": "report-file-index-md",
+          "path": "reports/report-file-index-md.md"
+        },
+        {
+          "title": "Gu\u00eda de uso \u2014 MCP Efficiency Engine",
+          "slug": "report-final-usage-guide-md",
+          "path": "reports/report-final-usage-guide-md.md"
+        },
+        {
+          "title": "MCP Efficiency Engine",
+          "slug": "report-readme-md",
+          "path": "reports/report-readme-md.md"
         },
         {
           "title": "OpenWiki Internal Blueprint",
           "slug": "report-autodocs-openwiki-internal-blueprint-md",
           "path": "reports/report-autodocs-openwiki-internal-blueprint-md.md"
+        },
+        {
+          "title": "mcp-efficiency-engine",
+          "slug": "report-package-json",
+          "path": "reports/report-package-json.md"
         },
         {
           "title": "openwiki-internal-blueprint",

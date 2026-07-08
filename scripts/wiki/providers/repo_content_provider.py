@@ -14,6 +14,7 @@ class RepoContentProvider(BaseWikiProvider):
 
     def gather_knowledge(self) -> Dict[str, Any]:
         entities: List[Dict[str, Any]] = []
+        entities.extend(self._collect_core_docs())
         entities.extend(self._collect_agents())
         entities.extend(self._collect_skills())
         entities.extend(self._collect_policies())
@@ -24,6 +25,42 @@ class RepoContentProvider(BaseWikiProvider):
         entities.extend(self._collect_reports())
         self._enrich_relations(entities)
         return {"provider_id": self.provider_id, "entities": entities}
+
+    def _collect_core_docs(self) -> List[Dict[str, Any]]:
+        targets: List[Tuple[Path, str]] = [
+            (self.repo_root / "README.md", "Guia principal del engine y sus flujos operativos."),
+            (self.repo_root / "README_WIKI.md", "Guia de uso y alcance de la wiki AutoDocs del repositorio."),
+            (self.repo_root / "FINAL_USAGE_GUIDE.md", "Guia de uso final con pasos operativos y buenas practicas."),
+            (self.repo_root / "FILE_INDEX.md", "Indice del contenido y estructura del repositorio."),
+            (self.repo_root / "autodocs" / "README.md", "Referencia de ejecucion y artefactos de AutoDocs."),
+        ]
+
+        entities: List[Dict[str, Any]] = []
+        for path, fallback_summary in targets:
+            if not path.exists():
+                continue
+            entities.append(
+                self._entity_from_markdown(
+                    path,
+                    kind="report",
+                    section="reports",
+                    domain="documentation",
+                    fallback_summary=fallback_summary,
+                )
+            )
+
+        package_json = self.repo_root / "package.json"
+        if package_json.exists():
+            entities.append(
+                self._entity_from_json(
+                    package_json,
+                    kind="report",
+                    section="reports",
+                    domain="packaging",
+                )
+            )
+
+        return entities
 
     def _collect_agents(self) -> List[Dict[str, Any]]:
         agents_dir = self.repo_root / ".github" / "agents"
@@ -292,6 +329,18 @@ class RepoContentProvider(BaseWikiProvider):
             for target_id in ["AGENTS.md", "orchestrator/router.md"]:
                 if target_id in entities_by_id:
                     self._add_relation(entity, target_id, "explains")
+        if source_ref == "README.md":
+            for target_id in ["AGENTS.md", "ARCHITECTURE.md", "FINAL_USAGE_GUIDE.md", "package.json"]:
+                if target_id in entities_by_id:
+                    self._add_relation(entity, target_id, "documents")
+        if source_ref == "FINAL_USAGE_GUIDE.md":
+            for target_id in ["README.md", "scripts/README.md"]:
+                if target_id in entities_by_id:
+                    self._add_relation(entity, target_id, "extends")
+        if source_ref == "autodocs/README.md":
+            for target_id in ["README_WIKI.md", "scripts/wiki/wiki_compiler.py"]:
+                if target_id in entities_by_id:
+                    self._add_relation(entity, target_id, "documents")
         if source_ref == "autodocs/analysis_mcpee/OPENWIKI_INTERNAL_BLUEPRINT.md":
             for target_id in ["autodocs/README.md", "README_WIKI.md"]:
                 if target_id in entities_by_id:
@@ -364,6 +413,8 @@ class RepoContentProvider(BaseWikiProvider):
         stem = path.name
         if path.name.lower() == "skill.md" and path.parent.name:
             stem = path.parent.name
+        elif path.stem.lower() == "readme" and path.parent != self.repo_root:
+            stem = f"{path.parent.name}-{path.name}"
         tokens = [kind, stem]
         if kind == "report" and "analysis_mcpee" in relative:
             tokens.insert(1, "autodocs")

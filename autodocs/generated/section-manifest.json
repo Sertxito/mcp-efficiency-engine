@@ -127,11 +127,17 @@
     "id": "reports",
     "title": "Reports",
     "description": "Reportes generados y artefactos de analisis.",
-    "page_count": 3,
+    "page_count": 9,
     "pages": [
+      "reports/report-autodocs-analysis-mcpee-readme-md.md",
       "reports/report-autodocs-openwiki-internal-blueprint-json.md",
       "reports/report-autodocs-openwiki-internal-blueprint-md.md",
-      "reports/report-autodocs-readme-md.md"
+      "reports/report-autodocs-readme-md.md",
+      "reports/report-file-index-md.md",
+      "reports/report-final-usage-guide-md.md",
+      "reports/report-package-json.md",
+      "reports/report-readme-md.md",
+      "reports/report-readme-wiki-md.md"
     ]
   },
   {

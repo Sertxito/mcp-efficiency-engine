@@ -30,6 +30,60 @@
     "target": "repo-content::orchestrator/corporate-routing.md"
   },
   {
+    "source": "repo-content::autodocs/README.md",
+    "source_title": "AutoDocs",
+    "type": "documents",
+    "target": "repo-content::README_WIKI.md"
+  },
+  {
+    "source": "repo-content::README.md",
+    "source_title": "MCP Efficiency Engine",
+    "type": "documents",
+    "target": "repo-content::AGENTS.md"
+  },
+  {
+    "source": "repo-content::README.md",
+    "source_title": "MCP Efficiency Engine",
+    "type": "documents",
+    "target": "repo-content::ARCHITECTURE.md"
+  },
+  {
+    "source": "repo-content::README.md",
+    "source_title": "MCP Efficiency Engine",
+    "type": "documents",
+    "target": "repo-content::FINAL_USAGE_GUIDE.md"
+  },
+  {
+    "source": "repo-content::README.md",
+    "source_title": "MCP Efficiency Engine",
+    "type": "documents",
+    "target": "repo-content::package.json"
+  },
+  {
+    "source": "repo-content::.github/skills/wiki-tools.json",
+    "source_title": "wiki-tools",
+    "type": "documents",
+    "target": "repo-content::README_WIKI.md"
+  },
+  {
+    "source": "repo-content::.github/skills/wiki-tools.json",
+    "source_title": "wiki-tools",
+    "type": "documents",
+    "target": "repo-content::autodocs/README.md"
+  },
+  {
+    "source": "repo-content::autodocs/analysis_mcpee/OPENWIKI_INTERNAL_BLUEPRINT.md",
+    "source_title": "OpenWiki Internal Blueprint",
+    "type": "drives",
+    "target": "repo-content::autodocs/README.md"
+  },
+  {
+    "source": "repo-content::autodocs/analysis_mcpee/OPENWIKI_INTERNAL_BLUEPRINT.md",
+    "source_title": "OpenWiki Internal Blueprint",
+    "type": "drives",
+    "target": "repo-content::README_WIKI.md"
+  },
+  {
     "source": "repo-content::ARCHITECTURE.md",
     "source_title": "Arquitectura de MCP Efficiency Engine",
     "type": "explains",
@@ -40,6 +94,12 @@
     "source_title": "Arquitectura de MCP Efficiency Engine",
     "type": "explains",
     "target": "repo-content::orchestrator/router.md"
+  },
+  {
+    "source": "repo-content::FINAL_USAGE_GUIDE.md",
+    "source_title": "Gu\u00eda de uso \u2014 MCP Efficiency Engine",
+    "type": "extends",
+    "target": "repo-content::README.md"
   },
   {
     "source": "repo-content::.github/agents/github-repository-manager.agent.md",

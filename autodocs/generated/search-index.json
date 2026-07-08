@@ -287,6 +287,19 @@
     "path": "policies/policy-security-policy-md.md"
   },
   {
+    "title": "AutoDocs",
+    "summary": "AutoDocs es la wiki interna nativa de `mcp-efficiency-engine`.",
+    "kind": "report",
+    "domain": "documentation",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "documentation"
+    ],
+    "path": "reports/report-autodocs-readme-md.md"
+  },
+  {
     "title": "AutoDocs Analysis",
     "summary": "Artefactos de analisis y blueprint de la wiki interna del repositorio.",
     "kind": "report",
@@ -297,7 +310,59 @@
       "reports",
       "autodocs"
     ],
-    "path": "reports/report-autodocs-readme-md.md"
+    "path": "reports/report-autodocs-analysis-mcpee-readme-md.md"
+  },
+  {
+    "title": "AutoDocs Projection Engine",
+    "summary": "AutoDocs es una capacidad nativa de `mcp-efficiency-engine`. Toma conocimiento estructurado de artefactos existentes en `repo-intake/generated/`,",
+    "kind": "report",
+    "domain": "documentation",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "documentation"
+    ],
+    "path": "reports/report-readme-wiki-md.md"
+  },
+  {
+    "title": "File Index",
+    "summary": "Indice del contenido y estructura del repositorio.",
+    "kind": "report",
+    "domain": "documentation",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "documentation"
+    ],
+    "path": "reports/report-file-index-md.md"
+  },
+  {
+    "title": "Gu\u00eda de uso \u2014 MCP Efficiency Engine",
+    "summary": "Token Saver y Caveman ya no son modos que se activan manualmente. Son parte del runtime del sistema.",
+    "kind": "report",
+    "domain": "documentation",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "documentation"
+    ],
+    "path": "reports/report-final-usage-guide-md.md"
+  },
+  {
+    "title": "MCP Efficiency Engine",
+    "summary": "Motor de orquestaci\u00f3n para agentes MCP con routing por dominio, optimizaci\u00f3n always-on y contratos de intake JSON-first.",
+    "kind": "report",
+    "domain": "documentation",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "documentation"
+    ],
+    "path": "reports/report-readme-md.md"
   },
   {
     "title": "OpenWiki Internal Blueprint",
@@ -311,6 +376,20 @@
       "autodocs"
     ],
     "path": "reports/report-autodocs-openwiki-internal-blueprint-md.md"
+  },
+  {
+    "title": "mcp-efficiency-engine",
+    "summary": "Motor de orquestacion para agentes MCP con routing por dominio y bootstrap portable.",
+    "kind": "report",
+    "domain": "packaging",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "packaging",
+      "json"
+    ],
+    "path": "reports/report-package-json.md"
   },
   {
     "title": "openwiki-internal-blueprint",

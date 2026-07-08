@@ -3,22 +3,8 @@ name: AutoDocs Sync
 on:
   push:
     branches: [ main, develop ]
-    paths:
-      - 'repo-intake/generated/**'
-      - 'autodocs/**'
-      - 'scripts/wiki/**'
-      - 'orchestrator/wiki/**'
-      - '.github/skills/wiki-tools.json'
-      - '.github/agents/wiki-agent.agent.md'
   pull_request:
     branches: [ main, develop ]
-    paths:
-      - 'repo-intake/generated/**'
-      - 'autodocs/**'
-      - 'scripts/wiki/**'
-      - 'orchestrator/wiki/**'
-      - '.github/skills/wiki-tools.json'
-      - '.github/agents/wiki-agent.agent.md'
   workflow_dispatch:
 
 permissions:
@@ -68,7 +54,7 @@ jobs:
           echo "- Required artifacts: autodocs/generated + autodocs/site" >> $env:GITHUB_STEP_SUMMARY
 
   autodocs-sync:
-    if: github.event_name != 'pull_request' && github.actor != 'github-actions[bot]'
+    if: github.actor != 'github-actions[bot]'
     permissions:
       contents: write
     runs-on: windows-latest
@@ -89,6 +75,7 @@ jobs:
         shell: pwsh
 
       - name: Commit projected docs and unified graph
+        if: github.event_name != 'pull_request'
         shell: pwsh
         run: |
           git config user.name "github-actions[bot]"
