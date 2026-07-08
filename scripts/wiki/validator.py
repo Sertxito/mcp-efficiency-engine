@@ -48,7 +48,7 @@ class WikiValidator:
 
         return {
             "generated_at": f"sha256:{signature}",
-            "schema_path": self.schema_path.as_posix(),
+            "schema_path": "autodocs/schema/wiki-node.schema.json",
             "summary": {
                 "node_count": len(wiki_nodes),
                 "error_count": len(errors),
