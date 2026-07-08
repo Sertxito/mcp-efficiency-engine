@@ -1,6 +1,360 @@
 {
-  "last_updated": "sha256:48345d96da995b9b406b4faf5649406ff74c32d8b9768d770a66fbb2f3906842",
+  "last_updated": "sha256:d9a21dc130f6da62d7906f320fb1a64da180de42ba492b535cef3db219e2803b",
   "nodes": {
+    "repo-content::README.md": {
+      "node_id": "repo-content::README.md",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "ad511921b04aa7ec584fc4217de794bde613cbe0d2b0411e499a593a2745fd2d",
+      "title": "MCP Efficiency Engine",
+      "slug": "report-readme-md",
+      "kind": "report",
+      "domain": "documentation",
+      "owner": "repo",
+      "summary": "Motor de orquestaci\u00f3n para agentes MCP con routing por dominio, optimizaci\u00f3n always-on y contratos de intake JSON-first.",
+      "source_refs": [
+        "README.md"
+      ],
+      "relations": [
+        {
+          "target": "repo-content::AGENTS.md",
+          "type": "documents"
+        },
+        {
+          "target": "repo-content::ARCHITECTURE.md",
+          "type": "documents"
+        },
+        {
+          "target": "repo-content::FINAL_USAGE_GUIDE.md",
+          "type": "documents"
+        },
+        {
+          "target": "repo-content::package.json",
+          "type": "documents"
+        }
+      ],
+      "tags": [
+        "report",
+        "reports",
+        "documentation"
+      ],
+      "path": "reports/report-readme-md.md",
+      "navigation": {
+        "section": "reports",
+        "weight": 100,
+        "parent": "reports",
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": true,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "MCP Efficiency Engine",
+        "slug": "report-readme-md",
+        "kind": "report",
+        "section": "reports",
+        "domain": "documentation",
+        "summary": "Motor de orquestaci\u00f3n para agentes MCP con routing por dominio, optimizaci\u00f3n always-on y contratos de intake JSON-first.",
+        "owner": "repo",
+        "source_refs": [
+          "README.md"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      }
+    },
+    "repo-content::README_WIKI.md": {
+      "node_id": "repo-content::README_WIKI.md",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "75f74dbf0179ac9bbdd97d1c9db74da8f249b29137b7f22eb2e2e5291cfcbc40",
+      "title": "AutoDocs Projection Engine",
+      "slug": "report-readme-wiki-md",
+      "kind": "report",
+      "domain": "documentation",
+      "owner": "repo",
+      "summary": "AutoDocs es una capacidad nativa de `mcp-efficiency-engine`. Toma conocimiento estructurado de artefactos existentes en `repo-intake/generated/`,",
+      "source_refs": [
+        "README_WIKI.md"
+      ],
+      "relations": [],
+      "tags": [
+        "report",
+        "reports",
+        "documentation"
+      ],
+      "path": "reports/report-readme-wiki-md.md",
+      "navigation": {
+        "section": "reports",
+        "weight": 100,
+        "parent": "reports",
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "AutoDocs Projection Engine",
+        "slug": "report-readme-wiki-md",
+        "kind": "report",
+        "section": "reports",
+        "domain": "documentation",
+        "summary": "AutoDocs es una capacidad nativa de `mcp-efficiency-engine`. Toma conocimiento estructurado de artefactos existentes en `repo-intake/generated/`,",
+        "owner": "repo",
+        "source_refs": [
+          "README_WIKI.md"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      }
+    },
+    "repo-content::FINAL_USAGE_GUIDE.md": {
+      "node_id": "repo-content::FINAL_USAGE_GUIDE.md",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "d89fbc91f463d7fecdd349ab46db9ad70e9a8ebb82bca3049f00c978b7544f3b",
+      "title": "Gu\u00eda de uso \u2014 MCP Efficiency Engine",
+      "slug": "report-final-usage-guide-md",
+      "kind": "report",
+      "domain": "documentation",
+      "owner": "repo",
+      "summary": "Token Saver y Caveman ya no son modos que se activan manualmente. Son parte del runtime del sistema.",
+      "source_refs": [
+        "FINAL_USAGE_GUIDE.md"
+      ],
+      "relations": [
+        {
+          "target": "repo-content::README.md",
+          "type": "extends"
+        }
+      ],
+      "tags": [
+        "report",
+        "reports",
+        "documentation"
+      ],
+      "path": "reports/report-final-usage-guide-md.md",
+      "navigation": {
+        "section": "reports",
+        "weight": 100,
+        "parent": "reports",
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": true,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "Gu\u00eda de uso \u2014 MCP Efficiency Engine",
+        "slug": "report-final-usage-guide-md",
+        "kind": "report",
+        "section": "reports",
+        "domain": "documentation",
+        "summary": "Token Saver y Caveman ya no son modos que se activan manualmente. Son parte del runtime del sistema.",
+        "owner": "repo",
+        "source_refs": [
+          "FINAL_USAGE_GUIDE.md"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      }
+    },
+    "repo-content::FILE_INDEX.md": {
+      "node_id": "repo-content::FILE_INDEX.md",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "211985f6f0d41cc08825cc0151e2d507845269db20d4de2b6f8da86adc1cb192",
+      "title": "File Index",
+      "slug": "report-file-index-md",
+      "kind": "report",
+      "domain": "documentation",
+      "owner": "repo",
+      "summary": "Indice del contenido y estructura del repositorio.",
+      "source_refs": [
+        "FILE_INDEX.md"
+      ],
+      "relations": [],
+      "tags": [
+        "report",
+        "reports",
+        "documentation"
+      ],
+      "path": "reports/report-file-index-md.md",
+      "navigation": {
+        "section": "reports",
+        "weight": 100,
+        "parent": "reports",
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "File Index",
+        "slug": "report-file-index-md",
+        "kind": "report",
+        "section": "reports",
+        "domain": "documentation",
+        "summary": "Indice del contenido y estructura del repositorio.",
+        "owner": "repo",
+        "source_refs": [
+          "FILE_INDEX.md"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      }
+    },
+    "repo-content::autodocs/README.md": {
+      "node_id": "repo-content::autodocs/README.md",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "909d95b46d82f418af3c6b68ddaec9974dbb1a6481c9b32667a2689f2649d3e1",
+      "title": "AutoDocs",
+      "slug": "report-autodocs-readme-md",
+      "kind": "report",
+      "domain": "documentation",
+      "owner": "autodocs",
+      "summary": "AutoDocs es la wiki interna nativa de `mcp-efficiency-engine`.",
+      "source_refs": [
+        "autodocs/README.md"
+      ],
+      "relations": [
+        {
+          "target": "repo-content::README_WIKI.md",
+          "type": "documents"
+        }
+      ],
+      "tags": [
+        "report",
+        "reports",
+        "documentation"
+      ],
+      "path": "reports/report-autodocs-readme-md.md",
+      "navigation": {
+        "section": "reports",
+        "weight": 100,
+        "parent": "reports",
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": true,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "AutoDocs",
+        "slug": "report-autodocs-readme-md",
+        "kind": "report",
+        "section": "reports",
+        "domain": "documentation",
+        "summary": "AutoDocs es la wiki interna nativa de `mcp-efficiency-engine`.",
+        "owner": "autodocs",
+        "source_refs": [
+          "autodocs/README.md"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      }
+    },
+    "repo-content::package.json": {
+      "node_id": "repo-content::package.json",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "2247c593fa68379c9ab752c628160f44765939eb2fe5b9f392c60521b41c42f5",
+      "title": "mcp-efficiency-engine",
+      "slug": "report-package-json",
+      "kind": "report",
+      "domain": "packaging",
+      "owner": "repo",
+      "summary": "Motor de orquestacion para agentes MCP con routing por dominio y bootstrap portable.",
+      "source_refs": [
+        "package.json"
+      ],
+      "relations": [],
+      "tags": [
+        "report",
+        "reports",
+        "packaging",
+        "json"
+      ],
+      "path": "reports/report-package-json.md",
+      "navigation": {
+        "section": "reports",
+        "weight": 100,
+        "parent": "reports",
+        "tags": [
+          "report",
+          "reports",
+          "packaging",
+          "json"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "mcp-efficiency-engine",
+        "slug": "report-package-json",
+        "kind": "report",
+        "section": "reports",
+        "domain": "packaging",
+        "summary": "Motor de orquestacion para agentes MCP con routing por dominio y bootstrap portable.",
+        "owner": "repo",
+        "source_refs": [
+          "package.json"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "packaging",
+          "json"
+        ]
+      }
+    },
     "repo-content::.github/agents/backend.agent.md": {
       "node_id": "repo-content::.github/agents/backend.agent.md",
       "provider": "repo-content",
@@ -2059,7 +2413,16 @@
       "source_refs": [
         ".github/skills/wiki-tools.json"
       ],
-      "relations": [],
+      "relations": [
+        {
+          "target": "repo-content::README_WIKI.md",
+          "type": "documents"
+        },
+        {
+          "target": "repo-content::autodocs/README.md",
+          "type": "documents"
+        }
+      ],
       "tags": [
         "skill",
         "skills",
@@ -2080,7 +2443,7 @@
       },
       "quality": {
         "has_summary": true,
-        "has_relations": false,
+        "has_relations": true,
         "has_sources": true
       },
       "metadata": {
@@ -3744,7 +4107,16 @@
       "source_refs": [
         "autodocs/analysis_mcpee/OPENWIKI_INTERNAL_BLUEPRINT.md"
       ],
-      "relations": [],
+      "relations": [
+        {
+          "target": "repo-content::autodocs/README.md",
+          "type": "drives"
+        },
+        {
+          "target": "repo-content::README_WIKI.md",
+          "type": "drives"
+        }
+      ],
       "tags": [
         "report",
         "reports",
@@ -3763,7 +4135,7 @@
       },
       "quality": {
         "has_summary": true,
-        "has_relations": false,
+        "has_relations": true,
         "has_sources": true
       },
       "metadata": {
@@ -3788,9 +4160,9 @@
       "node_id": "repo-content::autodocs/analysis_mcpee/README.md",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "c29295f223d5759813354bf0821058fbb0004bf62979606debd833a3d732a0f8",
+      "checksum": "2cd395e5089ef618f108037428f22e4b02479387c40adcf46075b5e13f012d84",
       "title": "AutoDocs Analysis",
-      "slug": "report-autodocs-readme-md",
+      "slug": "report-autodocs-analysis-mcpee-readme-md",
       "kind": "report",
       "domain": "autodocs",
       "owner": "analysis_mcpee",
@@ -3804,7 +4176,7 @@
         "reports",
         "autodocs"
       ],
-      "path": "reports/report-autodocs-readme-md.md",
+      "path": "reports/report-autodocs-analysis-mcpee-readme-md.md",
       "navigation": {
         "section": "reports",
         "weight": 100,
@@ -3822,7 +4194,7 @@
       },
       "metadata": {
         "title": "AutoDocs Analysis",
-        "slug": "report-autodocs-readme-md",
+        "slug": "report-autodocs-analysis-mcpee-readme-md",
         "kind": "report",
         "section": "reports",
         "domain": "autodocs",
@@ -3840,6 +4212,184 @@
     }
   },
   "raw_nodes": {
+    "repo-content::README.md": {
+      "node_id": "repo-content::README.md",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "ad511921b04aa7ec584fc4217de794bde613cbe0d2b0411e499a593a2745fd2d",
+      "metadata": {
+        "title": "MCP Efficiency Engine",
+        "slug": "report-readme-md",
+        "kind": "report",
+        "section": "reports",
+        "domain": "documentation",
+        "summary": "Motor de orquestaci\u00f3n para agentes MCP con routing por dominio, optimizaci\u00f3n always-on y contratos de intake JSON-first.",
+        "owner": "repo",
+        "source_refs": [
+          "README.md"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      },
+      "relations": [
+        {
+          "target": "repo-content::AGENTS.md",
+          "type": "documents"
+        },
+        {
+          "target": "repo-content::ARCHITECTURE.md",
+          "type": "documents"
+        },
+        {
+          "target": "repo-content::FINAL_USAGE_GUIDE.md",
+          "type": "documents"
+        },
+        {
+          "target": "repo-content::package.json",
+          "type": "documents"
+        }
+      ],
+      "semantic_summary": ""
+    },
+    "repo-content::README_WIKI.md": {
+      "node_id": "repo-content::README_WIKI.md",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "75f74dbf0179ac9bbdd97d1c9db74da8f249b29137b7f22eb2e2e5291cfcbc40",
+      "metadata": {
+        "title": "AutoDocs Projection Engine",
+        "slug": "report-readme-wiki-md",
+        "kind": "report",
+        "section": "reports",
+        "domain": "documentation",
+        "summary": "AutoDocs es una capacidad nativa de `mcp-efficiency-engine`. Toma conocimiento estructurado de artefactos existentes en `repo-intake/generated/`,",
+        "owner": "repo",
+        "source_refs": [
+          "README_WIKI.md"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      },
+      "relations": [],
+      "semantic_summary": ""
+    },
+    "repo-content::FINAL_USAGE_GUIDE.md": {
+      "node_id": "repo-content::FINAL_USAGE_GUIDE.md",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "d89fbc91f463d7fecdd349ab46db9ad70e9a8ebb82bca3049f00c978b7544f3b",
+      "metadata": {
+        "title": "Gu\u00eda de uso \u2014 MCP Efficiency Engine",
+        "slug": "report-final-usage-guide-md",
+        "kind": "report",
+        "section": "reports",
+        "domain": "documentation",
+        "summary": "Token Saver y Caveman ya no son modos que se activan manualmente. Son parte del runtime del sistema.",
+        "owner": "repo",
+        "source_refs": [
+          "FINAL_USAGE_GUIDE.md"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      },
+      "relations": [
+        {
+          "target": "repo-content::README.md",
+          "type": "extends"
+        }
+      ],
+      "semantic_summary": ""
+    },
+    "repo-content::FILE_INDEX.md": {
+      "node_id": "repo-content::FILE_INDEX.md",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "211985f6f0d41cc08825cc0151e2d507845269db20d4de2b6f8da86adc1cb192",
+      "metadata": {
+        "title": "File Index",
+        "slug": "report-file-index-md",
+        "kind": "report",
+        "section": "reports",
+        "domain": "documentation",
+        "summary": "Indice del contenido y estructura del repositorio.",
+        "owner": "repo",
+        "source_refs": [
+          "FILE_INDEX.md"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      },
+      "relations": [],
+      "semantic_summary": ""
+    },
+    "repo-content::autodocs/README.md": {
+      "node_id": "repo-content::autodocs/README.md",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "909d95b46d82f418af3c6b68ddaec9974dbb1a6481c9b32667a2689f2649d3e1",
+      "metadata": {
+        "title": "AutoDocs",
+        "slug": "report-autodocs-readme-md",
+        "kind": "report",
+        "section": "reports",
+        "domain": "documentation",
+        "summary": "AutoDocs es la wiki interna nativa de `mcp-efficiency-engine`.",
+        "owner": "autodocs",
+        "source_refs": [
+          "autodocs/README.md"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      },
+      "relations": [
+        {
+          "target": "repo-content::README_WIKI.md",
+          "type": "documents"
+        }
+      ],
+      "semantic_summary": ""
+    },
+    "repo-content::package.json": {
+      "node_id": "repo-content::package.json",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "2247c593fa68379c9ab752c628160f44765939eb2fe5b9f392c60521b41c42f5",
+      "metadata": {
+        "title": "mcp-efficiency-engine",
+        "slug": "report-package-json",
+        "kind": "report",
+        "section": "reports",
+        "domain": "packaging",
+        "summary": "Motor de orquestacion para agentes MCP con routing por dominio y bootstrap portable.",
+        "owner": "repo",
+        "source_refs": [
+          "package.json"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "packaging",
+          "json"
+        ]
+      },
+      "relations": [],
+      "semantic_summary": ""
+    },
     "repo-content::.github/agents/backend.agent.md": {
       "node_id": "repo-content::.github/agents/backend.agent.md",
       "provider": "repo-content",
@@ -4950,7 +5500,16 @@
           "json"
         ]
       },
-      "relations": [],
+      "relations": [
+        {
+          "target": "repo-content::README_WIKI.md",
+          "type": "documents"
+        },
+        {
+          "target": "repo-content::autodocs/README.md",
+          "type": "documents"
+        }
+      ],
       "semantic_summary": ""
     },
     "repo-content::policies/context-policy.md": {
@@ -5758,17 +6317,26 @@
           "autodocs"
         ]
       },
-      "relations": [],
+      "relations": [
+        {
+          "target": "repo-content::autodocs/README.md",
+          "type": "drives"
+        },
+        {
+          "target": "repo-content::README_WIKI.md",
+          "type": "drives"
+        }
+      ],
       "semantic_summary": ""
     },
     "repo-content::autodocs/analysis_mcpee/README.md": {
       "node_id": "repo-content::autodocs/analysis_mcpee/README.md",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "c29295f223d5759813354bf0821058fbb0004bf62979606debd833a3d732a0f8",
+      "checksum": "2cd395e5089ef618f108037428f22e4b02479387c40adcf46075b5e13f012d84",
       "metadata": {
         "title": "AutoDocs Analysis",
-        "slug": "report-autodocs-readme-md",
+        "slug": "report-autodocs-analysis-mcpee-readme-md",
         "kind": "report",
         "section": "reports",
         "domain": "autodocs",
@@ -5788,6 +6356,360 @@
     }
   },
   "wiki_nodes": {
+    "repo-content::README.md": {
+      "node_id": "repo-content::README.md",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "ad511921b04aa7ec584fc4217de794bde613cbe0d2b0411e499a593a2745fd2d",
+      "title": "MCP Efficiency Engine",
+      "slug": "report-readme-md",
+      "kind": "report",
+      "domain": "documentation",
+      "owner": "repo",
+      "summary": "Motor de orquestaci\u00f3n para agentes MCP con routing por dominio, optimizaci\u00f3n always-on y contratos de intake JSON-first.",
+      "source_refs": [
+        "README.md"
+      ],
+      "relations": [
+        {
+          "target": "repo-content::AGENTS.md",
+          "type": "documents"
+        },
+        {
+          "target": "repo-content::ARCHITECTURE.md",
+          "type": "documents"
+        },
+        {
+          "target": "repo-content::FINAL_USAGE_GUIDE.md",
+          "type": "documents"
+        },
+        {
+          "target": "repo-content::package.json",
+          "type": "documents"
+        }
+      ],
+      "tags": [
+        "report",
+        "reports",
+        "documentation"
+      ],
+      "path": "reports/report-readme-md.md",
+      "navigation": {
+        "section": "reports",
+        "weight": 100,
+        "parent": "reports",
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": true,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "MCP Efficiency Engine",
+        "slug": "report-readme-md",
+        "kind": "report",
+        "section": "reports",
+        "domain": "documentation",
+        "summary": "Motor de orquestaci\u00f3n para agentes MCP con routing por dominio, optimizaci\u00f3n always-on y contratos de intake JSON-first.",
+        "owner": "repo",
+        "source_refs": [
+          "README.md"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      }
+    },
+    "repo-content::README_WIKI.md": {
+      "node_id": "repo-content::README_WIKI.md",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "75f74dbf0179ac9bbdd97d1c9db74da8f249b29137b7f22eb2e2e5291cfcbc40",
+      "title": "AutoDocs Projection Engine",
+      "slug": "report-readme-wiki-md",
+      "kind": "report",
+      "domain": "documentation",
+      "owner": "repo",
+      "summary": "AutoDocs es una capacidad nativa de `mcp-efficiency-engine`. Toma conocimiento estructurado de artefactos existentes en `repo-intake/generated/`,",
+      "source_refs": [
+        "README_WIKI.md"
+      ],
+      "relations": [],
+      "tags": [
+        "report",
+        "reports",
+        "documentation"
+      ],
+      "path": "reports/report-readme-wiki-md.md",
+      "navigation": {
+        "section": "reports",
+        "weight": 100,
+        "parent": "reports",
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "AutoDocs Projection Engine",
+        "slug": "report-readme-wiki-md",
+        "kind": "report",
+        "section": "reports",
+        "domain": "documentation",
+        "summary": "AutoDocs es una capacidad nativa de `mcp-efficiency-engine`. Toma conocimiento estructurado de artefactos existentes en `repo-intake/generated/`,",
+        "owner": "repo",
+        "source_refs": [
+          "README_WIKI.md"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      }
+    },
+    "repo-content::FINAL_USAGE_GUIDE.md": {
+      "node_id": "repo-content::FINAL_USAGE_GUIDE.md",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "d89fbc91f463d7fecdd349ab46db9ad70e9a8ebb82bca3049f00c978b7544f3b",
+      "title": "Gu\u00eda de uso \u2014 MCP Efficiency Engine",
+      "slug": "report-final-usage-guide-md",
+      "kind": "report",
+      "domain": "documentation",
+      "owner": "repo",
+      "summary": "Token Saver y Caveman ya no son modos que se activan manualmente. Son parte del runtime del sistema.",
+      "source_refs": [
+        "FINAL_USAGE_GUIDE.md"
+      ],
+      "relations": [
+        {
+          "target": "repo-content::README.md",
+          "type": "extends"
+        }
+      ],
+      "tags": [
+        "report",
+        "reports",
+        "documentation"
+      ],
+      "path": "reports/report-final-usage-guide-md.md",
+      "navigation": {
+        "section": "reports",
+        "weight": 100,
+        "parent": "reports",
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": true,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "Gu\u00eda de uso \u2014 MCP Efficiency Engine",
+        "slug": "report-final-usage-guide-md",
+        "kind": "report",
+        "section": "reports",
+        "domain": "documentation",
+        "summary": "Token Saver y Caveman ya no son modos que se activan manualmente. Son parte del runtime del sistema.",
+        "owner": "repo",
+        "source_refs": [
+          "FINAL_USAGE_GUIDE.md"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      }
+    },
+    "repo-content::FILE_INDEX.md": {
+      "node_id": "repo-content::FILE_INDEX.md",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "211985f6f0d41cc08825cc0151e2d507845269db20d4de2b6f8da86adc1cb192",
+      "title": "File Index",
+      "slug": "report-file-index-md",
+      "kind": "report",
+      "domain": "documentation",
+      "owner": "repo",
+      "summary": "Indice del contenido y estructura del repositorio.",
+      "source_refs": [
+        "FILE_INDEX.md"
+      ],
+      "relations": [],
+      "tags": [
+        "report",
+        "reports",
+        "documentation"
+      ],
+      "path": "reports/report-file-index-md.md",
+      "navigation": {
+        "section": "reports",
+        "weight": 100,
+        "parent": "reports",
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "File Index",
+        "slug": "report-file-index-md",
+        "kind": "report",
+        "section": "reports",
+        "domain": "documentation",
+        "summary": "Indice del contenido y estructura del repositorio.",
+        "owner": "repo",
+        "source_refs": [
+          "FILE_INDEX.md"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      }
+    },
+    "repo-content::autodocs/README.md": {
+      "node_id": "repo-content::autodocs/README.md",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "909d95b46d82f418af3c6b68ddaec9974dbb1a6481c9b32667a2689f2649d3e1",
+      "title": "AutoDocs",
+      "slug": "report-autodocs-readme-md",
+      "kind": "report",
+      "domain": "documentation",
+      "owner": "autodocs",
+      "summary": "AutoDocs es la wiki interna nativa de `mcp-efficiency-engine`.",
+      "source_refs": [
+        "autodocs/README.md"
+      ],
+      "relations": [
+        {
+          "target": "repo-content::README_WIKI.md",
+          "type": "documents"
+        }
+      ],
+      "tags": [
+        "report",
+        "reports",
+        "documentation"
+      ],
+      "path": "reports/report-autodocs-readme-md.md",
+      "navigation": {
+        "section": "reports",
+        "weight": 100,
+        "parent": "reports",
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": true,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "AutoDocs",
+        "slug": "report-autodocs-readme-md",
+        "kind": "report",
+        "section": "reports",
+        "domain": "documentation",
+        "summary": "AutoDocs es la wiki interna nativa de `mcp-efficiency-engine`.",
+        "owner": "autodocs",
+        "source_refs": [
+          "autodocs/README.md"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "documentation"
+        ]
+      }
+    },
+    "repo-content::package.json": {
+      "node_id": "repo-content::package.json",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "2247c593fa68379c9ab752c628160f44765939eb2fe5b9f392c60521b41c42f5",
+      "title": "mcp-efficiency-engine",
+      "slug": "report-package-json",
+      "kind": "report",
+      "domain": "packaging",
+      "owner": "repo",
+      "summary": "Motor de orquestacion para agentes MCP con routing por dominio y bootstrap portable.",
+      "source_refs": [
+        "package.json"
+      ],
+      "relations": [],
+      "tags": [
+        "report",
+        "reports",
+        "packaging",
+        "json"
+      ],
+      "path": "reports/report-package-json.md",
+      "navigation": {
+        "section": "reports",
+        "weight": 100,
+        "parent": "reports",
+        "tags": [
+          "report",
+          "reports",
+          "packaging",
+          "json"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "mcp-efficiency-engine",
+        "slug": "report-package-json",
+        "kind": "report",
+        "section": "reports",
+        "domain": "packaging",
+        "summary": "Motor de orquestacion para agentes MCP con routing por dominio y bootstrap portable.",
+        "owner": "repo",
+        "source_refs": [
+          "package.json"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "packaging",
+          "json"
+        ]
+      }
+    },
     "repo-content::.github/agents/backend.agent.md": {
       "node_id": "repo-content::.github/agents/backend.agent.md",
       "provider": "repo-content",
@@ -7846,7 +8768,16 @@
       "source_refs": [
         ".github/skills/wiki-tools.json"
       ],
-      "relations": [],
+      "relations": [
+        {
+          "target": "repo-content::README_WIKI.md",
+          "type": "documents"
+        },
+        {
+          "target": "repo-content::autodocs/README.md",
+          "type": "documents"
+        }
+      ],
       "tags": [
         "skill",
         "skills",
@@ -7867,7 +8798,7 @@
       },
       "quality": {
         "has_summary": true,
-        "has_relations": false,
+        "has_relations": true,
         "has_sources": true
       },
       "metadata": {
@@ -9531,7 +10462,16 @@
       "source_refs": [
         "autodocs/analysis_mcpee/OPENWIKI_INTERNAL_BLUEPRINT.md"
       ],
-      "relations": [],
+      "relations": [
+        {
+          "target": "repo-content::autodocs/README.md",
+          "type": "drives"
+        },
+        {
+          "target": "repo-content::README_WIKI.md",
+          "type": "drives"
+        }
+      ],
       "tags": [
         "report",
         "reports",
@@ -9550,7 +10490,7 @@
       },
       "quality": {
         "has_summary": true,
-        "has_relations": false,
+        "has_relations": true,
         "has_sources": true
       },
       "metadata": {
@@ -9575,9 +10515,9 @@
       "node_id": "repo-content::autodocs/analysis_mcpee/README.md",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "c29295f223d5759813354bf0821058fbb0004bf62979606debd833a3d732a0f8",
+      "checksum": "2cd395e5089ef618f108037428f22e4b02479387c40adcf46075b5e13f012d84",
       "title": "AutoDocs Analysis",
-      "slug": "report-autodocs-readme-md",
+      "slug": "report-autodocs-analysis-mcpee-readme-md",
       "kind": "report",
       "domain": "autodocs",
       "owner": "analysis_mcpee",
@@ -9591,7 +10531,7 @@
         "reports",
         "autodocs"
       ],
-      "path": "reports/report-autodocs-readme-md.md",
+      "path": "reports/report-autodocs-analysis-mcpee-readme-md.md",
       "navigation": {
         "section": "reports",
         "weight": 100,
@@ -9609,7 +10549,7 @@
       },
       "metadata": {
         "title": "AutoDocs Analysis",
-        "slug": "report-autodocs-readme-md",
+        "slug": "report-autodocs-analysis-mcpee-readme-md",
         "kind": "report",
         "section": "reports",
         "domain": "autodocs",
@@ -10004,17 +10944,47 @@
         "id": "reports",
         "title": "Reports",
         "description": "Reportes generados y artefactos de analisis.",
-        "page_count": 3,
+        "page_count": 9,
         "pages": [
           {
-            "title": "AutoDocs Analysis",
+            "title": "AutoDocs",
             "slug": "report-autodocs-readme-md",
             "path": "reports/report-autodocs-readme-md.md"
+          },
+          {
+            "title": "AutoDocs Analysis",
+            "slug": "report-autodocs-analysis-mcpee-readme-md",
+            "path": "reports/report-autodocs-analysis-mcpee-readme-md.md"
+          },
+          {
+            "title": "AutoDocs Projection Engine",
+            "slug": "report-readme-wiki-md",
+            "path": "reports/report-readme-wiki-md.md"
+          },
+          {
+            "title": "File Index",
+            "slug": "report-file-index-md",
+            "path": "reports/report-file-index-md.md"
+          },
+          {
+            "title": "Gu\u00eda de uso \u2014 MCP Efficiency Engine",
+            "slug": "report-final-usage-guide-md",
+            "path": "reports/report-final-usage-guide-md.md"
+          },
+          {
+            "title": "MCP Efficiency Engine",
+            "slug": "report-readme-md",
+            "path": "reports/report-readme-md.md"
           },
           {
             "title": "OpenWiki Internal Blueprint",
             "slug": "report-autodocs-openwiki-internal-blueprint-md",
             "path": "reports/report-autodocs-openwiki-internal-blueprint-md.md"
+          },
+          {
+            "title": "mcp-efficiency-engine",
+            "slug": "report-package-json",
+            "path": "reports/report-package-json.md"
           },
           {
             "title": "openwiki-internal-blueprint",
@@ -10321,6 +11291,19 @@
       "path": "policies/policy-security-policy-md.md"
     },
     {
+      "title": "AutoDocs",
+      "summary": "AutoDocs es la wiki interna nativa de `mcp-efficiency-engine`.",
+      "kind": "report",
+      "domain": "documentation",
+      "section": "reports",
+      "tags": [
+        "report",
+        "reports",
+        "documentation"
+      ],
+      "path": "reports/report-autodocs-readme-md.md"
+    },
+    {
       "title": "AutoDocs Analysis",
       "summary": "Artefactos de analisis y blueprint de la wiki interna del repositorio.",
       "kind": "report",
@@ -10331,7 +11314,59 @@
         "reports",
         "autodocs"
       ],
-      "path": "reports/report-autodocs-readme-md.md"
+      "path": "reports/report-autodocs-analysis-mcpee-readme-md.md"
+    },
+    {
+      "title": "AutoDocs Projection Engine",
+      "summary": "AutoDocs es una capacidad nativa de `mcp-efficiency-engine`. Toma conocimiento estructurado de artefactos existentes en `repo-intake/generated/`,",
+      "kind": "report",
+      "domain": "documentation",
+      "section": "reports",
+      "tags": [
+        "report",
+        "reports",
+        "documentation"
+      ],
+      "path": "reports/report-readme-wiki-md.md"
+    },
+    {
+      "title": "File Index",
+      "summary": "Indice del contenido y estructura del repositorio.",
+      "kind": "report",
+      "domain": "documentation",
+      "section": "reports",
+      "tags": [
+        "report",
+        "reports",
+        "documentation"
+      ],
+      "path": "reports/report-file-index-md.md"
+    },
+    {
+      "title": "Gu\u00eda de uso \u2014 MCP Efficiency Engine",
+      "summary": "Token Saver y Caveman ya no son modos que se activan manualmente. Son parte del runtime del sistema.",
+      "kind": "report",
+      "domain": "documentation",
+      "section": "reports",
+      "tags": [
+        "report",
+        "reports",
+        "documentation"
+      ],
+      "path": "reports/report-final-usage-guide-md.md"
+    },
+    {
+      "title": "MCP Efficiency Engine",
+      "summary": "Motor de orquestaci\u00f3n para agentes MCP con routing por dominio, optimizaci\u00f3n always-on y contratos de intake JSON-first.",
+      "kind": "report",
+      "domain": "documentation",
+      "section": "reports",
+      "tags": [
+        "report",
+        "reports",
+        "documentation"
+      ],
+      "path": "reports/report-readme-md.md"
     },
     {
       "title": "OpenWiki Internal Blueprint",
@@ -10345,6 +11380,20 @@
         "autodocs"
       ],
       "path": "reports/report-autodocs-openwiki-internal-blueprint-md.md"
+    },
+    {
+      "title": "mcp-efficiency-engine",
+      "summary": "Motor de orquestacion para agentes MCP con routing por dominio y bootstrap portable.",
+      "kind": "report",
+      "domain": "packaging",
+      "section": "reports",
+      "tags": [
+        "report",
+        "reports",
+        "packaging",
+        "json"
+      ],
+      "path": "reports/report-package-json.md"
     },
     {
       "title": "openwiki-internal-blueprint",
@@ -10914,6 +11963,60 @@
       "target": "repo-content::orchestrator/corporate-routing.md"
     },
     {
+      "source": "repo-content::autodocs/README.md",
+      "source_title": "AutoDocs",
+      "type": "documents",
+      "target": "repo-content::README_WIKI.md"
+    },
+    {
+      "source": "repo-content::README.md",
+      "source_title": "MCP Efficiency Engine",
+      "type": "documents",
+      "target": "repo-content::AGENTS.md"
+    },
+    {
+      "source": "repo-content::README.md",
+      "source_title": "MCP Efficiency Engine",
+      "type": "documents",
+      "target": "repo-content::ARCHITECTURE.md"
+    },
+    {
+      "source": "repo-content::README.md",
+      "source_title": "MCP Efficiency Engine",
+      "type": "documents",
+      "target": "repo-content::FINAL_USAGE_GUIDE.md"
+    },
+    {
+      "source": "repo-content::README.md",
+      "source_title": "MCP Efficiency Engine",
+      "type": "documents",
+      "target": "repo-content::package.json"
+    },
+    {
+      "source": "repo-content::.github/skills/wiki-tools.json",
+      "source_title": "wiki-tools",
+      "type": "documents",
+      "target": "repo-content::README_WIKI.md"
+    },
+    {
+      "source": "repo-content::.github/skills/wiki-tools.json",
+      "source_title": "wiki-tools",
+      "type": "documents",
+      "target": "repo-content::autodocs/README.md"
+    },
+    {
+      "source": "repo-content::autodocs/analysis_mcpee/OPENWIKI_INTERNAL_BLUEPRINT.md",
+      "source_title": "OpenWiki Internal Blueprint",
+      "type": "drives",
+      "target": "repo-content::autodocs/README.md"
+    },
+    {
+      "source": "repo-content::autodocs/analysis_mcpee/OPENWIKI_INTERNAL_BLUEPRINT.md",
+      "source_title": "OpenWiki Internal Blueprint",
+      "type": "drives",
+      "target": "repo-content::README_WIKI.md"
+    },
+    {
       "source": "repo-content::ARCHITECTURE.md",
       "source_title": "Arquitectura de MCP Efficiency Engine",
       "type": "explains",
@@ -10924,6 +12027,12 @@
       "source_title": "Arquitectura de MCP Efficiency Engine",
       "type": "explains",
       "target": "repo-content::orchestrator/router.md"
+    },
+    {
+      "source": "repo-content::FINAL_USAGE_GUIDE.md",
+      "source_title": "Gu\u00eda de uso \u2014 MCP Efficiency Engine",
+      "type": "extends",
+      "target": "repo-content::README.md"
     },
     {
       "source": "repo-content::.github/agents/github-repository-manager.agent.md",
@@ -11457,11 +12566,17 @@
       "id": "reports",
       "title": "Reports",
       "description": "Reportes generados y artefactos de analisis.",
-      "page_count": 3,
+      "page_count": 9,
       "pages": [
+        "reports/report-autodocs-analysis-mcpee-readme-md.md",
         "reports/report-autodocs-openwiki-internal-blueprint-json.md",
         "reports/report-autodocs-openwiki-internal-blueprint-md.md",
-        "reports/report-autodocs-readme-md.md"
+        "reports/report-autodocs-readme-md.md",
+        "reports/report-file-index-md.md",
+        "reports/report-final-usage-guide-md.md",
+        "reports/report-package-json.md",
+        "reports/report-readme-md.md",
+        "reports/report-readme-wiki-md.md"
       ]
     },
     {

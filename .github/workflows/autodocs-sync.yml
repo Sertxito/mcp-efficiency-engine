@@ -3,22 +3,8 @@ name: AutoDocs Sync
 on:
   push:
     branches: [ main, develop ]
-    paths:
-      - 'repo-intake/generated/**'
-      - 'autodocs/**'
-      - 'scripts/wiki/**'
-      - 'orchestrator/wiki/**'
-      - '.github/skills/wiki-tools.json'
-      - '.github/agents/wiki-agent.agent.md'
   pull_request:
     branches: [ main, develop ]
-    paths:
-      - 'repo-intake/generated/**'
-      - 'autodocs/**'
-      - 'scripts/wiki/**'
-      - 'orchestrator/wiki/**'
-      - '.github/skills/wiki-tools.json'
-      - '.github/agents/wiki-agent.agent.md'
   workflow_dispatch:
 
 permissions:
