@@ -1,4 +1,5 @@
 from pathlib import Path
+import subprocess
 from typing import Any, Dict, Iterable, List, Tuple
 
 from scripts.wiki.providers.base_provider import BaseWikiProvider
@@ -26,11 +27,15 @@ class RepoContentProvider(BaseWikiProvider):
 
     def _collect_agents(self) -> List[Dict[str, Any]]:
         agents_dir = self.repo_root / ".github" / "agents"
+        if not agents_dir.exists():
+            return []
         files = sorted(agents_dir.glob("*.agent.md"))
         return [self._entity_from_markdown(path, kind="agent", section="agents", domain="agents") for path in files]
 
     def _collect_skills(self) -> List[Dict[str, Any]]:
         skills_dir = self.repo_root / ".github" / "skills"
+        if not skills_dir.exists():
+            return []
         entities: List[Dict[str, Any]] = []
         for path in sorted(skills_dir.iterdir()):
             if path.is_dir():
@@ -43,6 +48,8 @@ class RepoContentProvider(BaseWikiProvider):
 
     def _collect_policies(self) -> List[Dict[str, Any]]:
         policies_dir = self.repo_root / "policies"
+        if not policies_dir.exists():
+            return []
         return [
             self._entity_from_markdown(path, kind="policy", section="policies", domain="governance")
             for path in sorted(policies_dir.glob("*.md"))
@@ -50,6 +57,8 @@ class RepoContentProvider(BaseWikiProvider):
 
     def _collect_specs(self) -> List[Dict[str, Any]]:
         specs_dir = self.repo_root / "specs"
+        if not specs_dir.exists():
+            return []
         return [
             self._entity_from_markdown(path, kind="spec", section="specs", domain="specifications")
             for path in sorted(specs_dir.rglob("*.md"))
@@ -57,6 +66,8 @@ class RepoContentProvider(BaseWikiProvider):
 
     def _collect_observability(self) -> List[Dict[str, Any]]:
         observability_dir = self.repo_root / "observability"
+        if not observability_dir.exists():
+            return []
         entities: List[Dict[str, Any]] = []
         for path in sorted(observability_dir.glob("*.md")):
             entities.append(self._entity_from_markdown(path, kind="report", section="observability", domain="observability"))
@@ -66,9 +77,13 @@ class RepoContentProvider(BaseWikiProvider):
 
     def _collect_projects(self) -> List[Dict[str, Any]]:
         projects_dir = self.repo_root / "projects"
+        if not projects_dir.exists():
+            return []
         entities: List[Dict[str, Any]] = []
         for path in sorted(projects_dir.iterdir()):
             if not path.is_dir():
+                continue
+            if not self._is_tracked(path):
                 continue
             summary = f"Espacio de proyecto interno ubicado en {self._relative(path)}."
             payload = {
@@ -112,6 +127,8 @@ class RepoContentProvider(BaseWikiProvider):
 
     def _collect_reports(self) -> List[Dict[str, Any]]:
         reports_dir = self.repo_root / "autodocs" / "analysis_mcpee"
+        if not reports_dir.exists():
+            return []
         entities: List[Dict[str, Any]] = []
         for path in sorted(reports_dir.iterdir()):
             if path.suffix == ".md":
@@ -366,3 +383,19 @@ class RepoContentProvider(BaseWikiProvider):
 
     def _relative(self, path: Path) -> str:
         return path.relative_to(self.repo_root).as_posix()
+
+    def _is_tracked(self, path: Path) -> bool:
+        rel = self._relative(path)
+        if not rel:
+            return False
+        try:
+            result = subprocess.run(
+                ["git", "ls-files", "--error-unmatch", rel],
+                cwd=self.repo_root,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=False,
+            )
+            return result.returncode == 0
+        except OSError:
+            return False

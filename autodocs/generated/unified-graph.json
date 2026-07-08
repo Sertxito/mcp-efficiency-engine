@@ -1,5 +1,5 @@
 {
-  "last_updated": "sha256:998658cbae1aabedeafa84f0f13af4fba7184432f33a4712c34ff4f8b3c458c1",
+  "last_updated": "sha256:9f28c0b39428e53a8557d9662c3f17a753699dd0dd6d08cdd7ce259496183fc8",
   "nodes": {
     "repo-content::.github/agents/backend.agent.md": {
       "node_id": "repo-content::.github/agents/backend.agent.md",
@@ -3286,66 +3286,6 @@
         ]
       }
     },
-    "repo-content::techriders": {
-      "node_id": "repo-content::techriders",
-      "provider": "repo-content",
-      "type": "project",
-      "checksum": "f41a7a8f6f9ae144d5f3dd9916658c2d186058b07dd80bf4515504d34de09dcc",
-      "title": "techriders",
-      "slug": "project-techriders",
-      "kind": "project",
-      "domain": "projects",
-      "owner": "repo",
-      "summary": "Espacio de proyecto interno ubicado en projects/techriders.",
-      "source_refs": [
-        "projects/techriders"
-      ],
-      "relations": [
-        {
-          "target": "repo-content::specs/architecture.spec.md",
-          "type": "consumes"
-        },
-        {
-          "target": "repo-content::specs/observability.spec.md",
-          "type": "consumes"
-        }
-      ],
-      "tags": [
-        "project",
-        "workspace"
-      ],
-      "path": "projects/project-techriders.md",
-      "navigation": {
-        "section": "projects",
-        "weight": 100,
-        "parent": "projects",
-        "tags": [
-          "project",
-          "workspace"
-        ]
-      },
-      "quality": {
-        "has_summary": true,
-        "has_relations": true,
-        "has_sources": true
-      },
-      "metadata": {
-        "title": "techriders",
-        "slug": "project-techriders",
-        "kind": "project",
-        "section": "projects",
-        "domain": "projects",
-        "summary": "Espacio de proyecto interno ubicado en projects/techriders.",
-        "owner": "repo",
-        "source_refs": [
-          "projects/techriders"
-        ],
-        "tags": [
-          "project",
-          "workspace"
-        ]
-      }
-    },
     "repo-content::AGENTS.md": {
       "node_id": "repo-content::AGENTS.md",
       "provider": "repo-content",
@@ -5584,39 +5524,6 @@
         ]
       },
       "relations": [],
-      "semantic_summary": ""
-    },
-    "repo-content::techriders": {
-      "node_id": "repo-content::techriders",
-      "provider": "repo-content",
-      "type": "project",
-      "checksum": "f41a7a8f6f9ae144d5f3dd9916658c2d186058b07dd80bf4515504d34de09dcc",
-      "metadata": {
-        "title": "techriders",
-        "slug": "project-techriders",
-        "kind": "project",
-        "section": "projects",
-        "domain": "projects",
-        "summary": "Espacio de proyecto interno ubicado en projects/techriders.",
-        "owner": "repo",
-        "source_refs": [
-          "projects/techriders"
-        ],
-        "tags": [
-          "project",
-          "workspace"
-        ]
-      },
-      "relations": [
-        {
-          "target": "repo-content::specs/architecture.spec.md",
-          "type": "consumes"
-        },
-        {
-          "target": "repo-content::specs/observability.spec.md",
-          "type": "consumes"
-        }
-      ],
       "semantic_summary": ""
     },
     "repo-content::AGENTS.md": {
@@ -9166,66 +9073,6 @@
         ]
       }
     },
-    "repo-content::techriders": {
-      "node_id": "repo-content::techriders",
-      "provider": "repo-content",
-      "type": "project",
-      "checksum": "f41a7a8f6f9ae144d5f3dd9916658c2d186058b07dd80bf4515504d34de09dcc",
-      "title": "techriders",
-      "slug": "project-techriders",
-      "kind": "project",
-      "domain": "projects",
-      "owner": "repo",
-      "summary": "Espacio de proyecto interno ubicado en projects/techriders.",
-      "source_refs": [
-        "projects/techriders"
-      ],
-      "relations": [
-        {
-          "target": "repo-content::specs/architecture.spec.md",
-          "type": "consumes"
-        },
-        {
-          "target": "repo-content::specs/observability.spec.md",
-          "type": "consumes"
-        }
-      ],
-      "tags": [
-        "project",
-        "workspace"
-      ],
-      "path": "projects/project-techriders.md",
-      "navigation": {
-        "section": "projects",
-        "weight": 100,
-        "parent": "projects",
-        "tags": [
-          "project",
-          "workspace"
-        ]
-      },
-      "quality": {
-        "has_summary": true,
-        "has_relations": true,
-        "has_sources": true
-      },
-      "metadata": {
-        "title": "techriders",
-        "slug": "project-techriders",
-        "kind": "project",
-        "section": "projects",
-        "domain": "projects",
-        "summary": "Espacio de proyecto interno ubicado en projects/techriders.",
-        "owner": "repo",
-        "source_refs": [
-          "projects/techriders"
-        ],
-        "tags": [
-          "project",
-          "workspace"
-        ]
-      }
-    },
     "repo-content::AGENTS.md": {
       "node_id": "repo-content::AGENTS.md",
       "provider": "repo-content",
@@ -10021,14 +9868,8 @@
         "id": "projects",
         "title": "Projects",
         "description": "Proyectos o dominios servidos por MCP Efficiency Engine.",
-        "page_count": 1,
-        "pages": [
-          {
-            "title": "techriders",
-            "slug": "project-techriders",
-            "path": "projects/project-techriders.md"
-          }
-        ]
+        "page_count": 0,
+        "pages": []
       },
       {
         "id": "policies",
@@ -10478,18 +10319,6 @@
         "governance"
       ],
       "path": "policies/policy-security-policy-md.md"
-    },
-    {
-      "title": "techriders",
-      "summary": "Espacio de proyecto interno ubicado en projects/techriders.",
-      "kind": "project",
-      "domain": "projects",
-      "section": "projects",
-      "tags": [
-        "project",
-        "workspace"
-      ],
-      "path": "projects/project-techriders.md"
     },
     {
       "title": "AutoDocs Analysis",
@@ -11055,18 +10884,6 @@
   ],
   "relations_index": [
     {
-      "source": "repo-content::techriders",
-      "source_title": "techriders",
-      "type": "consumes",
-      "target": "repo-content::specs/architecture.spec.md"
-    },
-    {
-      "source": "repo-content::techriders",
-      "source_title": "techriders",
-      "type": "consumes",
-      "target": "repo-content::specs/observability.spec.md"
-    },
-    {
       "source": "repo-content::specs/observability.spec.md",
       "source_title": "observability spec",
       "type": "defines",
@@ -11588,10 +11405,8 @@
       "id": "projects",
       "title": "Projects",
       "description": "Proyectos o dominios servidos por MCP Efficiency Engine.",
-      "page_count": 1,
-      "pages": [
-        "projects/project-techriders.md"
-      ]
+      "page_count": 0,
+      "pages": []
     },
     {
       "id": "policies",

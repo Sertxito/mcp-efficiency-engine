@@ -240,14 +240,8 @@
       "id": "projects",
       "title": "Projects",
       "description": "Proyectos o dominios servidos por MCP Efficiency Engine.",
-      "page_count": 1,
-      "pages": [
-        {
-          "title": "techriders",
-          "slug": "project-techriders",
-          "path": "projects/project-techriders.md"
-        }
-      ]
+      "page_count": 0,
+      "pages": []
     },
     {
       "id": "policies",

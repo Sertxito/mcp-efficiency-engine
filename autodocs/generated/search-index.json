@@ -287,18 +287,6 @@
     "path": "policies/policy-security-policy-md.md"
   },
   {
-    "title": "techriders",
-    "summary": "Espacio de proyecto interno ubicado en projects/techriders.",
-    "kind": "project",
-    "domain": "projects",
-    "section": "projects",
-    "tags": [
-      "project",
-      "workspace"
-    ],
-    "path": "projects/project-techriders.md"
-  },
-  {
     "title": "AutoDocs Analysis",
     "summary": "Artefactos de analisis y blueprint de la wiki interna del repositorio.",
     "kind": "report",

@@ -1,17 +1,5 @@
 [
   {
-    "source": "repo-content::techriders",
-    "source_title": "techriders",
-    "type": "consumes",
-    "target": "repo-content::specs/architecture.spec.md"
-  },
-  {
-    "source": "repo-content::techriders",
-    "source_title": "techriders",
-    "type": "consumes",
-    "target": "repo-content::specs/observability.spec.md"
-  },
-  {
     "source": "repo-content::specs/observability.spec.md",
     "source_title": "observability spec",
     "type": "defines",

@@ -1,8 +1,8 @@
 # AutoDocs Validation Report
 
-- generated_at: sha256:998658cbae1aabedeafa84f0f13af4fba7184432f33a4712c34ff4f8b3c458c1
+- generated_at: sha256:9f28c0b39428e53a8557d9662c3f17a753699dd0dd6d08cdd7ce259496183fc8
 - schema_path: autodocs/schema/wiki-node.schema.json
-- node_count: 66
+- node_count: 65
 - error_count: 0
 - warning_count: 0
 - quality_score: 100
