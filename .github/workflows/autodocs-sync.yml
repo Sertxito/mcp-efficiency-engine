@@ -49,10 +49,12 @@ jobs:
         run: |
           git add autodocs/generated
           git add autodocs/site
-          git diff --cached --quiet
-          if ($LASTEXITCODE -eq 0) {
+          $changes = git status --porcelain -- autodocs/generated autodocs/site
+          if ([string]::IsNullOrWhiteSpace($changes)) {
             Write-Host "AutoDocs artifacts are up to date"
           } else {
+            Write-Host "Detected generated drift:"
+            Write-Host $changes
             Write-Error "AutoDocs artifacts are outdated. Run: py -3 -m scripts.wiki.wiki_compiler and commit generated changes."
             exit 1
           }
@@ -93,10 +95,12 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add autodocs/generated
           git add autodocs/site
-          git diff --cached --quiet
-          if ($LASTEXITCODE -eq 0) {
+          $changes = git status --porcelain -- autodocs/generated autodocs/site
+          if ([string]::IsNullOrWhiteSpace($changes)) {
             Write-Host "No AutoDocs changes to commit"
           } else {
+            Write-Host "Detected generated drift:"
+            Write-Host $changes
             git commit -m "chore(autodocs): refresh unified graph and projection"
             git push
           }
