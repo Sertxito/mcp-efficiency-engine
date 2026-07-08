@@ -8,10 +8,12 @@ grafo estructural como fuente de verdad y Markdown como vista derivada.
 ## Pipeline
 
 1. Leer artefactos existentes en `repo-intake/generated/` mediante proveedores.
-2. Consolidar contratos en grafo unificado JSON.
-3. Calcular diff incremental por checksum.
-4. Proyectar solo nodos sucios a `projects/openwiki_projection/`.
-5. Registrar telemetria de iteracion y routing.
+2. Normalizar entidades tecnicas a `wiki_nodes` canonicos.
+3. Validar schema, slugs, relaciones y navegacion.
+4. Consolidar contratos en grafo unificado JSON propio de AutoDocs.
+5. Calcular diff incremental por checksum.
+6. Proyectar solo nodos sucios a `autodocs/site/` y regenerar indices.
+7. Registrar telemetria de iteracion y routing.
 
 ## Dependencies
 

@@ -20,7 +20,7 @@
 # Policies and standards
 /policies/                                @Sertxito
 /optimization/                            @Sertxito
-/docs/                                    @Sertxito
+/autodocs/                                @Sertxito
 
 # Repository intake and context
 /repo-intake/                             @Sertxito

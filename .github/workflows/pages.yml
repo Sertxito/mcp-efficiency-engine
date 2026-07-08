@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - "docs/**"
+      - "autodocs/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -35,7 +35,7 @@ jobs:
         uses: actions/configure-pages@v4
 
       - name: Build with Jekyll
-        run: bundle exec jekyll build --source ./docs --destination ./build
+        run: bundle exec jekyll build --source ./autodocs/site --destination ./build
         env:
           JEKYLL_ENV: production
 

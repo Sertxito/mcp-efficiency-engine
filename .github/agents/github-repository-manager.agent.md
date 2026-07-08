@@ -53,7 +53,7 @@ Automatizar control total del repositorio **mcp-efficiency-engine** mediante Git
 # Core Outputs
 
 - PR creadas/mergeadas automáticamente
-- DevLogs generados en docs/devlog/
+- DevLogs generados en autodocs/site/devlog/
 - Issues asignadas a Copilot
 - Sincronización multi-repo completada
 - Reportes de actividad
@@ -95,7 +95,7 @@ Categoriza por tipo (feature/fix/refactor/docs/test)
   ↓
 Genera markdown con análisis
   ↓
-Crea archivo en docs/devlog/
+Crea archivo en autodocs/site/devlog/
   ↓
 Abre PR automático
   ↓
@@ -135,7 +135,7 @@ Notifica en redes sociales (via issue)
 | Comando | Script | Salida |
 |---------|--------|--------|
 | `sync repos` | `sync-repo.ps1` | PR en boost_sertxIA |
-| `generate devlog` | `create-devlog.ps1` | Archivo en docs/devlog/ |
+| `generate devlog` | `create-devlog.ps1` | Archivo en autodocs/site/devlog/ |
 | `manage issues` | `manage-issues.ps1` | Issues asignadas |
 | `assign copilot` | `manage-issues.ps1 -Action assign` | Copilot en issues |
 | `request reviews` | `manage-issues.ps1 -Action review` | Reviews de Copilot |
@@ -245,7 +245,7 @@ $trigger = @{
 ### Cambios
 - projects/project-a/spec.md
 - .github/specs/routing.spec.md
-- docs/GITHUB_MCP_INTEGRATION.md
+- .github/GITHUB_MCP_INTEGRATION.md
 
 [Linked to original commits]
 ```

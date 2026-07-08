@@ -1,20 +1,24 @@
 # AutoDocs Projection Engine
 
-AutoDocs es el motor de proyeccion incremental que toma conocimiento
-estructurado de artefactos existentes en `repo-intake/generated/`, consolida
-un grafo unificado JSON y proyecta Markdown solo para nodos sucios en
-`projects/openwiki_projection/`.
+AutoDocs es una capacidad nativa de `mcp-efficiency-engine`. Toma
+conocimiento estructurado de artefactos existentes en `repo-intake/generated/`,
+lo normaliza a un modelo wiki canonico, valida calidad estructural y proyecta
+una wiki interna en `autodocs/site/`.
 
 ## Flujo operativo
 
 1. `scripts.wiki.wiki_compiler` carga variables de entorno de la sesion.
 2. Registra proveedores con `PluginManager` y ejecuta `gather_knowledge()`
   de forma segura.
-3. `IncrementalEngine` calcula nodos nuevos/modificados (dirty) y nodos eliminados.
-4. `GraphConsolidator` fusiona contratos de proveedores y persiste `repo-intake/generated/wiki/unified-graph.json`.
-5. Solo se renderizan paginas Markdown de nodos dirty; si un nodo desaparece,
-   su `.md` se elimina.
-6. Se escribe telemetria en:
+3. `GraphConsolidator` transforma contratos tecnicos en `raw_nodes` y
+  `wiki_nodes`.
+4. `WikiValidator` valida schema, slugs, relaciones y navegacion.
+5. `IncrementalEngine` calcula nodos nuevos/modificados (dirty) y nodos
+  eliminados.
+6. Solo se renderizan paginas Markdown de nodos dirty; si un nodo desaparece,
+  su `.md` se elimina.
+7. Siempre se regeneran indices, manifests y reportes de validacion.
+8. Se escribe telemetria en:
    - `observability/logs/iteration-metrics.jsonl`
    - `observability/logs/routing-decisions.jsonl`
 
@@ -35,8 +39,11 @@ La actualizacion puede operar en dos modos:
 El workflow recompila AutoDocs en cambios relevantes y publica actualizaciones
 de:
 
-- `repo-intake/generated/wiki/unified-graph.json`
-- `projects/openwiki_projection/`
+- `autodocs/generated/unified-graph.json`
+- `autodocs/generated/validation-report.json`
+- `autodocs/generated/search-index.json`
+- `autodocs/generated/relations-index.json`
+- `autodocs/site/`
 
 Comportamiento por evento:
 
@@ -102,10 +109,22 @@ class MyProvider(BaseWikiProvider):
         }
 ```
 
+## Layout de salida
+
+- `autodocs/generated/unified-graph.json`
+- `autodocs/generated/validation-report.json`
+- `autodocs/generated/validation-report.md`
+- `autodocs/generated/search-index.json`
+- `autodocs/generated/relations-index.json`
+- `autodocs/generated/section-manifest.json`
+- `autodocs/site/index.md`
+- `autodocs/site/<section>/*.md`
+
 ## Notas de diseno
 
 - Markdown es solo proyeccion visual.
-- El source of truth es el grafo JSON unificado.
+- El source of truth es el grafo JSON unificado de AutoDocs.
 - El pipeline es incremental para reducir costo y tiempo.
 - Errores de plugin no detienen la ejecucion global; se registran en
   telemetria.
+- Errores de validacion si bloquean el estado final y hacen fallar CI.

@@ -48,8 +48,9 @@ py -3 -m scripts.wiki.wiki_compiler
 
 Artefactos de salida:
 
-- `repo-intake/generated/wiki/unified-graph.json`
-- `projects/openwiki_projection/`
+- `autodocs/generated/unified-graph.json`
+- `autodocs/generated/validation-report.json`
+- `autodocs/site/`
 
 Automatizacion CI:
 
@@ -337,7 +338,7 @@ Artefactos y docs relacionadas:
 - `FINAL_USAGE_GUIDE.md`
 - `ARCHITECTURE.md`
 - `AGENTS.md`
-- `docs/01-onboarding.md`
+- `autodocs/site/guides/01-onboarding.md`
 - `optimization/ALWAYS_ON_OPTIMIZATION.md`
 - `scripts/README.md`
 

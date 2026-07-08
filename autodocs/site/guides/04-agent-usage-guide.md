@@ -45,7 +45,7 @@ Casos de uso:
 
 - consolidar conocimiento tecnico desde `repo-intake/generated/`
 - recalcular grafo unificado incremental
-- proyectar Markdown en `projects/openwiki_projection/`
+- proyectar Markdown en `autodocs/site/`
 
 Comando canónico:
 
