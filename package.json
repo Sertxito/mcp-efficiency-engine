@@ -10,6 +10,7 @@
   },
   "files": [
     "bin/",
+    "telemetry/",
     "autodocs/README.md",
     "autodocs/schema/",
     "autolearning/",
