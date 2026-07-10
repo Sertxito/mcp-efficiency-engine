@@ -33,10 +33,11 @@ def run_routing(**kwargs: str) -> dict:
     )
     stdout = proc.stdout or ""
     brace = stdout.find("{")
-    last_brace = stdout.rfind("}")
-    if brace == -1 or last_brace == -1:
+    if brace == -1:
         raise ValueError(f"No JSON in output: {stdout[:200]}")
-    return json.loads(stdout[brace : last_brace + 1])
+    decoder = json.JSONDecoder()
+    payload, _ = decoder.raw_decode(stdout[brace:])
+    return payload
 
 
 def main() -> int:
