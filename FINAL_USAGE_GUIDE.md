@@ -85,6 +85,62 @@ Esto significa:
 - las fuentes se conservan cuando sean obligatorias,
 - el sistema solo aumenta detalle si el usuario o el caso lo requiere.
 
+## 7. Telemetry Engine
+
+El sistema incluye un engine de telemetría desacoplado con collector único.
+
+Flujo:
+
+```txt
+Componente -> TelemetryCollector -> Pipeline -> Exporters
+```
+
+Exporters soportados:
+
+- `console` (siempre disponible)
+- `json` (persistencia local en `.telemetry/`)
+- `langsmith` (opcional, solo con configuración válida)
+
+Si un exporter falla:
+
+- se registra warning,
+- los demás exporters continúan,
+- la ejecución principal no se detiene.
+
+### Configuración rápida
+
+Archivo `telemetry/config.json`:
+
+```json
+{
+  "telemetry": {
+    "enabled": true,
+    "batch_size": 25,
+    "telemetry_dir": ".telemetry",
+    "exporters": ["console", "json", "langsmith"]
+  },
+  "langsmith": {
+    "enabled": false,
+    "api_key": "",
+    "project": "",
+    "endpoint": ""
+  }
+}
+```
+
+### Cómo activar LangSmith
+
+1. Configurar `LANGSMITH_ENABLED=true`.
+2. Definir `LANGSMITH_API_KEY` y `LANGSMITH_PROJECT`.
+3. Mantener `langsmith` en `telemetry.exporters`.
+
+Si falta configuración, se omite automáticamente.
+
+### Cómo deshabilitar exporters
+
+- Desactivar todo: `TELEMETRY_ENABLED=false`
+- Solo algunos: `TELEMETRY_EXPORTERS=console,json`
+
 ## Diagrama Visual De Uso Diario
 
 ```mermaid

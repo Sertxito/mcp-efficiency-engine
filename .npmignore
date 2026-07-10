@@ -18,3 +18,10 @@ projects/
 repo-intake/generated/
 
 *.log
+
+# Secretos locales (no publicar en npm)
+.env
+.env.*
+**/.env
+**/.env.*
+**/.secrets/

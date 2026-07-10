@@ -1,5 +1,5 @@
 {
-  "last_updated": "sha256:d9a21dc130f6da62d7906f320fb1a64da180de42ba492b535cef3db219e2803b",
+  "last_updated": "sha256:b157a1616d114f60d51231ea31552cf9b4dc3ef448da13880434fcf944f38842",
   "nodes": {
     "repo-content::README.md": {
       "node_id": "repo-content::README.md",
@@ -3542,13 +3542,13 @@
       "node_id": "repo-content::observability/scoring-rubric.md",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "60648a576dbec600fb9fd2687bf7a6452587a9f8ac163d5f47e85d7203abdc68",
+      "checksum": "df43d8ba18e24eb0ba3a08181c0f627f102554b41293fe4cf98cfd571625bd0f",
       "title": "Scoring Rubric",
       "slug": "report-scoring-rubric-md",
       "kind": "report",
       "domain": "observability",
       "owner": "observability",
-      "summary": "Contenido report en observability/scoring-rubric.md.",
+      "summary": "> El score de eficiencia es nativo del Telemetry Engine y no depende de LangSmith.",
       "source_refs": [
         "observability/scoring-rubric.md"
       ],
@@ -3580,7 +3580,7 @@
         "kind": "report",
         "section": "observability",
         "domain": "observability",
-        "summary": "Contenido report en observability/scoring-rubric.md.",
+        "summary": "> El score de eficiencia es nativo del Telemetry Engine y no depende de LangSmith.",
         "owner": "observability",
         "source_refs": [
           "observability/scoring-rubric.md"
@@ -6038,14 +6038,14 @@
       "node_id": "repo-content::observability/scoring-rubric.md",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "60648a576dbec600fb9fd2687bf7a6452587a9f8ac163d5f47e85d7203abdc68",
+      "checksum": "df43d8ba18e24eb0ba3a08181c0f627f102554b41293fe4cf98cfd571625bd0f",
       "metadata": {
         "title": "Scoring Rubric",
         "slug": "report-scoring-rubric-md",
         "kind": "report",
         "section": "observability",
         "domain": "observability",
-        "summary": "Contenido report en observability/scoring-rubric.md.",
+        "summary": "> El score de eficiencia es nativo del Telemetry Engine y no depende de LangSmith.",
         "owner": "observability",
         "source_refs": [
           "observability/scoring-rubric.md"
@@ -9897,13 +9897,13 @@
       "node_id": "repo-content::observability/scoring-rubric.md",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "60648a576dbec600fb9fd2687bf7a6452587a9f8ac163d5f47e85d7203abdc68",
+      "checksum": "df43d8ba18e24eb0ba3a08181c0f627f102554b41293fe4cf98cfd571625bd0f",
       "title": "Scoring Rubric",
       "slug": "report-scoring-rubric-md",
       "kind": "report",
       "domain": "observability",
       "owner": "observability",
-      "summary": "Contenido report en observability/scoring-rubric.md.",
+      "summary": "> El score de eficiencia es nativo del Telemetry Engine y no depende de LangSmith.",
       "source_refs": [
         "observability/scoring-rubric.md"
       ],
@@ -9935,7 +9935,7 @@
         "kind": "report",
         "section": "observability",
         "domain": "observability",
-        "summary": "Contenido report en observability/scoring-rubric.md.",
+        "summary": "> El score de eficiencia es nativo del Telemetry Engine y no depende de LangSmith.",
         "owner": "observability",
         "source_refs": [
           "observability/scoring-rubric.md"
@@ -11227,7 +11227,7 @@
     },
     {
       "title": "Scoring Rubric",
-      "summary": "Contenido report en observability/scoring-rubric.md.",
+      "summary": "> El score de eficiencia es nativo del Telemetry Engine y no depende de LangSmith.",
       "kind": "report",
       "domain": "observability",
       "section": "observability",

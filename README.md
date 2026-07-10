@@ -245,6 +245,139 @@ Artefactos canónicos:
 
 ## Observabilidad
 
+### Telemetry Engine (desacoplado y extensible)
+
+La observabilidad ahora se soporta mediante un engine propio en `telemetry/`.
+
+Principios:
+
+- Telemetría siempre activa a nivel de modelo de datos.
+- Exporters opcionales (`console`, `json`, `langsmith`).
+- Ningún flujo de negocio depende de LangSmith.
+- Si un exporter falla, la ejecución principal continua.
+
+Arquitectura:
+
+```mermaid
+flowchart TD
+  T[Tool/Flow] --> C[TelemetryCollector]
+  C --> P[Telemetry Pipeline]
+  P --> EX1[Console Exporter]
+  P --> EX2[JSON Exporter]
+  P --> EX3[LangSmith Exporter]
+  P --> EXN[Future Exporters]
+```
+
+Trazas jerárquicas:
+
+- Cada ejecución genera `execution_id`, `trace_id`, `span_id`, `parent_span_id`.
+- Se propaga contexto con `contextvars` (sin variables globales).
+- Spans soportan `events`, `status`, `duration_ms` y error asociado.
+
+Configuración base (`telemetry/config.json`):
+
+```json
+{
+  "telemetry": {
+    "enabled": true,
+    "batch_size": 100,
+    "telemetry_dir": ".telemetry",
+    "exporters": ["console", "json"]
+  },
+  "langsmith": {
+    "enabled": false,
+    "api_key": "",
+    "project": "",
+    "endpoint": "",
+    "high_signal_only": true,
+    "min_span_duration_ms": 100,
+    "emit_execution_summary": true
+  }
+}
+```
+
+Conexión segura a LangSmith (sin subir token al repo/npm):
+
+1. No guardes el token en `telemetry/config.json`.
+2. Define variables de entorno locales (usuario o sesión).
+3. Activa exporter por entorno con `TELEMETRY_EXPORTERS=console,json,langsmith`.
+4. Verifica que `.env` y variantes están ignorados por Git y npm.
+
+Ejemplo (PowerShell, solo sesión actual):
+
+```powershell
+$env:LANGSMITH_ENABLED='true'
+$env:LANGSMITH_API_KEY='tu_token'
+$env:LANGSMITH_PROJECT='mcpee-local'
+$env:LANGSMITH_ENDPOINT='https://api.smith.langchain.com'
+$env:LANGSMITH_HIGH_SIGNAL_ONLY='true'
+$env:LANGSMITH_MIN_SPAN_DURATION_MS='100'
+$env:LANGSMITH_EMIT_EXECUTION_SUMMARY='true'
+$env:TELEMETRY_EXPORTERS='console,json,langsmith'
+```
+
+Persistente para tu usuario Windows:
+
+```powershell
+[System.Environment]::SetEnvironmentVariable('LANGSMITH_ENABLED','true','User')
+[System.Environment]::SetEnvironmentVariable('LANGSMITH_API_KEY','tu_token','User')
+[System.Environment]::SetEnvironmentVariable('LANGSMITH_PROJECT','mcpee-local','User')
+[System.Environment]::SetEnvironmentVariable('LANGSMITH_ENDPOINT','https://api.smith.langchain.com','User')
+[System.Environment]::SetEnvironmentVariable('LANGSMITH_HIGH_SIGNAL_ONLY','true','User')
+[System.Environment]::SetEnvironmentVariable('LANGSMITH_MIN_SPAN_DURATION_MS','100','User')
+[System.Environment]::SetEnvironmentVariable('LANGSMITH_EMIT_EXECUTION_SUMMARY','true','User')
+[System.Environment]::SetEnvironmentVariable('TELEMETRY_EXPORTERS','console,json,langsmith','User')
+
+Modo high-signal recomendado en LangSmith:
+
+- `LANGSMITH_HIGH_SIGNAL_ONLY=true` (default): prioriza trazas útiles y reduce ruido.
+- `LANGSMITH_MIN_SPAN_DURATION_MS=100` (default): solo mantiene spans rápidos cuando fallan; los de éxito deben superar el umbral.
+- `LANGSMITH_EMIT_EXECUTION_SUMMARY=true` (default): añade un resumen consolidado por ejecución (duración, estado, warnings/errors, tokens/coste).
+- Mantiene eventos clave (`ExecutionStarted`, `ExecutionFinished`, `RoutingResolved`, warnings/errores) y resumen `UsageSummary` con modelo/tokens/coste.
+- Omite eventos de bajo valor para la UI de LangSmith, pero conserva debug detallado en exporters locales (`console`, `json`).
+```
+
+Para volver al modo local sin LangSmith:
+
+```powershell
+$env:LANGSMITH_ENABLED='false'
+$env:TELEMETRY_EXPORTERS='console,json'
+```
+
+Variables de entorno soportadas:
+
+- `TELEMETRY_ENABLED`
+- `TELEMETRY_EXPORTERS`
+- `TELEMETRY_BATCH_SIZE`
+- `TELEMETRY_DIR`
+- `LANGSMITH_ENABLED`
+- `LANGSMITH_API_KEY`
+- `LANGSMITH_PROJECT`
+- `LANGSMITH_ENDPOINT`
+- `LANGSMITH_WORKSPACE_ID` (opcional, recomendado para cuentas con multiples workspaces)
+
+Nota: el engine carga automáticamente `.env` en la raíz del repo. Si también existe variable en el entorno del sistema/proceso, esa tiene prioridad.
+
+Dependencia runtime: `langsmith` está incluida en `requirements.txt` para que `scripts/setup/setup-prerequisites.ps1` la instale automáticamente cuando prepares el entorno Python.
+
+Cómo crear un exporter nuevo:
+
+1. Implementar contrato `export/flush/shutdown` en `telemetry/exporters/<nuevo>/exporter.py`.
+2. Registrar el exporter en `telemetry/bootstrap.py`.
+3. Añadirlo en `telemetry/config.json` o `TELEMETRY_EXPORTERS`.
+
+Si LangSmith no está configurado correctamente, el exporter se omite y el engine sigue funcionando con `console/json`.
+
+Benchmark de overhead on/off:
+
+```powershell
+py -3 .\scripts\ops\telemetry-benchmark.py --iterations 10
+```
+
+Salida:
+
+- `observability/evals/telemetry-overhead-benchmark.json`
+
 Registros principales:
 
 - `observability/logs/routing-decisions.jsonl`

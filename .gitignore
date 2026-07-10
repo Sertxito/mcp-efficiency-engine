@@ -29,3 +29,15 @@ context/repomix/repomix-output.xml
 observability/logs/copilot-usage-ingest-report.json
 observability/logs/iteration-metrics.jsonl
 node_modules
+
+# Secretos locales (no versionar)
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+**/.secrets/
+
+# Telemetria local runtime
+.telemetry/
+**/.telemetry/

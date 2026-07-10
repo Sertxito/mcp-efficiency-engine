@@ -2,10 +2,17 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+from telemetry import build_telemetry_collector
 
 try:
     import yaml  # type: ignore
@@ -477,6 +484,7 @@ def main() -> int:
         return 1
 
     repo_root = Path(__file__).resolve().parents[2]
+    collector = build_telemetry_collector(repo_root)
     registry = load_registry((repo_root / args.registry).resolve())
     capabilities = load_capability_index((repo_root / args.generated_root).resolve())
     manifests = load_manifest_index((repo_root / args.generated_root).resolve())
@@ -525,93 +533,122 @@ def main() -> int:
         fallback=fallback,
         notes=notes,
     )
-    event = {
-        "event_id": event_id,
-        "timestamp": utc_now(),
-        "input": args.input,
-        "intent": args.intent,
-        "domain": normalized_domain,
-        "source_type": args.source_type,
-        "agent": route["agent"],
-        "engine": route["engine"],
-        "optimization_profile": f"{token_saver_profile}+{caveman_profile}",
-        "fallback": fallback,
-        "grounded": grounded,
-        "sources": sources,
-        "notes": ";".join(notes) if notes else "",
-        "prompt": {
-            "selected": selected_prompt,
-            "exists": prompt_exists,
-            "selection_mode": "auto",
-        },
-        "skill": {
-            "selected": selected_skill,
-            "exists": skill_exists,
-            "selection_mode": "auto",
-        },
-        "optimization": {
-            "token_saver": "always_on",
-            "token_saver_profile": token_saver_profile,
-            "caveman": "always_on",
-            "caveman_profile": caveman_profile,
-            "sources_preserved": True,
-            "context_reduction_strategy": context_strategy,
-        },
-        "memory": {
-            "selected": selected_memories,
-            "reason": memory_reason,
-        },
-        "requirements": runtime_requirements_for_route(args.source_type, route["engine"]),
-        "learning": {
-            "used_pattern": f"{normalized_domain}+{args.intent}",
-            # Real success must be written post-execution by the feedback updater.
-            "success": None,
-            "outcome_status": "pending",
-            "fallback": fallback,
-            "confidence": 0.9 if not fallback else 0.7,
-        },
-        "hitl": hitl,
-    }
+    with collector.start_execution(
+        operation="resolve-routing",
+        request_id=event_id,
+        session_id="intake-routing",
+        correlation_id=event_id,
+        execution_id=event_id,
+        model=str(args.model),
+    ):
+        with collector.start_span(name="routing-resolution", kind="INTERNAL", attributes={"intent": args.intent, "domain": normalized_domain}):
+            event = {
+                "event_id": event_id,
+                "timestamp": utc_now(),
+                "input": args.input,
+                "intent": args.intent,
+                "domain": normalized_domain,
+                "source_type": args.source_type,
+                "agent": route["agent"],
+                "engine": route["engine"],
+                "optimization_profile": f"{token_saver_profile}+{caveman_profile}",
+                "fallback": fallback,
+                "grounded": grounded,
+                "sources": sources,
+                "notes": ";".join(notes) if notes else "",
+                "prompt": {
+                    "selected": selected_prompt,
+                    "exists": prompt_exists,
+                    "selection_mode": "auto",
+                },
+                "skill": {
+                    "selected": selected_skill,
+                    "exists": skill_exists,
+                    "selection_mode": "auto",
+                },
+                "optimization": {
+                    "token_saver": "always_on",
+                    "token_saver_profile": token_saver_profile,
+                    "caveman": "always_on",
+                    "caveman_profile": caveman_profile,
+                    "sources_preserved": True,
+                    "context_reduction_strategy": context_strategy,
+                },
+                "memory": {
+                    "selected": selected_memories,
+                    "reason": memory_reason,
+                },
+                "requirements": runtime_requirements_for_route(args.source_type, route["engine"]),
+                "learning": {
+                    "used_pattern": f"{normalized_domain}+{args.intent}",
+                    # Real success must be written post-execution by the feedback updater.
+                    "success": None,
+                    "outcome_status": "pending",
+                    "fallback": fallback,
+                    "confidence": 0.9 if not fallback else 0.7,
+                },
+                "hitl": hitl,
+            }
 
-    if has_input_tokens and has_output_tokens:
-        total_tokens = args.input_tokens + args.output_tokens
-        event["usage"] = {
-            "input_tokens": args.input_tokens,
-            "output_tokens": args.output_tokens,
-            "total_tokens": total_tokens,
-            "estimated_cost_usd": round(float(args.estimated_cost_usd), 6),
-        }
+            if has_input_tokens and has_output_tokens:
+                total_tokens = args.input_tokens + args.output_tokens
+                event["usage"] = {
+                    "input_tokens": args.input_tokens,
+                    "output_tokens": args.output_tokens,
+                    "total_tokens": total_tokens,
+                    "estimated_cost_usd": round(float(args.estimated_cost_usd), 6),
+                }
+                collector.record_usage(
+                    input_tokens=args.input_tokens,
+                    output_tokens=args.output_tokens,
+                    estimated_cost_usd=float(args.estimated_cost_usd),
+                )
 
-    metrics_recorded = False
-    metrics_output_path = ""
-    if has_input_tokens and has_output_tokens:
-        metric = build_iteration_metric(
-            event_id=event_id,
-            model=str(args.model),
-            input_tokens=args.input_tokens,
-            output_tokens=args.output_tokens,
-            estimated_cost_usd=float(args.estimated_cost_usd),
-            local_tools=args.local_tools,
-            remote_tools=args.remote_tools,
-            notes="auto-recorded by resolve-routing",
-        )
-        metrics_path = (repo_root / args.metrics_output).resolve()
-        append_jsonl(metrics_path, metric)
-        metrics_recorded = True
-        metrics_output_path = args.metrics_output.replace("\\", "/")
+            metrics_recorded = False
+            metrics_output_path = ""
+            if has_input_tokens and has_output_tokens:
+                metric = build_iteration_metric(
+                    event_id=event_id,
+                    model=str(args.model),
+                    input_tokens=args.input_tokens,
+                    output_tokens=args.output_tokens,
+                    estimated_cost_usd=float(args.estimated_cost_usd),
+                    local_tools=args.local_tools,
+                    remote_tools=args.remote_tools,
+                    notes="auto-recorded by resolve-routing",
+                )
+                metrics_path = (repo_root / args.metrics_output).resolve()
+                append_jsonl(metrics_path, metric)
+                metrics_recorded = True
+                metrics_output_path = args.metrics_output.replace("\\", "/")
 
-    event["telemetry"] = {
-        "iteration_metrics_recorded": metrics_recorded,
-        "metrics_output": metrics_output_path,
-    }
+            event["telemetry"] = {
+                "iteration_metrics_recorded": metrics_recorded,
+                "metrics_output": metrics_output_path,
+            }
 
-    output_path = (repo_root / args.output).resolve()
-    append_jsonl(output_path, event)
+            collector.record_event(
+                "RoutingResolved",
+                {
+                    "event_id": event_id,
+                    "intent": args.intent,
+                    "domain": normalized_domain,
+                    "agent": route["agent"],
+                    "engine": route["engine"],
+                    "fallback": fallback,
+                    "grounded": grounded,
+                },
+            )
 
-    print(json.dumps(event, indent=2, ensure_ascii=False))
-    print(f"Event appended to: {output_path}")
-    if metrics_recorded:
-        print(f"Metrics appended to: {metrics_output_path}")
+            output_path = (repo_root / args.output).resolve()
+            append_jsonl(output_path, event)
+
+            print(json.dumps(event, indent=2, ensure_ascii=False))
+            print(f"Event appended to: {output_path}")
+            if metrics_recorded:
+                print(f"Metrics appended to: {metrics_output_path}")
+
+    collector.shutdown()
     return 0
 
 

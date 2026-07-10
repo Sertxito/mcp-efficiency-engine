@@ -1,0 +1,20 @@
+{
+  "telemetry": {
+    "enabled": true,
+    "batch_size": 100,
+    "telemetry_dir": ".telemetry",
+    "exporters": [
+      "console",
+      "json"
+    ]
+  },
+  "langsmith": {
+    "enabled": false,
+    "api_key": "",
+    "project": "",
+    "endpoint": "",
+    "high_signal_only": true,
+    "min_span_duration_ms": 100,
+    "emit_execution_summary": true
+  }
+}

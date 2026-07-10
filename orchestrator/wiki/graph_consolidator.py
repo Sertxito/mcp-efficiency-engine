@@ -11,12 +11,21 @@ SECTIONS = section_catalog()
 
 
 class GraphConsolidator:
-    def __init__(self, output_graph_path: Path, markdown_output_dir: Path) -> None:
+    def __init__(self, output_graph_path: Path, markdown_output_dir: Path, telemetry_collector: Any | None = None) -> None:
         self.output_graph_path = output_graph_path
         self.markdown_output_dir = markdown_output_dir
         self.generated_output_dir = output_graph_path.parent
+        self._telemetry = telemetry_collector
 
     def consolidate(self, provider_contracts: List[Dict[str, Any]]) -> Dict[str, Any]:
+        if self._telemetry is not None:
+            self._telemetry.record_event(
+                "KnowledgeGenerated",
+                {
+                    "operation": "graph_consolidate_start",
+                    "provider_contracts": len(provider_contracts),
+                },
+            )
         raw_nodes: Dict[str, Dict[str, Any]] = {}
         wiki_nodes: Dict[str, Dict[str, Any]] = {}
         for contract in provider_contracts:
@@ -54,6 +63,17 @@ class GraphConsolidator:
         relations_index = self._build_relations_index(wiki_nodes)
         section_manifest = self._build_section_manifest(wiki_nodes)
 
+        if self._telemetry is not None:
+            self._telemetry.record_metric("tool_invocations", float(len(provider_contracts)), unit="count")
+            self._telemetry.record_metric("cache_misses", 0.0, unit="count")
+            self._telemetry.record_event(
+                "KnowledgeGenerated",
+                {
+                    "operation": "graph_consolidate_finish",
+                    "nodes": len(wiki_nodes),
+                },
+            )
+
         return {
             "last_updated": self._deterministic_marker(wiki_nodes),
             "nodes": wiki_nodes,
@@ -71,11 +91,23 @@ class GraphConsolidator:
         return f"sha256:{digest}"
 
     def persist_graph(self, unified_graph: Dict[str, Any]) -> None:
+        if self._telemetry is not None:
+            self._telemetry.record_event("ToolStarted", {"tool": "persist_graph"})
         self.output_graph_path.parent.mkdir(parents=True, exist_ok=True)
         with self.output_graph_path.open("w", encoding="utf-8") as handle:
             json.dump(unified_graph, handle, indent=2, ensure_ascii=True)
+        if self._telemetry is not None:
+            self._telemetry.record_event(
+                "ToolFinished",
+                {
+                    "tool": "persist_graph",
+                    "path": str(self.output_graph_path),
+                },
+            )
 
     def persist_manifests(self, unified_graph: Dict[str, Any]) -> Dict[str, int]:
+        if self._telemetry is not None:
+            self._telemetry.record_event("ToolStarted", {"tool": "persist_manifests"})
         self.generated_output_dir.mkdir(parents=True, exist_ok=True)
         artifacts = {
             "search-index.json": unified_graph.get("search_index", []),
@@ -87,6 +119,14 @@ class GraphConsolidator:
             output_path = self.generated_output_dir / file_name
             with output_path.open("w", encoding="utf-8") as handle:
                 json.dump(payload, handle, indent=2, ensure_ascii=True)
+        if self._telemetry is not None:
+            self._telemetry.record_event(
+                "ToolFinished",
+                {
+                    "tool": "persist_manifests",
+                    "manifests": len(artifacts),
+                },
+            )
         return {"manifests": len(artifacts)}
 
     def project_dirty_nodes(
@@ -96,6 +136,15 @@ class GraphConsolidator:
         all_nodes: Dict[str, Dict[str, Any]],
         cached_nodes: Dict[str, Dict[str, Any]],
     ) -> Dict[str, int]:
+        if self._telemetry is not None:
+            self._telemetry.record_event(
+                "ToolStarted",
+                {
+                    "tool": "project_dirty_nodes",
+                    "dirty_nodes": len(dirty_nodes),
+                    "deleted_nodes": len(deleted_nodes),
+                },
+            )
         self.markdown_output_dir.mkdir(parents=True, exist_ok=True)
 
         rendered = 0
@@ -124,6 +173,16 @@ class GraphConsolidator:
                 deleted += 1
 
         indexes = self._render_index_pages(all_nodes)
+        if self._telemetry is not None:
+            self._telemetry.record_event(
+                "ToolFinished",
+                {
+                    "tool": "project_dirty_nodes",
+                    "rendered": rendered,
+                    "deleted": deleted,
+                    "indexes": indexes,
+                },
+            )
         return {
             "rendered": rendered,
             "deleted": deleted,

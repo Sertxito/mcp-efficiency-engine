@@ -1,8 +1,8 @@
 # Known Risks
 
 <!-- AUTO-GENERATED:START -->
-- updated_at: 2026-07-05T09:54:50.419202+00:00
-- pending_feedback: pending_events=197/282 (69.86%).
-- incomplete_metrics: metrics_coverage_rate=3.03%.
-- incomplete_feedback: confirmed_feedback_rate=36.8%.
+- updated_at: 2026-07-10T13:03:51.985095+00:00
+- pending_feedback: pending_events=198/342 (57.89%).
+- incomplete_metrics: metrics_coverage_rate=2.83%.
+- incomplete_feedback: confirmed_feedback_rate=40.89%.
 <!-- AUTO-GENERATED:END -->
