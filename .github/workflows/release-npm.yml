@@ -1,0 +1,65 @@
+name: Release & Publish NPM
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  release-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - name: Read package version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure NPM token is configured
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN}" ]; then
+            echo "Missing NODE_AUTH_TOKEN/NPM_TOKEN secret. Configure repository secret NPM_TOKEN."
+            exit 1
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Ensure version is not already published
+        run: |
+          if npm view "mcp-efficiency-engine@${{ steps.version.outputs.version }}" version >/dev/null 2>&1; then
+            echo "Version ${{ steps.version.outputs.version }} is already published in npm."
+            echo "Bump package.json version before merging to main."
+            exit 1
+          fi
+
+      - name: Remove Python cache artifacts from workspace
+        run: |
+          find . -type d -name "__pycache__" -prune -exec rm -rf {} +
+          find . -type f -name "*.pyc" -delete
+
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          generate_release_notes: true
