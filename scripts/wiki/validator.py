@@ -4,10 +4,11 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from scripts.wiki.normalizer import section_catalog
+from telemetry import build_telemetry_collector
 
 
 class WikiValidator:
-    def __init__(self, schema_path: Path) -> None:
+    def __init__(self, schema_path: Path, telemetry_collector: Any | None = None) -> None:
         self.schema_path = schema_path
         self.allowed_sections = {section["id"] for section in section_catalog()}
         self.allowed_kinds = {
@@ -20,27 +21,51 @@ class WikiValidator:
             "report",
             "capability",
         }
+        self._telemetry = telemetry_collector
+
+    def _collector(self) -> Any:
+        if self._telemetry is None:
+            repo_root = Path(__file__).resolve().parents[2]
+            self._telemetry = build_telemetry_collector(repo_root)
+        return self._telemetry
 
     def validate(self, wiki_nodes: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+        collector = self._collector()
         errors: List[Dict[str, Any]] = []
         warnings: List[Dict[str, Any]] = []
         info: List[Dict[str, Any]] = []
         slug_registry: Dict[str, str] = {}
 
-        if not self.schema_path.exists():
-            warnings.append(self._issue("schema", "schema_missing", "Schema file not found", "warning"))
+        with collector.start_execution(operation="wiki-validator", session_id="autodocs"):
+            with collector.start_span(name="wiki.validate", kind="INTERNAL", attributes={"node_count": len(wiki_nodes)}):
+                if not self.schema_path.exists():
+                    warnings.append(self._issue("schema", "schema_missing", "Schema file not found", "warning"))
+                    collector.record_event("WarningGenerated", {"warning": "schema_missing", "schema_path": str(self.schema_path)}, level="WARNING")
 
-        for node_key, node in wiki_nodes.items():
-            self._validate_required(node_key, node, errors)
-            self._validate_kind(node_key, node, errors)
-            self._validate_section(node_key, node, errors)
-            self._validate_slug(node_key, node, slug_registry, errors)
-            self._validate_sources(node_key, node, warnings)
-            self._validate_summary(node_key, node, warnings)
-            self._validate_relations(node_key, node, wiki_nodes, errors)
+                for node_key, node in wiki_nodes.items():
+                    self._validate_required(node_key, node, errors)
+                    self._validate_kind(node_key, node, errors)
+                    self._validate_section(node_key, node, errors)
+                    self._validate_slug(node_key, node, slug_registry, errors)
+                    self._validate_sources(node_key, node, warnings)
+                    self._validate_summary(node_key, node, warnings)
+                    self._validate_relations(node_key, node, wiki_nodes, errors)
 
-        quality_score = self._quality_score(total=len(wiki_nodes), errors=len(errors), warnings=len(warnings))
-        info.append(self._issue("summary", "quality_score", f"quality_score={quality_score}", "info"))
+                quality_score = self._quality_score(total=len(wiki_nodes), errors=len(errors), warnings=len(warnings))
+                info.append(self._issue("summary", "quality_score", f"quality_score={quality_score}", "info"))
+
+                collector.record_metric("warning_count", float(len(warnings)), unit="count")
+                collector.record_metric("error_count", float(len(errors)), unit="count")
+                collector.record_metric("quality_score", float(quality_score), unit="score")
+                collector.record_event(
+                    "MetricCalculated",
+                    {
+                        "node_count": len(wiki_nodes),
+                        "error_count": len(errors),
+                        "warning_count": len(warnings),
+                        "quality_score": quality_score,
+                    },
+                )
 
         signature = hashlib.sha256(
             json.dumps(wiki_nodes, sort_keys=True, ensure_ascii=True, separators=(",", ":")).encode("utf-8")

@@ -16,4 +16,4 @@ Telemetria, metricas y reportes del sistema.
 - [Optimization fields](report-logs-schema-md.md) - Schema: timestamp, input, intent, source_type, agent, engine, optimization_profile, fallback, grounded, sources, notes.
 - [Routing Decision Event](report-logs-schema-json.md) - Artefacto JSON de tipo report en observability/logs.schema.json.
 - [Routing Evaluator](report-routing-evaluator-md.md) - Comparar routing real contra matriz esperada.
-- [Scoring Rubric](report-scoring-rubric-md.md) - Contenido report en observability/scoring-rubric.md.
+- [Scoring Rubric](report-scoring-rubric-md.md) - > El score de eficiencia es nativo del Telemetry Engine y no depende de LangSmith.

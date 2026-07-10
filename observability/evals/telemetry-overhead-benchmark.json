@@ -1,0 +1,27 @@
+{
+  "timestamp": "2026-07-09T22:49:02.900111+00:00",
+  "workload": "scripts/intake/resolve-routing.py",
+  "iterations": 10,
+  "with_telemetry": {
+    "telemetry_enabled": true,
+    "iterations": 10,
+    "failures": 0,
+    "avg_ms": 777.015,
+    "min_ms": 732.989,
+    "max_ms": 805.808,
+    "p95_ms": 805.808
+  },
+  "without_telemetry": {
+    "telemetry_enabled": false,
+    "iterations": 10,
+    "failures": 0,
+    "avg_ms": 806.232,
+    "min_ms": 752.67,
+    "max_ms": 873.75,
+    "p95_ms": 873.75
+  },
+  "overhead": {
+    "avg_ms": -29.217,
+    "avg_pct": -3.624
+  }
+}

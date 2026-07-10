@@ -223,7 +223,7 @@
   },
   {
     "title": "Scoring Rubric",
-    "summary": "Contenido report en observability/scoring-rubric.md.",
+    "summary": "> El score de eficiencia es nativo del Telemetry Engine y no depende de LangSmith.",
     "kind": "report",
     "domain": "observability",
     "section": "observability",

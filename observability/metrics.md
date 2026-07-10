@@ -28,6 +28,39 @@ Métricas: routing accuracy, tool usage, tool misuse, tool switching, grounding 
 - token_efficiency: tendencia estable o mejorando
 - caveman_effectiveness: `>= 85%`
 
+## Telemetry Engine native metrics
+
+El engine expone métricas propias y no depende de proveedores externos:
+
+- execution_time_ms
+- tool_duration_ms
+- average_duration_ms
+- parallel_tasks
+- sequential_tasks
+- retry_count
+- error_count
+- warning_count
+- llm_calls
+- provider_calls
+- mcp_calls
+- tool_invocations
+- tokens_input
+- tokens_output
+- total_tokens
+- estimated_cost
+- cache_hits
+- cache_misses
+- compression_ratio
+- parallel_efficiency
+- prompt_reduction
+- context_reduction
+- efficiency_score (0-100)
+
+Los cálculos viven en:
+
+- `telemetry/metrics/aggregator.py`
+- `telemetry/scoring/efficiency.py`
+
 ## Semaforo
 
 - `OK`: todos los umbrales en rango.

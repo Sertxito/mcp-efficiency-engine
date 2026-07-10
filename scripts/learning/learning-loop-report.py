@@ -2,10 +2,17 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+from telemetry import build_telemetry_collector
 
 
 def utc_now() -> str:
@@ -247,24 +254,35 @@ def main() -> int:
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[2]
+    collector = build_telemetry_collector(repo_root)
     in_path = (repo_root / args.input).resolve()
     feedback_path = (repo_root / args.feedback).resolve()
     out_json = (repo_root / args.out_json).resolve()
     out_md = (repo_root / args.out_md).resolve()
 
-    events = parse_events(in_path)
-    feedback = parse_feedback(feedback_path)
-    report = build_report(events, str(in_path), feedback, str(feedback_path))
+    with collector.start_execution(operation="learning-loop-report", session_id="learning"):
+        with collector.start_span(name="learning.report.build", kind="INTERNAL"):
+            events = parse_events(in_path)
+            feedback = parse_feedback(feedback_path)
+            report = build_report(events, str(in_path), feedback, str(feedback_path))
 
-    out_json.parent.mkdir(parents=True, exist_ok=True)
-    out_md.parent.mkdir(parents=True, exist_ok=True)
+            out_json.parent.mkdir(parents=True, exist_ok=True)
+            out_md.parent.mkdir(parents=True, exist_ok=True)
 
-    out_json.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    out_md.write_text(report_to_markdown(report), encoding="utf-8")
+            out_json.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            out_md.write_text(report_to_markdown(report), encoding="utf-8")
 
-    print(f"Learning events processed: {len(events)}")
-    print(f"Report JSON: {out_json}")
-    print(f"Report MD: {out_md}")
+            kpis = report.get("kpis", {}) if isinstance(report.get("kpis", {}), dict) else {}
+            collector.record_metric("tool_invocations", float(report.get("total_events", 0)), unit="count")
+            collector.record_metric("fallback_rate", float(kpis.get("fallback_rate", 0.0)), unit="ratio")
+            collector.record_metric("grounded_rate", float(kpis.get("grounded_rate", 0.0)), unit="ratio")
+            collector.record_metric("confidence_avg", float(kpis.get("confidence_avg", 0.0)), unit="score")
+
+            print(f"Learning events processed: {len(events)}")
+            print(f"Report JSON: {out_json}")
+            print(f"Report MD: {out_md}")
+
+    collector.shutdown()
     return 0
 
 

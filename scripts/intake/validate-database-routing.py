@@ -31,13 +31,22 @@ def run_routing(**kwargs: str) -> dict:
         encoding="utf-8",
         errors="replace"
     )
-    # Output contains a JSON block followed by a trailing log line; extract JSON.
+    # Output can include telemetry lines after the main event JSON.
+    # Decode only the first valid JSON object from stdout.
     stdout = proc.stdout or ""
     brace = stdout.find("{")
-    last_brace = stdout.rfind("}")
-    if brace == -1 or last_brace == -1:
+    if brace == -1:
         raise ValueError(f"No JSON in output: {stdout[:200]}")
-    return json.loads(stdout[brace : last_brace + 1])
+
+    decoder = json.JSONDecoder()
+    try:
+        payload, _ = decoder.raw_decode(stdout[brace:])
+    except Exception as exc:
+        raise ValueError(f"Invalid JSON payload in output: {stdout[:200]}") from exc
+
+    if not isinstance(payload, dict):
+        raise ValueError(f"Expected JSON object in output, got: {type(payload).__name__}")
+    return payload
 
 
 def main() -> int:
