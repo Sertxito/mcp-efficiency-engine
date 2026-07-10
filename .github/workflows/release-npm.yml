@@ -3,6 +3,12 @@ name: Release & Publish NPM
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      npm_version:
+        description: "Version especifica a publicar (ej. 0.2.0). Si se omite, se autoajusta."
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -23,12 +29,51 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org
 
-      - name: Read package version
+      - name: Resolve publish version
         id: version
         run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          BASE_VERSION=$(node -p "require('./package.json').version")
+          REQUESTED_VERSION="${{ github.event.inputs.npm_version || '' }}"
+
+          version_exists() {
+            npm view "$PACKAGE_NAME@$1" version >/dev/null 2>&1
+          }
+
+          if [ -n "$REQUESTED_VERSION" ]; then
+            TARGET_VERSION="$REQUESTED_VERSION"
+            MODE="explicit"
+          else
+            TARGET_VERSION="$BASE_VERSION"
+            MODE="auto"
+          fi
+
+          if [ "$MODE" = "explicit" ]; then
+            if version_exists "$TARGET_VERSION"; then
+              echo "Requested version $TARGET_VERSION is already published in npm."
+              exit 1
+            fi
+          else
+            CANDIDATE="$TARGET_VERSION"
+            while version_exists "$CANDIDATE"; do
+              CANDIDATE=$(node -e "const parts = process.argv[1].split('.').map(Number); if (parts.length !== 3 || parts.some(Number.isNaN)) { process.exit(2); } parts[2] += 1; process.stdout.write(parts.join('.'));" "$CANDIDATE") || {
+                echo "Cannot auto-bump non x.y.z version: $CANDIDATE"
+                exit 1
+              }
+            done
+            TARGET_VERSION="$CANDIDATE"
+          fi
+
+          CHANGED=false
+          if [ "$TARGET_VERSION" != "$BASE_VERSION" ]; then
+            npm version "$TARGET_VERSION" --no-git-tag-version
+            CHANGED=true
+          fi
+
+          echo "version=$TARGET_VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$TARGET_VERSION" >> "$GITHUB_OUTPUT"
+          echo "changed=$CHANGED" >> "$GITHUB_OUTPUT"
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
 
       - name: Ensure NPM token is configured
         run: |
@@ -39,14 +84,6 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Ensure version is not already published
-        run: |
-          if npm view "mcp-efficiency-engine@${{ steps.version.outputs.version }}" version >/dev/null 2>&1; then
-            echo "Version ${{ steps.version.outputs.version }} is already published in npm."
-            echo "Bump package.json version before merging to main."
-            exit 1
-          fi
-
       - name: Remove Python cache artifacts from workspace
         run: |
           find . -type d -name "__pycache__" -prune -exec rm -rf {} +
@@ -56,6 +93,15 @@ jobs:
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Sync package.json version to repository
+        if: steps.version.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          git commit -m "chore(release): sync npm version to ${{ steps.version.outputs.tag }} [skip ci]"
+          git push
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
