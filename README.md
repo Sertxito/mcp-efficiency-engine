@@ -118,6 +118,7 @@ Contrato global en `AGENTS.md`:
 - `rag-azure` -> `Azure RAG Builder`
 - `iot` -> `GitNexus/CodeGraph + Graphify`
 - `community-manager` -> `Graphify`
+- `wiki-agent` -> `CodeGraph` (fallback `Graphify`)
 - `snapshot` -> `Repomix`
 
 ## Motores Y Herramientas

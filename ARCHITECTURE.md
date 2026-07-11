@@ -7,21 +7,27 @@ flowchart TD
     O --> A[Agents Layer]
 
     A --> DEV[backend]
+    A --> FE[frontend-agent]
     A --> LEG[legacy]
     A --> DBA[dba]
+    A --> UX[ux-ui]
     A --> RAG[rag-local]
     A --> AZ[rag-azure]
     A --> IOT[iot]
     A --> COM[community-manager]
+    A --> WIKI[wiki-agent]
     A --> SNAP[snapshot]
 
     DEV --> TS[Token Saver Policy]
+    FE --> TS
     LEG --> TS
     DBA --> TS
+    UX --> TS
     RAG --> TS
     AZ --> TS
     IOT --> TS
     COM --> TS
+    WIKI --> TS
     SNAP --> TS
 
     TS --> CG[CodeGraph]
@@ -55,3 +61,12 @@ Token Saver optimiza qué contexto se usa.
 Routing decide qué motor se usa.
 Observability mide si todo funciona.
 ```
+
+## Routing base (resumen)
+
+- `backend` y `frontend-agent` -> `CodeGraph`
+- `legacy` -> `GitNexus`
+- `dba`, `ux-ui`, `rag-local`, `community-manager` -> `Graphify`
+- `rag-azure` -> `Azure RAG Builder`
+- `wiki-agent` -> `CodeGraph` (fallback `Graphify`)
+- `snapshot` -> `Repomix`
