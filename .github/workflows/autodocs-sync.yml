@@ -30,6 +30,55 @@ jobs:
         run: py -3 -m scripts.wiki.wiki_compiler
         shell: pwsh
 
+      - name: Ensure npm README is updated when package surface changes
+        shell: pwsh
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          $script = @'
+          const fs = require("node:fs");
+          const { execSync } = require("node:child_process");
+
+          const baseSha = process.env.BASE_SHA;
+          if (!baseSha) {
+            console.log("BASE_SHA is not available; skipping npm README check.");
+            process.exit(0);
+          }
+
+          const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+          const publishEntries = (pkg.files || []).map((entry) =>
+            entry.startsWith("./") ? entry.slice(2) : entry
+          );
+
+          const changed = execSync("git diff --name-only " + baseSha + "...HEAD", { encoding: "utf8" })
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .filter(Boolean);
+
+          const readmeChanged = changed.includes("README.md");
+          const isNpmRelevant = (file) =>
+            file === "package.json" ||
+            file === "package-lock.json" ||
+            publishEntries.some((entry) => (entry.endsWith("/") ? file.startsWith(entry) : file === entry));
+
+          const npmRelevantChanges = changed.filter((file) => file !== "README.md" && isNpmRelevant(file));
+          if (npmRelevantChanges.length > 0 && !readmeChanged) {
+            console.error("Detected npm-impacting changes without README.md update.");
+            console.error("npm-impacting files:");
+            for (const file of npmRelevantChanges) console.error("- " + file);
+            console.error("Please update README.md (npm docs) in the same PR.");
+            process.exit(1);
+          }
+
+          if (npmRelevantChanges.length > 0) {
+            console.log("npm-impacting changes detected and README.md was updated.");
+          } else {
+            console.log("No npm-impacting changes detected.");
+          }
+          '@
+
+          node -e $script
+
       - name: Validate generated artifacts are committed
         shell: pwsh
         run: |
