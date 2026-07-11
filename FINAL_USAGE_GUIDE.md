@@ -85,7 +85,30 @@ Esto significa:
 - las fuentes se conservan cuando sean obligatorias,
 - el sistema solo aumenta detalle si el usuario o el caso lo requiere.
 
-## 7. Telemetry Engine
+## 7. Instalación desde npm (rápido)
+
+Instalación recomendada en proyecto host:
+
+```powershell
+npm install mcp-efficiency-engine
+```
+
+Si el entorno bloquea scripts de npm (`allow-scripts`), ejecutar manualmente:
+
+```powershell
+npx mcp-efficiency-engine install
+npx mcp-efficiency-engine validate -PortableMode
+```
+
+Validación de contenido publicado en npm:
+
+```powershell
+npm pack --dry-run
+```
+
+Debe listar, como mínimo, `bin/`, `scripts/`, `.github/`, `README.md`, `AGENTS.md`, `ARCHITECTURE.md` y `FINAL_USAGE_GUIDE.md`.
+
+## 8. Telemetry Engine
 
 El sistema incluye un engine de telemetría desacoplado con collector único.
 
