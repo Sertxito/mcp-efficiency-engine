@@ -73,6 +73,26 @@ function Test-CommandAvailable {
     return [bool](Get-Command $Name -ErrorAction SilentlyContinue)
 }
 
+function Ensure-SetupPrerequisites {
+    if ($script:SetupAttempted) {
+        if (-not $script:SetupSucceeded) {
+            throw 'setup-prerequisites was already attempted and failed earlier in this run'
+        }
+        return $true
+    }
+
+    $script:SetupAttempted = $true
+    Write-Host '[info] Missing prerequisite detected. Running setup-prerequisites automatically...' -ForegroundColor DarkYellow
+    & pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup\setup-prerequisites.ps1 -PortableMode
+    if ($LASTEXITCODE -ne 0) {
+        $script:SetupSucceeded = $false
+        throw "setup-prerequisites failed with exit code $LASTEXITCODE"
+    }
+
+    $script:SetupSucceeded = $true
+    return $true
+}
+
 function Invoke-ObservabilityRetentionCleanup {
     param(
         [string]$RepoRoot,
@@ -320,6 +340,8 @@ Set-Location $repoRoot
 
 $script:Steps = @()
 $script:HasFailures = $false
+$script:SetupAttempted = $false
+$script:SetupSucceeded = $false
 $script:StepLogs = [ordered]@{}
 $script:RetentionCleanupReport = [ordered]@{
     applied = $false
@@ -367,6 +389,10 @@ else {
 
 if (-not $SkipGraphRefresh) {
     Invoke-Step -Name 'Refresh codegraph index sync' -Action {
+        if (-not (Get-Command codegraph -ErrorAction SilentlyContinue)) {
+            [void](Ensure-SetupPrerequisites)
+        }
+
         if (-not (Get-Command codegraph -ErrorAction SilentlyContinue)) {
             throw 'codegraph command not found'
         }
@@ -548,6 +574,10 @@ else {
 
 if (-not $SkipCodegraphStatus) {
     Invoke-Step -Name 'Check codegraph status' -Action {
+        if (-not (Get-Command codegraph -ErrorAction SilentlyContinue)) {
+            [void](Ensure-SetupPrerequisites)
+        }
+
         if (-not (Get-Command codegraph -ErrorAction SilentlyContinue)) {
             throw 'codegraph command not found'
         }

@@ -136,6 +136,28 @@ Archivo `telemetry/config.json`:
 
 Si falta configuración, se omite automáticamente.
 
+## Flujo post-commit para proyectos consumidores
+
+El install host configura hooks git locales (`core.hooksPath=.githooks`).
+
+Hook incluido:
+
+- `post-commit` -> `scripts/ops/post-commit-refresh.ps1`
+
+Regla:
+
+- Solo actua cuando el commit toca rutas bajo `projects/`.
+
+Pipeline ejecutado en ese caso:
+
+1. AutoDocs incremental (`scripts/wiki/compiler_main.py`)
+2. Refresh de reportes de learning/value (`scripts/learning/*.py`)
+3. Publicacion de snapshots KPI a LangSmith (`scripts/ops/publish-langsmith-kpis.py`)
+
+Log de ejecucion:
+
+- `observability/logs/session/post-commit-refresh-*.json`
+
 ### Cómo deshabilitar exporters
 
 - Desactivar todo: `TELEMETRY_ENABLED=false`

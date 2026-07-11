@@ -111,12 +111,36 @@ function Install-PythonRequirements {
 
 function Resolve-PythonCommand {
     if (Test-Command 'py') {
-        return @('py', '-3.14')
+        return @('py', '-3')
     }
     if (Test-Command 'python') {
         return @('python')
     }
-    throw 'Python 3.14 is required for graphify MCP. Install Python first: https://www.python.org/downloads/'
+    throw 'Python 3 is required for MCP scripts. Install Python first: https://www.python.org/downloads/'
+}
+
+function Ensure-PythonModuleInstalled {
+    param(
+        [Parameter(Mandatory = $true)][string]$PythonCommand,
+        [string[]]$PythonArgs = @(),
+        [Parameter(Mandatory = $true)][string]$Module,
+        [Parameter(Mandatory = $true)][string]$Package
+    )
+
+    if (Test-PythonImport -PythonCommand $PythonCommand -PythonArgs $PythonArgs -Module $Module) {
+        Write-Host "[ok] Python module '$Module' already available"
+        return
+    }
+
+    Write-Host "[install] $PythonCommand $($PythonArgs -join ' ') -m pip install $Package"
+    & $PythonCommand @PythonArgs -m pip install $Package
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to install Python package '$Package'"
+    }
+
+    if (-not (Test-PythonImport -PythonCommand $PythonCommand -PythonArgs $PythonArgs -Module $Module)) {
+        throw "Python module '$Module' is still unavailable after installing '$Package'"
+    }
 }
 
 Write-Host '== MCP platform prerequisites setup =='
@@ -159,21 +183,24 @@ if (-not $SkipRepomix) {
     Install-ToolFromManifest -Tool $toolByCommand['repomix']
 }
 
+$py = Resolve-PythonCommand
+$pyCmd = $py[0]
+$pyArgs = @()
+if ($py.Length -gt 1) {
+    $pyArgs = $py[1..($py.Length - 1)]
+}
+
+if ($py.Length -gt 1) {
+    Write-Host "[setup] Using Python launcher: $($py -join ' ')"
+}
+else {
+    Write-Host "[setup] Using Python launcher: $pyCmd"
+}
+
+# Core observability dependency used by KPI publishing and telemetry export.
+Ensure-PythonModuleInstalled -PythonCommand $pyCmd -PythonArgs $pyArgs -Module 'langsmith' -Package 'langsmith'
+
 if (-not $SkipGraphify) {
-    $py = Resolve-PythonCommand
-    $pyCmd = $py[0]
-    $pyArgs = @()
-    if ($py.Length -gt 1) {
-        $pyArgs = $py[1..($py.Length - 1)]
-    }
-
-    if ($py.Length -gt 1) {
-        Write-Host "[setup] Using Python launcher: $($py -join ' ')"
-    }
-    else {
-        Write-Host "[setup] Using Python launcher: $pyCmd"
-    }
-
     Install-PythonRequirements -PythonCommand $pyCmd -PythonArgs $pyArgs -RequirementsPath 'requirements.txt'
 
     if (-not (Test-PythonImport -PythonCommand $pyCmd -PythonArgs $pyArgs -Module 'graphify.serve')) {

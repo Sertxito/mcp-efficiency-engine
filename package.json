@@ -9,6 +9,7 @@
     "mcp-efficiency-engine": "./bin/mcpee.js"
   },
   "files": [
+    ".githooks/",
     "bin/",
     "telemetry/",
     "autodocs/README.md",
@@ -50,6 +51,7 @@
     "hi": "node ./bin/mcpee.js hi",
     "bye": "node ./bin/mcpee.js bye",
     "intake": "node ./bin/mcpee.js intake",
+    "langsmith:kpis": "py -3 ./scripts/ops/publish-langsmith-kpis.py",
     "pack:check": "npm pack --dry-run"
   },
   "engines": {
