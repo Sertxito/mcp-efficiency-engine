@@ -253,6 +253,11 @@ Comportamiento del hook:
   - `scripts/learning/iteration-value-report.py`
   - `scripts/ops/publish-langsmith-kpis.py` (best effort)
 
+Notas operativas recientes:
+
+- `mcpee` envuelve scripts PowerShell con `scripts/ops/trace-command.py` para emitir trazas por comando (`mcpee.*`) en el collector.
+- `scripts/ops/publish-langsmith-kpis.py` agrega snapshots locales de flujos, coste y tokens antes de publicar KPI runs en LangSmith.
+
 Artefactos/resultados:
 
 - AutoDocs actualizado en `autodocs/generated` y `autodocs/site`

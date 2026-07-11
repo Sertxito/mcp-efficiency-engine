@@ -26,7 +26,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           registry-url: https://registry.npmjs.org
 
       - name: Resolve publish version
@@ -94,14 +94,23 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Sync package.json version to repository
+      - name: Record package.json sync requirement
         if: steps.version.outputs.changed == 'true'
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json
-          git commit -m "chore(release): sync npm version to ${{ steps.version.outputs.tag }} [skip ci]"
-          git push
+          echo "package.json was bumped in CI to publish an available npm version (${{ steps.version.outputs.tag }})."
+          echo "Repository sync is skipped because main is protected and requires PR-based updates."
+          echo "Open a follow-up PR to align package.json with npm published version."
+
+      - name: Release summary
+        run: |
+          echo "## NPM Release" >> "$GITHUB_STEP_SUMMARY"
+          echo "- mode: ${{ steps.version.outputs.mode }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- published: ${{ steps.version.outputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.version.outputs.changed }}" = "true" ]; then
+            echo "- package.json sync: skipped (protected branch, requires PR)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- package.json sync: not required" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2

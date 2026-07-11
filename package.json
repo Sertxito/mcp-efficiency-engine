@@ -51,7 +51,7 @@
     "hi": "node ./bin/mcpee.js hi",
     "bye": "node ./bin/mcpee.js bye",
     "intake": "node ./bin/mcpee.js intake",
-    "langsmith:kpis": "py -3 ./scripts/ops/publish-langsmith-kpis.py",
+    "langsmith:kpis": "py -3 ./scripts/ops/trace-command.py --operation mcpee.langsmith-kpis --session-id mcpee-cli --cwd . -- py -3 ./scripts/ops/publish-langsmith-kpis.py",
     "pack:check": "npm pack --dry-run"
   },
   "engines": {
