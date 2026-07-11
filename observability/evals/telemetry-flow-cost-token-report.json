@@ -1,0 +1,56 @@
+{
+  "timestamp": "2026-07-11T19:58:35.024861+00:00",
+  "source": {
+    "traces": "C:\\repo\\mcp-efficiency-engine\\.telemetry\\traces.jsonl",
+    "metrics": "C:\\repo\\mcp-efficiency-engine\\.telemetry\\metrics.jsonl"
+  },
+  "totals": {
+    "trace_records": 575,
+    "metric_records": 144,
+    "executions": 82,
+    "warnings": 4,
+    "errors": 0
+  },
+  "kpis": {
+    "routing_fallback_rate": 0.0,
+    "routing_grounded_rate": 0.9873,
+    "avg_span_duration_ms": 1856.1758,
+    "p95_span_duration_ms": 10.908,
+    "tokens_input": 4640,
+    "tokens_output": 1120,
+    "total_tokens": 5760,
+    "total_cost_usd": 0.0443,
+    "efficiency_score_avg": 57.7348
+  },
+  "breakdown": {
+    "operation": {
+      "resolve-routing": 79,
+      "learning-loop-report": 1,
+      "mcpee.hi": 1,
+      "mcpee.langsmith-kpis": 1
+    },
+    "session": {
+      "intake-routing": 557,
+      "learning": 6,
+      "mcpee-cli": 12
+    },
+    "engine": {
+      "CodeGraph": 35,
+      "Azure RAG Builder": 7,
+      "Graphify": 30,
+      "GitNexus": 7
+    },
+    "agent": {
+      "backend": 28,
+      "rag-azure": 7,
+      "dba": 16,
+      "legacy": 7,
+      "rag-local": 7,
+      "frontend-agent": 7,
+      "ux-ui": 7
+    },
+    "exporter_failures": {
+      "langsmith": 4
+    }
+  }
+}

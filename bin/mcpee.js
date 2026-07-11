@@ -60,6 +60,7 @@ function resolveInvocationCandidates() {
 function runPowerShellScript(scriptRelativePath, forwardedArgs) {
   const executionRoot = resolveExecutionRoot(scriptRelativePath);
   const scriptPath = path.join(executionRoot, scriptRelativePath);
+  const tracerScriptPath = path.join(repoRoot, "scripts", "ops", "trace-command.py");
   if (!fs.existsSync(scriptPath)) {
     process.stderr.write(`Script no encontrado: ${scriptRelativePath}\n`);
     return 1;
@@ -67,6 +68,43 @@ function runPowerShellScript(scriptRelativePath, forwardedArgs) {
 
   const shellCandidates = resolveInvocationCandidates();
   for (const shellCommand of shellCandidates) {
+    if (fs.existsSync(tracerScriptPath)) {
+      const operation = `mcpee.${path.basename(scriptRelativePath, path.extname(scriptRelativePath))}`;
+      const tracedResult = spawnSync(
+        "py",
+        [
+          "-3",
+          tracerScriptPath,
+          "--operation",
+          operation,
+          "--session-id",
+          "mcpee-cli",
+          "--cwd",
+          executionRoot,
+          "--",
+          shellCommand,
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          scriptPath,
+          ...forwardedArgs,
+        ],
+        {
+          cwd: repoRoot,
+          stdio: "inherit",
+        },
+      );
+
+      if (!tracedResult.error || tracedResult.error.code !== "ENOENT") {
+        if (tracedResult.error) {
+          process.stderr.write(`${tracedResult.error.message}\n`);
+          return 1;
+        }
+        return tracedResult.status ?? 0;
+      }
+    }
+
     const result = spawnSync(
       shellCommand,
       ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", scriptPath, ...forwardedArgs],

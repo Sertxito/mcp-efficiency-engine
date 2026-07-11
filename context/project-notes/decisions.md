@@ -1,7 +1,7 @@
 # Decisions
 
 <!-- AUTO-GENERATED:START -->
-- updated_at: 2026-07-10T13:03:51.933756+00:00
+- updated_at: 2026-07-11T21:07:32.544804+00:00
 - decision: mantener routing gate activo (routing-evals 8/8 passed).
 - decision: priorizar reduccion de fallback si health.fallback_ok=True.
 - decision: mantener evidencia obligatoria mientras health.grounded_ok=True.
