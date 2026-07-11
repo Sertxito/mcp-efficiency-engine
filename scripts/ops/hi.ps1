@@ -835,6 +835,19 @@ else {
 
 if (-not $SkipMcpStartupChecks) {
     Invoke-Step -Name 'Validate MCP servers start/listen capability' -Action {
+        $requiredCommands = @(
+            'token-saver-mcp',
+            'codebase-memory-mcp',
+            'codegraph',
+            'npx'
+        )
+
+        $missingCommands = @($requiredCommands | Where-Object { -not (Test-CommandAvailable -Name $_) })
+        if ($missingCommands.Count -gt 0) {
+            Write-Host ("[info] Missing MCP prerequisites detected ({0}). Running setup-prerequisites automatically..." -f ($missingCommands -join ', ')) -ForegroundColor DarkYellow
+            [void](Ensure-SetupPrerequisites)
+        }
+
         $py = Get-PythonCommand
         $pyCmd = $py[0]
         $pyParts = @()

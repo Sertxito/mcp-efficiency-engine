@@ -6,6 +6,7 @@ const { spawnSync } = require("node:child_process");
 
 const packageRoot = path.resolve(__dirname, "..");
 const scaffoldEntries = [
+  ".githooks",
   ".github",
   ".vscode",
   "autodocs/README.md",
@@ -260,6 +261,15 @@ function runBootstrap(targetRoot) {
   return runPowerShell(bootstrapScript, [], targetRoot);
 }
 
+function installProjectHooks(targetRoot) {
+  const hookScript = path.join(targetRoot, "scripts", "setup", "install-project-hooks.ps1");
+  if (!fs.existsSync(hookScript)) {
+    return 0;
+  }
+
+  return runPowerShell(hookScript, [], targetRoot);
+}
+
 function runHostInstall(rawOptions) {
   const options = rawOptions;
   const targetRoot = normalizePath(options.targetDir);
@@ -284,6 +294,11 @@ function runHostInstall(rawOptions) {
       return initStatus;
     }
 
+    const hookStatus = installProjectHooks(targetRoot);
+    if (hookStatus !== 0) {
+      return hookStatus;
+    }
+
     process.stdout.write("[mcpee] Bootstrap omitido. Puedes ejecutar .\\scripts\\bootstrap-portable.cmd mas tarde.\n");
     return 0;
   }
@@ -294,11 +309,21 @@ function runHostInstall(rawOptions) {
       return initStatus;
     }
 
+    const hookStatus = installProjectHooks(targetRoot);
+    if (hookStatus !== 0) {
+      return hookStatus;
+    }
+
     process.stdout.write("[mcpee] Modo no interactivo detectado. Se inicializo el registry plantilla y se omitio bootstrap interactivo.\n");
     return 0;
   }
 
-  return runBootstrap(targetRoot);
+  const bootstrapStatus = runBootstrap(targetRoot);
+  if (bootstrapStatus !== 0) {
+    return bootstrapStatus;
+  }
+
+  return installProjectHooks(targetRoot);
 }
 
 function runHostInstallFromCli(argv = process.argv.slice(2)) {

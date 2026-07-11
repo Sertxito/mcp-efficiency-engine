@@ -192,6 +192,16 @@ Comportamiento esperado:
 - si no existe `repo-registry/repos.yml`, pregunta por owner/prefix y si quieres registrar un repo inicial para intake
 - si no añades repos en ese momento, deja el registry plantilla listo para añadirlos despues y rerun de intake
 
+Nota npm (entornos con politicas de scripts):
+
+- si `npm` bloquea `install`/`postinstall` (por ejemplo con `allow-scripts`), el scaffold/bootstrapping puede no ejecutarse automaticamente
+- en ese caso, aprueba scripts (`npm approve-scripts`) o ejecuta manualmente:
+
+```powershell
+npx mcp-efficiency-engine install
+npx mcp-efficiency-engine validate -PortableMode
+```
+
 Tambien puedes relanzar la instalacion manualmente sobre el proyecto actual:
 
 ```powershell
@@ -227,6 +237,32 @@ Validación extendida recomendada:
 ```powershell
 py -3 .\scripts\intake\agent-pipeline-preflight.py
 py -3 .\scripts\intake\validate-repo-registry.py --strict
+```
+
+### Flujo automatico al hacer commit en projects/
+
+Cuando instalas el engine en un proyecto host (`mcpee install`), se configura `core.hooksPath=.githooks` con un `post-commit` que ejecuta `scripts/ops/post-commit-refresh.ps1`.
+
+Comportamiento del hook:
+
+- si el ultimo commit no toca `projects/`, no hace nada
+- si detecta cambios en `projects/`, ejecuta:
+  - `scripts/wiki/compiler_main.py` (AutoDocs incremental)
+  - `scripts/learning/learning-loop-report.py`
+  - `scripts/learning/iteration-value-report.py`
+  - `scripts/ops/publish-langsmith-kpis.py` (best effort)
+
+Artefactos/resultados:
+
+- AutoDocs actualizado en `autodocs/generated` y `autodocs/site`
+- reportes de observabilidad actualizados en `observability/evals`
+- snapshots KPI publicados a LangSmith para dashboards
+- resumen local en `observability/logs/session/post-commit-refresh-*.json`
+
+Instalacion manual de hooks (si necesitas reprovisionar):
+
+```powershell
+.\scripts\setup\install-project-hooks.ps1
 ```
 
 ## Flujo De Intake
@@ -342,6 +378,68 @@ Para volver al modo local sin LangSmith:
 ```powershell
 $env:LANGSMITH_ENABLED='false'
 $env:TELEMETRY_EXPORTERS='console,json'
+```
+
+Troubleshooting rapido: no aparecen dashboards/runs en LangSmith
+
+Importante: en LangSmith, los runs se validan primero en `Tracing` (y opcionalmente `Monitoring`). La seccion `Custom Dashboards` no se autogenera por defecto; puede aparecer vacia aunque la telemetria este funcionando correctamente.
+
+Checklist minimo (debe cumplirse todo):
+
+- `LANGSMITH_ENABLED=true`
+- `LANGSMITH_API_KEY` definido
+- `LANGSMITH_PROJECT` definido
+- `TELEMETRY_EXPORTERS=console,json,langsmith`
+- el flujo que ejecutas realmente emite telemetria (por ejemplo `hi.ps1`, intake o routing-evals)
+
+Comprobacion en PowerShell:
+
+```powershell
+Write-Host "LANGSMITH_ENABLED=$env:LANGSMITH_ENABLED"
+Write-Host "LANGSMITH_PROJECT=$env:LANGSMITH_PROJECT"
+Write-Host "TELEMETRY_EXPORTERS=$env:TELEMETRY_EXPORTERS"
+```
+
+Si `LANGSMITH_WORKSPACE_ID` no coincide con tu workspace real, los runs pueden quedar en otro workspace y "no verse" en la UI esperada.
+
+Verificacion local (aunque LangSmith falle):
+
+- revisa que se siguen generando logs en `observability/logs/` (la app no debe romperse por un fallo del exporter)
+- si hay trazas locales pero no runs remotos, el problema es de configuracion/conectividad de LangSmith y no del flujo principal
+
+### Alinear KPIs locales con LangSmith
+
+Para enviar a LangSmith los KPIs que ya calcula el engine en local (`learning-loop-report.json` e `iteration-value-report.json`) y poder construir dashboards con esa señal:
+
+```powershell
+npm run langsmith:kpis
+```
+
+Este comando publica runs de resumen con tags `mcpee`, `kpi`, `dashboard` y nombres:
+
+- `KPI::LearningLoop`
+- `KPI::IterationValue`
+- `KPI::AlignmentSnapshot`
+
+Con eso puedes filtrar en `Tracing` por `tag:kpi` y montar dashboards manuales en `Custom Dashboards` sobre esos runs.
+
+Separacion plataforma vs proyecto consumidor:
+
+- los runs KPI incluyen metadata y tags de scope automaticamente
+- metadata: `host_project`, `host_project_slug`, `telemetry_scope` (`platform` o `consumer`)
+- tags: `scope:<valor>` y `host:<slug>`
+
+Ejemplos de filtro para un dashboard de proyecto consumidor:
+
+- `Tag contains kpi`
+- `Tag contains scope:consumer`
+- `Tag contains host:<slug-del-proyecto>`
+
+Si quieres forzar nombre de proyecto host (por ejemplo en CI):
+
+```powershell
+$env:MCPEE_HOST_PROJECT='mi-proyecto-app'
+npm run langsmith:kpis
 ```
 
 Variables de entorno soportadas:
