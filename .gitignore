@@ -41,3 +41,8 @@ node_modules
 # Telemetria local runtime
 .telemetry/
 **/.telemetry/
+
+# Artefactos de logs de App Service descargados localmente
+appservice-logs/
+appservice-logs-*/
+appservice-logs*.zip
