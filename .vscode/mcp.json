@@ -7,16 +7,23 @@
       "command": "codebase-memory-mcp"
     },
     "codegraph": {
-      "command": "codegraph",
+      "command": "pwsh",
       "args": [
-        "serve",
-        "--mcp"
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "scripts/ops/start-codegraph-mcp.ps1"
       ]
     },
     "gitnexus": {
-      "command": "gitnexus",
+      "command": "pwsh",
       "args": [
-        "mcp"
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "scripts/ops/start-gitnexus-mcp.ps1"
       ],
       "env": {
         "GITNEXUS_SEMANTIC_EXACT_SCAN_LIMIT": "50000",
