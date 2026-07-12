@@ -233,6 +233,17 @@ py -3 .\scripts\intake\run-routing-evals.py
 .\scripts\ops\bye.ps1
 ```
 
+Telemetría de terminal (PowerShell, opcional):
+
+```powershell
+mcpee observe-on
+# ... comandos interactivos ...
+mcpee observe-off
+```
+
+- `mcpee observe-on` instala un hook global de perfil PowerShell para emitir un evento de telemetría por comando usando `scripts/ops/emit-terminal-command-telemetry.py`.
+- `mcpee observe-off` elimina el hook global y restaura el perfil sin instrumentación.
+
 Validación extendida recomendada:
 
 ```powershell
