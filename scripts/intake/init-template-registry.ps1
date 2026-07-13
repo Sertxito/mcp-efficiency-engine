@@ -124,6 +124,10 @@ function Read-YesNoValue {
 function Get-DefaultEnginesForDomain {
   param([Parameter(Mandatory = $true)][string]$Domain)
 
+  if ($Domain -eq 'dev') {
+    $Domain = 'backend'
+  }
+
   switch ($Domain) {
     'backend' {
       return [pscustomobject]@{
@@ -249,8 +253,16 @@ if ($addInitialRepo) {
   $defaultRepoDomain = if ([string]::IsNullOrWhiteSpace($InitialRepoDomain)) { 'backend' } else { $InitialRepoDomain }
   $defaultRepoLocation = if ([string]::IsNullOrWhiteSpace($InitialRepoLocation)) { '.' } else { $InitialRepoLocation }
 
+  if ($defaultRepoDomain -eq 'dev') {
+    $defaultRepoDomain = 'backend'
+  }
+
   $resolvedRepoName = Read-RequiredValue -Prompt 'Initial repo name' -DefaultValue $defaultRepoName -ProvidedValue $InitialRepoName
-  $resolvedRepoDomain = Read-ChoiceValue -Prompt 'Initial repo domain' -AllowedValues @('backend', 'frontend', 'community-content', 'legacy', 'dba', 'iot', 'ux-ui', 'azure-rag', 'rag') -DefaultValue $defaultRepoDomain -ProvidedValue $InitialRepoDomain
+  $resolvedRepoDomain = Read-ChoiceValue -Prompt 'Initial repo domain' -AllowedValues @('dev', 'backend', 'frontend', 'community-content', 'legacy', 'dba', 'iot', 'ux-ui', 'azure-rag', 'rag') -DefaultValue $defaultRepoDomain -ProvidedValue $InitialRepoDomain
+  if ($resolvedRepoDomain -eq 'dev') {
+    Write-Host "[info] Domain 'dev' is a legacy alias. Normalizing to 'backend'."
+    $resolvedRepoDomain = 'backend'
+  }
   $resolvedRepoLocation = Read-RequiredValue -Prompt 'Initial repo location' -DefaultValue $defaultRepoLocation -ProvidedValue $InitialRepoLocation
   $resolvedEngines = Get-DefaultEnginesForDomain -Domain $resolvedRepoDomain
 

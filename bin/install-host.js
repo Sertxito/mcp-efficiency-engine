@@ -270,7 +270,7 @@ function initializeTemplateRegistry(targetRoot, options) {
       "-InitialRepoName",
       deriveDefaultRepoName(targetRoot, options),
       "-InitialRepoDomain",
-      options.initialRepoDomain || "dev",
+      options.initialRepoDomain || "backend",
       "-InitialRepoLocation",
       options.initialRepoLocation || ".",
     );
