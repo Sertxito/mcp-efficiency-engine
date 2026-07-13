@@ -26,6 +26,11 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Compile AutoDocs
         run: py -3 -m scripts.wiki.wiki_compiler
         shell: pwsh
@@ -118,6 +123,11 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.11'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
       - name: Compile AutoDocs
         run: py -3 -m scripts.wiki.wiki_compiler
