@@ -87,6 +87,26 @@ function Sync-GraphifyArtifactsIfNeeded {
   }
 }
 
+function Resolve-PythonLauncher {
+  if (Get-Command py -ErrorAction SilentlyContinue) {
+    return [pscustomobject]@{
+      command = 'py'
+      args = @('-3')
+      printable = 'py -3'
+    }
+  }
+
+  if (Get-Command python -ErrorAction SilentlyContinue) {
+    return [pscustomobject]@{
+      command = 'python'
+      args = @()
+      printable = 'python'
+    }
+  }
+
+  return $null
+}
+
 # Ensure report directory exists
 $reportDir = Split-Path -Parent $setupValidationReportPath
 if (-not (Test-Path $reportDir)) {
@@ -333,29 +353,32 @@ if (-not (Get-Command py -ErrorAction SilentlyContinue) -and -not (Get-Command p
   }
 }
 else {
-  $pythonCmd = "python"
-  $pythonArgs = @("-c", "import graphify.serve, mcp; print('ok')")
-  if (Get-Command py -ErrorAction SilentlyContinue) {
-    $pythonCmd = "py"
-    $pythonArgs = @("-3.14", "-c", "import graphify.serve, mcp; print('ok')")
-  }
+  $pythonLauncher = Resolve-PythonLauncher
+  $pythonCmd = [string]$pythonLauncher.command
+  $pythonArgs = @($pythonLauncher.args + @("-c", "import graphify.serve, mcp; print('ok')"))
 
   & $pythonCmd @pythonArgs *> $null
   $setupValidationReport.python_modules += @{
-    launcher = $pythonCmd
+    launcher = [string]$pythonLauncher.printable
     args = $pythonArgs
     import_ok = ($LASTEXITCODE -eq 0)
   }
   if ($LASTEXITCODE -ne 0) {
     if (-not ($CIMode)) {
-      $errors += 'Graphify MCP runtime missing. Run: py -3.14 -m pip install -r requirements.txt'
+      $errors += "Graphify MCP runtime missing. Run: $($pythonLauncher.printable) -m pip install -r requirements.txt"
     }
   }
 }
 
 if ((-not (Test-Path "context/graphify-out/graph.json")) -and (-not (Test-Path "scripts/graphify-out/graph.json"))) {
   if (-not ($CIMode)) {
-    $errors += "Missing graphify graph output. Run: py -3.14 -m graphify update scripts --no-cluster"
+    $pythonLauncher = Resolve-PythonLauncher
+    if ($null -ne $pythonLauncher) {
+      $errors += "Missing graphify graph output. Run: $($pythonLauncher.printable) -m graphify update scripts --no-cluster"
+    }
+    else {
+      $errors += 'Missing graphify graph output. Run: python -m graphify update scripts --no-cluster'
+    }
   }
 }
 

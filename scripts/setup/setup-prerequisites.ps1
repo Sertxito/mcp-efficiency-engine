@@ -5,7 +5,8 @@ param(
     [switch]$SkipGitnexus,
     [switch]$SkipGraphify,
     [switch]$SkipRepomix,
-    [switch]$PortableMode
+    [switch]$PortableMode,
+    [switch]$VerboseTrace
 )
 
 $ErrorActionPreference = 'Stop'
@@ -18,6 +19,17 @@ function Test-Command {
     param([Parameter(Mandatory = $true)][string]$Name)
 
     return [bool](Get-Command -Name $Name -ErrorAction SilentlyContinue)
+}
+
+function Write-TraceStep {
+    param(
+        [Parameter(Mandatory = $true)][string]$Message
+    )
+
+    if ($VerboseTrace) {
+        $stamp = (Get-Date).ToString('HH:mm:ss')
+        Write-Host ("[trace {0}] {1}" -f $stamp, $Message) -ForegroundColor DarkGray
+    }
 }
 
 function Install-NpmGlobalPackage {
@@ -165,6 +177,7 @@ function Sync-GraphifyArtifactsFromScripts {
 }
 
 Write-Host '== MCP platform prerequisites setup =='
+Write-TraceStep -Message ("repoRoot={0}" -f $repoRoot)
 
 $toolingManifest = Get-ToolingManifest -Path $toolingManifestPath
 $externalCliEntries = @($toolingManifest.external_clis)
@@ -174,14 +187,17 @@ foreach ($tool in $externalCliEntries) {
 }
 
 if (-not $SkipCodebaseMemory) {
+    Write-TraceStep -Message 'Installing codebase-memory-mcp from tooling manifest'
     Install-ToolFromManifest -Tool $toolByCommand['codebase-memory-mcp']
 }
 
 if (-not $SkipTokenSaver) {
+    Write-TraceStep -Message 'Installing token-saver-mcp from tooling manifest'
     Install-ToolFromManifest -Tool $toolByCommand['token-saver-mcp']
 }
 
 if (-not $SkipCodegraph) {
+    Write-TraceStep -Message 'Installing/verifying codegraph'
     Install-ToolFromManifest -Tool $toolByCommand['codegraph']
     Write-Host '[setup] codegraph install'
     codegraph install
@@ -195,12 +211,14 @@ if (-not $SkipCodegraph) {
 }
 
 if (-not $SkipGitnexus) {
+    Write-TraceStep -Message 'Installing/verifying gitnexus'
     Install-ToolFromManifest -Tool $toolByCommand['gitnexus']
     Write-Host '[setup] gitnexus setup'
     gitnexus setup
 }
 
 if (-not $SkipRepomix) {
+    Write-TraceStep -Message 'Installing/verifying repomix'
     Install-ToolFromManifest -Tool $toolByCommand['repomix']
 }
 
@@ -219,9 +237,11 @@ else {
 }
 
 # Core observability dependency used by KPI publishing and telemetry export.
+Write-TraceStep -Message 'Ensuring Python module langsmith'
 Ensure-PythonModuleInstalled -PythonCommand $pyCmd -PythonArgs $pyArgs -Module 'langsmith' -Package 'langsmith'
 
 if (-not $SkipGraphify) {
+    Write-TraceStep -Message 'Installing Python requirements for graphify runtime'
     Install-PythonRequirements -PythonCommand $pyCmd -PythonArgs $pyArgs -RequirementsPath 'requirements.txt'
 
     if (-not (Test-PythonImport -PythonCommand $pyCmd -PythonArgs $pyArgs -Module 'graphify.serve')) {
@@ -234,6 +254,7 @@ if (-not $SkipGraphify) {
 
     if (-not (Test-Path 'context/graphify-out/graph.json')) {
         Write-Host '[setup] graphify update scripts --no-cluster'
+        Write-TraceStep -Message ("Running: {0} {1} -m graphify update scripts --no-cluster" -f $pyCmd, ($pyArgs -join ' '))
         & $pyCmd @pyArgs -m graphify update scripts --no-cluster
         if ($LASTEXITCODE -ne 0) {
             throw "graphify update failed with exit code $LASTEXITCODE"
@@ -245,6 +266,7 @@ if (-not $SkipGraphify) {
     }
     else {
         Write-Host '[ok] context/graphify-out/graph.json already exists'
+        Write-TraceStep -Message 'Skipping graphify update because context graph already exists'
     }
 }
 

@@ -1,6 +1,33 @@
 {
   "registry_mode": "template",
   "schema_version": "2.0",
+  "onboarding_help": {
+    "what_is_this": "Define aqui los repos/boosts que quieres conectar al motor de routing.",
+    "quick_start": [
+      "1) Duplica un ejemplo de repo_examples dentro de repos[]",
+      "2) Ajusta domain, type y location/repo_url",
+      "3) Ejecuta scripts/intake/run-repo-intake.cmd",
+      "4) Ejecuta scripts/ops/hi.ps1 para validar"
+    ],
+    "required_fields": [
+      "name",
+      "domain",
+      "type",
+      "location (si type=local)",
+      "repo_url (si type=github)"
+    ],
+    "domain_reference": {
+      "backend": "Codigo backend en repo unico (CodeGraph)",
+      "frontend": "Codigo frontend en repo unico (CodeGraph)",
+      "community-content": "Contenido/comunidad/documentacion de apoyo",
+      "legacy": "Migracion/impacto multi-repo (GitNexus)",
+      "dba": "SQL, esquema y conocimiento de base de datos",
+      "iot": "IoT/edge/telemetria",
+      "ux-ui": "Patrones de diseno, UX y design system",
+      "azure-rag": "Contratos/politicas enterprise con Azure RAG",
+      "rag": "RAG local con docs tecnicas"
+    }
+  },
   "governance": {
     "owner": "your-team",
     "approval_required": false,
@@ -12,7 +39,14 @@
       "name": "your-prefix_backend_local",
       "domain": "backend",
       "type": "local",
-      "location": "../your-backend-repo"
+      "location": "../your-backend-repo",
+      "optional": false,
+      "dependencies": [],
+      "engines": {
+        "knowledge": "codegraph",
+        "execution": "none",
+        "snapshot": "repomix"
+      }
     },
     "github": {
       "name": "your-prefix_backend_remote",
@@ -20,7 +54,44 @@
       "type": "github",
       "repo_url": "https://github.com/your-org/your-repo.git",
       "branch": "main",
-      "cache_location": ".cache/github-repos/your-prefix_backend_remote"
+      "cache_location": ".cache/github-repos/your-prefix_backend_remote",
+      "optional": false,
+      "dependencies": [],
+      "engines": {
+        "knowledge": "codegraph",
+        "execution": "none",
+        "snapshot": "repomix"
+      }
+    },
+    "rag_local_github": {
+      "name": "your-prefix_rag_local",
+      "domain": "rag",
+      "type": "github",
+      "repo_url": "https://github.com/your-org/your-rag-docs.git",
+      "branch": "main",
+      "cache_location": ".cache/github-repos/your-prefix_rag_local",
+      "optional": true,
+      "dependencies": [],
+      "engines": {
+        "knowledge": "graphify",
+        "execution": "none",
+        "snapshot": "repomix"
+      }
+    },
+    "azure_rag_github": {
+      "name": "your-prefix_azure_rag",
+      "domain": "azure-rag",
+      "type": "github",
+      "repo_url": "https://github.com/your-org/your-enterprise-docs.git",
+      "branch": "main",
+      "cache_location": ".cache/github-repos/your-prefix_azure_rag",
+      "optional": true,
+      "dependencies": [],
+      "engines": {
+        "knowledge": "azure-rag-builder",
+        "execution": "none",
+        "snapshot": "repomix"
+      }
     }
   }
 }
