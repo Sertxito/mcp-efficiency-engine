@@ -96,6 +96,14 @@ npm install mcp-efficiency-engine
 Si el entorno bloquea scripts de npm (`allow-scripts`), ejecutar manualmente:
 
 ```powershell
+npm install mcp-efficiency-engine
+npm approve-scripts mcp-efficiency-engine
+npm rebuild mcp-efficiency-engine
+```
+
+Alternativa manual equivalente:
+
+```powershell
 npx mcp-efficiency-engine install
 npx mcp-efficiency-engine validate -PortableMode
 ```

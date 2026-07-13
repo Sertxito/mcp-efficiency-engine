@@ -143,6 +143,27 @@ function Ensure-PythonModuleInstalled {
     }
 }
 
+function Sync-GraphifyArtifactsFromScripts {
+    $scriptsGraphPath = 'scripts/graphify-out/graph.json'
+    $contextGraphDir = 'context/graphify-out'
+    $contextGraphPath = Join-Path $contextGraphDir 'graph.json'
+
+    if (-not (Test-Path $scriptsGraphPath)) {
+        return $false
+    }
+
+    New-Item -ItemType Directory -Path $contextGraphDir -Force | Out-Null
+    Copy-Item -Path $scriptsGraphPath -Destination $contextGraphPath -Force
+
+    $scriptsManifestPath = 'scripts/graphify-out/manifest.json'
+    $contextManifestPath = Join-Path $contextGraphDir 'manifest.json'
+    if (Test-Path $scriptsManifestPath) {
+        Copy-Item -Path $scriptsManifestPath -Destination $contextManifestPath -Force
+    }
+
+    return $true
+}
+
 Write-Host '== MCP platform prerequisites setup =='
 
 $toolingManifest = Get-ToolingManifest -Path $toolingManifestPath
@@ -212,8 +233,15 @@ if (-not $SkipGraphify) {
     }
 
     if (-not (Test-Path 'context/graphify-out/graph.json')) {
-        Write-Host '[setup] graphify extract scripts --no-cluster --out context'
-        & $pyCmd @pyArgs -m graphify extract scripts --no-cluster --out context
+        Write-Host '[setup] graphify update scripts --no-cluster'
+        & $pyCmd @pyArgs -m graphify update scripts --no-cluster
+        if ($LASTEXITCODE -ne 0) {
+            throw "graphify update failed with exit code $LASTEXITCODE"
+        }
+
+        if (Sync-GraphifyArtifactsFromScripts) {
+            Write-Host '[ok] graphify output synced from scripts/graphify-out to context/graphify-out'
+        }
     }
     else {
         Write-Host '[ok] context/graphify-out/graph.json already exists'

@@ -238,6 +238,15 @@ function deriveRepoPrefix(targetRoot, options) {
   return `${path.basename(targetRoot).replace(/[^a-zA-Z0-9_-]/g, "-").toLowerCase()}_`;
 }
 
+function deriveDefaultRepoName(targetRoot, options) {
+  if (options.initialRepoName) {
+    return options.initialRepoName;
+  }
+
+  const safeBaseName = path.basename(targetRoot).replace(/[^a-zA-Z0-9_-]/g, "-").toLowerCase();
+  return `${deriveRepoPrefix(targetRoot, options)}${safeBaseName}`;
+}
+
 function initializeTemplateRegistry(targetRoot, options) {
   const registryPath = path.join(targetRoot, "repo-registry", "repos.yml");
   if (fs.existsSync(registryPath)) {
@@ -245,13 +254,27 @@ function initializeTemplateRegistry(targetRoot, options) {
   }
 
   const initScript = path.join(targetRoot, "scripts", "intake", "init-template-registry.ps1");
+  const resolvedPrefix = deriveRepoPrefix(targetRoot, options);
   const args = [
     "-Owner",
     options.owner || "your-team",
     "-RepoNamePrefix",
-    deriveRepoPrefix(targetRoot, options),
-    "-SkipInitialRepo",
+    resolvedPrefix,
   ];
+
+  if (options.skipInitialRepo) {
+    args.push("-SkipInitialRepo");
+  }
+  else {
+    args.push(
+      "-InitialRepoName",
+      deriveDefaultRepoName(targetRoot, options),
+      "-InitialRepoDomain",
+      options.initialRepoDomain || "dev",
+      "-InitialRepoLocation",
+      options.initialRepoLocation || ".",
+    );
+  }
 
   return runPowerShell(initScript, args, targetRoot);
 }
@@ -314,7 +337,8 @@ function runHostInstall(rawOptions) {
       return hookStatus;
     }
 
-    process.stdout.write("[mcpee] Modo no interactivo detectado. Se inicializo el registry plantilla y se omitio bootstrap interactivo.\n");
+    process.stdout.write("[mcpee] Modo no interactivo detectado. Se inicializo repos.yml con un repo inicial por defecto y se omitio bootstrap interactivo.\n");
+    process.stdout.write("[mcpee] Si npm bloqueo scripts, ejecuta: npm approve-scripts mcp-efficiency-engine ; npm rebuild mcp-efficiency-engine\n");
     return 0;
   }
 

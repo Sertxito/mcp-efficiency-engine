@@ -190,13 +190,21 @@ Comportamiento esperado:
 
 - copia al proyecto host los artefactos canonicos del engine (`scripts`, `.github`, `.vscode`, `repo-intake`, `orchestrator`, `policies`, `observability`, `autodocs/schema`, `memory`, etc.)
 - instala motores y herramientas via bootstrap portable
-- si no existe `repo-registry/repos.yml`, pregunta por owner/prefix y si quieres registrar un repo inicial para intake
-- si no añades repos en ese momento, deja el registry plantilla listo para añadirlos despues y rerun de intake
+- si no existe `repo-registry/repos.yml`, en modo interactivo pregunta por owner/prefix y repo inicial para intake
+- si la instalacion corre en modo no interactivo (comun en lifecycle scripts de npm), crea automaticamente un repo inicial por defecto: dominio `dev`, location `.`
 
 Nota npm (entornos con politicas de scripts):
 
-- si `npm` bloquea `install`/`postinstall` (por ejemplo con `allow-scripts`), el scaffold/bootstrapping puede no ejecutarse automaticamente
-- en ese caso, aprueba scripts (`npm approve-scripts`) o ejecuta manualmente:
+- si `npm` bloquea `install`/`postinstall` (por ejemplo con `allow-scripts`), el scaffold/bootstrapping no se ejecuta automaticamente
+- flujo recomendado en dos pasos:
+
+```powershell
+npm install mcp-efficiency-engine
+npm approve-scripts mcp-efficiency-engine
+npm rebuild mcp-efficiency-engine
+```
+
+- alternativa manual equivalente:
 
 ```powershell
 npx mcp-efficiency-engine install
@@ -215,6 +223,33 @@ Tambien puedes instalarlo globalmente y usar:
 ```powershell
 npm install -g mcp-efficiency-engine
 mcpee install
+```
+
+### Cuando se conectan boosts/repos auxiliares
+
+Resumen rapido:
+
+- `npm install` + `rebuild` instala/configura el engine.
+- La conexion real de boosts/repos ocurre al ejecutar intake.
+- Si no configuras repos adicionales, se usa el repo inicial por defecto.
+
+Pasos recomendados despues de instalar:
+
+```powershell
+# 1) (Opcional) editar repos auxiliares/boosts
+notepad .\repo-registry\repos.yml
+
+# 2) materializar capacidades de todos los repos del registry
+.\scripts\intake\run-repo-intake.cmd
+
+# 3) validar que el router ya los ve
+.\scripts\ops\hi.ps1
+```
+
+Si quieres que te pregunte por owner/prefix/repo inicial en modo asistido, ejecuta:
+
+```powershell
+npx mcp-efficiency-engine install
 ```
 
 ### 2) Validación mínima
