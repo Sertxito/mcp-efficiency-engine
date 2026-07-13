@@ -69,6 +69,24 @@ function Write-SetupValidationReport {
   $Report | ConvertTo-Json -Depth 20 | Set-Content -Path $Path -Encoding utf8
 }
 
+function Sync-GraphifyArtifactsIfNeeded {
+  $contextGraphDir = Join-Path $repoRoot 'context/graphify-out'
+  $contextGraphPath = Join-Path $contextGraphDir 'graph.json'
+  $scriptsGraphDir = Join-Path $repoRoot 'scripts/graphify-out'
+  $scriptsGraphPath = Join-Path $scriptsGraphDir 'graph.json'
+
+  if ((-not (Test-Path $contextGraphPath)) -and (Test-Path $scriptsGraphPath)) {
+    New-Item -ItemType Directory -Path $contextGraphDir -Force | Out-Null
+    Copy-Item -Path $scriptsGraphPath -Destination $contextGraphPath -Force
+
+    $scriptsManifestPath = Join-Path $scriptsGraphDir 'manifest.json'
+    $contextManifestPath = Join-Path $contextGraphDir 'manifest.json'
+    if ((-not (Test-Path $contextManifestPath)) -and (Test-Path $scriptsManifestPath)) {
+      Copy-Item -Path $scriptsManifestPath -Destination $contextManifestPath -Force
+    }
+  }
+}
+
 # Ensure report directory exists
 $reportDir = Split-Path -Parent $setupValidationReportPath
 if (-not (Test-Path $reportDir)) {
@@ -192,8 +210,9 @@ if ($toolingManifest -and ($toolingManifest.PSObject.Properties.Name -contains '
 
 try {
   $mcpRaw = Get-Content -Raw -Path '.vscode/mcp.json' | ConvertFrom-Json -Depth 20
-  if ($mcpRaw.servers.gitnexus.command -ne 'gitnexus') {
-    $errors += 'MCP gitnexus command should be local `gitnexus` (avoid npx startup latency).'
+  $gitnexusCommand = [string]$mcpRaw.servers.gitnexus.command
+  if ($gitnexusCommand -eq 'npx') {
+    $errors += 'MCP gitnexus command should avoid `npx` (startup latency). Use local `gitnexus` or local wrapper script.'
   }
   $scanLimit = 0
   $gitnexusHasEnv = ($mcpRaw.servers.gitnexus.PSObject.Properties.Name -contains 'env')
@@ -214,6 +233,8 @@ try {
 catch {
   $errors += "Unable to parse .vscode/mcp.json: $($_.Exception.Message)"
 }
+
+Sync-GraphifyArtifactsIfNeeded
 
 $specFiles = @(
   "specs/architecture.spec.md",
@@ -332,9 +353,9 @@ else {
   }
 }
 
-if (-not (Test-Path "context/graphify-out/graph.json")) {
+if ((-not (Test-Path "context/graphify-out/graph.json")) -and (-not (Test-Path "scripts/graphify-out/graph.json"))) {
   if (-not ($CIMode)) {
-    $errors += "Missing context/graphify-out/graph.json. Run: py -3.14 -m graphify extract scripts --no-cluster --out context"
+    $errors += "Missing graphify graph output. Run: py -3.14 -m graphify update scripts --no-cluster"
   }
 }
 
