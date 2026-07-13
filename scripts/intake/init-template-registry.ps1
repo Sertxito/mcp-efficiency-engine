@@ -125,16 +125,30 @@ function Get-DefaultEnginesForDomain {
   param([Parameter(Mandatory = $true)][string]$Domain)
 
   switch ($Domain) {
-    'dev' {
+    'backend' {
       return [pscustomobject]@{
         knowledge = 'codegraph'
         execution = 'none'
         snapshot = 'repomix'
       }
     }
-    'legacy' {
+    'frontend' {
+      return [pscustomobject]@{
+        knowledge = 'codegraph'
+        execution = 'none'
+        snapshot = 'repomix'
+      }
+    }
+    'community-content' {
       return [pscustomobject]@{
         knowledge = 'graphify'
+        execution = 'none'
+        snapshot = 'repomix'
+      }
+    }
+    'legacy' {
+      return [pscustomobject]@{
+        knowledge = 'gitnexus'
         execution = 'gitnexus'
         snapshot = 'repomix'
       }
@@ -156,6 +170,20 @@ function Get-DefaultEnginesForDomain {
     'azure-rag' {
       return [pscustomobject]@{
         knowledge = 'azure-rag-builder'
+        execution = 'none'
+        snapshot = 'repomix'
+      }
+    }
+    'rag' {
+      return [pscustomobject]@{
+        knowledge = 'graphify'
+        execution = 'none'
+        snapshot = 'repomix'
+      }
+    }
+    'ux-ui' {
+      return [pscustomobject]@{
+        knowledge = 'graphify'
         execution = 'none'
         snapshot = 'repomix'
       }
@@ -218,11 +246,11 @@ else {
 $templateRegistry.repos = @()
 if ($addInitialRepo) {
   $defaultRepoName = if ([string]::IsNullOrWhiteSpace($InitialRepoName)) { "$resolvedPrefix$((Split-Path $repoRoot -Leaf).ToLowerInvariant())" } else { $InitialRepoName }
-  $defaultRepoDomain = if ([string]::IsNullOrWhiteSpace($InitialRepoDomain)) { 'dev' } else { $InitialRepoDomain }
+  $defaultRepoDomain = if ([string]::IsNullOrWhiteSpace($InitialRepoDomain)) { 'backend' } else { $InitialRepoDomain }
   $defaultRepoLocation = if ([string]::IsNullOrWhiteSpace($InitialRepoLocation)) { '.' } else { $InitialRepoLocation }
 
   $resolvedRepoName = Read-RequiredValue -Prompt 'Initial repo name' -DefaultValue $defaultRepoName -ProvidedValue $InitialRepoName
-  $resolvedRepoDomain = Read-ChoiceValue -Prompt 'Initial repo domain' -AllowedValues @('dev', 'legacy', 'dba', 'iot', 'azure-rag') -DefaultValue $defaultRepoDomain -ProvidedValue $InitialRepoDomain
+  $resolvedRepoDomain = Read-ChoiceValue -Prompt 'Initial repo domain' -AllowedValues @('backend', 'frontend', 'community-content', 'legacy', 'dba', 'iot', 'ux-ui', 'azure-rag', 'rag') -DefaultValue $defaultRepoDomain -ProvidedValue $InitialRepoDomain
   $resolvedRepoLocation = Read-RequiredValue -Prompt 'Initial repo location' -DefaultValue $defaultRepoLocation -ProvidedValue $InitialRepoLocation
   $resolvedEngines = Get-DefaultEnginesForDomain -Domain $resolvedRepoDomain
 

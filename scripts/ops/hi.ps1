@@ -569,6 +569,10 @@ function Ensure-CodegraphInitialized {
 }
 
 function Ensure-SetupPrerequisites {
+    param(
+        [string]$Reason = 'missing prerequisite'
+    )
+
     if ($script:SetupAttempted) {
         if (-not $script:SetupSucceeded) {
             throw 'setup-prerequisites was already attempted and failed earlier in this run'
@@ -577,11 +581,15 @@ function Ensure-SetupPrerequisites {
     }
 
     $script:SetupAttempted = $true
-    Write-Host '[info] Missing prerequisite detected. Running setup-prerequisites automatically...' -ForegroundColor DarkYellow
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup\setup-prerequisites.ps1
-    if ($LASTEXITCODE -ne 0) {
+    Write-Host ("[info] Missing prerequisite detected ({0}). Running setup-prerequisites automatically..." -f $Reason) -ForegroundColor DarkYellow
+    try {
+        $script:StepLogs['setup-prerequisites-auto'] = Invoke-LoggedAction -StepName 'setup-prerequisites-auto' -InfoLines @("Auto-recovery reason: $Reason") -Action {
+            & pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup\setup-prerequisites.ps1 -VerboseTrace
+        }
+    }
+    catch {
         $script:SetupSucceeded = $false
-        throw "setup-prerequisites failed with exit code $LASTEXITCODE"
+        throw $_.Exception.Message
     }
 
     $script:SetupSucceeded = $true
@@ -656,7 +664,7 @@ Invoke-Step -Name 'Validate context' -Action $validateContextAction -Required $t
 if ($script:HasFailures) {
     $script:HasFailures = $false
     Invoke-Step -Name 'Setup prerequisites' -Action {
-        [void](Ensure-SetupPrerequisites)
+        [void](Ensure-SetupPrerequisites -Reason 'validate-context failed')
     } -Required $true
 
     Invoke-Step -Name 'Validate context (retry)' -Action $validateContextAction -Required $true
@@ -691,7 +699,7 @@ Invoke-Step -Name 'Validate memory/cache artifacts' -Action {
     }
 
     if (-not (Get-Command codebase-memory-mcp -ErrorAction SilentlyContinue)) {
-        [void](Ensure-SetupPrerequisites)
+        [void](Ensure-SetupPrerequisites -Reason 'codebase-memory-mcp command not found')
     }
 
     if (-not (Get-Command codebase-memory-mcp -ErrorAction SilentlyContinue)) {
@@ -701,7 +709,7 @@ Invoke-Step -Name 'Validate memory/cache artifacts' -Action {
 
 Invoke-Step -Name 'Activate token-saver mode' -Action {
     if (-not (Test-CommandAvailable -Name 'token-saver-mcp')) {
-        [void](Ensure-SetupPrerequisites)
+        [void](Ensure-SetupPrerequisites -Reason 'token-saver-mcp command not found')
     }
 
     if (-not (Test-CommandAvailable -Name 'token-saver-mcp')) {

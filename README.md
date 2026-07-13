@@ -233,18 +233,29 @@ Resumen rapido:
 - La conexion real de boosts/repos ocurre al ejecutar intake.
 - Si no configuras repos adicionales, se usa el repo inicial por defecto.
 
+Flujo recomendado para nuevos usuarios:
+
+- `repo-registry/repos.template.json`: plantilla guiada con dominios y ejemplos.
+- `repo-registry/repos.yml`: registry operativo que consume el intake.
+- `scripts/intake/init-template-registry.cmd`: inicializa `repos.yml` desde la plantilla y pregunta owner/prefix/repo inicial.
+
 Pasos recomendados despues de instalar:
 
 ```powershell
-# 1) (Opcional) editar repos auxiliares/boosts
+# 1) Inicializar registry operativo desde la plantilla (modo asistido)
+.\scripts\intake\init-template-registry.cmd
+
+# 2) (Opcional) ajustar repos auxiliares/boosts
 notepad .\repo-registry\repos.yml
 
-# 2) materializar capacidades de todos los repos del registry
+# 3) materializar capacidades de todos los repos del registry
 .\scripts\intake\run-repo-intake.cmd
 
-# 3) validar que el router ya los ve
+# 4) validar que el router ya los ve
 .\scripts\ops\hi.ps1
 ```
+
+Si quieres preparar entradas manuales, usa los ejemplos de `repo-registry/repos.template.json` (`local`, `github`, `rag_local_github`, `azure_rag_github`) y copialos a `repos.yml`.
 
 Si quieres que te pregunte por owner/prefix/repo inicial en modo asistido, ejecuta:
 
