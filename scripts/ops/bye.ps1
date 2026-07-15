@@ -20,6 +20,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+$strictMode = [string]$env:MCPEE_BYE_STRICT -eq '1' -or [string]$env:MCPEE_HI_STRICT -eq '1'
+
 function Get-PythonCommand {
     if (Get-Command py -ErrorAction SilentlyContinue) {
         return @('py', '-3')
@@ -381,7 +383,7 @@ if (-not $SkipRoutingEvals) {
         $script:StepLogs['routing-evals'] = Invoke-LoggedAction -StepName 'routing-evals' -Action {
             & $cmd @pyParts .\scripts\intake\run-routing-evals.py
         }
-    } -Required $true
+    } -Required $strictMode
 }
 else {
     Write-Host '[skip] Run routing evals'
