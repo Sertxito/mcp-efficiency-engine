@@ -3,6 +3,7 @@ param(
     [switch]$SkipIntake,
     [switch]$SkipRoutingEvals,
     [switch]$SkipProjectNotesRefresh,
+    [switch]$SkipLearningRefresh,
     [switch]$SkipCopilotUsageIngest,
     [switch]$SkipChatTokenUsageReport,
     [switch]$SkipCodegraphStatus,
@@ -14,6 +15,13 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+$strictMode = [string]$env:MCPEE_HI_STRICT -eq '1'
+
+if ($SkipLearningRefresh) {
+    Write-Host '[warn] SkipLearningRefresh is deprecated. Learning loop is always-on and will run.' -ForegroundColor DarkYellow
+    $SkipLearningRefresh = $false
+}
 
 function Get-PythonCommand {
     if (Get-Command py -ErrorAction SilentlyContinue) {
@@ -100,6 +108,28 @@ function Get-TokenSaverMode {
     }
 }
 
+function Ensure-GraphifyManifest {
+    param(
+        [string]$RepoRoot
+    )
+
+    $graphPath = Join-Path $RepoRoot 'context/graphify-out/graph.json'
+    $manifestPath = Join-Path $RepoRoot 'context/graphify-out/manifest.json'
+
+    if ((Test-Path $graphPath) -and -not (Test-Path $manifestPath)) {
+        $manifest = [ordered]@{
+            generated_at = (Get-Date).ToUniversalTime().ToString('o')
+            source = 'hi-autofix'
+            note = 'Manifest generated because graph.json exists and manifest.json was missing.'
+            graph = 'context/graphify-out/graph.json'
+        }
+
+        New-Item -ItemType Directory -Path (Split-Path -Parent $manifestPath) -Force | Out-Null
+        $manifest | ConvertTo-Json -Depth 10 | Set-Content -Path $manifestPath -Encoding UTF8
+        Write-Host "[info] Graphify manifest missing; generated fallback manifest at $manifestPath" -ForegroundColor DarkYellow
+    }
+}
+
 function Ensure-TokenSaverActivated {
     param(
         [string]$RepoRoot,
@@ -162,7 +192,17 @@ function Invoke-LoggedAction {
     )
 
     $logPath = New-StepLogPath -StepName $StepName
-    & $Action *> $logPath
+    Write-Host ("[info] Running {0} (live log: {1})" -f $StepName, $logPath)
+
+    try {
+        & {
+            & $Action
+        } *>&1 | Tee-Object -FilePath $logPath -Append | Out-Host
+    }
+    catch {
+        throw "$StepName failed. Log: $logPath. Error: $($_.Exception.Message)"
+    }
+
     $exitCode = $LASTEXITCODE
     if ($exitCode -ne 0) {
         throw "$StepName failed with exit code $exitCode. Log: $logPath"
@@ -260,6 +300,7 @@ function Get-HiSummary {
         repo_intake = Get-StepStatus -Name 'Run repo intake'
         routing_evals = Get-StepStatus -Name 'Run routing evals'
         project_notes = Get-StepStatus -Name 'Refresh project notes from observability'
+        learning_loop = Get-StepStatus -Name 'Refresh learning loop report'
         copilot_usage_ingest = Get-StepStatus -Name 'Ingest Copilot session token usage (best effort)'
         chat_token_usage_report = Get-StepStatus -Name 'Refresh chat token usage report'
         sibling_repos = Get-StepStatus -Name 'Validate sibling repos operability'
@@ -310,6 +351,7 @@ function Write-HiSummary {
     Write-Host ("- repo-intake: {0}" -f $Summary.artifacts.repo_intake)
     Write-Host ("- routing-evals: {0}" -f $Summary.artifacts.routing_evals)
     Write-Host ("- project-notes: {0}" -f $Summary.artifacts.project_notes)
+    Write-Host ("- learning-loop: {0}" -f $Summary.artifacts.learning_loop)
     Write-Host ("- copilot-usage-ingest: {0}" -f $Summary.artifacts.copilot_usage_ingest)
     Write-Host ("- chat-token-usage-report: {0}" -f $Summary.artifacts.chat_token_usage_report)
     Write-Host ("- sibling-repos: {0}" -f $Summary.artifacts.sibling_repos)
@@ -671,6 +713,8 @@ if ($script:HasFailures) {
 }
 
 Invoke-Step -Name 'Validate memory/cache artifacts' -Action {
+    Ensure-GraphifyManifest -RepoRoot $repoRoot
+
     $requiredPaths = @(
         'repo-intake/generated',
         'context/graphify-out/graph.json',
@@ -736,11 +780,15 @@ Invoke-Step -Name 'Check structure cache freshness' -Action {
 
     $missing = @($before | Where-Object { $_.status -eq 'missing' }).Count
     $stale = @($before | Where-Object { $_.status -eq 'stale' }).Count
-    $needsRefresh = ($missing -gt 0 -or $stale -gt 0)
+    $missingGithubCache = @($before | Where-Object {
+        $_.repo_path -like '*\\.cache\\github-repos\\*' -and -not (Test-Path $_.repo_path)
+    }).Count
+
+    $needsRefresh = ($missing -gt 0 -or $stale -gt 0 -or $missingGithubCache -gt 0)
 
     $script:StructureCacheReport.before = $before
     $script:StructureCacheReport.refresh_reason = if ($needsRefresh) {
-        "missing=$missing, stale=$stale"
+        "missing=$missing, stale=$stale, missing_github_cache=$missingGithubCache"
     }
     else {
         'none'
@@ -790,6 +838,16 @@ if (-not $SkipSiblingReposChecks) {
             $repoName = Get-RepoField -Repo $repo -Name 'name'
             $location = Resolve-RegistryRepoPath -Root $repoRoot -Repo $repo
             if (-not (Test-Path $location)) {
+                $repoType = (Get-RepoField -Repo $repo -Name 'type' -Default 'local').ToLowerInvariant()
+                if ($repoType -eq 'github' -and -not $SkipIntake) {
+                    Write-Host "[info] Missing GitHub cache for $repoName. Running repo intake refresh..." -ForegroundColor DarkYellow
+                    $script:StepLogs['sibling-repos-refresh'] = Invoke-LoggedAction -StepName 'sibling-repos-refresh' -Action {
+                        & .\scripts\intake\run-repo-intake.cmd
+                    }
+                }
+            }
+
+            if (-not (Test-Path $location)) {
                 throw "Sibling repo path not found: $repoName -> $location"
             }
 
@@ -817,7 +875,7 @@ if (-not $SkipSiblingReposChecks) {
                 throw "Structure cache indicates missing path for required repo '$repoName'"
             }
         }
-    } -Required $true
+    } -Required $strictMode
 }
 else {
     Write-Host '[skip] Validate sibling repos operability'
@@ -933,7 +991,7 @@ if (-not $SkipRoutingEvals) {
         $script:StepLogs['routing-evals'] = Invoke-LoggedAction -StepName 'routing-evals' -Action {
             & $cmd @pyParts .\scripts\intake\run-routing-evals.py
         }
-    } -Required $true
+    } -Required $strictMode
 }
 else {
     Write-Host '[skip] Run routing evals'
@@ -956,6 +1014,19 @@ if (-not $SkipProjectNotesRefresh) {
 else {
     Write-Host '[skip] Refresh project notes from observability'
 }
+
+Invoke-Step -Name 'Refresh learning loop report' -Action {
+    $py = Get-PythonCommand
+    $cmd = $py[0]
+    $pyParts = @()
+    if ($py.Length -gt 1) {
+        $pyParts = $py[1..($py.Length - 1)]
+    }
+
+    $script:StepLogs['learning-loop-refresh'] = Invoke-LoggedAction -StepName 'learning-loop-refresh' -Action {
+        & $cmd @pyParts .\scripts\learning\learning-loop-report.py
+    }
+} -Required $true
 
 if (-not $SkipCopilotUsageIngest) {
     Invoke-Step -Name 'Ingest Copilot session token usage (best effort)' -Action {

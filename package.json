@@ -1,6 +1,6 @@
 {
   "name": "mcp-efficiency-engine",
-  "version": "0.1.3",
+  "version": "0.1.9",
   "description": "Motor de orquestacion para agentes MCP con routing por dominio y bootstrap portable.",
   "license": "MIT",
   "type": "commonjs",

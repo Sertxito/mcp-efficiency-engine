@@ -32,6 +32,13 @@
 - No usar Repomix como contexto vivo.
 - Si no hay grounding suficiente, declarar gap.
 
+## Alerta de coste: Copilot Code Review
+
+- El code review automatico de Copilot puede consumir creditos de forma elevada (referencia operativa: 13 creditos por PR).
+- Politica por defecto: no habilitar code review automatico en CI salvo necesidad explicita.
+- Modo recomendado: ejecucion bajo demanda (manual/dispatch) y con trazabilidad de coste.
+- Si se habilita en CI, documentar owner, limite y condicion de activacion para evitar drenaje silencioso de cuota.
+
 ## Boost-First Always-On
 
 Regla obligatoria para todos los agentes:

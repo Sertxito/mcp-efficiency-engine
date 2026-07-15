@@ -13,6 +13,16 @@ Este repositorio centraliza:
 - Optimización operacional (`token-saver` + `caveman`) sin perder grounding.
 - Observabilidad de decisiones de routing, uso y aprendizaje continuo.
 
+## Gobernanza AI Credits (Copilot)
+
+Desde junio de 2026 el coste depende de uso real (tokens/credits). Este repo aplica control explicito por complejidad y fallback de coste:
+
+- Seleccion de tier por complejidad en `orchestrator/decision-matrix.md`.
+- Fallback cost-aware en `optimization/optimization-routing.md`.
+- Estimacion por motor y guardrails en `optimization/token-saver.md`.
+- Referencia rapida de modelos/precios en `optimization/model-pricing-reference.md`.
+- Pre-flight reusable para sesiones complejas en `templates/session-cost-estimate.md`.
+
 ## Arquitectura
 
 ```mermaid
