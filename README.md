@@ -13,10 +13,6 @@ Este repositorio centraliza:
 - Optimización operacional (`token-saver` + `caveman`) sin perder grounding.
 - Observabilidad de decisiones de routing, uso y aprendizaje continuo.
 
-## SkillOpt-Sleep
-
-El comando local `skillopt-sleep` actua como puente hacia el upstream oficial [microsoft/SkillOpt](https://github.com/microsoft/SkillOpt). Si el modulo Python oficial esta instalado en el entorno, MCPEE delega ahi; si no, usa el bridge local de telemetria como fallback.
-
 ## Gobernanza AI Credits (Copilot)
 
 Desde junio de 2026 el coste depende de uso real (tokens/credits). Este repo aplica control explicito por complejidad y fallback de coste:
@@ -246,6 +242,7 @@ Resumen rapido:
 - `npm install` + `rebuild` instala/configura el engine.
 - La conexion real de boosts/repos ocurre al ejecutar intake.
 - Si no configuras repos adicionales, se usa el repo inicial por defecto.
+- `mcpee doctor` detecta boosts tanto desde `node_modules/@mcpee/<boost>` (instalados via npm) como desde carpetas locales en `boosts/` (con `mcpee.json`).
 
 Flujo recomendado para nuevos usuarios:
 
@@ -326,7 +323,8 @@ Comportamiento del hook:
 
 Notas operativas recientes:
 
-- El flujo v2 expone comandos capability-centric en `mcpee` (`doctor`, `chat`, `knowledge-build`, `skillopt-sleep`, `artifact-report`) y conserva scripts operativos bajo `scripts/ops/*`.
+- El flujo v2 expone comandos capability-centric en `mcpee` (`doctor`, `chat`, `knowledge-build`, `artifact-report`) y conserva scripts operativos bajo `scripts/ops/*`.
+- `skillopt-sleep` es un bridge opcional hacia [microsoft/SkillOpt](https://github.com/microsoft/SkillOpt); si no está instalado, usa telemetría local como fallback.
 - `scripts/ops/publish-langsmith-kpis.py` agrega snapshots locales de flujos, coste y tokens antes de publicar KPI runs en LangSmith.
 
 Artefactos/resultados:
