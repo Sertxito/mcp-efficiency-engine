@@ -1,0 +1,23 @@
+{
+  "name": "mcpee-backend",
+  "version": "0.1.0",
+  "description": "Backend boost for MCP Efficiency Engine.",
+  "license": "MIT",
+  "files": [
+    "mcpee.json",
+    "agents/",
+    "skills/",
+    "specs/",
+    "prompts/",
+    "evals/"
+  ],
+  "peerDependencies": {
+    "mcp-efficiency-engine": ">=0.1.0"
+  },
+  "keywords": [
+    "mcp",
+    "mcpee",
+    "boost",
+    "backend"
+  ]
+}

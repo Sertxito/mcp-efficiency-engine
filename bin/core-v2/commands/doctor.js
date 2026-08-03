@@ -28,7 +28,7 @@ function runDoctor(workspaceRoot) {
 
   printSection("Boosts");
   if (snapshot.discovery.boosts.length === 0) {
-    process.stdout.write(`  ${statusIcon(false, true)} no @mcpee boosts detected in node_modules\n`);
+    process.stdout.write(`  ${statusIcon(false, true)} no boosts detected (npm install @mcpee/<boost> o añadir carpeta local en boosts/)\n`);
   } else {
     for (const boost of snapshot.discovery.boosts) {
       process.stdout.write(`  ${statusIcon(true)} ${boost.name} ${boost.version}\n`);
