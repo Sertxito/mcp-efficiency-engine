@@ -327,6 +327,7 @@ Comportamiento del hook:
 Notas operativas recientes:
 
 - El flujo v2 expone comandos capability-centric en `mcpee` (`doctor`, `chat`, `knowledge-build`, `skillopt-sleep`, `artifact-report`) y conserva scripts operativos bajo `scripts/ops/*`.
+- `mcpee doctor` detecta boosts instalados vía npm (`@mcpee/<boost>`) y también carpetas locales bajo `boosts/`; si no hay ninguno, muestra un aviso con instrucciones de instalación.
 - `scripts/ops/publish-langsmith-kpis.py` agrega snapshots locales de flujos, coste y tokens antes de publicar KPI runs en LangSmith.
 
 Artefactos/resultados:
