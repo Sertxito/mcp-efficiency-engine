@@ -16,7 +16,7 @@ Ubicacion canonica del blueprint y analisis de evolucion de AutoDocs como wiki i
 
 - section_index: [reports](index.md)
 - wiki_home: [autodocs](../index.md)
-- related_in_section: [AutoDocs Analysis](report-autodocs-readme-md.md), [openwiki-internal-blueprint](report-autodocs-openwiki-internal-blueprint-json.md)
+- related_in_section: [AutoDocs](report-autodocs-readme-md.md), [AutoDocs Analysis](report-autodocs-analysis-mcpee-readme-md.md), [AutoDocs Projection Engine](report-readme-wiki-md.md)
 
 ## Fuentes
 
@@ -26,7 +26,8 @@ Ubicacion canonica del blueprint y analisis de evolucion de AutoDocs como wiki i
 
 | relation_type | target |
 |---|---|
-| none | none |
+| drives | [AutoDocs](report-autodocs-readme-md.md) |
+| drives | [AutoDocs Projection Engine](report-readme-wiki-md.md) |
 
 ## Datos tecnicos
 

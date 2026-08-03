@@ -8,7 +8,7 @@
 |---|---|---|---|
 | Bug/fix/refactor/test | Código repo único | backend | CodeGraph |
 | Frontend/UI implementación | Código frontend repo único | frontend-agent | CodeGraph |
-| Legacy/migración/multi-repo | Código legacy | legacy | GitNexus |
+| Impacto multi-repo | Código distribuido | backend | GitNexus |
 | SQL/schema/procedure | SQL/docs técnicas | dba | Graphify |
 | UX/UI/design system | Guías de diseño y patrones UI | ux-ui | Graphify |
 | Knowledge local/docs técnicas | Docs locales | rag-local | Graphify |
@@ -103,7 +103,6 @@ flowchart LR
   I[Intencion] --> RT[Router]
   RT --> DEV[backend]
   RT --> FE[frontend-agent]
-  RT --> LEG[legacy]
   RT --> DBA[dba]
   RT --> RLOCAL[rag-local]
   RT --> RAZ[rag-azure]
@@ -113,7 +112,7 @@ flowchart LR
   RT --> SNAP[snapshot]
   DEV --> CG[CodeGraph]
   FE --> CG
-  LEG --> GN[GitNexus]
+  DEV --> GN[GitNexus]
   DBA --> GF[Graphify]
   RLOCAL --> GF
   RAZ --> AZRAG[Azure RAG Builder]

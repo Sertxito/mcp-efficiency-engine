@@ -8,7 +8,7 @@ Definir el contrato para migraciones de repos, rutas y componentes sin romper op
 
 1. Preferir migracion incremental con verificacion por etapas.
 2. Mantener compatibilidad operativa durante la transicion cuando sea necesario.
-3. Al finalizar migracion, eliminar deuda/legacy solo cuando exista validacion en verde.
+3. Al finalizar migracion, eliminar deuda/artefactos deprecados solo cuando exista validacion en verde.
 4. Toda migracion debe actualizar scripts, docs y workflows afectados.
 
 ## Flujo minimo

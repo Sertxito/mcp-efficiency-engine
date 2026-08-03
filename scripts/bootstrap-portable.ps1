@@ -67,9 +67,9 @@ else {
   Write-Host 'Registry already exists. Reusing current repo-registry\repos.yml.'
 }
 
-pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\intake\run-repo-intake.ps1
+pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\intake\run-repo-intake.ps1 -WarnOnly
 if ($LASTEXITCODE -ne 0) {
-  throw 'Repo intake failed during portable bootstrap.'
+  Write-Warning 'Repo intake failed during portable bootstrap. Continuing because intake is optional in v2 happy path.'
 }
 
 Write-Host ''

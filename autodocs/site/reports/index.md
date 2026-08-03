@@ -18,5 +18,5 @@ Reportes generados y artefactos de analisis.
 - [Guía de uso — MCP Efficiency Engine](report-final-usage-guide-md.md) - Token Saver y Caveman ya no son modos que se activan manualmente. Son parte del runtime del sistema.
 - [MCP Efficiency Engine](report-readme-md.md) - Motor de orquestación para agentes MCP con routing por dominio, optimización always-on y contratos de intake JSON-first.
 - [OpenWiki Internal Blueprint](report-autodocs-openwiki-internal-blueprint-md.md) - Ubicacion canonica del blueprint y analisis de evolucion de AutoDocs como wiki interna de `mcp-efficiency-engine`.
-- [mcp-efficiency-engine](report-package-json.md) - Motor de orquestacion para agentes MCP con routing por dominio y bootstrap portable.
+- [mcp-efficiency-engine](report-package-json.md) - Motor de orquestacion capability-centric v2 para agentes MCP con optimizacion always-on.
 - [openwiki-internal-blueprint](report-autodocs-openwiki-internal-blueprint-json.md) - Artefacto JSON de tipo report en autodocs/analysis_mcpee/openwiki-internal-blueprint.json.

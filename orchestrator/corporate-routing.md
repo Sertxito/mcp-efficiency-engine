@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 -->
+
 # Corporate Routing
 
 ## Objetivo
@@ -8,7 +10,7 @@ Definir reglas corporativas para seleccionar agente y motor principal por tarea 
 
 ```txt
 Codigo repo unico -> CodeGraph
-Codigo legacy/multi-repo -> GitNexus
+Codigo multi-repo -> GitNexus
 Docs tecnicas/locales -> Graphify
 Docs corporativos reales -> Azure RAG Builder
 Snapshot/export -> Repomix

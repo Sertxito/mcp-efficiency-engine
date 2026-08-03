@@ -4,34 +4,27 @@ const { spawnSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
 const { runHostInstallFromCli } = require("./install-host");
+const { runInit } = require("./core-v2/commands/init");
+const { runDoctor } = require("./core-v2/commands/doctor");
+const { runHealth } = require("./core-v2/commands/health");
+const { runChat } = require("./core-v2/commands/chat");
+const { runTelemetryReport } = require("./core-v2/commands/telemetry-report");
+const { runKnowledgeBuild } = require("./core-v2/commands/knowledge-build");
+const { runSkillOpt } = require("./core-v2/commands/skillopt");
+const { runArtifactReport } = require("./core-v2/commands/artifact-report");
 
 const repoRoot = path.resolve(__dirname, "..");
-const commandMap = {
-  bootstrap: "scripts/bootstrap-portable.ps1",
-  validate: "scripts/setup/validate-context.ps1",
-  hi: "scripts/ops/hi.ps1",
-  bye: "scripts/ops/bye.ps1",
-  intake: "scripts/intake/run-repo-intake.ps1",
-  "observe-on": "scripts/ops/install-terminal-telemetry-hook.ps1",
-  "observe-off": "scripts/ops/uninstall-terminal-telemetry-hook.ps1",
+
+const internalCommandMap = {
+  init: runInit,
+  doctor: runDoctor,
+  health: runHealth,
+  chat: runChat,
+  "telemetry-report": runTelemetryReport,
+  "knowledge-build": runKnowledgeBuild,
+  "skillopt-sleep": runSkillOpt,
+  "artifact-report": runArtifactReport,
 };
-
-function resolveSessionId() {
-  const explicitSessionId = (process.env.MCP_SESSION_ID || "").trim();
-  if (explicitSessionId) {
-    return explicitSessionId;
-  }
-
-  const sessionLogHint = (process.env.VSCODE_TARGET_SESSION_LOG || "").trim();
-  if (sessionLogHint) {
-    const match = sessionLogHint.match(/[0-9a-fA-F-]{36}/);
-    if (match && match[0]) {
-      return match[0];
-    }
-  }
-
-  return "mcpee-cli";
-}
 
 function resolvePythonCandidates() {
   if (process.platform === "win32") {
@@ -83,152 +76,65 @@ function runCopilotUsageIngest(repoRootPath) {
   }
 }
 
-function resolveExecutionRoot(scriptRelativePath) {
-  const configuredTarget = process.env.MCPEE_TARGET_DIR ? path.resolve(process.env.MCPEE_TARGET_DIR) : "";
-  const cwdRoot = process.cwd();
-
-  if (configuredTarget && fs.existsSync(path.join(configuredTarget, scriptRelativePath))) {
-    return configuredTarget;
-  }
-
-  if (cwdRoot !== repoRoot && fs.existsSync(path.join(cwdRoot, scriptRelativePath))) {
-    return cwdRoot;
-  }
-
-  return repoRoot;
-}
-
 function printHelp() {
   process.stdout.write(
     [
       "mcpee <comando> [args]",
       "",
       "Comandos:",
+      "  init       Inicializa .mcpee/ para el proyecto actual (v2).",
+      "  doctor     Diagnostico v2: core, boosts, providers y optimizers.",
+      "  health     Resumen de salud v2 en JSON.",
+      "  chat       Ejecuta ruta capability-centric (usa --capability).",
+      "  telemetry-report Reporte agregado de ejecuciones v2.",
+      "  knowledge-build Construye indice de conocimiento v2.",
+      "  skillopt-sleep Genera drafts de skills desde telemetria (bridge al upstream oficial).",
+      "  artifact-report Reporte del artifact registry v2.",
       "  install    Scaffold del engine en el proyecto actual y ejecuta bootstrap.",
-      "  bootstrap  Ejecuta el bootstrap portable completo.",
-      "  validate   Ejecuta la validacion minima del contexto.",
-      "  hi         Ejecuta el preflight diario.",
-      "  bye        Ejecuta el cierre diario.",
-      "  intake     Ejecuta el repo intake.",
-      "  observe-on Activa telemetria global del terminal (hook PowerShell).",
-      "  observe-off Desactiva telemetria global del terminal.",
       "",
       "Ejemplos:",
-      "  npx mcp-efficiency-engine bootstrap",
-      "  mcpee validate -PortableMode",
+      "  npx mcp-efficiency-engine init",
+      "  npx mcp-efficiency-engine doctor",
+      "  npx mcp-efficiency-engine chat --capability backend.architecture.review --message \"analiza arquitectura\"",
+      "  npx mcp-efficiency-engine knowledge-build",
+      "  npx mcp-efficiency-engine skillopt-sleep",
+      "  npx mcp-efficiency-engine artifact-report",
+      "",
+      "Nota: comandos legacy (bootstrap/validate/hi/bye/intake/observe-*)",
+      "ya no forman parte de la superficie publica del CLI.",
     ].join("\n") + "\n",
   );
 }
 
-function resolveInvocationCandidates() {
-  if (process.platform === "win32") {
-    return ["pwsh", "powershell"];
-  }
-
-  return ["pwsh"];
-}
-
-function runPowerShellScript(scriptRelativePath, forwardedArgs) {
-  const executionRoot = resolveExecutionRoot(scriptRelativePath);
-  const scriptPath = path.join(executionRoot, scriptRelativePath);
-  const tracerScriptPath = path.join(repoRoot, "scripts", "ops", "trace-command.py");
-  const sessionId = resolveSessionId();
-
-  runCopilotUsageIngest(repoRoot);
-
-  if (!fs.existsSync(scriptPath)) {
-    process.stderr.write(`Script no encontrado: ${scriptRelativePath}\n`);
+function runInternalCommand(commandName, args) {
+  const executionRoot = process.cwd();
+  const handler = internalCommandMap[commandName];
+  if (!handler) {
+    process.stderr.write(`Comando interno no soportado: ${commandName}\n`);
     return 1;
   }
 
-  const shellCandidates = resolveInvocationCandidates();
-  for (const shellCommand of shellCandidates) {
-    if (fs.existsSync(tracerScriptPath)) {
-      const operation = `mcpee.${path.basename(scriptRelativePath, path.extname(scriptRelativePath))}`;
-      for (const [pythonCommand, pythonPrefixArgs] of resolvePythonCandidates()) {
-        const tracedResult = spawnSync(
-          pythonCommand,
-          [
-            ...pythonPrefixArgs,
-            tracerScriptPath,
-            "--operation",
-            operation,
-            "--session-id",
-            sessionId,
-            "--cwd",
-            executionRoot,
-            "--",
-            shellCommand,
-            "-NoProfile",
-            "-ExecutionPolicy",
-            "Bypass",
-            "-File",
-            scriptPath,
-            ...forwardedArgs,
-          ],
-          {
-            cwd: repoRoot,
-            stdio: "inherit",
-          },
-        );
-
-        if (tracedResult.error && tracedResult.error.code === "ENOENT") {
-          continue;
-        }
-
-        if (tracedResult.error) {
-          process.stderr.write(`${tracedResult.error.message}\n`);
-          return 1;
-        }
-
-        return tracedResult.status ?? 0;
-      }
-    }
-
-    const result = spawnSync(
-      shellCommand,
-      ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", scriptPath, ...forwardedArgs],
-      {
-        cwd: executionRoot,
-        stdio: "inherit",
-      },
-    );
-
-    if (result.error && result.error.code === "ENOENT") {
-      continue;
-    }
-
-    if (result.error) {
-      process.stderr.write(`${result.error.message}\n`);
-      return 1;
-    }
-
-    return result.status ?? 0;
-  }
-
-  process.stderr.write("PowerShell no esta disponible. Instala pwsh para usar este CLI.\n");
-  return 1;
+  return handler(executionRoot, args);
 }
 
 const argv = process.argv.slice(2);
-const firstArg = argv[0] || "bootstrap";
+const firstArg = argv[0] || "doctor";
 
 if (["-h", "--help", "help"].includes(firstArg)) {
   printHelp();
   process.exit(0);
 }
 
+runCopilotUsageIngest(repoRoot);
+
 if (firstArg === "install") {
   process.exit(runHostInstallFromCli(argv.slice(1)));
 }
 
-const command = commandMap[firstArg] ? firstArg : "bootstrap";
-const forwardedArgs = command === firstArg ? argv.slice(1) : argv;
-
-if (!commandMap[command]) {
-  process.stderr.write(`Comando no soportado: ${firstArg}\n`);
-  printHelp();
-  process.exit(1);
+if (internalCommandMap[firstArg]) {
+  process.exit(runInternalCommand(firstArg, argv.slice(1)));
 }
 
-process.exit(runPowerShellScript(commandMap[command], forwardedArgs));
+process.stderr.write(`Comando no soportado: ${firstArg}\n`);
+printHelp();
+process.exit(1);

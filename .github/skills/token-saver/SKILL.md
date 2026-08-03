@@ -28,7 +28,7 @@ Reducir coste, contexto y ruido en cualquier herramienta o agente.
 ## Por agente
 
 - backend: CodeGraph con símbolo/call path.
-- legacy: GitNexus con flow/dependency concreto.
+- backend multi-repo: GitNexus con flow/dependency concreto.
 - dba: Graphify con schema/query relevante.
 - rag-local: Graphify con nodos/fuentes.
 - rag-azure: Azure RAG Builder con fuentes y top-k limitado.

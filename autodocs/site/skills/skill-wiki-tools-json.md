@@ -26,7 +26,8 @@ Artefacto JSON de tipo skill en .github/skills/wiki-tools.json.
 
 | relation_type | target |
 |---|---|
-| none | none |
+| documents | [AutoDocs Projection Engine](../reports/report-readme-wiki-md.md) |
+| documents | [AutoDocs](../reports/report-autodocs-readme-md.md) |
 
 ## Datos tecnicos
 

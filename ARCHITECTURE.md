@@ -8,7 +8,6 @@ flowchart TD
 
     A --> DEV[backend]
     A --> FE[frontend-agent]
-    A --> LEG[legacy]
     A --> DBA[dba]
     A --> UX[ux-ui]
     A --> RAG[rag-local]
@@ -20,7 +19,6 @@ flowchart TD
 
     DEV --> TS[Token Saver Policy]
     FE --> TS
-    LEG --> TS
     DBA --> TS
     UX --> TS
     RAG --> TS
@@ -65,7 +63,7 @@ Observability mide si todo funciona.
 ## Routing base (resumen)
 
 - `backend` y `frontend-agent` -> `CodeGraph`
-- `legacy` -> `GitNexus`
+- `backend` (multi-repo) -> `GitNexus`
 - `dba`, `ux-ui`, `rag-local`, `community-manager` -> `Graphify`
 - `rag-azure` -> `Azure RAG Builder`
 - `wiki-agent` -> `CodeGraph` (fallback `Graphify`)

@@ -16,7 +16,7 @@ Indice del contenido y estructura del repositorio.
 
 - section_index: [reports](index.md)
 - wiki_home: [autodocs](../index.md)
-- related_in_section: [AutoDocs](report-readme-md.md), [AutoDocs Analysis](report-autodocs-readme-md.md), [AutoDocs Projection Engine](report-readme-wiki-md.md)
+- related_in_section: [AutoDocs](report-autodocs-readme-md.md), [AutoDocs Analysis](report-autodocs-analysis-mcpee-readme-md.md), [AutoDocs Projection Engine](report-readme-wiki-md.md)
 
 ## Fuentes
 

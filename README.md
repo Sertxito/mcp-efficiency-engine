@@ -13,6 +13,10 @@ Este repositorio centraliza:
 - Optimización operacional (`token-saver` + `caveman`) sin perder grounding.
 - Observabilidad de decisiones de routing, uso y aprendizaje continuo.
 
+## SkillOpt-Sleep
+
+El comando local `skillopt-sleep` actua como puente hacia el upstream oficial [microsoft/SkillOpt](https://github.com/microsoft/SkillOpt). Si el modulo Python oficial esta instalado en el entorno, MCPEE delega ahi; si no, usa el bridge local de telemetria como fallback.
+
 ## Gobernanza AI Credits (Copilot)
 
 Desde junio de 2026 el coste depende de uso real (tokens/credits). Este repo aplica control explicito por complejidad y fallback de coste:
@@ -121,7 +125,7 @@ Contrato global en `AGENTS.md`:
 
 - `backend` -> `CodeGraph`
 - `frontend-agent` -> `CodeGraph`
-- `legacy` -> `GitNexus`
+- `backend` -> `GitNexus` (cuando el análisis sea multi-repo)
 - `dba` -> `Graphify`
 - `ux-ui` -> `Graphify`
 - `rag-local` -> `Graphify`
@@ -138,7 +142,7 @@ Contrato global en `AGENTS.md`:
 | Motor | Uso principal | Cuándo usarlo |
 |---|---|---|
 | CodeGraph | Código repo único, símbolos y call paths | bug/fix/refactor backend o frontend en un repo |
-| GitNexus | Impacto multi-repo, legacy, dependencias | migraciones legacy, análisis de blast radius, seguridad de cambio |
+| GitNexus | Impacto multi-repo y dependencias | análisis de blast radius, seguridad de cambio |
 | Graphify | Documentación técnica local y relaciones de conocimiento | dba, ux-ui, rag-local, análisis de docs estructurados |
 | Azure RAG Builder | Contexto corporativo y fuentes enterprise | contratos, políticas, evidencia corporativa |
 | Repomix | Snapshot/export de contexto | empaquetado de contexto y handoff portable |
@@ -160,7 +164,7 @@ Contrato global en `AGENTS.md`:
 flowchart TB
   I[Intent detectado] --> D{Dominio}
   D -->|backend/frontend| CG[CodeGraph]
-  D -->|legacy| GN[GitNexus]
+  D -->|backend multi-repo| GN[GitNexus]
   D -->|dba/ux-ui/rag-local| GF[Graphify]
   D -->|azure-rag| AZ[Azure RAG Builder]
   D -->|snapshot| RP[Repomix]
@@ -201,7 +205,7 @@ Comportamiento esperado:
 - copia al proyecto host los artefactos canonicos del engine (`scripts`, `.github`, `.vscode`, `repo-intake`, `orchestrator`, `policies`, `observability`, `autodocs/schema`, `memory`, etc.)
 - instala motores y herramientas via bootstrap portable
 - si no existe `repo-registry/repos.yml`, en modo interactivo pregunta por owner/prefix y repo inicial para intake
-- si la instalacion corre en modo no interactivo (comun en lifecycle scripts de npm), crea automaticamente un repo inicial por defecto: dominio `dev`, location `.`
+- si la instalacion corre en modo no interactivo (comun en lifecycle scripts de npm), crea automaticamente un repo inicial por defecto: dominio `backend`, location `.`
 
 Nota npm (entornos con politicas de scripts):
 
@@ -218,14 +222,14 @@ npm rebuild mcp-efficiency-engine
 
 ```powershell
 npx mcp-efficiency-engine install
-npx mcp-efficiency-engine validate -PortableMode
+npx mcp-efficiency-engine doctor
 ```
 
 Tambien puedes relanzar la instalacion manualmente sobre el proyecto actual:
 
 ```powershell
 npx mcp-efficiency-engine install
-npx mcp-efficiency-engine validate -PortableMode
+npx mcp-efficiency-engine doctor
 ```
 
 Tambien puedes instalarlo globalmente y usar:
@@ -292,13 +296,13 @@ py -3 .\scripts\intake\run-routing-evals.py
 Telemetría de terminal (PowerShell, opcional):
 
 ```powershell
-mcpee observe-on
+.\scripts\ops\install-terminal-telemetry-hook.ps1
 # ... comandos interactivos ...
-mcpee observe-off
+.\scripts\ops\uninstall-terminal-telemetry-hook.ps1
 ```
 
-- `mcpee observe-on` instala un hook global de perfil PowerShell para emitir un evento de telemetría por comando usando `scripts/ops/emit-terminal-command-telemetry.py`.
-- `mcpee observe-off` elimina el hook global y restaura el perfil sin instrumentación.
+- `scripts/ops/install-terminal-telemetry-hook.ps1` instala un hook global de perfil PowerShell para emitir un evento de telemetría por comando usando `scripts/ops/emit-terminal-command-telemetry.py`.
+- `scripts/ops/uninstall-terminal-telemetry-hook.ps1` elimina el hook global y restaura el perfil sin instrumentación.
 
 Validación extendida recomendada:
 
@@ -322,7 +326,7 @@ Comportamiento del hook:
 
 Notas operativas recientes:
 
-- `mcpee` envuelve scripts PowerShell con `scripts/ops/trace-command.py` para emitir trazas por comando (`mcpee.*`) en el collector.
+- El flujo v2 expone comandos capability-centric en `mcpee` (`doctor`, `chat`, `knowledge-build`, `skillopt-sleep`, `artifact-report`) y conserva scripts operativos bajo `scripts/ops/*`.
 - `scripts/ops/publish-langsmith-kpis.py` agrega snapshots locales de flujos, coste y tokens antes de publicar KPI runs en LangSmith.
 
 Artefactos/resultados:

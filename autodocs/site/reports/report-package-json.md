@@ -1,6 +1,6 @@
 # mcp-efficiency-engine
 
-Motor de orquestacion para agentes MCP con routing por dominio y bootstrap portable.
+Motor de orquestacion capability-centric v2 para agentes MCP con optimizacion always-on.
 
 ## Contexto
 
@@ -8,7 +8,7 @@ Motor de orquestacion para agentes MCP con routing por dominio y bootstrap porta
 - domain: packaging
 - section: reports
 - provider: repo-content
-- checksum: 2247c593fa68379c9ab752c628160f44765939eb2fe5b9f392c60521b41c42f5
+- checksum: 31285c888691de85bd21d2e368ae1757729a557dc85d40d54aa92f0e06fd9144
 - owner: repo
 - tags: report, reports, packaging, json
 
@@ -16,7 +16,7 @@ Motor de orquestacion para agentes MCP con routing por dominio y bootstrap porta
 
 - section_index: [reports](index.md)
 - wiki_home: [autodocs](../index.md)
-- related_in_section: [AutoDocs](report-readme-md.md), [AutoDocs Analysis](report-autodocs-readme-md.md), [AutoDocs Projection Engine](report-readme-wiki-md.md)
+- related_in_section: [AutoDocs](report-autodocs-readme-md.md), [AutoDocs Analysis](report-autodocs-analysis-mcpee-readme-md.md), [AutoDocs Projection Engine](report-readme-wiki-md.md)
 
 ## Fuentes
 
@@ -40,7 +40,7 @@ Motor de orquestacion para agentes MCP con routing por dominio y bootstrap porta
   "kind": "report",
   "section": "reports",
   "domain": "packaging",
-  "summary": "Motor de orquestacion para agentes MCP con routing por dominio y bootstrap portable.",
+  "summary": "Motor de orquestacion capability-centric v2 para agentes MCP con optimizacion always-on.",
   "owner": "repo",
   "source_refs": [
     "package.json"

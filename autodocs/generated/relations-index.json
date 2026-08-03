@@ -246,30 +246,6 @@
     "target": "repo-content::ARCHITECTURE.md"
   },
   {
-    "source": "repo-content::.github/agents/legacy.agent.md",
-    "source_title": "legacy",
-    "type": "follows",
-    "target": "repo-content::.github/skills/token-saver/SKILL.md"
-  },
-  {
-    "source": "repo-content::.github/agents/legacy.agent.md",
-    "source_title": "legacy",
-    "type": "follows",
-    "target": "repo-content::.github/skills/caveman-mode/SKILL.md"
-  },
-  {
-    "source": "repo-content::.github/agents/legacy.agent.md",
-    "source_title": "legacy",
-    "type": "follows",
-    "target": "repo-content::AGENTS.md"
-  },
-  {
-    "source": "repo-content::.github/agents/legacy.agent.md",
-    "source_title": "legacy",
-    "type": "follows",
-    "target": "repo-content::ARCHITECTURE.md"
-  },
-  {
     "source": "repo-content::.github/agents/rag-azure.agent.md",
     "source_title": "rag-azure",
     "type": "follows",
@@ -472,12 +448,6 @@
     "source_title": "iot",
     "type": "uses_skill",
     "target": "repo-content::.github/skills/iot-architecture/SKILL.md"
-  },
-  {
-    "source": "repo-content::.github/agents/legacy.agent.md",
-    "source_title": "legacy",
-    "type": "uses_skill",
-    "target": "repo-content::.github/skills/legacy-migration/SKILL.md"
   },
   {
     "source": "repo-content::.github/agents/rag-azure.agent.md",

@@ -88,7 +88,6 @@ def domain_defaults(domain: str) -> dict[str, str]:
         "frontend": {"agent": "frontend-agent", "engine": "CodeGraph", "capability": "frontend-coding"},
         "ux-ui": {"agent": "ux-ui", "engine": "Graphify", "capability": "ux-ui-governance"},
         "community-content": {"agent": "community-manager", "engine": "Graphify", "capability": "community-content"},
-        "legacy": {"agent": "legacy", "engine": "GitNexus", "capability": "legacy-migration"},
     }
     return defaults.get(domain, defaults["backend"])
 
@@ -373,8 +372,6 @@ def select_prompt_for_route(
         candidate = ".github/prompts/community.post.prompt.md"
     elif domain == "ux-ui" or agent == "ux-ui":
         candidate = ".github/prompts/ux-ui.review.prompt.md"
-    elif domain == "legacy":
-        candidate = ".github/prompts/legacy.impact-analysis.prompt.md"
     # Data/document technical flows.
     elif domain == "dba":
         candidate = ".github/prompts/dba.query-review.prompt.md"

@@ -6,8 +6,8 @@ Skills, comandos y utilidades operativas consumibles por agentes.
 
 ## Resumen
 
-- total_pages: 22
-- domains: skills (22)
+- total_pages: 21
+- domains: skills (21)
 
 ## Paginas
 
@@ -27,7 +27,6 @@ Skills, comandos y utilidades operativas consumibles por agentes.
 - [Frontend Coding Skill](skill-frontend-coding.md) - Implement and validate code changes in single-repo frontend tasks.
 - [Human In The Loop (HITL)](skill-human-in-the-loop.md) - Asegurar confirmacion humana solo cuando una decision o accion tiene riesgo alto, impacto externo o potencial destructivo.
 - [IoT Architecture Skill](skill-iot-architecture.md) - Handle IoT/edge/telemetry tasks combining code and technical docs.
-- [Legacy Migration Skill](skill-legacy-migration.md) - Assess legacy and multi-repo change impact before execution.
 - [RAG Knowledge Skill](skill-rag-knowledge.md) - Answer technical/local documentation questions from local knowledge sources.
 - [Skill: ahorro-tokens](skill-ahorro-tokens.md) - Aplicar ahorro de tokens sin perder calidad, evidencia ni trazabilidad.
 - [Token Saver Skill — Always On](skill-token-saver.md) - Contenido skill en .github/skills/token-saver/SKILL.md.
