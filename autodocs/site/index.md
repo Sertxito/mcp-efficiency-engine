@@ -5,15 +5,15 @@ unificado y el Markdown es una proyeccion derivada para lectura humana.
 
 ## Resumen
 
-- total_pages: 71
+- total_pages: 68
 - generated_graph: autodocs/generated/unified-graph.json
 - search_manifest: autodocs/generated/search-index.json
 - validation_report: autodocs/generated/validation-report.md
 
 ## Entry Points
 
-- [Skills](skills/index.md) - 22 paginas
-- [Agents](agents/index.md) - 12 paginas
+- [Skills](skills/index.md) - 21 paginas
+- [Agents](agents/index.md) - 11 paginas
 - [Specs](specs/index.md) - 11 paginas
 - [Reports](reports/index.md) - 9 paginas
 
@@ -32,9 +32,9 @@ unificado y el Markdown es una proyeccion derivada para lectura humana.
 | section | description | pages |
 |---|---|---|
 | [Capabilities](capabilities/index.md) | Capacidades operativas e integraciones disponibles en el motor. | 0 |
-| [Agents](agents/index.md) | Agentes y sus responsabilidades dentro del sistema. | 12 |
-| [Skills](skills/index.md) | Skills, comandos y utilidades operativas consumibles por agentes. | 22 |
-| [Routing](routing/index.md) | Reglas de orquestacion y decisiones de enrutado. | 7 |
+| [Agents](agents/index.md) | Agentes y sus responsabilidades dentro del sistema. | 11 |
+| [Skills](skills/index.md) | Skills, comandos y utilidades operativas consumibles por agentes. | 21 |
+| [Routing](routing/index.md) | Reglas de orquestacion y decisiones de enrutado. | 6 |
 | [Projects](projects/index.md) | Proyectos o dominios servidos por MCP Efficiency Engine. | 0 |
 | [Policies](policies/index.md) | Politicas y contratos operativos del repositorio. | 4 |
 | [Specs](specs/index.md) | Especificaciones tecnicas y contratos declarativos. | 11 |

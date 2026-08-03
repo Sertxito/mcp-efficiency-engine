@@ -1,5 +1,5 @@
 {
-  "last_updated": "sha256:b157a1616d114f60d51231ea31552cf9b4dc3ef448da13880434fcf944f38842",
+  "last_updated": "sha256:4207fdddcea05bb6f00c9812c03f549926486a14f94791390d26499ea0ca79b7",
   "nodes": {
     "repo-content::README.md": {
       "node_id": "repo-content::README.md",
@@ -302,13 +302,13 @@
       "node_id": "repo-content::package.json",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "2247c593fa68379c9ab752c628160f44765939eb2fe5b9f392c60521b41c42f5",
+      "checksum": "31285c888691de85bd21d2e368ae1757729a557dc85d40d54aa92f0e06fd9144",
       "title": "mcp-efficiency-engine",
       "slug": "report-package-json",
       "kind": "report",
       "domain": "packaging",
       "owner": "repo",
-      "summary": "Motor de orquestacion para agentes MCP con routing por dominio y bootstrap portable.",
+      "summary": "Motor de orquestacion capability-centric v2 para agentes MCP con optimizacion always-on.",
       "source_refs": [
         "package.json"
       ],
@@ -342,7 +342,7 @@
         "kind": "report",
         "section": "reports",
         "domain": "packaging",
-        "summary": "Motor de orquestacion para agentes MCP con routing por dominio y bootstrap portable.",
+        "summary": "Motor de orquestacion capability-centric v2 para agentes MCP con optimizacion always-on.",
         "owner": "repo",
         "source_refs": [
           "package.json"
@@ -793,81 +793,6 @@
         "owner": "agents",
         "source_refs": [
           ".github/agents/iot.agent.md"
-        ],
-        "tags": [
-          "agent",
-          "agents",
-          "agents"
-        ]
-      }
-    },
-    "repo-content::.github/agents/legacy.agent.md": {
-      "node_id": "repo-content::.github/agents/legacy.agent.md",
-      "provider": "repo-content",
-      "type": "agent",
-      "checksum": "1d448d333e484e8399836257b0c8f514689fc9df2ebdfa7a236172378d2c793f",
-      "title": "legacy",
-      "slug": "agent-legacy-agent-md",
-      "kind": "agent",
-      "domain": "agents",
-      "owner": "agents",
-      "summary": "Legacy modernization, migration planning, and multi-repo impact analysis.",
-      "source_refs": [
-        ".github/agents/legacy.agent.md"
-      ],
-      "relations": [
-        {
-          "target": "repo-content::.github/skills/legacy-migration/SKILL.md",
-          "type": "uses_skill"
-        },
-        {
-          "target": "repo-content::.github/skills/token-saver/SKILL.md",
-          "type": "follows"
-        },
-        {
-          "target": "repo-content::.github/skills/caveman-mode/SKILL.md",
-          "type": "follows"
-        },
-        {
-          "target": "repo-content::AGENTS.md",
-          "type": "follows"
-        },
-        {
-          "target": "repo-content::ARCHITECTURE.md",
-          "type": "follows"
-        }
-      ],
-      "tags": [
-        "agent",
-        "agents",
-        "agents"
-      ],
-      "path": "agents/agent-legacy-agent-md.md",
-      "navigation": {
-        "section": "agents",
-        "weight": 100,
-        "parent": "agents",
-        "tags": [
-          "agent",
-          "agents",
-          "agents"
-        ]
-      },
-      "quality": {
-        "has_summary": true,
-        "has_relations": true,
-        "has_sources": true
-      },
-      "metadata": {
-        "title": "legacy",
-        "slug": "agent-legacy-agent-md",
-        "kind": "agent",
-        "section": "agents",
-        "domain": "agents",
-        "summary": "Legacy modernization, migration planning, and multi-repo impact analysis.",
-        "owner": "agents",
-        "source_refs": [
-          ".github/agents/legacy.agent.md"
         ],
         "tags": [
           "agent",
@@ -2166,60 +2091,6 @@
         "owner": "iot-architecture",
         "source_refs": [
           ".github/skills/iot-architecture/SKILL.md"
-        ],
-        "tags": [
-          "skill",
-          "skills",
-          "skills"
-        ]
-      }
-    },
-    "repo-content::.github/skills/legacy-migration/SKILL.md": {
-      "node_id": "repo-content::.github/skills/legacy-migration/SKILL.md",
-      "provider": "repo-content",
-      "type": "skill",
-      "checksum": "8fab16cb7f649e188311cc4152586237589c4096f6e6451041edf32e81394a94",
-      "title": "Legacy Migration Skill",
-      "slug": "skill-legacy-migration",
-      "kind": "skill",
-      "domain": "skills",
-      "owner": "legacy-migration",
-      "summary": "Assess legacy and multi-repo change impact before execution.",
-      "source_refs": [
-        ".github/skills/legacy-migration/SKILL.md"
-      ],
-      "relations": [],
-      "tags": [
-        "skill",
-        "skills",
-        "skills"
-      ],
-      "path": "skills/skill-legacy-migration.md",
-      "navigation": {
-        "section": "skills",
-        "weight": 100,
-        "parent": "skills",
-        "tags": [
-          "skill",
-          "skills",
-          "skills"
-        ]
-      },
-      "quality": {
-        "has_summary": true,
-        "has_relations": false,
-        "has_sources": true
-      },
-      "metadata": {
-        "title": "Legacy Migration Skill",
-        "slug": "skill-legacy-migration",
-        "kind": "skill",
-        "section": "skills",
-        "domain": "skills",
-        "summary": "Assess legacy and multi-repo change impact before execution.",
-        "owner": "legacy-migration",
-        "source_refs": [
-          ".github/skills/legacy-migration/SKILL.md"
         ],
         "tags": [
           "skill",
@@ -3758,60 +3629,6 @@
         "owner": "repo",
         "source_refs": [
           "ARCHITECTURE.md"
-        ],
-        "tags": [
-          "report",
-          "routing",
-          "routing"
-        ]
-      }
-    },
-    "repo-content::autodocs/site/guides/03-mcp-routing-guide.md": {
-      "node_id": "repo-content::autodocs/site/guides/03-mcp-routing-guide.md",
-      "provider": "repo-content",
-      "type": "report",
-      "checksum": "6302834ebc1716b90e3eb17fadffe32963f384284d85621a1a1e428bfb956b46",
-      "title": "MCP Routing Guide",
-      "slug": "report-03-mcp-routing-guide-md",
-      "kind": "report",
-      "domain": "routing",
-      "owner": "guides",
-      "summary": "No usar todos los MCP a la vez. Usar routing corporativo para elegir 1 agente + 1 motor principal por tarea.",
-      "source_refs": [
-        "autodocs/site/guides/03-mcp-routing-guide.md"
-      ],
-      "relations": [],
-      "tags": [
-        "report",
-        "routing",
-        "routing"
-      ],
-      "path": "routing/report-03-mcp-routing-guide-md.md",
-      "navigation": {
-        "section": "routing",
-        "weight": 100,
-        "parent": "routing",
-        "tags": [
-          "report",
-          "routing",
-          "routing"
-        ]
-      },
-      "quality": {
-        "has_summary": true,
-        "has_relations": false,
-        "has_sources": true
-      },
-      "metadata": {
-        "title": "MCP Routing Guide",
-        "slug": "report-03-mcp-routing-guide-md",
-        "kind": "report",
-        "section": "routing",
-        "domain": "routing",
-        "summary": "No usar todos los MCP a la vez. Usar routing corporativo para elegir 1 agente + 1 motor principal por tarea.",
-        "owner": "guides",
-        "source_refs": [
-          "autodocs/site/guides/03-mcp-routing-guide.md"
         ],
         "tags": [
           "report",
@@ -4368,14 +4185,14 @@
       "node_id": "repo-content::package.json",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "2247c593fa68379c9ab752c628160f44765939eb2fe5b9f392c60521b41c42f5",
+      "checksum": "31285c888691de85bd21d2e368ae1757729a557dc85d40d54aa92f0e06fd9144",
       "metadata": {
         "title": "mcp-efficiency-engine",
         "slug": "report-package-json",
         "kind": "report",
         "section": "reports",
         "domain": "packaging",
-        "summary": "Motor de orquestacion para agentes MCP con routing por dominio y bootstrap portable.",
+        "summary": "Motor de orquestacion capability-centric v2 para agentes MCP con optimizacion always-on.",
         "owner": "repo",
         "source_refs": [
           "package.json"
@@ -4641,52 +4458,6 @@
       "relations": [
         {
           "target": "repo-content::.github/skills/iot-architecture/SKILL.md",
-          "type": "uses_skill"
-        },
-        {
-          "target": "repo-content::.github/skills/token-saver/SKILL.md",
-          "type": "follows"
-        },
-        {
-          "target": "repo-content::.github/skills/caveman-mode/SKILL.md",
-          "type": "follows"
-        },
-        {
-          "target": "repo-content::AGENTS.md",
-          "type": "follows"
-        },
-        {
-          "target": "repo-content::ARCHITECTURE.md",
-          "type": "follows"
-        }
-      ],
-      "semantic_summary": ""
-    },
-    "repo-content::.github/agents/legacy.agent.md": {
-      "node_id": "repo-content::.github/agents/legacy.agent.md",
-      "provider": "repo-content",
-      "type": "agent",
-      "checksum": "1d448d333e484e8399836257b0c8f514689fc9df2ebdfa7a236172378d2c793f",
-      "metadata": {
-        "title": "legacy",
-        "slug": "agent-legacy-agent-md",
-        "kind": "agent",
-        "section": "agents",
-        "domain": "agents",
-        "summary": "Legacy modernization, migration planning, and multi-repo impact analysis.",
-        "owner": "agents",
-        "source_refs": [
-          ".github/agents/legacy.agent.md"
-        ],
-        "tags": [
-          "agent",
-          "agents",
-          "agents"
-        ]
-      },
-      "relations": [
-        {
-          "target": "repo-content::.github/skills/legacy-migration/SKILL.md",
           "type": "uses_skill"
         },
         {
@@ -5358,31 +5129,6 @@
         "owner": "iot-architecture",
         "source_refs": [
           ".github/skills/iot-architecture/SKILL.md"
-        ],
-        "tags": [
-          "skill",
-          "skills",
-          "skills"
-        ]
-      },
-      "relations": [],
-      "semantic_summary": ""
-    },
-    "repo-content::.github/skills/legacy-migration/SKILL.md": {
-      "node_id": "repo-content::.github/skills/legacy-migration/SKILL.md",
-      "provider": "repo-content",
-      "type": "skill",
-      "checksum": "8fab16cb7f649e188311cc4152586237589c4096f6e6451041edf32e81394a94",
-      "metadata": {
-        "title": "Legacy Migration Skill",
-        "slug": "skill-legacy-migration",
-        "kind": "skill",
-        "section": "skills",
-        "domain": "skills",
-        "summary": "Assess legacy and multi-repo change impact before execution.",
-        "owner": "legacy-migration",
-        "source_refs": [
-          ".github/skills/legacy-migration/SKILL.md"
         ],
         "tags": [
           "skill",
@@ -6144,31 +5890,6 @@
       ],
       "semantic_summary": ""
     },
-    "repo-content::autodocs/site/guides/03-mcp-routing-guide.md": {
-      "node_id": "repo-content::autodocs/site/guides/03-mcp-routing-guide.md",
-      "provider": "repo-content",
-      "type": "report",
-      "checksum": "6302834ebc1716b90e3eb17fadffe32963f384284d85621a1a1e428bfb956b46",
-      "metadata": {
-        "title": "MCP Routing Guide",
-        "slug": "report-03-mcp-routing-guide-md",
-        "kind": "report",
-        "section": "routing",
-        "domain": "routing",
-        "summary": "No usar todos los MCP a la vez. Usar routing corporativo para elegir 1 agente + 1 motor principal por tarea.",
-        "owner": "guides",
-        "source_refs": [
-          "autodocs/site/guides/03-mcp-routing-guide.md"
-        ],
-        "tags": [
-          "report",
-          "routing",
-          "routing"
-        ]
-      },
-      "relations": [],
-      "semantic_summary": ""
-    },
     "repo-content::orchestrator/router.md": {
       "node_id": "repo-content::orchestrator/router.md",
       "provider": "repo-content",
@@ -6657,13 +6378,13 @@
       "node_id": "repo-content::package.json",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "2247c593fa68379c9ab752c628160f44765939eb2fe5b9f392c60521b41c42f5",
+      "checksum": "31285c888691de85bd21d2e368ae1757729a557dc85d40d54aa92f0e06fd9144",
       "title": "mcp-efficiency-engine",
       "slug": "report-package-json",
       "kind": "report",
       "domain": "packaging",
       "owner": "repo",
-      "summary": "Motor de orquestacion para agentes MCP con routing por dominio y bootstrap portable.",
+      "summary": "Motor de orquestacion capability-centric v2 para agentes MCP con optimizacion always-on.",
       "source_refs": [
         "package.json"
       ],
@@ -6697,7 +6418,7 @@
         "kind": "report",
         "section": "reports",
         "domain": "packaging",
-        "summary": "Motor de orquestacion para agentes MCP con routing por dominio y bootstrap portable.",
+        "summary": "Motor de orquestacion capability-centric v2 para agentes MCP con optimizacion always-on.",
         "owner": "repo",
         "source_refs": [
           "package.json"
@@ -7148,81 +6869,6 @@
         "owner": "agents",
         "source_refs": [
           ".github/agents/iot.agent.md"
-        ],
-        "tags": [
-          "agent",
-          "agents",
-          "agents"
-        ]
-      }
-    },
-    "repo-content::.github/agents/legacy.agent.md": {
-      "node_id": "repo-content::.github/agents/legacy.agent.md",
-      "provider": "repo-content",
-      "type": "agent",
-      "checksum": "1d448d333e484e8399836257b0c8f514689fc9df2ebdfa7a236172378d2c793f",
-      "title": "legacy",
-      "slug": "agent-legacy-agent-md",
-      "kind": "agent",
-      "domain": "agents",
-      "owner": "agents",
-      "summary": "Legacy modernization, migration planning, and multi-repo impact analysis.",
-      "source_refs": [
-        ".github/agents/legacy.agent.md"
-      ],
-      "relations": [
-        {
-          "target": "repo-content::.github/skills/legacy-migration/SKILL.md",
-          "type": "uses_skill"
-        },
-        {
-          "target": "repo-content::.github/skills/token-saver/SKILL.md",
-          "type": "follows"
-        },
-        {
-          "target": "repo-content::.github/skills/caveman-mode/SKILL.md",
-          "type": "follows"
-        },
-        {
-          "target": "repo-content::AGENTS.md",
-          "type": "follows"
-        },
-        {
-          "target": "repo-content::ARCHITECTURE.md",
-          "type": "follows"
-        }
-      ],
-      "tags": [
-        "agent",
-        "agents",
-        "agents"
-      ],
-      "path": "agents/agent-legacy-agent-md.md",
-      "navigation": {
-        "section": "agents",
-        "weight": 100,
-        "parent": "agents",
-        "tags": [
-          "agent",
-          "agents",
-          "agents"
-        ]
-      },
-      "quality": {
-        "has_summary": true,
-        "has_relations": true,
-        "has_sources": true
-      },
-      "metadata": {
-        "title": "legacy",
-        "slug": "agent-legacy-agent-md",
-        "kind": "agent",
-        "section": "agents",
-        "domain": "agents",
-        "summary": "Legacy modernization, migration planning, and multi-repo impact analysis.",
-        "owner": "agents",
-        "source_refs": [
-          ".github/agents/legacy.agent.md"
         ],
         "tags": [
           "agent",
@@ -8521,60 +8167,6 @@
         "owner": "iot-architecture",
         "source_refs": [
           ".github/skills/iot-architecture/SKILL.md"
-        ],
-        "tags": [
-          "skill",
-          "skills",
-          "skills"
-        ]
-      }
-    },
-    "repo-content::.github/skills/legacy-migration/SKILL.md": {
-      "node_id": "repo-content::.github/skills/legacy-migration/SKILL.md",
-      "provider": "repo-content",
-      "type": "skill",
-      "checksum": "8fab16cb7f649e188311cc4152586237589c4096f6e6451041edf32e81394a94",
-      "title": "Legacy Migration Skill",
-      "slug": "skill-legacy-migration",
-      "kind": "skill",
-      "domain": "skills",
-      "owner": "legacy-migration",
-      "summary": "Assess legacy and multi-repo change impact before execution.",
-      "source_refs": [
-        ".github/skills/legacy-migration/SKILL.md"
-      ],
-      "relations": [],
-      "tags": [
-        "skill",
-        "skills",
-        "skills"
-      ],
-      "path": "skills/skill-legacy-migration.md",
-      "navigation": {
-        "section": "skills",
-        "weight": 100,
-        "parent": "skills",
-        "tags": [
-          "skill",
-          "skills",
-          "skills"
-        ]
-      },
-      "quality": {
-        "has_summary": true,
-        "has_relations": false,
-        "has_sources": true
-      },
-      "metadata": {
-        "title": "Legacy Migration Skill",
-        "slug": "skill-legacy-migration",
-        "kind": "skill",
-        "section": "skills",
-        "domain": "skills",
-        "summary": "Assess legacy and multi-repo change impact before execution.",
-        "owner": "legacy-migration",
-        "source_refs": [
-          ".github/skills/legacy-migration/SKILL.md"
         ],
         "tags": [
           "skill",
@@ -10121,60 +9713,6 @@
         ]
       }
     },
-    "repo-content::autodocs/site/guides/03-mcp-routing-guide.md": {
-      "node_id": "repo-content::autodocs/site/guides/03-mcp-routing-guide.md",
-      "provider": "repo-content",
-      "type": "report",
-      "checksum": "6302834ebc1716b90e3eb17fadffe32963f384284d85621a1a1e428bfb956b46",
-      "title": "MCP Routing Guide",
-      "slug": "report-03-mcp-routing-guide-md",
-      "kind": "report",
-      "domain": "routing",
-      "owner": "guides",
-      "summary": "No usar todos los MCP a la vez. Usar routing corporativo para elegir 1 agente + 1 motor principal por tarea.",
-      "source_refs": [
-        "autodocs/site/guides/03-mcp-routing-guide.md"
-      ],
-      "relations": [],
-      "tags": [
-        "report",
-        "routing",
-        "routing"
-      ],
-      "path": "routing/report-03-mcp-routing-guide-md.md",
-      "navigation": {
-        "section": "routing",
-        "weight": 100,
-        "parent": "routing",
-        "tags": [
-          "report",
-          "routing",
-          "routing"
-        ]
-      },
-      "quality": {
-        "has_summary": true,
-        "has_relations": false,
-        "has_sources": true
-      },
-      "metadata": {
-        "title": "MCP Routing Guide",
-        "slug": "report-03-mcp-routing-guide-md",
-        "kind": "report",
-        "section": "routing",
-        "domain": "routing",
-        "summary": "No usar todos los MCP a la vez. Usar routing corporativo para elegir 1 agente + 1 motor principal por tarea.",
-        "owner": "guides",
-        "source_refs": [
-          "autodocs/site/guides/03-mcp-routing-guide.md"
-        ],
-        "tags": [
-          "report",
-          "routing",
-          "routing"
-        ]
-      }
-    },
     "repo-content::orchestrator/router.md": {
       "node_id": "repo-content::orchestrator/router.md",
       "provider": "repo-content",
@@ -10579,7 +10117,7 @@
         "id": "agents",
         "title": "Agents",
         "description": "Agentes y sus responsabilidades dentro del sistema.",
-        "page_count": 12,
+        "page_count": 11,
         "pages": [
           {
             "title": "Mission",
@@ -10612,11 +10150,6 @@
             "path": "agents/agent-iot-agent-md.md"
           },
           {
-            "title": "legacy",
-            "slug": "agent-legacy-agent-md",
-            "path": "agents/agent-legacy-agent-md.md"
-          },
-          {
             "title": "rag-azure",
             "slug": "agent-rag-azure-agent-md",
             "path": "agents/agent-rag-azure-agent-md.md"
@@ -10647,7 +10180,7 @@
         "id": "skills",
         "title": "Skills",
         "description": "Skills, comandos y utilidades operativas consumibles por agentes.",
-        "page_count": 22,
+        "page_count": 21,
         "pages": [
           {
             "title": "Azure RAG Enterprise Skill",
@@ -10730,11 +10263,6 @@
             "path": "skills/skill-iot-architecture.md"
           },
           {
-            "title": "Legacy Migration Skill",
-            "slug": "skill-legacy-migration",
-            "path": "skills/skill-legacy-migration.md"
-          },
-          {
             "title": "RAG Knowledge Skill",
             "slug": "skill-rag-knowledge",
             "path": "skills/skill-rag-knowledge.md"
@@ -10765,7 +10293,7 @@
         "id": "routing",
         "title": "Routing",
         "description": "Reglas de orquestacion y decisiones de enrutado.",
-        "page_count": 7,
+        "page_count": 6,
         "pages": [
           {
             "title": "AGENTS.md \u2014 Enterprise Global Contract",
@@ -10791,11 +10319,6 @@
             "title": "Fallback Strategy",
             "slug": "report-fallback-md",
             "path": "routing/report-fallback-md.md"
-          },
-          {
-            "title": "MCP Routing Guide",
-            "slug": "report-03-mcp-routing-guide-md",
-            "path": "routing/report-03-mcp-routing-guide-md.md"
           },
           {
             "title": "Memory-first + Learning",
@@ -11080,19 +10603,6 @@
         "agents"
       ],
       "path": "agents/agent-iot-agent-md.md"
-    },
-    {
-      "title": "legacy",
-      "summary": "Legacy modernization, migration planning, and multi-repo impact analysis.",
-      "kind": "agent",
-      "domain": "agents",
-      "section": "agents",
-      "tags": [
-        "agent",
-        "agents",
-        "agents"
-      ],
-      "path": "agents/agent-legacy-agent-md.md"
     },
     {
       "title": "rag-azure",
@@ -11383,7 +10893,7 @@
     },
     {
       "title": "mcp-efficiency-engine",
-      "summary": "Motor de orquestacion para agentes MCP con routing por dominio y bootstrap portable.",
+      "summary": "Motor de orquestacion capability-centric v2 para agentes MCP con optimizacion always-on.",
       "kind": "report",
       "domain": "packaging",
       "section": "reports",
@@ -11473,19 +10983,6 @@
         "routing"
       ],
       "path": "routing/report-fallback-md.md"
-    },
-    {
-      "title": "MCP Routing Guide",
-      "summary": "No usar todos los MCP a la vez. Usar routing corporativo para elegir 1 agente + 1 motor principal por tarea.",
-      "kind": "report",
-      "domain": "routing",
-      "section": "routing",
-      "tags": [
-        "report",
-        "routing",
-        "routing"
-      ],
-      "path": "routing/report-03-mcp-routing-guide-md.md"
     },
     {
       "title": "Memory-first + Learning",
@@ -11707,19 +11204,6 @@
         "skills"
       ],
       "path": "skills/skill-iot-architecture.md"
-    },
-    {
-      "title": "Legacy Migration Skill",
-      "summary": "Assess legacy and multi-repo change impact before execution.",
-      "kind": "skill",
-      "domain": "skills",
-      "section": "skills",
-      "tags": [
-        "skill",
-        "skills",
-        "skills"
-      ],
-      "path": "skills/skill-legacy-migration.md"
     },
     {
       "title": "RAG Knowledge Skill",
@@ -12179,30 +11663,6 @@
       "target": "repo-content::ARCHITECTURE.md"
     },
     {
-      "source": "repo-content::.github/agents/legacy.agent.md",
-      "source_title": "legacy",
-      "type": "follows",
-      "target": "repo-content::.github/skills/token-saver/SKILL.md"
-    },
-    {
-      "source": "repo-content::.github/agents/legacy.agent.md",
-      "source_title": "legacy",
-      "type": "follows",
-      "target": "repo-content::.github/skills/caveman-mode/SKILL.md"
-    },
-    {
-      "source": "repo-content::.github/agents/legacy.agent.md",
-      "source_title": "legacy",
-      "type": "follows",
-      "target": "repo-content::AGENTS.md"
-    },
-    {
-      "source": "repo-content::.github/agents/legacy.agent.md",
-      "source_title": "legacy",
-      "type": "follows",
-      "target": "repo-content::ARCHITECTURE.md"
-    },
-    {
       "source": "repo-content::.github/agents/rag-azure.agent.md",
       "source_title": "rag-azure",
       "type": "follows",
@@ -12407,12 +11867,6 @@
       "target": "repo-content::.github/skills/iot-architecture/SKILL.md"
     },
     {
-      "source": "repo-content::.github/agents/legacy.agent.md",
-      "source_title": "legacy",
-      "type": "uses_skill",
-      "target": "repo-content::.github/skills/legacy-migration/SKILL.md"
-    },
-    {
       "source": "repo-content::.github/agents/rag-azure.agent.md",
       "source_title": "rag-azure",
       "type": "uses_skill",
@@ -12449,7 +11903,7 @@
       "id": "agents",
       "title": "Agents",
       "description": "Agentes y sus responsabilidades dentro del sistema.",
-      "page_count": 12,
+      "page_count": 11,
       "pages": [
         "agents/agent-backend-agent-md.md",
         "agents/agent-community-manager-agent-md.md",
@@ -12457,7 +11911,6 @@
         "agents/agent-frontend-agent-agent-md.md",
         "agents/agent-github-repository-manager-agent-md.md",
         "agents/agent-iot-agent-md.md",
-        "agents/agent-legacy-agent-md.md",
         "agents/agent-rag-azure-agent-md.md",
         "agents/agent-rag-local-agent-md.md",
         "agents/agent-snapshot-agent-md.md",
@@ -12469,7 +11922,7 @@
       "id": "skills",
       "title": "Skills",
       "description": "Skills, comandos y utilidades operativas consumibles por agentes.",
-      "page_count": 22,
+      "page_count": 21,
       "pages": [
         "skills/skill-ahorro-tokens.md",
         "skills/skill-azure-rag-enterprise.md",
@@ -12488,7 +11941,6 @@
         "skills/skill-frontend-coding.md",
         "skills/skill-human-in-the-loop.md",
         "skills/skill-iot-architecture.md",
-        "skills/skill-legacy-migration.md",
         "skills/skill-rag-knowledge.md",
         "skills/skill-token-saver.md",
         "skills/skill-ux-ui-governance.md",
@@ -12499,9 +11951,8 @@
       "id": "routing",
       "title": "Routing",
       "description": "Reglas de orquestacion y decisiones de enrutado.",
-      "page_count": 7,
+      "page_count": 6,
       "pages": [
-        "routing/report-03-mcp-routing-guide-md.md",
         "routing/report-agents-md.md",
         "routing/report-architecture-md.md",
         "routing/report-corporate-routing-md.md",

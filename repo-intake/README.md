@@ -15,7 +15,7 @@ Soporta dos modos de origen:
 
 ## Nota sobre carpetas vacias
 
-Si ves carpetas antiguas de layouts legacy, se pueden eliminar.
+Si ves carpetas antiguas de layouts deprecados, se pueden eliminar.
 La salida activa vive en `generated/<slug>/...` y `generated/reports/*.json`.
 
 ## Flujo recomendado

@@ -10,7 +10,7 @@ Definir el contrato de intake para mantener metadata de repos consistente y util
 2. El registry debe validar en modo estricto antes de intake.
 3. El intake debe generar capacidades, manifests y reportes.
 4. Repos opcionales pueden generar warning, no error bloqueante.
-5. No se debe depender de rutas legacy fuera de `scripts/intake`.
+5. No se debe depender de rutas deprecadas fuera de `scripts/intake`.
 
 ## Flujo minimo
 

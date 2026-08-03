@@ -13,7 +13,7 @@ Flujo:
 2. Detectar dominio, intencion y necesidad dominante antes de elegir boost, agente y motor.
 3. Seleccionar un unico motor principal segun contrato del repo:
 	- backend/frontend -> CodeGraph
-	- legacy/multi-repo -> GitNexus
+	- backend multi-repo -> GitNexus
 	- dba/ux-ui/rag-local -> Graphify
 	- rag-azure -> Azure RAG Builder
 	- snapshot/export -> Repomix

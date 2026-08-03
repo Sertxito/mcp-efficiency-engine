@@ -20,7 +20,6 @@
       "backend": "Codigo backend en repo unico (CodeGraph)",
       "frontend": "Codigo frontend en repo unico (CodeGraph)",
       "community-content": "Contenido/comunidad/documentacion de apoyo",
-      "legacy": "Migracion/impacto multi-repo (GitNexus)",
       "dba": "SQL, esquema y conocimiento de base de datos",
       "iot": "IoT/edge/telemetria",
       "ux-ui": "Patrones de diseno, UX y design system",

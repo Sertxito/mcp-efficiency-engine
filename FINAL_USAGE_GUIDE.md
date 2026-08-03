@@ -37,7 +37,7 @@ Observability            -> mide routing, coste, grounding, eficiencia
 
 ```txt
 Código repo único        -> CodeGraph
-Código legacy/multi-repo -> GitNexus
+Código multi-repo        -> GitNexus
 Docs técnicas/locales    -> Graphify
 Docs corporativos reales -> Azure RAG Builder
 Export portable          -> Repomix
@@ -72,7 +72,8 @@ Optimizas el pipeline completo.
 
 ## Always-On: decisión final
 
-Token Saver y Caveman ya no son modos que se activan manualmente. Son parte del runtime del sistema.
+Token Saver y Caveman ya no son modos que se activan manualmente.
+Son parte del runtime del sistema.
 
 ```txt
 Toda petición -> Caveman + Routing + Token Saver + Motor correcto
@@ -105,7 +106,7 @@ Alternativa manual equivalente:
 
 ```powershell
 npx mcp-efficiency-engine install
-npx mcp-efficiency-engine validate -PortableMode
+npx mcp-efficiency-engine doctor
 ```
 
 Validación de contenido publicado en npm:
@@ -114,7 +115,9 @@ Validación de contenido publicado en npm:
 npm pack --dry-run
 ```
 
-Debe listar, como mínimo, `bin/`, `scripts/`, `.github/`, `README.md`, `AGENTS.md`, `ARCHITECTURE.md` y `FINAL_USAGE_GUIDE.md`.
+Debe listar, como mínimo:
+`bin/`, `scripts/`, `.github/`, `README.md`, `AGENTS.md`,
+`ARCHITECTURE.md` y `FINAL_USAGE_GUIDE.md`.
 
 ## 8. Telemetry Engine
 

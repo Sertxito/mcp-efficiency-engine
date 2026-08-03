@@ -1,6 +1,8 @@
+<!-- markdownlint-disable MD013 -->
+
 # Repo Routing
 
-Repo Routing base: dba->Graphify, iot->Graphify+GitNexus/CodeGraph, azure-rag->Azure RAG Builder, dev->CodeGraph, frontend->CodeGraph, legacy->GitNexus, ux-ui->Graphify.
+Repo Routing base: dba->Graphify, iot->Graphify+GitNexus/CodeGraph, azure-rag->Azure RAG Builder, dev->CodeGraph, frontend->CodeGraph, backend multi-repo->GitNexus, ux-ui->Graphify.
 
 ## Routing por capacidades (v2)
 

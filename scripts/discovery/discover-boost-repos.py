@@ -36,9 +36,7 @@ def infer_domain(folder_name: str) -> str:
         return "iot"
     if "rag" in token or "azure" in token:
         return "azure-rag"
-    if "legacy" in token or "migration" in token:
-        return "legacy"
-    return "dev"
+    return "backend"
 
 
 def default_engines(domain: str) -> dict[str, str]:
@@ -48,8 +46,6 @@ def default_engines(domain: str) -> dict[str, str]:
         return {"knowledge": "graphify", "execution": "gitnexus", "snapshot": "repomix"}
     if domain == "azure-rag":
         return {"knowledge": "azure-rag-builder", "execution": "none", "snapshot": "repomix"}
-    if domain == "legacy":
-        return {"knowledge": "gitnexus", "execution": "none", "snapshot": "repomix"}
     return {"knowledge": "codegraph", "execution": "none", "snapshot": "repomix"}
 
 

@@ -1,3 +1,7 @@
+param(
+	[switch]$WarnOnly
+)
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
@@ -31,12 +35,24 @@ else {
 	pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\intake\validate-repo-registry.ps1 -Strict
 }
 if ($LASTEXITCODE -ne 0) {
+	if ($WarnOnly) {
+		Write-Warning "Repo registry validation failed. Continuing because WarnOnly is enabled."
+		exit 0
+	}
 	Write-Error "Repo registry validation failed. Aborting intake generation."
 	exit $LASTEXITCODE
 }
 
 Write-Host "Running repo intake generation..."
 python .\scripts\intake\repo-intake.py
+if ($LASTEXITCODE -ne 0) {
+	if ($WarnOnly) {
+		Write-Warning "Repo intake generation failed. Continuing because WarnOnly is enabled."
+		exit 0
+	}
+	Write-Error "Repo intake generation failed."
+	exit $LASTEXITCODE
+}
 
 if ($registryMode -eq 'template' -and $repos.Count -eq 0) {
 	Write-Host "Template registry is empty. Intake reports were generated with 0 repositories."

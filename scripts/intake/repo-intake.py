@@ -212,8 +212,8 @@ def main():
     repo_root = Path(__file__).resolve().parents[2]
 
     registry_path = (repo_root / args.registry).resolve()
-    legacy_out = (repo_root / args.generated_root).resolve()
-    ensure_dirs(legacy_out)
+    generated_out = (repo_root / args.generated_root).resolve()
+    ensure_dirs(generated_out)
 
     defaults = {
         'dba': ('dba', 'database-analysis', 'Graphify'),
@@ -223,7 +223,6 @@ def main():
         'frontend': ('frontend-agent', 'frontend-coding', 'CodeGraph'),
         'ux-ui': ('ux-ui', 'ux-ui-governance', 'Graphify'),
         'community-content': ('community-manager', 'community-content', 'Graphify'),
-        'legacy': ('legacy', 'legacy-migration', 'GitNexus')
     }
 
     registry = load_registry(registry_path)
@@ -245,7 +244,7 @@ def main():
         repo_path, sync_meta = materialize_repo(repo_root, r)
 
         # Flat JSON-first output (no v2/version folders)
-        flat_base = legacy_out / s
+        flat_base = generated_out / s
         (flat_base / 'context-manifests').mkdir(parents=True, exist_ok=True)
         (flat_base / 'capabilities').mkdir(parents=True, exist_ok=True)
         (flat_base / 'audit').mkdir(parents=True, exist_ok=True)
@@ -329,7 +328,7 @@ def main():
         })
 
     # Remove stale flat repo folders that are no longer present in registry.
-    generated_root = legacy_out
+    generated_root = generated_out
     active_slugs = {slug(r['name']) for r in repos if isinstance(r, dict) and 'name' in r}
     reserved_dirs = {'reports'}
     if generated_root.exists():
@@ -337,12 +336,12 @@ def main():
             if child.is_dir() and child.name not in active_slugs and child.name not in reserved_dirs:
                 shutil.rmtree(child, ignore_errors=True)
 
-    # Remove legacy versioned tree if present.
-    legacy_v2 = legacy_out / 'v2'
-    if legacy_v2.exists() and legacy_v2.is_dir():
-        shutil.rmtree(legacy_v2, ignore_errors=True)
+    # Remove deprecated versioned tree if present.
+    deprecated_v2 = generated_out / 'v2'
+    if deprecated_v2.exists() and deprecated_v2.is_dir():
+        shutil.rmtree(deprecated_v2, ignore_errors=True)
 
-    (legacy_out / 'reports' / 'SUMMARY.json').write_text(
+    (generated_out / 'reports' / 'SUMMARY.json').write_text(
         json.dumps(summary_json, indent=2, ensure_ascii=False) + '\n', encoding='utf-8'
     )
 

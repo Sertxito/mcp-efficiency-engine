@@ -267,7 +267,6 @@ class RepoContentProvider(BaseWikiProvider):
             "frontend-agent": ".github/skills/frontend-coding/SKILL.md",
             "dba": ".github/skills/database-analysis/SKILL.md",
             "iot": ".github/skills/iot-architecture/SKILL.md",
-            "legacy": ".github/skills/legacy-migration/SKILL.md",
             "rag-local": ".github/skills/rag-knowledge/SKILL.md",
             "rag-azure": ".github/skills/azure-rag-enterprise/SKILL.md",
             "community-manager": ".github/skills/community-content/SKILL.md",

@@ -9,7 +9,6 @@ from typing import Any
 REQUIRED_AGENT_ALIASES: dict[str, list[str]] = {
     "backend": ["backend", "backend"],
     "frontend": ["frontend-agent"],
-    "legacy": ["legacy", "legacy"],
     "dba": ["dba", "dba"],
     "rag-local": ["rag-local", "rag-local"],
     "rag-azure": ["rag-azure", "rag-azure"],
@@ -22,7 +21,6 @@ REQUIRED_AGENT_ALIASES: dict[str, list[str]] = {
 AGENT_TEMPLATE: dict[str, str] = {
     "backend": "Modern development tasks on a single repository.",
     "frontend-agent": "Frontend development tasks on a single repository.",
-    "legacy": "Legacy/migration and multi-repo impact analysis.",
     "dba": "SQL/schema/procedure and DBA analysis.",
     "rag-local": "Local technical docs and knowledge retrieval.",
     "rag-azure": "Corporate docs with mandatory evidence.",

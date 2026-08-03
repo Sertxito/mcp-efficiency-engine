@@ -1,7 +1,7 @@
 {
   "name": "mcp-efficiency-engine",
-  "version": "0.1.9",
-  "description": "Motor de orquestacion para agentes MCP con routing por dominio y bootstrap portable.",
+  "version": "0.1.11",
+  "description": "Motor de orquestacion capability-centric v2 para agentes MCP con optimizacion always-on.",
   "license": "MIT",
   "type": "commonjs",
   "bin": {
@@ -46,12 +46,14 @@
   "scripts": {
     "postinstall": "node ./bin/install-host.js --postinstall",
     "install:host": "node ./bin/install-host.js",
-    "bootstrap": "node ./bin/mcpee.js bootstrap",
-    "validate": "node ./bin/mcpee.js validate",
-    "hi": "node ./bin/mcpee.js hi",
-    "bye": "node ./bin/mcpee.js bye",
-    "intake": "node ./bin/mcpee.js intake",
-    "langsmith:kpis": "py -3 ./scripts/ops/trace-command.py --operation mcpee.langsmith-kpis --session-id mcpee-cli --cwd . -- py -3 ./scripts/ops/publish-langsmith-kpis.py",
+    "init": "node ./bin/mcpee.js init",
+    "doctor": "node ./bin/mcpee.js doctor",
+    "health": "node ./bin/mcpee.js health",
+    "chat": "node ./bin/mcpee.js chat",
+    "telemetry:report": "node ./bin/mcpee.js telemetry-report",
+    "knowledge:build": "node ./bin/mcpee.js knowledge-build",
+    "skillopt-sleep": "node ./bin/mcpee.js skillopt-sleep",
+    "artifact:report": "node ./bin/mcpee.js artifact-report",
     "pack:check": "npm pack --dry-run"
   },
   "engines": {

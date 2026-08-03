@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1.0",
+  "name": "@mcpee/backend",
+  "version": "0.1.0-local",
+  "type": "boost",
+  "domain": "backend",
+  "description": "Local backend boost for core-v2 validation.",
+  "capabilities": [
+    {
+      "id": "backend.architecture.review",
+      "title": "Backend Architecture Review",
+      "agent": "agents/backend-architect.md",
+      "skills": [
+        "skills/architecture-review.md",
+        "skills/dependency-analysis.md"
+      ],
+      "specs": [
+        "specs/clean-architecture.md",
+        "specs/observability.md"
+      ],
+      "prompts": [
+        "prompts/architecture-review.prompt.md"
+      ],
+      "evals": [
+        "evals/architecture-review.cases.json"
+      ],
+      "providerNeeds": [
+        "code-navigation",
+        "dependency-analysis",
+        "knowledge-graph",
+        "project-memory"
+      ]
+    }
+  ]
+}

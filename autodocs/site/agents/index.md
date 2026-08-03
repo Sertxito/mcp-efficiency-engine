@@ -6,8 +6,8 @@ Agentes y sus responsabilidades dentro del sistema.
 
 ## Resumen
 
-- total_pages: 12
-- domains: agents (12)
+- total_pages: 11
+- domains: agents (11)
 
 ## Paginas
 
@@ -17,7 +17,6 @@ Agentes y sus responsabilidades dentro del sistema.
 - [dba](agent-dba-agent-md.md) - SQL/schema/procedure analysis and DBA-oriented technical diagnostics.
 - [frontend-agent](agent-frontend-agent-agent-md.md) - Frontend development tasks on a single repository: UI feature implementation, bug fixes, refactors, and test support.
 - [iot](agent-iot-agent-md.md) - IoT/edge/telemetry architecture and mixed code+docs analysis.
-- [legacy](agent-legacy-agent-md.md) - Legacy modernization, migration planning, and multi-repo impact analysis.
 - [rag-azure](agent-rag-azure-agent-md.md) - Corporate documents retrieval with mandatory evidence and citations.
 - [rag-local](agent-rag-local-agent-md.md) - Local knowledge and technical documentation retrieval.
 - [snapshot](agent-snapshot-agent-md.md) - Portable context export with scoped/safe packaging.
