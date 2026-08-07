@@ -6,8 +6,8 @@ La arquitectura final tiene seis bloques:
 
 ```txt
 1. MCP para código vivo.
-2. RAG local para conocimiento técnico.
-3. Azure RAG Builder para documentos corporativos reales.
+2. Knowledge local para conocimiento técnico del proyecto.
+3. MarkItDown para normalización de fuentes documentales.
 4. Repo Intake para usar todos tus repos sin copiarlos.
 5. Token Saver para reducir contexto/coste.
 6. Caveman Mode para reducir ruido de interacción.
@@ -28,7 +28,7 @@ Skill + Spec             -> aplica capacidad y reglas
   ↓
 Token Saver              -> limita contexto, chunks, ficheros, tool calls
   ↓
-Motor                    -> CodeGraph / GitNexus / Graphify / Azure RAG / Repomix
+Motor                    -> CodeGraph / GitNexus / Graphify / Repomix
   ↓
 Observability            -> mide routing, coste, grounding, eficiencia
 ```
@@ -39,10 +39,14 @@ Observability            -> mide routing, coste, grounding, eficiencia
 Código repo único        -> CodeGraph
 Código multi-repo        -> GitNexus
 Docs técnicas/locales    -> Graphify
-Docs corporativos reales -> Azure RAG Builder
 Export portable          -> Repomix
 Repos externos           -> Repo Intake
 ```
+
+Regla activa:
+
+- El flujo operativo por defecto no usa RAG.
+- La fuente de verdad es knowledge local del proyecto.
 
 ## 4. Decisión de optimización
 
@@ -58,8 +62,12 @@ Problema de ambos          -> Token Saver + Caveman
 - Si el usuario está en loop de debug/coding: aplicar Caveman Mode.
 - Si la respuesta es para formación/documentación: Caveman puede relajarse.
 - Si la respuesta necesita trazabilidad: no eliminar fuentes por Caveman.
-- Si Azure RAG recupera demasiados chunks: limitar top-k y pedir solo fuentes necesarias.
 - Si CodeGraph/GitNexus puede devolver símbolo/call path: no leer ficheros completos.
+
+Actualización:
+
+- Se elimina la dependencia operacional de Azure RAG en la guía base.
+- El pipeline canónico combina MarkItDown + Graphify + grafos de código.
 
 ## 6. Regla final
 
@@ -108,6 +116,25 @@ Alternativa manual equivalente:
 npx mcp-efficiency-engine install
 npx mcp-efficiency-engine doctor
 ```
+
+Prerequisito local para normalización documental:
+
+```powershell
+pip install markitdown
+markitdown --version
+```
+
+Construcción de knowledge local:
+
+```powershell
+npx mcp-efficiency-engine init
+npx mcp-efficiency-engine knowledge-build
+```
+
+Verificación de artefactos:
+
+- `.mcpee/knowledge/index/capabilities.json`
+- `.mcpee/artifacts/registry.json`
 
 Validación de contenido publicado en npm:
 

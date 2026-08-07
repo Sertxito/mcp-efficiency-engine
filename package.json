@@ -23,6 +23,7 @@
     "repo-registry/repos.template.json",
     "orchestrator/",
     "observability/evaluation.md",
+    "observability/evals/",
     "observability/logs.schema.json",
     "observability/logs.schema.md",
     "observability/metrics.md",

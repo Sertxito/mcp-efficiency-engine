@@ -22,6 +22,7 @@ const scaffoldEntries = [
   "repo-registry/repos.schema.json",
   "repo-registry/repos.template.json",
   "scripts",
+  "telemetry",
   "specs",
   "templates",
   "tooling",

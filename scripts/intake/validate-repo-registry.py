@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -32,7 +31,7 @@ def parse_simple_yml(path: Path) -> dict[str, Any]:
             k, v = st.split(":", 1)
             k = k.strip()
             v = v.strip().strip('"')
-            if k in {"domain", "location", "type", "repo_url", "branch", "cache_location"}:
+            if k in {"domain", "type", "package_name", "package_path"}:
                 current[k] = v
     if current:
         repos.append(current)
@@ -60,17 +59,17 @@ class ValidationResult:
     warnings: list[str]
 
 
-def command_exists(name: str) -> bool:
-    try:
-        completed = subprocess.run(
-            [name, "--version"],
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-    except OSError:
-        return False
-    return completed.returncode == 0
+def resolve_package_path(repo_root: Path, repo: dict[str, Any]) -> Path:
+    package_name = str(repo.get("package_name", "")).strip()
+    explicit_path = str(repo.get("package_path", "")).strip()
+
+    if explicit_path:
+        path = Path(explicit_path)
+        if path.is_absolute():
+            return path.resolve()
+        return (repo_root / path).resolve()
+
+    return (repo_root / "node_modules" / package_name).resolve()
 
 
 def validate(registry: dict[str, Any], strict: bool, repo_root: Path) -> ValidationResult:
@@ -83,15 +82,15 @@ def validate(registry: dict[str, Any], strict: bool, repo_root: Path) -> Validat
         return ValidationResult(errors=["Registry must define a repos list."], warnings=[])
 
     if not repos:
-        if strict or registry_mode != "template":
-            return ValidationResult(errors=["Registry must define a non-empty repos list."], warnings=[])
-        warnings.append("Template registry has no repos yet.")
-        return ValidationResult(errors=[], warnings=warnings)
+        if registry_mode == "template":
+            warnings.append("Template registry has no repos yet.")
+            return ValidationResult(errors=[], warnings=warnings)
+        return ValidationResult(errors=["Registry must define a non-empty repos list."], warnings=[])
 
     schema_version = str(registry.get("schema_version", "1.0"))
     is_v2 = schema_version >= "2.0"
     governance = registry.get("governance", {}) if isinstance(registry.get("governance", {}), dict) else {}
-    repo_name_prefix = str(governance.get("repo_name_prefix", "boost_")).strip() or "boost_"
+    repo_name_prefix = str(governance.get("repo_name_prefix", "mcpee-")).strip() or "mcpee-"
 
     names: set[str] = set()
     graph: dict[str, list[str]] = {}
@@ -122,37 +121,25 @@ def validate(registry: dict[str, Any], strict: bool, repo_root: Path) -> Validat
                 errors.append(f"Repo '{name}' is missing required field: {field}")
 
         repo_type = str(repo.get("type", "")).strip().lower()
-        if repo_type not in {"local", "github"}:
-            errors.append(f"Repo '{name}' type must be 'local' or 'github'.")
+        if repo_type != "npm":
+            errors.append(f"Repo '{name}' type must be 'npm'.")
+        package_name = str(repo.get("package_name", "")).strip()
+        if not package_name:
+            errors.append(f"Repo '{name}' is missing required field: package_name")
+        elif not re.match(r"^(@[A-Za-z0-9._-]+/[A-Za-z0-9._-]+|[A-Za-z0-9._-]+)$", package_name):
+            errors.append(f"Repo '{name}' package_name is not a valid npm package name: {package_name}")
 
-        location = str(repo.get("location", "")).strip()
-        if repo_type == "local":
-            if not location:
-                errors.append(f"Repo '{name}' is missing required field: location")
-            elif location:
-                resolved = (repo_root / location).resolve()
-                if not resolved.exists():
-                    if bool(repo.get("optional", False)):
-                        warnings.append(f"Optional repo '{name}' location does not exist: {location}")
-                    else:
-                        errors.append(f"Repo '{name}' location does not exist: {location}")
-        elif repo_type == "github":
-            repo_url = str(repo.get("repo_url", "")).strip()
-            if not repo_url:
-                errors.append(f"Repo '{name}' is missing required field: repo_url")
-            elif not re.match(r"^https://github\.com/[^/]+/[^/]+(?:\.git)?$", repo_url):
-                errors.append(f"Repo '{name}' repo_url must be a valid https GitHub repository URL.")
-            branch = str(repo.get("branch", "")).strip()
-            if branch and not re.match(r"^[A-Za-z0-9._\/-]+$", branch):
-                errors.append(f"Repo '{name}' branch contains invalid characters: {branch}")
-            cache_location = str(repo.get("cache_location", "")).strip()
-            if cache_location:
-                cache_resolved = (repo_root / cache_location).resolve()
-                cache_parent = cache_resolved.parent
-                if not cache_parent.exists():
-                    warnings.append(f"GitHub repo '{name}' cache parent does not exist yet: {cache_parent}")
-            if strict and not command_exists("git"):
-                errors.append(f"Repo '{name}' requires git command for type 'github'.")
+        resolved_package_path = resolve_package_path(repo_root, repo)
+        if not resolved_package_path.exists():
+            if bool(repo.get("optional", False)):
+                warnings.append(f"Optional repo '{name}' npm package is not installed: {resolved_package_path}")
+            else:
+                errors.append(f"Repo '{name}' npm package is not installed: {resolved_package_path}")
+        elif not (resolved_package_path / "mcpee.json").exists():
+            if bool(repo.get("optional", False)):
+                warnings.append(f"Optional repo '{name}' package has no mcpee.json: {resolved_package_path}")
+            else:
+                errors.append(f"Repo '{name}' package has no mcpee.json: {resolved_package_path}")
 
         deps = repo.get("dependencies", [])
         dep_refs: list[str] = []

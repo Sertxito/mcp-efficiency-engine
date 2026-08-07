@@ -4,7 +4,6 @@ import json
 import re
 import shutil
 import hashlib
-import subprocess
 from datetime import datetime, timezone
 
 try:
@@ -25,7 +24,7 @@ def parse_simple_yml(path):
             k, v = st.split(':', 1)
             k = k.strip()
             v = v.strip().strip('"')
-            if k in ['domain', 'location', 'type', 'version', 'repo_url', 'branch', 'cache_location']:
+            if k in ['domain', 'type', 'version', 'package_name', 'package_path']:
                 cur[k] = v
     if cur:
         repos.append(cur)
@@ -50,63 +49,47 @@ def utc_now():
     return datetime.now(timezone.utc).isoformat()
 
 
-def resolve_repo_path(repo_root: Path, location: str) -> Path:
-    path = Path(location)
-    if path.is_absolute():
-        return path.resolve()
-    return (repo_root / path).resolve()
-
-
-def github_cache_path(repo_root: Path, repo_name: str, explicit_cache_location: str = '') -> Path:
-    if explicit_cache_location:
-        return resolve_repo_path(repo_root, explicit_cache_location)
-    return (repo_root / '.cache' / 'github-repos' / slug(repo_name)).resolve()
+def resolve_package_path(repo_root: Path, package_name: str, package_path: str = '') -> Path:
+    if package_path.strip():
+        path = Path(package_path.strip())
+        if path.is_absolute():
+            return path.resolve()
+        return (repo_root / path).resolve()
+    return (repo_root / 'node_modules' / package_name).resolve()
 
 
 def materialize_repo(repo_root: Path, repo: dict) -> tuple[Path, dict]:
-    repo_type = str(repo.get('type', 'local')).strip().lower() or 'local'
-    location = str(repo.get('location', '')).strip()
-    if repo_type == 'local':
-        repo_path = resolve_repo_path(repo_root, location)
-        return repo_path, {
-            'mode': 'local',
-            'source': location,
-            'resolved_path': str(repo_path).replace('\\', '/'),
-            'status': 'ok' if repo_path.exists() else 'missing',
-        }
+    package_name = str(repo.get('package_name', '')).strip()
+    package_path = str(repo.get('package_path', '')).strip()
+    resolved_path = resolve_package_path(repo_root, package_name, package_path)
+    contract_path = resolved_path / 'mcpee.json'
 
-    repo_name = str(repo.get('name', '')).strip()
-    repo_url = str(repo.get('repo_url', '')).strip()
-    branch = str(repo.get('branch', '')).strip() or 'main'
-    cache_location = str(repo.get('cache_location', '')).strip()
-    cache_path = github_cache_path(repo_root, repo_name, cache_location)
-    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    status = 'installed'
+    if not resolved_path.exists():
+        status = 'missing_package'
+    elif not contract_path.exists():
+        status = 'missing_contract'
 
-    sync_meta = {
-        'mode': 'github',
-        'repo_url': repo_url,
-        'branch': branch,
-        'resolved_path': str(cache_path).replace('\\', '/'),
-        'status': 'pending',
+    return resolved_path, {
+        'mode': 'npm',
+        'package_name': package_name,
+        'package_path': package_path or f"node_modules/{package_name}",
+        'resolved_path': str(resolved_path).replace('\\', '/'),
+        'status': status,
     }
 
-    if not repo_url:
-        sync_meta['status'] = 'missing_repo_url'
-        return cache_path, sync_meta
 
+def load_mcpee_contract(package_root: Path) -> dict:
+    contract_path = package_root / 'mcpee.json'
+    if not contract_path.exists():
+        return {}
     try:
-        if (cache_path / '.git').exists():
-            subprocess.run(['git', '-C', str(cache_path), 'fetch', '--depth', '1', 'origin', branch], check=True, capture_output=True, text=True)
-            subprocess.run(['git', '-C', str(cache_path), 'checkout', '--force', 'FETCH_HEAD'], check=True, capture_output=True, text=True)
-            sync_meta['status'] = 'updated'
-        else:
-            subprocess.run(['git', 'clone', '--depth', '1', '--branch', branch, repo_url, str(cache_path)], check=True, capture_output=True, text=True)
-            sync_meta['status'] = 'cloned'
-    except subprocess.CalledProcessError as exc:
-        sync_meta['status'] = 'sync_failed'
-        sync_meta['error'] = (exc.stderr or exc.stdout or str(exc)).strip()
-
-    return cache_path, sync_meta
+        data = json.loads(contract_path.read_text(encoding='utf-8'))
+    except Exception:
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    return data
 
 
 def file_fingerprint(path: Path) -> dict:
@@ -119,15 +102,15 @@ def file_fingerprint(path: Path) -> dict:
     }
 
 
-def build_structure_manifest(repo_root: Path, repo_name: str, slug_name: str, version: str, domain: str, location: str, repo_path: Path | None = None, sync: dict | None = None) -> dict:
-    repo_path = repo_path or resolve_repo_path(repo_root, location)
+def build_structure_manifest(repo_root: Path, repo_name: str, slug_name: str, version: str, domain: str, package_name: str, repo_path: Path | None = None, sync: dict | None = None) -> dict:
+    repo_path = repo_path or resolve_package_path(repo_root, package_name)
     structure = {
         'schema_version': '1.0',
         'repo': repo_name,
         'slug': slug_name,
         'version': version,
         'domain': domain,
-        'location': location,
+        'package_name': package_name,
         'resolved_path': str(repo_path).replace('\\', '/'),
         'generated_at': utc_now(),
         'exists': repo_path.exists(),
@@ -148,13 +131,13 @@ def build_structure_manifest(repo_root: Path, repo_name: str, slug_name: str, ve
     top_level_files = [entry.name for entry in top_level_entries if entry.is_file()]
 
     key_candidates = [
-        'AGENTS.md',
+        'mcpee.json',
         'README.md',
-        'ARCHITECTURE.md',
-        '.github/skills',
-        '.github/prompts',
-        'scripts',
+        'agents',
+        'skills',
+        'prompts',
         'specs',
+        'evals',
     ]
 
     key_artifacts = []
@@ -203,8 +186,69 @@ def ensure_dirs(base):
     for d in ['reports']:
         (base / d).mkdir(parents=True, exist_ok=True)
 
+
+def discover_installed_boost_repos(repo_root: Path, repo_name_prefix: str) -> list[dict]:
+    discovered: list[dict] = []
+    node_modules = repo_root / 'node_modules'
+    if not node_modules.exists():
+        return discovered
+
+    contracts: list[Path] = []
+    # Scoped packages: node_modules/@scope/pkg/mcpee.json
+    for scope_dir in sorted(node_modules.glob('@*')):
+        if not scope_dir.is_dir():
+            continue
+        contracts.extend(sorted(scope_dir.glob('*/mcpee.json')))
+
+    # Unscoped packages: node_modules/pkg/mcpee.json
+    contracts.extend(sorted(node_modules.glob('*/mcpee.json')))
+
+    seen_packages: set[str] = set()
+    for contract_path in contracts:
+        try:
+            contract = json.loads(contract_path.read_text(encoding='utf-8'))
+        except Exception:
+            continue
+        if not isinstance(contract, dict):
+            continue
+
+        package_name = str(contract.get('name', '')).strip()
+        if not package_name:
+            try:
+                rel = contract_path.parent.relative_to(node_modules)
+                package_name = str(rel).replace('\\', '/')
+            except Exception:
+                package_name = contract_path.parent.name
+
+        if package_name in seen_packages:
+            continue
+        seen_packages.add(package_name)
+
+        domain = str(contract.get('domain', '')).strip() or 'general'
+
+        repo_name = f"{repo_name_prefix}{contract_path.parent.name}" if repo_name_prefix else contract_path.parent.name
+        discovered.append(
+            {
+                'name': repo_name,
+                'domain': domain,
+                'type': 'npm',
+                'package_name': package_name,
+                'package_path': str(contract_path.parent.relative_to(repo_root)).replace('\\', '/'),
+                'optional': False,
+                'dependencies': [],
+                'approval': {
+                    'status': 'approved',
+                    'approved_by': 'auto-discovery',
+                    'approved_date': utc_now()[:10],
+                    'review_ticket': 'AUTO-DISCOVERY',
+                },
+                'engines': {},
+            }
+        )
+    return discovered
+
 def main():
-    parser = argparse.ArgumentParser(description='Generate intake artifacts from repo-registry, including github-backed cached repos.')
+    parser = argparse.ArgumentParser(description='Generate intake artifacts from repo-registry using installed npm packages and mcpee.json catalogs.')
     parser.add_argument('--registry', default='repo-registry/repos.yml', help='Registry file path')
     parser.add_argument('--generated-root', default='repo-intake/generated', help='Output directory for generated artifacts')
     args = parser.parse_args()
@@ -215,33 +259,47 @@ def main():
     generated_out = (repo_root / args.generated_root).resolve()
     ensure_dirs(generated_out)
 
-    defaults = {
-        'dba': ('dba', 'database-analysis', 'Graphify'),
-        'iot': ('iot', 'iot-architecture', 'GitNexus/CodeGraph + Graphify'),
-        'azure-rag': ('rag-azure', 'azure-rag-enterprise', 'Azure RAG Builder'),
-        'backend': ('backend', 'backend-coding', 'CodeGraph'),
-        'frontend': ('frontend-agent', 'frontend-coding', 'CodeGraph'),
-        'ux-ui': ('ux-ui', 'ux-ui-governance', 'Graphify'),
-        'community-content': ('community-manager', 'community-content', 'Graphify'),
-    }
+    default_agent = 'generalist'
+    default_skill = 'general-capability'
+    default_engine = 'codegraph'
 
     registry = load_registry(registry_path)
     schema_version = str(registry.get('schema_version', '1.0'))
+    registry_mode = str(registry.get('registry_mode', 'enterprise')).strip().lower() or 'enterprise'
+    governance = registry.get('governance', {}) if isinstance(registry.get('governance', {}), dict) else {}
+    repo_name_prefix = str(governance.get('repo_name_prefix', 'mcpee-')).strip()
     repos = registry.get('repos', [])
+    if not isinstance(repos, list):
+        repos = []
+
+    auto_discovered = False
+    if not repos and registry_mode == 'template':
+        repos = discover_installed_boost_repos(repo_root, repo_name_prefix)
+        auto_discovered = True
 
     summary_json = {
         'timestamp': utc_now(),
+        'registry_mode': registry_mode,
         'schema_version': schema_version,
+        'auto_discovered_from_node_modules': auto_discovered,
         'repos_count': len(repos),
         'repos': []
     }
 
     for r in repos:
-        dom = r.get('domain', 'backend')
-        ag, sk, en = defaults.get(dom, defaults['backend'])
+        dom = str(r.get('domain', '')).strip() or 'general'
         name = r['name']
         s = slug(name)
         repo_path, sync_meta = materialize_repo(repo_root, r)
+        contract = load_mcpee_contract(repo_path)
+        contract_domain = str(contract.get('domain', '')).strip()
+        domain = contract_domain or dom
+        approval = r.get('approval', {}) if isinstance(r.get('approval', {}), dict) else {}
+        dependencies = r.get('dependencies', []) if isinstance(r.get('dependencies', []), list) else []
+        engines = r.get('engines', {}) if isinstance(r.get('engines', {}), dict) else {}
+        ag = str(contract.get('defaultAgent', '')).strip() or default_agent
+        sk = str(contract.get('defaultSkill', '')).strip() or default_skill
+        en = str(contract.get('defaultEngine', '')).strip() or str(engines.get('knowledge', '')).strip() or default_engine
 
         # Flat JSON-first output (no v2/version folders)
         flat_base = generated_out / s
@@ -249,20 +307,14 @@ def main():
         (flat_base / 'capabilities').mkdir(parents=True, exist_ok=True)
         (flat_base / 'audit').mkdir(parents=True, exist_ok=True)
 
-        approval = r.get('approval', {}) if isinstance(r.get('approval', {}), dict) else {}
-        dependencies = r.get('dependencies', []) if isinstance(r.get('dependencies', []), list) else []
-        engines = r.get('engines', {}) if isinstance(r.get('engines', {}), dict) else {}
-
         manifest = {
             'repo': name,
             'slug': s,
             'schema_version': schema_version,
-            'domain': dom,
-            'location': r.get('location', ''),
-            'type': r.get('type', 'local'),
-            'repo_url': r.get('repo_url', ''),
-            'branch': r.get('branch', ''),
-            'cache_location': r.get('cache_location', ''),
+            'domain': domain,
+            'type': r.get('type', 'npm'),
+            'package_name': r.get('package_name', ''),
+            'package_path': r.get('package_path', ''),
             'resolved_path': str(repo_path).replace('\\', '/'),
             'sync': sync_meta,
             'agent': ag,
@@ -271,6 +323,13 @@ def main():
             'engines': engines,
             'dependencies': dependencies,
             'approval': approval,
+            'contract': {
+                'name': str(contract.get('name', '')).strip(),
+                'version': str(contract.get('version', '')).strip(),
+                'schemaVersion': str(contract.get('schemaVersion', '')).strip(),
+                'type': str(contract.get('type', '')).strip(),
+                'description': str(contract.get('description', '')).strip(),
+            },
             'generated_at': utc_now()
         }
 
@@ -279,31 +338,62 @@ def main():
             repo_name=name,
             slug_name=s,
             version='0',
-            domain=dom,
-            location=str(r.get('location', '')),
+            domain=domain,
+            package_name=str(r.get('package_name', '')),
             repo_path=repo_path,
             sync=sync_meta,
         )
 
-        capability = {
-            'capability': sk,
-            'repo': name,
-            'domain': dom,
-            'agent': ag,
-            'engine': en,
-            'dependencies': dependencies,
-            'generated_at': utc_now()
-        }
+        contract_capabilities = contract.get('capabilities', []) if isinstance(contract.get('capabilities', []), list) else []
+        capability_catalog: list[dict] = []
+        for raw_capability in contract_capabilities:
+            if not isinstance(raw_capability, dict):
+                continue
+            capability_id = str(raw_capability.get('id', '')).strip()
+            if not capability_id:
+                continue
+            capability_catalog.append(
+                {
+                    'capability': capability_id,
+                    'title': str(raw_capability.get('title', capability_id)).strip(),
+                    'repo': name,
+                    'domain': domain,
+                    'agent': str(raw_capability.get('agent', ag)).strip() or ag,
+                    'engine': en,
+                    'dependencies': dependencies,
+                    'instructions': {
+                        'agent': str(raw_capability.get('agent', ag)).strip() or ag,
+                        'skills': raw_capability.get('skills', []) if isinstance(raw_capability.get('skills', []), list) else [],
+                        'specs': raw_capability.get('specs', []) if isinstance(raw_capability.get('specs', []), list) else [],
+                        'prompts': raw_capability.get('prompts', []) if isinstance(raw_capability.get('prompts', []), list) else [],
+                        'evals': raw_capability.get('evals', []) if isinstance(raw_capability.get('evals', []), list) else [],
+                    },
+                    'provider_needs': raw_capability.get('providerNeeds', []) if isinstance(raw_capability.get('providerNeeds', []), list) else [],
+                    'generated_at': utc_now(),
+                }
+            )
+
+        capability: dict
+        if capability_catalog:
+            capability = capability_catalog[0]
+        else:
+            capability = {
+                'repo': name,
+                'domain': domain,
+                'agent': ag,
+                'engine': en,
+                'generated_at': utc_now(),
+            }
 
         audit_event = {
             'timestamp': utc_now(),
             'action': 'repo_intake_generate',
             'repo': name,
             'slug': s,
-            'status': 'success' if sync_meta.get('status') not in {'missing_repo_url', 'sync_failed'} else 'warning',
+            'status': 'success' if sync_meta.get('status') == 'installed' else 'warning',
             'schema_version': schema_version,
             'sync': sync_meta,
-            'artifacts': ['manifest.json', 'capability.json', 'structure-min.json', 'audit-log.jsonl']
+            'artifacts': ['manifest.json', 'capability.json', 'capability-catalog.json', 'structure-min.json', 'audit-log.jsonl']
         }
 
         (flat_base / 'context-manifests' / 'manifest.json').write_text(
@@ -311,6 +401,9 @@ def main():
         )
         (flat_base / 'capabilities' / 'capability.json').write_text(
             json.dumps(capability, indent=2, ensure_ascii=False) + '\n', encoding='utf-8'
+        )
+        (flat_base / 'capabilities' / 'capability-catalog.json').write_text(
+            json.dumps({'capabilities': capability_catalog}, indent=2, ensure_ascii=False) + '\n', encoding='utf-8'
         )
         (flat_base / 'context-manifests' / 'structure-min.json').write_text(
             json.dumps(structure_manifest, indent=2, ensure_ascii=False) + '\n', encoding='utf-8'
@@ -322,7 +415,7 @@ def main():
         summary_json['repos'].append({
             'name': name,
             'slug': s,
-            'domain': dom,
+            'domain': domain,
             'agent': ag,
             'engine': en
         })

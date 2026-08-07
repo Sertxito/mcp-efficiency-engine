@@ -4,6 +4,8 @@ param(
   [string]$RepoNamePrefix,
   [string]$InitialRepoName,
   [string]$InitialRepoDomain,
+  [string]$InitialPackageName,
+  [string]$InitialPackagePath,
   [string]$InitialRepoLocation,
   [switch]$SkipInitialRepo,
   [string]$TargetPath
@@ -124,75 +126,21 @@ function Read-YesNoValue {
 function Get-DefaultEnginesForDomain {
   param([Parameter(Mandatory = $true)][string]$Domain)
 
-  if ($Domain -eq 'dev') {
-    $Domain = 'backend'
+  return [pscustomobject]@{
+    knowledge = 'codegraph'
+    execution = 'none'
+    snapshot = 'repomix'
   }
+}
 
-  switch ($Domain) {
-    'backend' {
-      return [pscustomobject]@{
-        knowledge = 'codegraph'
-        execution = 'none'
-        snapshot = 'repomix'
-      }
-    }
-    'frontend' {
-      return [pscustomobject]@{
-        knowledge = 'codegraph'
-        execution = 'none'
-        snapshot = 'repomix'
-      }
-    }
-    'community-content' {
-      return [pscustomobject]@{
-        knowledge = 'graphify'
-        execution = 'none'
-        snapshot = 'repomix'
-      }
-    }
-    'dba' {
-      return [pscustomobject]@{
-        knowledge = 'graphify'
-        execution = 'none'
-        snapshot = 'repomix'
-      }
-    }
-    'iot' {
-      return [pscustomobject]@{
-        knowledge = 'graphify'
-        execution = 'gitnexus'
-        snapshot = 'repomix'
-      }
-    }
-    'azure-rag' {
-      return [pscustomobject]@{
-        knowledge = 'azure-rag-builder'
-        execution = 'none'
-        snapshot = 'repomix'
-      }
-    }
-    'rag' {
-      return [pscustomobject]@{
-        knowledge = 'graphify'
-        execution = 'none'
-        snapshot = 'repomix'
-      }
-    }
-    'ux-ui' {
-      return [pscustomobject]@{
-        knowledge = 'graphify'
-        execution = 'none'
-        snapshot = 'repomix'
-      }
-    }
-    default {
-      return [pscustomobject]@{
-        knowledge = 'codegraph'
-        execution = 'none'
-        snapshot = 'repomix'
-      }
-    }
+function Get-DefaultPackageNameForDomain {
+  param([Parameter(Mandatory = $true)][string]$Domain)
+
+  $normalized = ($Domain.Trim().ToLowerInvariant() -replace '[^a-z0-9._-]+', '-')
+  if ([string]::IsNullOrWhiteSpace($normalized)) {
+    $normalized = 'custom-boost'
   }
+  return "@your-scope/$normalized"
 }
 
 if (-not (Test-Path $templatePath)) {
@@ -220,15 +168,18 @@ if ((Test-Path $targetPath) -and -not $Force) {
 $templateRegistry = Get-Content -Raw -Path $templatePath | ConvertFrom-Json -Depth 20
 
 $defaultOwner = if ([string]::IsNullOrWhiteSpace($Owner)) { 'your-team' } else { $Owner }
-$defaultPrefix = if ([string]::IsNullOrWhiteSpace($RepoNamePrefix)) { 'your-prefix_' } else { $RepoNamePrefix }
+$defaultPrefix = if ([string]::IsNullOrWhiteSpace($RepoNamePrefix)) { 'mcpee-' } else { $RepoNamePrefix }
 
 $resolvedOwner = Read-RequiredValue -Prompt 'Registry owner' -DefaultValue $defaultOwner -ProvidedValue $Owner
 $resolvedPrefix = Read-RequiredValue -Prompt 'Repository name prefix' -DefaultValue $defaultPrefix -ProvidedValue $RepoNamePrefix
 
 $templateRegistry.governance.owner = $resolvedOwner
 $templateRegistry.governance.repo_name_prefix = $resolvedPrefix
+if ($templateRegistry.governance.PSObject.Properties.Name -contains 'approval_required') {
+  $templateRegistry.governance.approval_required = $true
+}
 
-$hasInitialRepoData = @($InitialRepoName, $InitialRepoDomain, $InitialRepoLocation) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+$hasInitialRepoData = @($InitialRepoName, $InitialRepoDomain, $InitialPackageName, $InitialPackagePath, $InitialRepoLocation) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
 $addInitialRepo = $false
 if ($SkipInitialRepo) {
   $addInitialRepo = $false
@@ -243,31 +194,43 @@ else {
 $templateRegistry.repos = @()
 if ($addInitialRepo) {
   $defaultRepoName = if ([string]::IsNullOrWhiteSpace($InitialRepoName)) { "$resolvedPrefix$((Split-Path $repoRoot -Leaf).ToLowerInvariant())" } else { $InitialRepoName }
-  $defaultRepoDomain = if ([string]::IsNullOrWhiteSpace($InitialRepoDomain)) { 'backend' } else { $InitialRepoDomain }
-  $defaultRepoLocation = if ([string]::IsNullOrWhiteSpace($InitialRepoLocation)) { '.' } else { $InitialRepoLocation }
-
-  if ($defaultRepoDomain -eq 'dev') {
-    $defaultRepoDomain = 'backend'
-  }
+  $defaultRepoDomain = if ([string]::IsNullOrWhiteSpace($InitialRepoDomain)) { 'general' } else { $InitialRepoDomain }
 
   $resolvedRepoName = Read-RequiredValue -Prompt 'Initial repo name' -DefaultValue $defaultRepoName -ProvidedValue $InitialRepoName
-  $resolvedRepoDomain = Read-ChoiceValue -Prompt 'Initial repo domain' -AllowedValues @('dev', 'backend', 'frontend', 'community-content', 'dba', 'iot', 'ux-ui', 'azure-rag', 'rag') -DefaultValue $defaultRepoDomain -ProvidedValue $InitialRepoDomain
-  if ($resolvedRepoDomain -eq 'dev') {
-    Write-Host "[info] Domain 'dev' is deprecated. Normalizing to 'backend'."
-    $resolvedRepoDomain = 'backend'
+  $resolvedRepoDomain = Read-RequiredValue -Prompt 'Initial repo domain (free label)' -DefaultValue $defaultRepoDomain -ProvidedValue $InitialRepoDomain
+  $defaultPackageName = if ([string]::IsNullOrWhiteSpace($InitialPackageName)) { Get-DefaultPackageNameForDomain -Domain $resolvedRepoDomain } else { $InitialPackageName }
+  $defaultPackagePath = if ([string]::IsNullOrWhiteSpace($InitialPackagePath)) {
+    if ([string]::IsNullOrWhiteSpace($InitialRepoLocation)) {
+      "node_modules/$defaultPackageName"
+    }
+    else {
+      $InitialRepoLocation
+    }
   }
-  $resolvedRepoLocation = Read-RequiredValue -Prompt 'Initial repo location' -DefaultValue $defaultRepoLocation -ProvidedValue $InitialRepoLocation
+  else {
+    $InitialPackagePath
+  }
+
+  $resolvedPackageName = Read-RequiredValue -Prompt 'Initial npm package name' -DefaultValue $defaultPackageName -ProvidedValue $InitialPackageName
+  $resolvedPackagePath = Read-RequiredValue -Prompt 'Initial npm package path' -DefaultValue $defaultPackagePath -ProvidedValue $InitialPackagePath
   $resolvedEngines = Get-DefaultEnginesForDomain -Domain $resolvedRepoDomain
 
   $templateRegistry.repos = @(
     [pscustomobject]@{
       name = $resolvedRepoName
       domain = $resolvedRepoDomain
-      location = $resolvedRepoLocation
-      type = 'local'
+      type = 'npm'
+      package_name = $resolvedPackageName
+      package_path = $resolvedPackagePath
       optional = $false
       dependencies = @()
       engines = $resolvedEngines
+      approval = [pscustomobject]@{
+        status = 'approved'
+        approved_by = $resolvedOwner
+        approved_date = (Get-Date).ToString('yyyy-MM-dd')
+        review_ticket = 'bootstrap-auto-approval'
+      }
     }
   )
 }
@@ -285,7 +248,7 @@ Write-Host "  prefix: $resolvedPrefix"
 Write-Host "  repos: $($templateRegistry.repos.Count)"
 if ($templateRegistry.repos.Count -gt 0) {
   $firstRepo = $templateRegistry.repos[0]
-  Write-Host "  first repo: $($firstRepo.name) [$($firstRepo.domain)] -> $($firstRepo.location)"
+  Write-Host "  first repo: $($firstRepo.name) [$($firstRepo.domain)] -> $($firstRepo.package_name)"
   Write-Host "  engines: knowledge=$($firstRepo.engines.knowledge), execution=$($firstRepo.engines.execution), snapshot=$($firstRepo.engines.snapshot)"
 }
 Write-Host "Next recommended step: .\\scripts\\intake\\run-repo-intake.cmd"
