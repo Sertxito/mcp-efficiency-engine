@@ -60,23 +60,27 @@ jobs:
             .map((line) => line.trim())
             .filter(Boolean);
 
-          const readmeChanged = changed.includes("README.md");
+          const npmDocsFiles = [
+            "README.md",
+            ".github/npm-release-notes.md",
+          ];
+          const npmDocsUpdated = npmDocsFiles.some((file) => changed.includes(file));
           const isNpmRelevant = (file) =>
             file === "package.json" ||
             file === "package-lock.json" ||
             publishEntries.some((entry) => (entry.endsWith("/") ? file.startsWith(entry) : file === entry));
 
-          const npmRelevantChanges = changed.filter((file) => file !== "README.md" && isNpmRelevant(file));
-          if (npmRelevantChanges.length > 0 && !readmeChanged) {
-            console.error("Detected npm-impacting changes without README.md update.");
+          const npmRelevantChanges = changed.filter((file) => !npmDocsFiles.includes(file) && isNpmRelevant(file));
+          if (npmRelevantChanges.length > 0 && !npmDocsUpdated) {
+            console.error("Detected npm-impacting changes without npm docs update.");
             console.error("npm-impacting files:");
             for (const file of npmRelevantChanges) console.error("- " + file);
-            console.error("Please update README.md (npm docs) in the same PR.");
+            console.error("Please update README.md or .github/npm-release-notes.md in the same PR.");
             process.exit(1);
           }
 
           if (npmRelevantChanges.length > 0) {
-            console.log("npm-impacting changes detected and README.md was updated.");
+            console.log("npm-impacting changes detected and npm docs were updated.");
           } else {
             console.log("No npm-impacting changes detected.");
           }
