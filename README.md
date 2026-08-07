@@ -364,13 +364,32 @@ Instalacion manual de hooks (si necesitas reprovisionar):
 `repo-intake` soporta modo npm-only:
 
 - `type=npm`: consume paquete instalado en `node_modules` y su `mcpee.json`.
+- durante el intake, sincroniza artefactos runtime del boost instalado hacia el host para que el routing pueda reutilizarlos sin leer directamente desde `node_modules`.
+
+Sincronización runtime de boosts npm:
+
+- `instructions` -> `.github/instructions/mcpee-boost-*.instructions.md`
+- `agents` -> `.github/agents/mcpee-boost-<paquete>/...`
+- `skills` -> `.github/skills/mcpee-boost-<paquete>/...`
+- `prompts` -> `.github/prompts/mcpee-boost-<paquete>/...`
+- `specs` -> `specs/mcpee-boost-<paquete>/...`
+- `evals` -> `observability/evals/boosts/mcpee-boost-<paquete>/...`
 
 Artefactos canónicos:
 
 - `repo-intake/generated/<slug>/context-manifests/manifest.json`
 - `repo-intake/generated/<slug>/capabilities/capability.json`
+- `repo-intake/generated/<slug>/capabilities/capability-catalog.json`
 - `repo-intake/generated/<slug>/audit/audit-log.jsonl`
 - `repo-intake/generated/reports/SUMMARY.json`
+- `repo-intake/generated/reports/boost-runtime-sync.json`
+- `repo-intake/generated/reports/instructions-sync.json`
+
+Consumo por routing:
+
+- `resolve-routing` carga `boost-runtime-sync.json` como índice runtime.
+- si no existe prompt o skill local canonizado, puede seleccionar el artefacto sincronizado del boost según `repo + capability`.
+- el evento de routing preserva `catalog.instructions` y `provider_needs` del catálogo generado por intake.
 
 ## Observabilidad
 

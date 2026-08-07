@@ -85,6 +85,51 @@ def load_manifest_index(generated_root: Path) -> dict[str, dict[str, Any]]:
     return manifests
 
 
+def load_boost_runtime_index(generated_root: Path) -> dict[str, Any]:
+    report = generated_root / "reports" / "boost-runtime-sync.json"
+    if not report.exists():
+        return {}
+    try:
+        data = json.loads(report.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    runtime_index = data.get("runtime_index", {})
+    if isinstance(runtime_index, dict):
+        return runtime_index
+    return {}
+
+
+def pick_boost_asset(
+    *,
+    runtime_index: dict[str, Any],
+    repo_name: str,
+    capability: str,
+    category: str,
+    repo_root: Path,
+) -> str | None:
+    if not repo_name or not runtime_index:
+        return None
+
+    repo_data = runtime_index.get(repo_name, {}) if isinstance(runtime_index.get(repo_name, {}), dict) else {}
+    defaults = repo_data.get("defaults", {}) if isinstance(repo_data.get("defaults", {}), dict) else {}
+    capabilities = repo_data.get("capabilities", {}) if isinstance(repo_data.get("capabilities", {}), dict) else {}
+    capability_data = capabilities.get(capability, {}) if isinstance(capabilities.get(capability, {}), dict) else {}
+
+    candidates: list[str] = []
+    cap_candidates = capability_data.get(category, []) if isinstance(capability_data.get(category, []), list) else []
+    default_candidates = defaults.get(category, []) if isinstance(defaults.get(category, []), list) else []
+    for value in cap_candidates + default_candidates:
+        if isinstance(value, str) and value.strip():
+            candidates.append(value.strip())
+
+    for relative_path in candidates:
+        if (repo_root / relative_path).exists():
+            return relative_path
+    return None
+
+
 def domain_defaults(domain: str) -> dict[str, str]:
     defaults = {
         "dba": {"agent": "dba", "engine": "Graphify", "capability": "database-analysis"},
@@ -494,6 +539,7 @@ def main() -> int:
     registry = load_registry((repo_root / args.registry).resolve())
     capabilities = load_capability_index((repo_root / args.generated_root).resolve())
     manifests = load_manifest_index((repo_root / args.generated_root).resolve())
+    boost_runtime_index = load_boost_runtime_index((repo_root / args.generated_root).resolve())
 
     normalized_domain, normalized_note = normalize_frontend_vs_ux_ui(
         domain=args.domain,
@@ -524,13 +570,48 @@ def main() -> int:
         prompt_root=repo_root,
     )
     if not prompt_exists:
+        boost_prompt = pick_boost_asset(
+            runtime_index=boost_runtime_index,
+            repo_name=str(route.get("repo", "")),
+            capability=str(route.get("capability", "")),
+            category="prompts",
+            repo_root=repo_root,
+        )
+        if boost_prompt:
+            selected_prompt = boost_prompt
+            prompt_exists = True
+            notes.append(f"prompt_selected_from_boost={boost_prompt}")
+    if not prompt_exists:
         notes.append(f"prompt_not_found={selected_prompt}")
+
     selected_skill, skill_exists = select_skill_for_route(
         capability=route["capability"],
         skill_root=repo_root,
     )
     if not skill_exists:
+        boost_skill = pick_boost_asset(
+            runtime_index=boost_runtime_index,
+            repo_name=str(route.get("repo", "")),
+            capability=str(route.get("capability", "")),
+            category="skills",
+            repo_root=repo_root,
+        )
+        if boost_skill:
+            selected_skill = boost_skill
+            skill_exists = True
+            notes.append(f"skill_selected_from_boost={boost_skill}")
+    if not skill_exists:
         notes.append(f"skill_not_found={selected_skill}")
+
+    selected_agent_asset = pick_boost_asset(
+        runtime_index=boost_runtime_index,
+        repo_name=str(route.get("repo", "")),
+        capability=str(route.get("capability", "")),
+        category="agents",
+        repo_root=repo_root,
+    )
+    if selected_agent_asset:
+        notes.append(f"agent_asset_selected_from_boost={selected_agent_asset}")
     event_id = str(uuid.uuid4())
     hitl = hitl_policy_for_event(
         intent=args.intent,
@@ -571,6 +652,11 @@ def main() -> int:
                     "selected": selected_skill,
                     "exists": skill_exists,
                     "selection_mode": "auto",
+                },
+                "agent_asset": {
+                    "selected": selected_agent_asset or "",
+                    "exists": bool(selected_agent_asset),
+                    "selection_mode": "boost_fallback",
                 },
                 "catalog": {
                     "capability": route.get("capability", ""),
