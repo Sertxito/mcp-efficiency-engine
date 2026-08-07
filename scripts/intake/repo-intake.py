@@ -102,6 +102,392 @@ def file_fingerprint(path: Path) -> dict:
     }
 
 
+def _normalize_path_entries(value) -> list[str]:
+    if isinstance(value, str):
+        return [value.strip()] if value.strip() else []
+    if isinstance(value, list):
+        return [entry.strip() for entry in value if isinstance(entry, str) and entry.strip()]
+    return []
+
+
+def _safe_resolve_under(package_root: Path, relative_path: str) -> Path | None:
+    package_root_resolved = package_root.resolve()
+    path = (package_root / relative_path).resolve()
+    try:
+        path.relative_to(package_root_resolved)
+    except Exception:
+        return None
+    return path
+
+
+def _matches_extensions(path: Path, extensions: set[str] | None) -> bool:
+    if extensions is None:
+        return True
+    return path.suffix.lower() in extensions
+
+
+def _append_candidate(
+    *,
+    candidates: list[dict],
+    seen: set[str],
+    source: Path,
+    package_root: Path,
+    category: str,
+    repo_name: str,
+    package_name: str,
+    capability: str,
+    source_mode: str,
+) -> None:
+    resolved = source.resolve()
+    key = str(resolved).replace('\\', '/').lower() + '|' + capability
+    if key in seen:
+        return
+    seen.add(key)
+
+    try:
+        relative = resolved.relative_to(package_root.resolve()).as_posix()
+    except Exception:
+        relative = resolved.name
+
+    candidates.append(
+        {
+            'category': category,
+            'repo': repo_name,
+            'package_name': package_name,
+            'source_path': resolved,
+            'relative_source_path': relative,
+            'capability': capability,
+            'source_mode': source_mode,
+        }
+    )
+
+
+def _collect_artifact_candidates(
+    *,
+    package_root: Path,
+    contract: dict,
+    category: str,
+    repo_name: str,
+    package_name: str,
+    contract_keys: list[str],
+    capability_keys: list[str],
+    fallback_globs: list[str],
+    extensions: set[str] | None,
+) -> list[dict]:
+    candidates: list[dict] = []
+    seen: set[str] = set()
+
+    for key in contract_keys:
+        for rel in _normalize_path_entries(contract.get(key, [])):
+            path = _safe_resolve_under(package_root, rel)
+            if path is None or (not path.is_file()) or (not _matches_extensions(path, extensions)):
+                continue
+            _append_candidate(
+                candidates=candidates,
+                seen=seen,
+                source=path,
+                package_root=package_root,
+                category=category,
+                repo_name=repo_name,
+                package_name=package_name,
+                capability='default',
+                source_mode='contract',
+            )
+
+    capabilities = contract.get('capabilities', []) if isinstance(contract.get('capabilities', []), list) else []
+    for cap in capabilities:
+        if not isinstance(cap, dict):
+            continue
+        capability_id = str(cap.get('id', '')).strip() or 'default'
+        for key in capability_keys:
+            for rel in _normalize_path_entries(cap.get(key, [])):
+                path = _safe_resolve_under(package_root, rel)
+                if path is None or (not path.is_file()) or (not _matches_extensions(path, extensions)):
+                    continue
+                _append_candidate(
+                    candidates=candidates,
+                    seen=seen,
+                    source=path,
+                    package_root=package_root,
+                    category=category,
+                    repo_name=repo_name,
+                    package_name=package_name,
+                    capability=capability_id,
+                    source_mode='capability',
+                )
+
+    for pattern in fallback_globs:
+        for path in sorted(package_root.glob(pattern)):
+            if (not path.is_file()) or (not _matches_extensions(path, extensions)):
+                continue
+            _append_candidate(
+                candidates=candidates,
+                seen=seen,
+                source=path,
+                package_root=package_root,
+                category=category,
+                repo_name=repo_name,
+                package_name=package_name,
+                capability='default',
+                source_mode='discovered',
+            )
+
+    return candidates
+
+
+def _artifact_target_path(*, repo_root: Path, candidate: dict, managed_prefix: str) -> Path:
+    category = str(candidate.get('category', '')).strip()
+    package_name = str(candidate.get('package_name', '')).strip()
+    relative_source = str(candidate.get('relative_source_path', '')).strip() or Path(str(candidate.get('source_path'))).name
+    source_path = Path(str(candidate.get('source_path')))
+
+    if category == 'instructions':
+        rel_hash = hashlib.sha1(relative_source.encode('utf-8')).hexdigest()[:8]
+        file_name = f"{managed_prefix}{slug(package_name)}--{slug(relative_source)}-{rel_hash}.instructions.md"
+        return repo_root / '.github' / 'instructions' / file_name
+
+    managed_dir = f"{managed_prefix}{slug(package_name)}"
+    relative_name = Path(relative_source).as_posix()
+    category_roots = {
+        'agents': repo_root / '.github' / 'agents',
+        'skills': repo_root / '.github' / 'skills',
+        'prompts': repo_root / '.github' / 'prompts',
+        'specs': repo_root / 'specs',
+        'evals': repo_root / 'observability' / 'evals' / 'boosts',
+    }
+    target_root = category_roots.get(category)
+    if target_root is None:
+        raise ValueError(f'Unsupported category: {category}')
+
+    preferred = target_root / managed_dir / relative_name
+    if preferred.suffix:
+        return preferred
+    return preferred / source_path.name
+
+
+def sync_installed_boost_artifacts(repo_root: Path, installed_repos: list[dict]) -> dict:
+    managed_prefix = 'mcpee-boost-'
+    category_config = {
+        'instructions': {
+            'contract_keys': ['instructions'],
+            'capability_keys': ['instructions', 'instructionFiles'],
+            'fallback_globs': [
+                '.github/instructions/*.instructions.md',
+                '.github/instructions/**/*.instructions.md',
+                'instructions/*.instructions.md',
+                'instructions/**/*.instructions.md',
+            ],
+            'extensions': {'.md'},
+        },
+        'agents': {
+            'contract_keys': ['agents', 'defaultAgent'],
+            'capability_keys': ['agent', 'agents'],
+            'fallback_globs': ['agents/**/*.md', '.github/agents/**/*.md'],
+            'extensions': {'.md'},
+        },
+        'skills': {
+            'contract_keys': ['skills', 'defaultSkill'],
+            'capability_keys': ['skills'],
+            'fallback_globs': ['skills/**/*.md', 'skills/**/*.json', '.github/skills/**/*.md'],
+            'extensions': {'.md', '.json'},
+        },
+        'prompts': {
+            'contract_keys': ['prompts'],
+            'capability_keys': ['prompts'],
+            'fallback_globs': ['prompts/**/*.md', '.github/prompts/**/*.md'],
+            'extensions': {'.md'},
+        },
+        'specs': {
+            'contract_keys': ['specs'],
+            'capability_keys': ['specs'],
+            'fallback_globs': ['specs/**/*.md'],
+            'extensions': {'.md'},
+        },
+        'evals': {
+            'contract_keys': ['evals'],
+            'capability_keys': ['evals'],
+            'fallback_globs': ['evals/**/*.json', 'evals/**/*.md', 'evals/**/*.yaml', 'evals/**/*.yml'],
+            'extensions': {'.json', '.md', '.yaml', '.yml'},
+        },
+    }
+
+    cleanup_roots = [
+        repo_root / '.github' / 'instructions',
+        repo_root / '.github' / 'agents',
+        repo_root / '.github' / 'skills',
+        repo_root / '.github' / 'prompts',
+        repo_root / 'specs',
+        repo_root / 'observability' / 'evals' / 'boosts',
+    ]
+
+    removed_previous: list[str] = []
+    for root in cleanup_roots:
+        if not root.exists():
+            continue
+        if root.name == 'instructions':
+            for existing in root.glob(f'{managed_prefix}*.instructions.md'):
+                try:
+                    existing.unlink()
+                    removed_previous.append(str(existing).replace('\\', '/'))
+                except Exception:
+                    continue
+            continue
+        for existing in root.glob(f'{managed_prefix}*'):
+            try:
+                if existing.is_dir():
+                    shutil.rmtree(existing, ignore_errors=True)
+                else:
+                    existing.unlink()
+                removed_previous.append(str(existing).replace('\\', '/'))
+            except Exception:
+                continue
+
+    synced: list[dict] = []
+    skipped: list[dict] = []
+    runtime_index: dict[str, dict] = {}
+
+    for repo in installed_repos:
+        if repo.get('sync_status') != 'installed':
+            continue
+
+        package_root = repo.get('package_root')
+        if not isinstance(package_root, Path) or not package_root.exists():
+            continue
+
+        repo_name = str(repo.get('name', '')).strip()
+        package_name = str(repo.get('package_name', '')).strip() or package_root.name
+        contract = repo.get('contract') if isinstance(repo.get('contract'), dict) else {}
+
+        runtime_index.setdefault(repo_name, {'defaults': {}, 'capabilities': {}})
+
+        for category, cfg in category_config.items():
+            candidates = _collect_artifact_candidates(
+                package_root=package_root,
+                contract=contract,
+                category=category,
+                repo_name=repo_name,
+                package_name=package_name,
+                contract_keys=cfg['contract_keys'],
+                capability_keys=cfg['capability_keys'],
+                fallback_globs=cfg['fallback_globs'],
+                extensions=cfg['extensions'],
+            )
+
+            for candidate in candidates:
+                source = Path(str(candidate.get('source_path')))
+                target = _artifact_target_path(repo_root=repo_root, candidate=candidate, managed_prefix=managed_prefix)
+                target.parent.mkdir(parents=True, exist_ok=True)
+
+                try:
+                    shutil.copy2(source, target)
+                    target_rel = str(target.relative_to(repo_root)).replace('\\', '/')
+                    item = {
+                        'repo': repo_name,
+                        'package_name': package_name,
+                        'category': category,
+                        'capability': str(candidate.get('capability', 'default')),
+                        'source': str(source).replace('\\', '/'),
+                        'target': str(target).replace('\\', '/'),
+                        'target_relative': target_rel,
+                        'source_mode': str(candidate.get('source_mode', '')),
+                    }
+                    synced.append(item)
+
+                    cap = str(candidate.get('capability', 'default'))
+                    if cap == 'default':
+                        runtime_index[repo_name]['defaults'].setdefault(category, []).append(target_rel)
+                    else:
+                        runtime_index[repo_name]['capabilities'].setdefault(cap, {})
+                        runtime_index[repo_name]['capabilities'][cap].setdefault(category, []).append(target_rel)
+                except Exception as exc:
+                    skipped.append(
+                        {
+                            'repo': repo_name,
+                            'package_name': package_name,
+                            'category': category,
+                            'capability': str(candidate.get('capability', 'default')),
+                            'source': str(source).replace('\\', '/'),
+                            'reason': str(exc),
+                        }
+                    )
+
+    return {
+        'timestamp': utc_now(),
+        'managed_prefix': managed_prefix,
+        'removed_previous': removed_previous,
+        'removed_previous_count': len(removed_previous),
+        'synced_count': len(synced),
+        'skipped_count': len(skipped),
+        'synced': synced,
+        'skipped': skipped,
+        'runtime_index': runtime_index,
+    }
+
+    managed_prefix = 'mcpee-boost-'
+    removed = 0
+    for existing in instructions_dir.glob(f'{managed_prefix}*.instructions.md'):
+        try:
+            existing.unlink()
+            removed += 1
+        except Exception:
+            continue
+
+    synced: list[dict] = []
+    skipped: list[dict] = []
+    for repo in installed_repos:
+        if repo.get('sync_status') != 'installed':
+            continue
+
+        package_root = repo.get('package_root')
+        if not isinstance(package_root, Path) or not package_root.exists():
+            continue
+
+        package_name = str(repo.get('package_name', '')).strip() or package_root.name
+        contract = repo.get('contract') if isinstance(repo.get('contract'), dict) else {}
+        sources = resolve_instruction_candidates(package_root, contract)
+
+        for source in sources:
+            try:
+                rel = source.relative_to(package_root).as_posix()
+            except Exception:
+                rel = source.name
+
+            rel_hash = hashlib.sha1(rel.encode('utf-8')).hexdigest()[:8]
+            target_name = f"{managed_prefix}{slug(package_name)}--{slug(rel)}-{rel_hash}.instructions.md"
+            target_path = instructions_dir / target_name
+
+            try:
+                shutil.copy2(source, target_path)
+                synced.append(
+                    {
+                        'repo': str(repo.get('name', '')).strip(),
+                        'package_name': package_name,
+                        'source': str(source).replace('\\', '/'),
+                        'target': str(target_path).replace('\\', '/'),
+                    }
+                )
+            except Exception as exc:
+                skipped.append(
+                    {
+                        'repo': str(repo.get('name', '')).strip(),
+                        'package_name': package_name,
+                        'source': str(source).replace('\\', '/'),
+                        'reason': str(exc),
+                    }
+                )
+
+    return {
+        'timestamp': utc_now(),
+        'managed_prefix': managed_prefix,
+        'instructions_dir': str(instructions_dir).replace('\\', '/'),
+        'removed_previous': removed,
+        'synced_count': len(synced),
+        'skipped_count': len(skipped),
+        'synced': synced,
+        'skipped': skipped,
+    }
+
+
 def build_structure_manifest(repo_root: Path, repo_name: str, slug_name: str, version: str, domain: str, package_name: str, repo_path: Path | None = None, sync: dict | None = None) -> dict:
     repo_path = repo_path or resolve_package_path(repo_root, package_name)
     structure = {
@@ -286,6 +672,8 @@ def main():
         'repos': []
     }
 
+    installed_repos: list[dict] = []
+
     for r in repos:
         dom = str(r.get('domain', '')).strip() or 'general'
         name = r['name']
@@ -419,6 +807,55 @@ def main():
             'agent': ag,
             'engine': en
         })
+
+        installed_repos.append(
+            {
+                'name': name,
+                'package_name': str(r.get('package_name', '')).strip(),
+                'package_root': repo_path,
+                'sync_status': sync_meta.get('status', ''),
+                'contract': contract,
+            }
+        )
+
+    boost_runtime_sync = sync_installed_boost_artifacts(repo_root, installed_repos)
+    (generated_out / 'reports' / 'boost-runtime-sync.json').write_text(
+        json.dumps(boost_runtime_sync, indent=2, ensure_ascii=False) + '\n', encoding='utf-8'
+    )
+
+    instructions_synced = [
+        item for item in boost_runtime_sync.get('synced', [])
+        if isinstance(item, dict) and item.get('category') == 'instructions'
+    ]
+    instructions_skipped = [
+        item for item in boost_runtime_sync.get('skipped', [])
+        if isinstance(item, dict) and item.get('category') == 'instructions'
+    ]
+    instructions_sync = {
+        'timestamp': boost_runtime_sync.get('timestamp', utc_now()),
+        'managed_prefix': boost_runtime_sync.get('managed_prefix', 'mcpee-boost-'),
+        'removed_previous_count': boost_runtime_sync.get('removed_previous_count', 0),
+        'synced_count': len(instructions_synced),
+        'skipped_count': len(instructions_skipped),
+        'synced': instructions_synced,
+        'skipped': instructions_skipped,
+    }
+    (generated_out / 'reports' / 'instructions-sync.json').write_text(
+        json.dumps(instructions_sync, indent=2, ensure_ascii=False) + '\n', encoding='utf-8'
+    )
+
+    summary_json['boost_runtime_sync'] = {
+        'synced_count': boost_runtime_sync.get('synced_count', 0),
+        'skipped_count': boost_runtime_sync.get('skipped_count', 0),
+        'removed_previous_count': boost_runtime_sync.get('removed_previous_count', 0),
+        'report': 'repo-intake/generated/reports/boost-runtime-sync.json',
+    }
+    summary_json['instructions_sync'] = {
+        'synced_count': instructions_sync.get('synced_count', 0),
+        'skipped_count': instructions_sync.get('skipped_count', 0),
+        'removed_previous_count': instructions_sync.get('removed_previous_count', 0),
+        'report': 'repo-intake/generated/reports/instructions-sync.json',
+    }
 
     # Remove stale flat repo folders that are no longer present in registry.
     generated_root = generated_out
