@@ -9,7 +9,7 @@ Motor de orquestación para agentes MCP con routing por dominio, optimización a
 Este repositorio centraliza:
 
 - Routing corporativo de intención -> agente -> motor.
-- Ingesta de repos "boost" (locales o GitHub) a capacidades consumibles.
+- Ingesta de paquetes boost instalados en `node_modules` a capacidades consumibles.
 - Optimización operacional (`token-saver` + `caveman`) sin perder grounding.
 - Observabilidad de decisiones de routing, uso y aprendizaje continuo.
 
@@ -39,7 +39,6 @@ flowchart LR
   E --> CG[CodeGraph]
   E --> GN[GitNexus]
   E --> GF[Graphify]
-  E --> AZ[Azure RAG Builder]
   E --> RP[Repomix]
 
   X --> OBS[observability/logs]
@@ -81,7 +80,7 @@ sequenceDiagram
   RT->>RT: resolve domain + capability
   RT->>AG: asigna agente
   AG->>OP: aplica token-saver + caveman
-  OP->>EN: consulta principal (CodeGraph/GitNexus/Graphify/Azure/Repomix)
+  OP->>EN: consulta principal (CodeGraph/GitNexus/Graphify/Repomix)
   EN-->>AG: contexto + evidencia
   AG-->>U: respuesta grounded
   AG->>OB: routing-decisions + métricas + feedback
@@ -94,12 +93,11 @@ flowchart TD
   R[repo-registry/repos.yml] --> V[validate-repo-registry]
   V --> I[repo-intake.py]
   I --> S{type}
-  S -->|local| L[usar repo local]
-  S -->|github| G[clonar/refrescar cache]
-  L --> A[generar artifacts]
-  G --> A
+  S -->|npm| N[resolver paquete en node_modules]
+  N --> C0[leer mcpee.json]
+  C0 --> A[generar artifacts]
   A --> M[manifest.json]
-  A --> C[capability.json]
+  A --> C[capability-catalog.json]
   A --> AU[audit-log.jsonl]
   A --> SU[SUMMARY.json]
   SU --> OR[router consume capabilities]
@@ -125,7 +123,6 @@ Contrato global en `AGENTS.md`:
 - `dba` -> `Graphify`
 - `ux-ui` -> `Graphify`
 - `rag-local` -> `Graphify`
-- `rag-azure` -> `Azure RAG Builder`
 - `iot` -> `GitNexus/CodeGraph + Graphify`
 - `community-manager` -> `Graphify`
 - `wiki-agent` -> `CodeGraph` (fallback `Graphify`)
@@ -140,8 +137,11 @@ Contrato global en `AGENTS.md`:
 | CodeGraph | Código repo único, símbolos y call paths | bug/fix/refactor backend o frontend en un repo |
 | GitNexus | Impacto multi-repo y dependencias | análisis de blast radius, seguridad de cambio |
 | Graphify | Documentación técnica local y relaciones de conocimiento | dba, ux-ui, rag-local, análisis de docs estructurados |
-| Azure RAG Builder | Contexto corporativo y fuentes enterprise | contratos, políticas, evidencia corporativa |
 | Repomix | Snapshot/export de contexto | empaquetado de contexto y handoff portable |
+
+Nota operativa:
+
+- El flujo por defecto del engine es local y no usa RAG.
 
 ### Tooling Operativo Del Repo
 
@@ -162,7 +162,6 @@ flowchart TB
   D -->|backend/frontend| CG[CodeGraph]
   D -->|backend multi-repo| GN[GitNexus]
   D -->|dba/ux-ui/rag-local| GF[Graphify]
-  D -->|azure-rag| AZ[Azure RAG Builder]
   D -->|snapshot| RP[Repomix]
 ```
 
@@ -180,115 +179,134 @@ flowchart TB
 
 ## Quickstart (Windows)
 
-### 1) Setup inicial
+### 0) Prerequisito de normalización documental local
+
+Para convertir fuentes del proyecto (pdf, office, markdown) dentro del flujo local:
 
 ```powershell
-.\scripts\setup\setup-prerequisites.ps1
+pip install markitdown
 ```
 
-### Alternativa npm
+Validación rápida:
 
-Si quieres dejarlo auto-instalable en cualquier proyecto, el paquete ahora scaffoldéa el engine en el proyecto host durante `npm install` y luego ejecuta el bootstrap allí mismo.
+```powershell
+markitdown --version
+```
 
-Instalacion directa en un proyecto nuevo o existente:
+### 1) Instalar y scaffoldear (flujo recomendado)
 
 ```powershell
 npm install mcp-efficiency-engine
 ```
 
-Comportamiento esperado:
-
-- copia al proyecto host los artefactos canonicos del engine (`scripts`, `.github`, `.vscode`, `repo-intake`, `orchestrator`, `policies`, `observability`, `autodocs/schema`, `memory`, etc.)
-- instala motores y herramientas via bootstrap portable
-- si no existe `repo-registry/repos.yml`, en modo interactivo pregunta por owner/prefix y repo inicial para intake
-- si la instalacion corre en modo no interactivo (comun en lifecycle scripts de npm), crea automaticamente un repo inicial por defecto: dominio `backend`, location `.`
-
-Nota npm (entornos con politicas de scripts):
-
-- si `npm` bloquea `install`/`postinstall` (por ejemplo con `allow-scripts`), el scaffold/bootstrapping no se ejecuta automaticamente
-- flujo recomendado en dos pasos:
+Si npm bloquea scripts (`install`/`postinstall`), completa bootstrap manualmente:
 
 ```powershell
-npm install mcp-efficiency-engine
 npm approve-scripts mcp-efficiency-engine
 npm rebuild mcp-efficiency-engine
 ```
 
-- alternativa manual equivalente:
+### 2) Inicializar registry operativo
 
 ```powershell
-npx mcp-efficiency-engine install
-npx mcp-efficiency-engine doctor
-```
-
-Tambien puedes relanzar la instalacion manualmente sobre el proyecto actual:
-
-```powershell
-npx mcp-efficiency-engine install
-npx mcp-efficiency-engine doctor
-```
-
-Tambien puedes instalarlo globalmente y usar:
-
-```powershell
-npm install -g mcp-efficiency-engine
-mcpee install
-```
-
-### Cuando se conectan boosts/repos auxiliares
-
-Resumen rapido:
-
-- `npm install` + `rebuild` instala/configura el engine.
-- La conexion real de boosts/repos ocurre al ejecutar intake.
-- Si no configuras repos adicionales, se usa el repo inicial por defecto.
-- `mcpee doctor` detecta boosts tanto desde `node_modules/@mcpee/<boost>` (instalados via npm) como desde carpetas locales en `boosts/` (con `mcpee.json`).
-
-Flujo recomendado para nuevos usuarios:
-
-- `repo-registry/repos.template.json`: plantilla guiada con dominios y ejemplos.
-- `repo-registry/repos.yml`: registry operativo que consume el intake.
-- `scripts/intake/init-template-registry.cmd`: inicializa `repos.yml` desde la plantilla y pregunta owner/prefix/repo inicial.
-
-Pasos recomendados despues de instalar:
-
-```powershell
-# 1) Inicializar registry operativo desde la plantilla (modo asistido)
 .\scripts\intake\init-template-registry.cmd
+```
 
-# 2) (Opcional) ajustar repos auxiliares/boosts
-notepad .\repo-registry\repos.yml
+Este paso crea `repo-registry/repos.yml` con:
 
-# 3) materializar capacidades de todos los repos del registry
+- `schema_version: 2.0`
+- naming con `repo_name_prefix`
+- bloque `approval` por repo (requerido en validacion v2)
+
+### 3) Materializar capacidades (intake)
+
+```powershell
 .\scripts\intake\run-repo-intake.cmd
+```
 
-# 4) validar que el router ya los ve
+### 4) Ejecutar preflight completo
+
+```powershell
 .\scripts\ops\hi.ps1
 ```
 
-Si quieres preparar entradas manuales, usa los ejemplos de `repo-registry/repos.template.json` (`local`, `github`, `rag_local_github`, `azure_rag_github`) y copialos a `repos.yml`.
-
-Si quieres que te pregunte por owner/prefix/repo inicial en modo asistido, ejecuta:
+### 4.1) Construir knowledge local del proyecto
 
 ```powershell
-npx mcp-efficiency-engine install
+npx mcp-efficiency-engine knowledge-build
 ```
 
-### 2) Validación mínima
+Validar artefactos locales:
 
-```powershell
-.\scripts\setup\validate-context.ps1
-.\scripts\intake\run-repo-intake.cmd
-py -3 .\scripts\intake\run-routing-evals.py
-```
+- `.mcpee/knowledge/index/capabilities.json`
+- `.mcpee/artifacts/registry.json`
 
-### 3) Operación diaria
+### 5) Operación diaria
 
 ```powershell
 .\scripts\ops\hi.ps1
 # ... trabajo ...
 .\scripts\ops\bye.ps1
 ```
+
+### Modelo de carpetas (canonico)
+
+| Ubicacion | Rol | Se edita? |
+|---|---|---|
+| `node_modules/@mcpee/...` | Runtime publicado (core y boosts npm) | No |
+| `boosts/<nombre>/` | Overrides/boosts locales del proyecto | Si |
+| Carpetas scaffold en raiz (`scripts`, `orchestrator`, `policies`, `observability`, etc.) | Contrato operativo del host | Si |
+| Artefactos generados (`repo-intake/generated`, `observability/logs`, `context/graphify-out`) | Estado/runtime | No manual (se regeneran) |
+
+Regla de oro:
+
+- runtime base en `node_modules`
+- personalizaciones en el proyecto host
+- `boosts/` local solo para overrides o boosts propios
+
+### Troubleshooting rapido
+
+1. Error: `requires approval block in v2/strict mode`.
+
+  Causa: falta bloque `approval` en `repo-registry/repos.yml`.
+
+  Fix:
+
+  ```powershell
+  .\scripts\intake\init-template-registry.cmd -Force
+  .\scripts\intake\run-repo-intake.cmd
+  ```
+
+1. Error: `Missing eval cases file: observability/evals/routing-eval-cases.json`.
+
+  Causa: scaffold incompleto o instalación previa.
+
+  Fix:
+
+  ```powershell
+  npx mcp-efficiency-engine install --force
+  ```
+
+1. Error: `ModuleNotFoundError: No module named 'telemetry'`.
+
+  Causa: host sin carpeta `telemetry` scaffolded.
+
+  Fix:
+
+  ```powershell
+  npx mcp-efficiency-engine install --force
+  ```
+
+1. Duda habitual: "instalé core, ¿y luego?".
+
+  Orden exacto:
+
+  ```powershell
+  npm install mcp-efficiency-engine
+  .\scripts\intake\init-template-registry.cmd
+  .\scripts\intake\run-repo-intake.cmd
+  .\scripts\ops\hi.ps1
+  ```
 
 Telemetría de terminal (PowerShell, opcional):
 
@@ -325,6 +343,7 @@ Notas operativas recientes:
 
 - El flujo v2 expone comandos capability-centric en `mcpee` (`doctor`, `chat`, `knowledge-build`, `artifact-report`) y conserva scripts operativos bajo `scripts/ops/*`.
 - `skillopt-sleep` es un bridge opcional hacia [microsoft/SkillOpt](https://github.com/microsoft/SkillOpt); si no está instalado, usa telemetría local como fallback.
+- El onboarding estándar de proyecto host usa exclusivamente conocimiento local (MarkItDown + grafos locales).
 - `scripts/ops/publish-langsmith-kpis.py` agrega snapshots locales de flujos, coste y tokens antes de publicar KPI runs en LangSmith.
 
 Artefactos/resultados:
@@ -342,10 +361,9 @@ Instalacion manual de hooks (si necesitas reprovisionar):
 
 ## Flujo De Intake
 
-`repo-intake` soporta dos modos:
+`repo-intake` soporta modo npm-only:
 
-- `type=local`: consume un repo existente en disco.
-- `type=github`: clona/refresca cache local y genera los mismos artefactos.
+- `type=npm`: consume paquete instalado en `node_modules` y su `mcpee.json`.
 
 Artefactos canónicos:
 

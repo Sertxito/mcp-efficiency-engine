@@ -71,7 +71,7 @@ def build_candidate(folder: Path, review_ticket_prefix: str, idx: int) -> dict[s
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Discover sibling boost_* repos and generate onboarding proposal.")
+    parser = argparse.ArgumentParser(description="Discover sibling repos matching governance.repo_name_prefix and generate onboarding proposal.")
     parser.add_argument("--root", default="C:/repo", help="Parent folder containing sibling repos")
     parser.add_argument("--registry", default="repo-registry/repos.yml", help="Registry file path")
     parser.add_argument("--output", default="repo-intake/generated/reports/boost-discovery-proposal.json")
@@ -83,7 +83,7 @@ def main() -> int:
     registry_path = (repo_root / args.registry).resolve()
     registry = load_registry(registry_path)
 
-    prefix = str(registry.get("governance", {}).get("repo_name_prefix", "boost_"))
+    prefix = str(registry.get("governance", {}).get("repo_name_prefix", "mcpee-"))
     root = Path(args.root)
     if not root.exists():
         print(f"Root path not found: {root}")

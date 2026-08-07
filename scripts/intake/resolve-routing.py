@@ -37,7 +37,7 @@ def parse_simple_yml(path: Path) -> dict[str, Any]:
             k, v = st.split(":", 1)
             k = k.strip()
             v = v.strip().strip('"')
-            if k in {"domain", "location", "type", "version"}:
+            if k in {"domain", "type", "version", "package_name", "package_path"}:
                 cur[k] = v
     if cur:
         repos.append(cur)
@@ -57,11 +57,18 @@ def load_registry(path: Path) -> dict[str, Any]:
 
 def load_capability_index(generated_root: Path) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
-    for path in generated_root.glob("*/capabilities/capability.json"):
+    for path in generated_root.glob("*/capabilities/*.json"):
         try:
-            items.append(json.loads(path.read_text(encoding="utf-8")))
+            data = json.loads(path.read_text(encoding="utf-8"))
         except Exception:
             continue
+        if isinstance(data, dict) and isinstance(data.get("capability"), str):
+            items.append(data)
+            continue
+        if isinstance(data, dict) and isinstance(data.get("capabilities"), list):
+            for cap in data.get("capabilities", []):
+                if isinstance(cap, dict) and isinstance(cap.get("capability"), str):
+                    items.append(cap)
     return items
 
 
@@ -205,6 +212,8 @@ def pick_route(
             "engine": str(candidate.get("engine", "CodeGraph")),
             "capability": str(candidate.get("capability", "backend-coding")),
             "repo": str(candidate.get("repo", "")),
+            "instructions": candidate.get("instructions", {}),
+            "provider_needs": candidate.get("provider_needs", []),
         }
         return route, notes
 
@@ -562,6 +571,11 @@ def main() -> int:
                     "selected": selected_skill,
                     "exists": skill_exists,
                     "selection_mode": "auto",
+                },
+                "catalog": {
+                    "capability": route.get("capability", ""),
+                    "instructions": route.get("instructions", {}),
+                    "provider_needs": route.get("provider_needs", []),
                 },
                 "optimization": {
                     "token_saver": "always_on",

@@ -2,10 +2,10 @@
   "registry_mode": "template",
   "schema_version": "2.0",
   "onboarding_help": {
-    "what_is_this": "Define aqui los repos/boosts que quieres conectar al motor de routing.",
+    "what_is_this": "Define aqui los paquetes npm (node_modules) que quieres conectar al motor de routing.",
     "quick_start": [
       "1) Duplica un ejemplo de repo_examples dentro de repos[]",
-      "2) Ajusta domain, type y location/repo_url",
+      "2) Ajusta domain (libre), type=npm y package_name",
       "3) Ejecuta scripts/intake/run-repo-intake.cmd",
       "4) Ejecuta scripts/ops/hi.ps1 para validar"
     ],
@@ -13,81 +13,82 @@
       "name",
       "domain",
       "type",
-      "location (si type=local)",
-      "repo_url (si type=github)"
+      "package_name (si type=npm)",
+      "approval.status=approved",
+      "approval.approved_by",
+      "approval.approved_date"
     ],
     "domain_reference": {
-      "backend": "Codigo backend en repo unico (CodeGraph)",
-      "frontend": "Codigo frontend en repo unico (CodeGraph)",
-      "community-content": "Contenido/comunidad/documentacion de apoyo",
-      "dba": "SQL, esquema y conocimiento de base de datos",
-      "iot": "IoT/edge/telemetria",
-      "ux-ui": "Patrones de diseno, UX y design system",
-      "azure-rag": "Contratos/politicas enterprise con Azure RAG",
-      "rag": "RAG local con docs tecnicas"
+      "<your-domain>": "Etiqueta libre del dominio/capabilidad que define el boost"
     }
   },
   "governance": {
     "owner": "your-team",
-    "approval_required": false,
-    "repo_name_prefix": "your-prefix_"
+    "approval_required": true,
+    "repo_name_prefix": "mcpee-"
   },
   "repos": [],
   "repo_examples": {
-    "local": {
-      "name": "your-prefix_backend_local",
-      "domain": "backend",
-      "type": "local",
-      "location": "../your-backend-repo",
+    "npm_generic": {
+      "name": "mcpee-my_boost",
+      "domain": "my-domain",
+      "type": "npm",
+      "package_name": "@your-scope/your-boost",
+      "package_path": "node_modules/@your-scope/your-boost",
       "optional": false,
       "dependencies": [],
+      "approval": {
+        "status": "approved",
+        "approved_by": "your-team",
+        "approved_date": "2026-01-01",
+        "review_ticket": "INTAKE-0001"
+      },
       "engines": {
         "knowledge": "codegraph",
         "execution": "none",
         "snapshot": "repomix"
       }
     },
-    "github": {
-      "name": "your-prefix_backend_remote",
-      "domain": "backend",
-      "type": "github",
-      "repo_url": "https://github.com/your-org/your-repo.git",
-      "branch": "main",
-      "cache_location": ".cache/github-repos/your-prefix_backend_remote",
+    "npm_unscoped": {
+      "name": "mcpee-ops_boost",
+      "domain": "ops",
+      "type": "npm",
+      "package_name": "my-ops-boost",
+      "package_path": "node_modules/my-ops-boost",
       "optional": false,
       "dependencies": [],
+      "approval": {
+        "status": "approved",
+        "approved_by": "your-team",
+        "approved_date": "2026-01-01",
+        "review_ticket": "INTAKE-0002"
+      },
       "engines": {
         "knowledge": "codegraph",
         "execution": "none",
         "snapshot": "repomix"
       }
     },
-    "rag_local_github": {
-      "name": "your-prefix_rag_local",
-      "domain": "rag",
-      "type": "github",
-      "repo_url": "https://github.com/your-org/your-rag-docs.git",
-      "branch": "main",
-      "cache_location": ".cache/github-repos/your-prefix_rag_local",
+    "npm_with_dependencies": {
+      "name": "mcpee-domain-boost",
+      "domain": "domain-x",
+      "type": "npm",
+      "package_name": "@your-scope/domain-boost",
+      "package_path": "node_modules/@your-scope/domain-boost",
       "optional": true,
-      "dependencies": [],
+      "dependencies": [
+        {
+          "ref": "mcpee-my_boost"
+        }
+      ],
+      "approval": {
+        "status": "approved",
+        "approved_by": "your-team",
+        "approved_date": "2026-01-01",
+        "review_ticket": "INTAKE-0003"
+      },
       "engines": {
-        "knowledge": "graphify",
-        "execution": "none",
-        "snapshot": "repomix"
-      }
-    },
-    "azure_rag_github": {
-      "name": "your-prefix_azure_rag",
-      "domain": "azure-rag",
-      "type": "github",
-      "repo_url": "https://github.com/your-org/your-enterprise-docs.git",
-      "branch": "main",
-      "cache_location": ".cache/github-repos/your-prefix_azure_rag",
-      "optional": true,
-      "dependencies": [],
-      "engines": {
-        "knowledge": "azure-rag-builder",
+        "knowledge": "custom-engine",
         "execution": "none",
         "snapshot": "repomix"
       }

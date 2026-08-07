@@ -430,24 +430,22 @@ function Resolve-RegistryRepoPath {
         [object]$Repo
     )
 
-    $repoType = (Get-RepoField -Repo $Repo -Name 'type' -Default 'local').ToLowerInvariant()
-    if ($repoType -eq 'github') {
-        $cacheLocation = Get-RepoField -Repo $Repo -Name 'cache_location'
-        if (-not [string]::IsNullOrWhiteSpace($cacheLocation)) {
-            return Resolve-RepoPath -Root $Root -RelativePath $cacheLocation
-        }
-
-        $repoName = Get-RepoField -Repo $Repo -Name 'name' -Default 'unknown'
-        $slug = $repoName.ToLowerInvariant() -replace '[^a-z0-9_-]+', '-'
-        return [System.IO.Path]::GetFullPath((Join-Path $Root (".cache/github-repos/{0}" -f $slug)))
+    $repoType = (Get-RepoField -Repo $Repo -Name 'type' -Default 'npm').ToLowerInvariant()
+    if ($repoType -ne 'npm') {
+        throw "Unsupported repo type in npm-only mode: $(Get-RepoField -Repo $Repo -Name 'name' -Default '<unknown>')"
     }
 
-    $location = Get-RepoField -Repo $Repo -Name 'location'
-    if ([string]::IsNullOrWhiteSpace($location)) {
-        throw "Registry repo is missing location: $(Get-RepoField -Repo $Repo -Name 'name' -Default '<unknown>')"
+    $packagePath = Get-RepoField -Repo $Repo -Name 'package_path'
+    if (-not [string]::IsNullOrWhiteSpace($packagePath)) {
+        return Resolve-RepoPath -Root $Root -RelativePath $packagePath
     }
 
-    return Resolve-RepoPath -Root $Root -RelativePath $location
+    $packageName = Get-RepoField -Repo $Repo -Name 'package_name'
+    if ([string]::IsNullOrWhiteSpace($packageName)) {
+        throw "Registry repo is missing package_name: $(Get-RepoField -Repo $Repo -Name 'name' -Default '<unknown>')"
+    }
+
+    return Resolve-RepoPath -Root $Root -RelativePath ("node_modules/{0}" -f $packageName)
 }
 
 function Get-PathLastWriteUtc {
@@ -836,14 +834,12 @@ if (-not $SkipSiblingReposChecks) {
 
         foreach ($repo in $registry.repos) {
             $repoName = Get-RepoField -Repo $repo -Name 'name'
+            $isOptional = (Get-RepoField -Repo $repo -Name 'optional' -Default 'false').ToLowerInvariant() -eq 'true'
             $location = Resolve-RegistryRepoPath -Root $repoRoot -Repo $repo
             if (-not (Test-Path $location)) {
-                $repoType = (Get-RepoField -Repo $repo -Name 'type' -Default 'local').ToLowerInvariant()
-                if ($repoType -eq 'github' -and -not $SkipIntake) {
-                    Write-Host "[info] Missing GitHub cache for $repoName. Running repo intake refresh..." -ForegroundColor DarkYellow
-                    $script:StepLogs['sibling-repos-refresh'] = Invoke-LoggedAction -StepName 'sibling-repos-refresh' -Action {
-                        & .\scripts\intake\run-repo-intake.cmd
-                    }
+                if ($isOptional) {
+                    Write-Host "[info] Optional npm package not installed, skipping sibling checks: $repoName" -ForegroundColor DarkYellow
+                    continue
                 }
             }
 
@@ -991,7 +987,7 @@ if (-not $SkipRoutingEvals) {
         $script:StepLogs['routing-evals'] = Invoke-LoggedAction -StepName 'routing-evals' -Action {
             & $cmd @pyParts .\scripts\intake\run-routing-evals.py
         }
-    } -Required $strictMode
+    } -Required $true
 }
 else {
     Write-Host '[skip] Run routing evals'
@@ -1009,7 +1005,7 @@ if (-not $SkipProjectNotesRefresh) {
         $script:StepLogs['project-notes-refresh'] = Invoke-LoggedAction -StepName 'project-notes-refresh' -Action {
             & $cmd @pyParts .\scripts\discovery\refresh-project-notes.py
         }
-    } -Required $false
+    } -Required $true
 }
 else {
     Write-Host '[skip] Refresh project notes from observability'
