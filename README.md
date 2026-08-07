@@ -258,6 +258,14 @@ Validar artefactos locales:
 | Carpetas scaffold en raiz (`scripts`, `orchestrator`, `policies`, `observability`, etc.) | Contrato operativo del host | Si |
 | Artefactos generados (`repo-intake/generated`, `observability/logs`, `context/graphify-out`) | Estado/runtime | No manual (se regeneran) |
 
+### Notas de compatibilidad de discovery (runtime v2)
+
+- El discovery de boosts soporta dos formatos npm:
+  - Scoped: `node_modules/@mcpee/<boost>/mcpee.json`
+  - Unscoped: `node_modules/mcpee-*/mcpee.json`
+- En Windows, si usas `boosts/` con enlaces (`symlink`/`junction`), el runtime resuelve el directorio real para no perder detección.
+- Cuando el mismo boost existe en `node_modules` y `boosts/`, el runtime deduplica por nombre de boost para evitar capacidades duplicadas.
+
 Regla de oro:
 
 - runtime base en `node_modules`
