@@ -491,7 +491,6 @@ function Get-StructureSnapshot {
             (Join-Path $repoPath 'AGENTS.md'),
             (Join-Path $repoPath 'README.md'),
             (Join-Path $repoPath 'ARCHITECTURE.md'),
-            (Join-Path $repoPath '.github/skills'),
             (Join-Path $repoPath '.github/prompts'),
             (Join-Path $repoPath 'scripts'),
             (Join-Path $repoPath 'specs')

@@ -1,6 +1,6 @@
 # AGENTS.md — Enterprise Global Contract
 
-2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un alcance concreto, persistir trazabilidad en `autodocs/analysis_mcpee/`.
+onboarding profundo y con grounding máximo relevante, aunque tarde más. 2. En esa primera pasada se debe recuperar la mayor cantidad de contexto útil
 
 ## Contexto
 
@@ -8,7 +8,7 @@
 - domain: routing
 - section: routing
 - provider: repo-content
-- checksum: 10be5e7e0a05a36542eeb29c684d2675d888a86ff85db5e1e1f9ddcede427b9e
+- checksum: 64cd3dfd6b2d92bc73e7fd376c3ad7f82462dd743b2490335a22367b8f4d0732
 - owner: repo
 - tags: report, routing, routing
 
@@ -40,7 +40,7 @@
   "kind": "report",
   "section": "routing",
   "domain": "routing",
-  "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un alcance concreto, persistir trazabilidad en `autodocs/analysis_mcpee/`.",
+  "summary": "onboarding profundo y con grounding m\u00e1ximo relevante, aunque tarde m\u00e1s. 2. En esa primera pasada se debe recuperar la mayor cantidad de contexto \u00fatil",
   "owner": "repo",
   "source_refs": [
     "AGENTS.md"

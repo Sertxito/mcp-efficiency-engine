@@ -443,7 +443,6 @@ gh api repos/Sertxito/mcp-efficiency-engine/commits \
 - [GitHub CLI Documentation](https://cli.github.com/)
 - [GitHub REST API](https://docs.github.com/en/rest)
 - [Model Context Protocol](https://modelcontextprotocol.io/)
-- [boost_sertxIA GitHub Devlog Maintainer](https://github.com/Sertxito/boost_sertxIA/blob/main/.github/agents/github-devlog-maintainer.agent.md)
 
 ---
 

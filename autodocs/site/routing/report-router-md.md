@@ -1,6 +1,6 @@
 # Memory-first + Learning
 
-2. Detect domain 3. **Select memory (memory layer)**
+Clasifica intención y enruta a agente/motor según AGENTS.md y optimization-routing.md.
 
 ## Contexto
 
@@ -8,7 +8,7 @@
 - domain: routing
 - section: routing
 - provider: repo-content
-- checksum: df31a800c1ea78835ab334f256553ff1f1753c2c046ec5932911f60c9f91cd98
+- checksum: 6cd2237b07680416a9112b98018f0a7f6a98674733354ed68d9799dc9725863f
 - owner: orchestrator
 - tags: report, routing, routing
 
@@ -40,7 +40,7 @@
   "kind": "report",
   "section": "routing",
   "domain": "routing",
-  "summary": "2. Detect domain 3. **Select memory (memory layer)**",
+  "summary": "Clasifica intenci\u00f3n y enruta a agente/motor seg\u00fan AGENTS.md y optimization-routing.md.",
   "owner": "orchestrator",
   "source_refs": [
     "orchestrator/router.md"

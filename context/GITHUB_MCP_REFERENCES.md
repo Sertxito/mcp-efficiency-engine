@@ -103,10 +103,9 @@ El servidor MCP de GitHub expone las siguientes capacidades:
 - Scripts de automatización
 - Estrategia de seguridad
 
-#### `.github/agents/github-repository-manager.agent.md`
-- Agente especializado para control de repo
-- Flujos automáticos
-- Mapeo de comandos a scripts
+#### `AGENTS.md`
+- Contrato operativo de routing y responsabilidades
+- Flujos automáticos por dominio
 - Reglas de guardrail
 - Advanced workflows
 
@@ -166,8 +165,7 @@ El servidor MCP de GitHub expone las siguientes capacidades:
 
 El agente `github-devlog-maintainer` en [boost_sertxIA](https://github.com/Sertxito/boost_sertxIA) inspiró esta integración:
 
-- **Archivo:** `.github/agents/github-devlog-maintainer.agent.md`
-- **URL:** https://github.com/Sertxito/boost_sertxIA/blob/main/.github/agents/github-devlog-maintainer.agent.md
+- **Referencia:** repositorio `boost_sertxIA`
 - **Funcionalidades base:**
   - Análisis automático de repos
   - Detección de problemas técnicos
@@ -320,7 +318,7 @@ env:
 ### Documentación Local
 
 - [.github/GITHUB_MCP_INTEGRATION.md](.github/GITHUB_MCP_INTEGRATION.md) — Guía completa de integración
-- [.github/agents/github-repository-manager.agent.md](.github/agents/github-repository-manager.agent.md) — Agente especializado
+- [AGENTS.md](AGENTS.md) — Contrato de agentes y routing
 - [scripts/github/README.md](scripts/github/README.md) — Uso de scripts
 
 ### Proyectos Relacionados

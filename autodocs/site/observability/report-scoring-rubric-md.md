@@ -1,6 +1,6 @@
 # Scoring Rubric
 
-> El score de eficiencia es nativo del Telemetry Engine y no depende de LangSmith.
+Contenido report en observability/scoring-rubric.md.
 
 ## Contexto
 
@@ -8,7 +8,7 @@
 - domain: observability
 - section: observability
 - provider: repo-content
-- checksum: df43d8ba18e24eb0ba3a08181c0f627f102554b41293fe4cf98cfd571625bd0f
+- checksum: 60648a576dbec600fb9fd2687bf7a6452587a9f8ac163d5f47e85d7203abdc68
 - owner: observability
 - tags: report, observability, observability
 
@@ -40,7 +40,7 @@
   "kind": "report",
   "section": "observability",
   "domain": "observability",
-  "summary": "> El score de eficiencia es nativo del Telemetry Engine y no depende de LangSmith.",
+  "summary": "Contenido report en observability/scoring-rubric.md.",
   "owner": "observability",
   "source_refs": [
     "observability/scoring-rubric.md"

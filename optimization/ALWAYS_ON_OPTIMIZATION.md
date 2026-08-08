@@ -66,18 +66,11 @@ GitHub Copilot debe leer esta política desde:
 
 - `.github/copilot-instructions.md`
 - `.github/instructions/always-on-optimization.instructions.md`
-- `.github/skills/token-saver/SKILL.md`
-- `.github/skills/caveman-mode/SKILL.md`
+- `optimization/token-saver.md`
+- `optimization/caveman-mode.md`
 
 Comandos caveman gestionados como capacidades propias del repo:
 
-- `.github/skills/caveman/SKILL.md`
-- `.github/skills/caveman-help/SKILL.md`
-- `.github/skills/caveman-review/SKILL.md`
-- `.github/skills/caveman-commit/SKILL.md`
-- `.github/skills/caveman-stats/SKILL.md`
-- `.github/skills/caveman-compress/SKILL.md`
-- `.github/skills/cavecrew/SKILL.md`
 - `.github/prompts/caveman.prompt.md`
 - `.github/prompts/caveman-help.prompt.md`
 - `.github/prompts/caveman-review.prompt.md`
