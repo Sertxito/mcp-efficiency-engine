@@ -16,7 +16,7 @@ Skill operativa del boost backend.
 
 - section_index: [skills](index.md)
 - wiki_home: [autodocs](../index.md)
-- related_in_section: [Skill: Dependency Analysis](skill-dependency-analysis-md.md), [discovery](skill-discovery.md), [gitnexus-cli](skill-gitnexus-cli.md)
+- related_in_section: [Skill: Dependency Analysis](skill-dependency-analysis-md.md)
 
 ## Fuentes
 

@@ -16,7 +16,7 @@ Ubicacion canonica del blueprint y analisis de evolucion de AutoDocs como wiki i
 
 - section_index: [reports](index.md)
 - wiki_home: [autodocs](../index.md)
-- related_in_section: ["[BUG] "](report-bug-md.md), ["[FEATURE] "](report-feature-request-md.md), ["[QUESTION] "](report-question-md.md)
+- related_in_section: [AutoDocs](report-autodocs-readme-md.md), [AutoDocs Analysis](report-autodocs-analysis-mcpee-readme-md.md), [AutoDocs Projection Engine](report-readme-wiki-md.md)
 
 ## Fuentes
 

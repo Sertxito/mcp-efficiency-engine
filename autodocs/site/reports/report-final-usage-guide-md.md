@@ -16,7 +16,7 @@ Token Saver y Caveman ya no son modos que se activan manualmente. Son parte del 
 
 - section_index: [reports](index.md)
 - wiki_home: [autodocs](../index.md)
-- related_in_section: ["[BUG] "](report-bug-md.md), ["[FEATURE] "](report-feature-request-md.md), ["[QUESTION] "](report-question-md.md)
+- related_in_section: [AutoDocs](report-autodocs-readme-md.md), [AutoDocs Analysis](report-autodocs-analysis-mcpee-readme-md.md), [AutoDocs Projection Engine](report-readme-wiki-md.md)
 
 ## Fuentes
 
@@ -27,7 +27,6 @@ Token Saver y Caveman ya no son modos que se activan manualmente. Son parte del 
 | relation_type | target |
 |---|---|
 | extends | [MCP Efficiency Engine](report-readme-md.md) |
-| extends | [Scripts Index](report-scripts-readme-md.md) |
 
 ## Datos tecnicos
 

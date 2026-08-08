@@ -16,7 +16,7 @@ Comparar routing real contra matriz esperada.
 
 - section_index: [observability](index.md)
 - wiki_home: [autodocs](../index.md)
-- related_in_section: [Chat Token Usage Report](report-chat-token-usage-report-md.md), [Evaluation](report-evaluation-md.md), [Iteration Value Report](report-iteration-value-report-md.md)
+- related_in_section: [Evaluation](report-evaluation-md.md), [Metrics](report-metrics-md.md), [Optimization fields](report-logs-schema-md.md)
 
 ## Fuentes
 

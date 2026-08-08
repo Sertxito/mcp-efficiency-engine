@@ -16,7 +16,7 @@ Minimizar coste operativo de tool calls y retrieval sin perder calidad ni trazab
 
 - section_index: [policies](index.md)
 - wiki_home: [autodocs](../index.md)
-- related_in_section: [Context Policy](policy-context-policy-md.md), [Repo Intake Policy](policy-repo-intake-policy-md.md), [Response Style Policy — Caveman Always On](policy-response-style-policy-md.md)
+- related_in_section: [Context Policy](policy-context-policy-md.md), [Repo Intake Policy](policy-repo-intake-policy-md.md), [Security Policy](policy-security-policy-md.md)
 
 ## Fuentes
 
