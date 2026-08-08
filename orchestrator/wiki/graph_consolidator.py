@@ -395,13 +395,14 @@ class GraphConsolidator:
     def _render_index_pages(self, wiki_nodes: Dict[str, Dict[str, Any]]) -> int:
         count = 0
         self.markdown_output_dir.mkdir(parents=True, exist_ok=True)
+        populated_sections = self._populated_sections(wiki_nodes)
 
         root_index = self.markdown_output_dir / "index.md"
         with root_index.open("w", encoding="utf-8") as handle:
             handle.write(self._render_root_index(wiki_nodes))
         count += 1
 
-        for section in SECTIONS:
+        for section in populated_sections:
             section_dir = self.markdown_output_dir / section["id"]
             section_dir.mkdir(parents=True, exist_ok=True)
             section_index = section_dir / "index.md"
@@ -412,6 +413,7 @@ class GraphConsolidator:
         return count
 
     def _render_root_index(self, wiki_nodes: Dict[str, Dict[str, Any]]) -> str:
+        populated_sections = self._populated_sections(wiki_nodes)
         top_sections = self._top_sections(wiki_nodes, limit=4)
         featured_pages = self._featured_pages(wiki_nodes, limit=8)
         lines = [
@@ -456,7 +458,7 @@ class GraphConsolidator:
             "|---|---|---|",
         ])
 
-        for section in SECTIONS:
+        for section in populated_sections:
             page_count = sum(
                 1
                 for node in wiki_nodes.values()
@@ -466,8 +468,21 @@ class GraphConsolidator:
                 f"| [{section['title']}]({section['id']}/index.md) | {section['description']} | {page_count} |"
             )
 
+        if not populated_sections:
+            lines.append("| none | Sin secciones con contenido proyectado | 0 |")
+
         lines.append("")
         return "\n".join(lines)
+
+    def _populated_sections(self, wiki_nodes: Dict[str, Dict[str, Any]]) -> List[Dict[str, str]]:
+        return [
+            section
+            for section in SECTIONS
+            if any(
+                node.get("navigation", {}).get("section") == section["id"]
+                for node in wiki_nodes.values()
+            )
+        ]
 
     def _render_section_index(self, section: Dict[str, str], wiki_nodes: Dict[str, Dict[str, Any]]) -> str:
         pages = [
