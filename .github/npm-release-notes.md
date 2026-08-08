@@ -15,6 +15,13 @@ Usa este archivo como alternativa a `README.md` cuando una PR cambie superficie 
 
 - Fecha: 2026-08-08
 - PR: #28
+- Área: `autodocs/site/*` (artefactos generados)
+- Cambio: refresh de reportes AutoDocs para alinear artefactos proyectados con cambios de runtime npm en el mismo PR.
+- Impacto: compatible
+- Accion recomendada para consumidores: sin acción.
+
+- Fecha: 2026-08-08
+- PR: #28
 - Área: `bin/install-host.js`, `scripts/wiki/compiler_main.py`, `scripts/wiki/wiki_compiler.py`
 - Cambio: reinstalación/update ahora ejecuta limpieza de legado por defecto y reindex de GitNexus con fallback robusto; el compilador wiki fuerza limpieza de salidas (`AUTODOCS_FORCE_CLEAN=1` por defecto en wrapper) antes de regenerar.
 - Impacto: compatible
