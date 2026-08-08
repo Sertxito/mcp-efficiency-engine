@@ -314,10 +314,18 @@ function hasGitRepository(targetRoot) {
 }
 
 function runGitNexusAnalyze(targetRoot) {
+  const localRunner = path.join(targetRoot, ".gitnexus", "run.cjs");
   const cmdCandidates = [
+    ...(fs.existsSync(localRunner) ? [{ cmd: "node", args: [localRunner, "analyze"] }] : []),
     { cmd: "gitnexus", args: ["analyze"] },
+    { cmd: "gitnexus.cmd", args: ["analyze"] },
+    { cmd: "pwsh", args: ["-NoProfile", "-Command", "gitnexus analyze"] },
+    { cmd: "powershell", args: ["-NoProfile", "-Command", "gitnexus analyze"] },
     { cmd: "npx", args: ["--yes", "gitnexus", "analyze"] },
+    { cmd: "pwsh", args: ["-NoProfile", "-Command", "npx --yes gitnexus analyze"] },
+    { cmd: "powershell", args: ["-NoProfile", "-Command", "npx --yes gitnexus analyze"] },
   ];
+  let lastError = "";
 
   for (const candidate of cmdCandidates) {
     const result = spawnSync(candidate.cmd, candidate.args, {
@@ -326,17 +334,14 @@ function runGitNexusAnalyze(targetRoot) {
       env: process.env,
     });
 
-    if (result.error && result.error.code === "ENOENT") {
+    if (result.error && (result.error.code === "ENOENT" || result.error.code === "EINVAL")) {
+      lastError = result.error.message;
       continue;
     }
 
     if (result.error) {
-      return {
-        attempted: true,
-        success: false,
-        method: `${candidate.cmd} ${candidate.args.join(" ")}`,
-        error: result.error.message,
-      };
+      lastError = result.error.message;
+      continue;
     }
 
     if ((result.status ?? 1) === 0) {
@@ -352,7 +357,7 @@ function runGitNexusAnalyze(targetRoot) {
     attempted: false,
     success: false,
     method: "gitnexus analyze",
-    error: "CLI no disponible en PATH y npx no pudo ejecutarse",
+    error: lastError || "CLI no disponible en PATH y npx no pudo ejecutarse",
   };
 }
 
@@ -439,15 +444,16 @@ function runHostInstall(rawOptions) {
   const options = rawOptions;
   const targetRoot = normalizePath(options.targetDir);
   const stats = { copied: 0, skippedExisting: 0 };
+  const isSelfRepo = normalizePath(packageRoot) === targetRoot;
 
-  if (normalizePath(packageRoot) === targetRoot) {
-    process.stdout.write("[mcpee] Instalacion en el propio repo detectada; se omite scaffold host.\n");
-    return 0;
+  if (isSelfRepo) {
+    process.stdout.write("[mcpee] Instalacion en el propio repo detectada; se omite scaffold y se ejecuta mantenimiento (cleanup/reindex).\n");
   }
-
-  process.stdout.write(`[mcpee] Scaffold del engine en ${targetRoot}\n`);
-  for (const entry of scaffoldEntries) {
-    copyEntry(entry, targetRoot, options.force, stats);
+  else {
+    process.stdout.write(`[mcpee] Scaffold del engine en ${targetRoot}\n`);
+    for (const entry of scaffoldEntries) {
+      copyEntry(entry, targetRoot, options.force, stats);
+    }
   }
 
   const cleanupResult = cleanupLegacyArtifacts(targetRoot, options);
