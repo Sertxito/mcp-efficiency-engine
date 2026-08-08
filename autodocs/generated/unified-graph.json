@@ -1,5 +1,5 @@
 {
-  "last_updated": "sha256:627447bc8c091143a9c1394fae35cbc2280e74ef1a90c6a6816d7ce344de2951",
+  "last_updated": "sha256:419041ff35a47fd49ed0e58209f322093533311187bb1ba00301d2abc5aaedee",
   "nodes": {
     "repo-content::README.md": {
       "node_id": "repo-content::README.md",
@@ -4026,6 +4026,63 @@
           "autodocs"
         ]
       }
+    },
+    "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json": {
+      "node_id": "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "e31a15e28d2946659b5ec12a2b0998ad6c187143f8f2cffe2701ea647c494045",
+      "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
+      "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
+      "kind": "report",
+      "domain": "autodocs",
+      "owner": "analysis_mcpee",
+      "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
+      "source_refs": [
+        "autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json"
+      ],
+      "relations": [],
+      "tags": [
+        "report",
+        "reports",
+        "autodocs",
+        "json"
+      ],
+      "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md",
+      "navigation": {
+        "section": "reports",
+        "weight": 100,
+        "parent": "reports",
+        "tags": [
+          "report",
+          "reports",
+          "autodocs",
+          "json"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
+        "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
+        "kind": "report",
+        "section": "reports",
+        "domain": "autodocs",
+        "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
+        "owner": "analysis_mcpee",
+        "source_refs": [
+          "autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "autodocs",
+          "json"
+        ]
+      }
     }
   },
   "raw_nodes": {
@@ -6070,6 +6127,32 @@
           "report",
           "reports",
           "autodocs"
+        ]
+      },
+      "relations": [],
+      "semantic_summary": ""
+    },
+    "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json": {
+      "node_id": "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "e31a15e28d2946659b5ec12a2b0998ad6c187143f8f2cffe2701ea647c494045",
+      "metadata": {
+        "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
+        "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
+        "kind": "report",
+        "section": "reports",
+        "domain": "autodocs",
+        "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
+        "owner": "analysis_mcpee",
+        "source_refs": [
+          "autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "autodocs",
+          "json"
         ]
       },
       "relations": [],
@@ -10102,6 +10185,63 @@
           "autodocs"
         ]
       }
+    },
+    "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json": {
+      "node_id": "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "e31a15e28d2946659b5ec12a2b0998ad6c187143f8f2cffe2701ea647c494045",
+      "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
+      "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
+      "kind": "report",
+      "domain": "autodocs",
+      "owner": "analysis_mcpee",
+      "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
+      "source_refs": [
+        "autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json"
+      ],
+      "relations": [],
+      "tags": [
+        "report",
+        "reports",
+        "autodocs",
+        "json"
+      ],
+      "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md",
+      "navigation": {
+        "section": "reports",
+        "weight": 100,
+        "parent": "reports",
+        "tags": [
+          "report",
+          "reports",
+          "autodocs",
+          "json"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
+        "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
+        "kind": "report",
+        "section": "reports",
+        "domain": "autodocs",
+        "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
+        "owner": "analysis_mcpee",
+        "source_refs": [
+          "autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "autodocs",
+          "json"
+        ]
+      }
     }
   },
   "navigation_tree": {
@@ -10467,7 +10607,7 @@
         "id": "reports",
         "title": "Reports",
         "description": "Reportes generados y artefactos de analisis.",
-        "page_count": 9,
+        "page_count": 10,
         "pages": [
           {
             "title": "AutoDocs",
@@ -10513,6 +10653,11 @@
             "title": "openwiki-internal-blueprint",
             "slug": "report-autodocs-openwiki-internal-blueprint-json",
             "path": "reports/report-autodocs-openwiki-internal-blueprint-json.md"
+          },
+          {
+            "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
+            "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
+            "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
           }
         ]
       },
@@ -10918,6 +11063,20 @@
         "json"
       ],
       "path": "reports/report-autodocs-openwiki-internal-blueprint-json.md"
+    },
+    {
+      "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
+      "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
+      "kind": "report",
+      "domain": "autodocs",
+      "section": "reports",
+      "tags": [
+        "report",
+        "reports",
+        "autodocs",
+        "json"
+      ],
+      "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
     },
     {
       "title": "AGENTS.md \u2014 Enterprise Global Contract",
@@ -12017,12 +12176,13 @@
       "id": "reports",
       "title": "Reports",
       "description": "Reportes generados y artefactos de analisis.",
-      "page_count": 9,
+      "page_count": 10,
       "pages": [
         "reports/report-autodocs-analysis-mcpee-readme-md.md",
         "reports/report-autodocs-openwiki-internal-blueprint-json.md",
         "reports/report-autodocs-openwiki-internal-blueprint-md.md",
         "reports/report-autodocs-readme-md.md",
+        "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md",
         "reports/report-file-index-md.md",
         "reports/report-final-usage-guide-md.md",
         "reports/report-package-json.md",

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-08-08T10:30:10.034296+00:00",
+  "timestamp": "2026-08-08T10:33:40.299722+00:00",
   "host_project": "mcp-efficiency-engine",
   "telemetry_scope": "platform",
   "sources": {
@@ -9,19 +9,19 @@
     "chat_usage": "C:\\repo\\mcp-efficiency-engine\\observability\\evals\\chat-token-usage-report.json"
   },
   "learning": {
-    "timestamp": "2026-08-08T10:30:01.395495+00:00",
+    "timestamp": "2026-08-08T10:33:33.244890+00:00",
     "window": {
       "days": 30,
       "excluded_outside_window": 237
     },
     "source": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\routing-decisions.jsonl",
     "feedback_source": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\learning-feedback.jsonl",
-    "total_events": 118,
+    "total_events": 119,
     "pending_events": 111,
-    "confirmed_events": 7,
+    "confirmed_events": 8,
     "kpis": {
-      "fallback_rate": 0.0085,
-      "grounded_rate": 0.9746,
+      "fallback_rate": 0.0084,
+      "grounded_rate": 0.9748,
       "success_rate": 1.0,
       "confidence_avg": 0.91
     },
@@ -166,18 +166,18 @@
       },
       {
         "pattern": "incremental-json-projection",
-        "total": 7,
+        "total": 8,
         "fallback_rate": 0.0,
         "grounded_rate": 1.0,
         "pending_count": 0,
-        "confirmed_count": 7,
+        "confirmed_count": 8,
         "success_rate": 1.0,
         "confidence_avg": 0.91,
         "engines": {
-          "CodeGraph": 7
+          "CodeGraph": 8
         },
         "agents": {
-          "autodocs-agent": 7
+          "autodocs-agent": 8
         }
       },
       {
@@ -199,7 +199,7 @@
     ]
   },
   "iteration_value": {
-    "timestamp": "2026-08-08T10:30:06.332504+00:00",
+    "timestamp": "2026-08-08T10:33:37.393241+00:00",
     "window": {
       "days": 30,
       "excluded_outside_window": 237
@@ -210,7 +210,7 @@
       "metrics": "observability/logs/iteration-metrics.jsonl"
     },
     "totals": {
-      "events": 118,
+      "events": 119,
       "events_with_event_id": 111,
       "metrics_covered": 97,
       "feedback_confirmed": 0,
@@ -264,49 +264,49 @@
     }
   },
   "telemetry": {
-    "timestamp": "2026-08-08T10:30:10.008334+00:00",
+    "timestamp": "2026-08-08T10:33:40.281088+00:00",
     "source": {
       "traces": "C:\\repo\\mcp-efficiency-engine\\.telemetry\\traces.jsonl",
       "metrics": "C:\\repo\\mcp-efficiency-engine\\.telemetry\\metrics.jsonl"
     },
     "totals": {
-      "trace_records": 9957,
-      "metric_records": 3956,
-      "executions": 1409,
+      "trace_records": 10008,
+      "metric_records": 3976,
+      "executions": 1413,
       "warnings": 4,
       "errors": 0
     },
     "kpis": {
       "routing_fallback_rate": 0.0095,
       "routing_grounded_rate": 0.1292,
-      "avg_span_duration_ms": 254.2719,
-      "p95_span_duration_ms": 5.727,
+      "avg_span_duration_ms": 255.0909,
+      "p95_span_duration_ms": 6.454,
       "tokens_input": 4640,
       "tokens_output": 1120,
       "total_tokens": 5760,
       "total_cost_usd": 0.0443,
-      "efficiency_score_avg": 57.966
+      "efficiency_score_avg": 57.9657
     },
     "breakdown": {
       "operation": {
         "resolve-routing": 195,
-        "learning-loop-report": 19,
+        "learning-loop-report": 20,
         "mcpee.hi": 2,
         "mcpee.langsmith-kpis": 2,
         "mcpee.install-terminal-telemetry-hook": 1,
         "terminal.command": 1167,
-        "autodocs-compiler": 6,
-        "unknown": 6,
-        "plugin-manager-gather-all": 6,
-        "wiki-validator": 6
+        "autodocs-compiler": 7,
+        "unknown": 7,
+        "plugin-manager-gather-all": 7,
+        "wiki-validator": 7
       },
       "session": {
         "intake-routing": 1369,
-        "learning": 114,
+        "learning": 120,
         "mcpee-cli": 30,
         "terminal-session": 8174,
-        "wiki-orchestrator": 48,
-        "autodocs": 222
+        "wiki-orchestrator": 56,
+        "autodocs": 259
       },
       "engine": {
         "CodeGraph": 71,

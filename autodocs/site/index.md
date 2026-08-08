@@ -5,7 +5,7 @@ unificado y el Markdown es una proyeccion derivada para lectura humana.
 
 ## Resumen
 
-- total_pages: 68
+- total_pages: 69
 - generated_graph: autodocs/generated/unified-graph.json
 - search_manifest: autodocs/generated/search-index.json
 - validation_report: autodocs/generated/validation-report.md
@@ -15,7 +15,7 @@ unificado y el Markdown es una proyeccion derivada para lectura humana.
 - [Skills](skills/index.md) - 21 paginas
 - [Agents](agents/index.md) - 11 paginas
 - [Specs](specs/index.md) - 11 paginas
-- [Reports](reports/index.md) - 9 paginas
+- [Reports](reports/index.md) - 10 paginas
 
 ## Destacados
 
@@ -39,5 +39,5 @@ unificado y el Markdown es una proyeccion derivada para lectura humana.
 | [Policies](policies/index.md) | Politicas y contratos operativos del repositorio. | 4 |
 | [Specs](specs/index.md) | Especificaciones tecnicas y contratos declarativos. | 11 |
 | [Observability](observability/index.md) | Telemetria, metricas y reportes del sistema. | 6 |
-| [Reports](reports/index.md) | Reportes generados y artefactos de analisis. | 9 |
+| [Reports](reports/index.md) | Reportes generados y artefactos de analisis. | 10 |
 | [Misc](misc/index.md) | Contenido no clasificado o pendiente de taxonomy. | 0 |
