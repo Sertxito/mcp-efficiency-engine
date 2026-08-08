@@ -237,6 +237,20 @@
     "path": "reports/report-autodocs-openwiki-internal-blueprint-json.md"
   },
   {
+    "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
+    "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
+    "kind": "report",
+    "domain": "autodocs",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "autodocs",
+      "json"
+    ],
+    "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
+  },
+  {
     "title": "AGENTS.md \u2014 Enterprise Global Contract",
     "summary": "onboarding profundo y con grounding m\u00e1ximo relevante, aunque tarde m\u00e1s. 2. En esa primera pasada se debe recuperar la mayor cantidad de contexto \u00fatil",
     "kind": "report",
