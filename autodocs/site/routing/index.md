@@ -6,8 +6,8 @@ Reglas de orquestacion y decisiones de enrutado.
 
 ## Resumen
 
-- total_pages: 6
-- domains: routing (6)
+- total_pages: 7
+- domains: routing (6), backend (1)
 
 ## Paginas
 
@@ -17,3 +17,4 @@ Reglas de orquestacion y decisiones de enrutado.
 - [Decision Matrix](report-decision-matrix-md.md) - Matriz de decision rapida para resolver agente y motor por tipo de entrada.
 - [Fallback Strategy](report-fallback-md.md) - Fallback: Graphify -> Azure RAG si faltan docs reales; Azure RAG -> Graphify si falta contexto tecnico; CodeGraph <-> GitNexus segun scope; si no hay fuente, gap.
 - [Memory-first + Learning](report-router-md.md) - Clasifica intención y enruta a agente/motor según AGENTS.md y optimization-routing.md.
+- [architecture-review.prompt](prompt-architecture-review-prompt-md.md) - Analiza arquitectura backend con foco en contratos, aislamiento y trazabilidad.

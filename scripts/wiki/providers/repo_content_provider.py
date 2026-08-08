@@ -15,6 +15,7 @@ class RepoContentProvider(BaseWikiProvider):
     def gather_knowledge(self) -> Dict[str, Any]:
         entities: List[Dict[str, Any]] = []
         entities.extend(self._collect_core_docs())
+        entities.extend(self._collect_boosts())
         entities.extend(self._collect_policies())
         entities.extend(self._collect_specs())
         entities.extend(self._collect_observability())
@@ -23,6 +24,141 @@ class RepoContentProvider(BaseWikiProvider):
         entities.extend(self._collect_reports())
         self._enrich_relations(entities)
         return {"provider_id": self.provider_id, "entities": entities}
+
+    def _collect_boosts(self) -> List[Dict[str, Any]]:
+        boosts_root = self.repo_root / "boosts"
+        if not boosts_root.exists():
+            return []
+
+        entities: List[Dict[str, Any]] = []
+        for boost_dir in sorted(boosts_root.iterdir()):
+            if not boost_dir.is_dir() or not self._is_tracked(boost_dir):
+                continue
+
+            boost_manifest_path = boost_dir / "mcpee.json"
+            boost_manifest = self._load_json_file(boost_manifest_path) if boost_manifest_path.exists() else {}
+            boost_domain = str(boost_manifest.get("domain") or boost_dir.name)
+
+            for path in sorted((boost_dir / "agents").glob("*.md")) if (boost_dir / "agents").exists() else []:
+                entities.append(
+                    self._entity_from_markdown(
+                        path,
+                        kind="agent",
+                        section="agents",
+                        domain=boost_domain,
+                        fallback_summary=f"Definicion de agente del boost {boost_dir.name}.",
+                    )
+                )
+
+            for path in sorted((boost_dir / "skills").glob("*.md")) if (boost_dir / "skills").exists() else []:
+                entities.append(
+                    self._entity_from_markdown(
+                        path,
+                        kind="skill",
+                        section="skills",
+                        domain=boost_domain,
+                        fallback_summary=f"Skill operativa del boost {boost_dir.name}.",
+                    )
+                )
+
+            for path in sorted((boost_dir / "prompts").glob("*.md")) if (boost_dir / "prompts").exists() else []:
+                entities.append(
+                    self._entity_from_markdown(
+                        path,
+                        kind="prompt",
+                        section="routing",
+                        domain=boost_domain,
+                        fallback_summary=f"Prompt operativo del boost {boost_dir.name}.",
+                    )
+                )
+
+            for path in sorted((boost_dir / "specs").glob("*.md")) if (boost_dir / "specs").exists() else []:
+                entities.append(
+                    self._entity_from_markdown(
+                        path,
+                        kind="spec",
+                        section="specs",
+                        domain=boost_domain,
+                        fallback_summary=f"Especificacion tecnica del boost {boost_dir.name}.",
+                    )
+                )
+
+            for path in sorted((boost_dir / "evals").glob("*.json")) if (boost_dir / "evals").exists() else []:
+                entities.append(
+                    self._entity_from_json(
+                        path,
+                        kind="report",
+                        section="observability",
+                        domain=boost_domain,
+                    )
+                )
+
+            if boost_manifest_path.exists():
+                entities.extend(self._collect_boost_capabilities(boost_dir, boost_manifest, boost_domain))
+
+        return entities
+
+    def _collect_boost_capabilities(
+        self,
+        boost_dir: Path,
+        boost_manifest: Dict[str, Any],
+        boost_domain: str,
+    ) -> List[Dict[str, Any]]:
+        capabilities = boost_manifest.get("capabilities", [])
+        if not isinstance(capabilities, list):
+            return []
+
+        entities: List[Dict[str, Any]] = []
+        for capability in capabilities:
+            if not isinstance(capability, dict):
+                continue
+
+            capability_id = str(capability.get("id") or "").strip()
+            if not capability_id:
+                continue
+
+            title = str(capability.get("title") or capability_id)
+            provider_needs = capability.get("providerNeeds", [])
+            summary = f"Capability {capability_id} del boost {boost_dir.name}."
+            if isinstance(provider_needs, list) and provider_needs:
+                summary += " Provider needs: " + ", ".join(str(item) for item in provider_needs)
+
+            source_refs = [self._relative(boost_dir / "mcpee.json")]
+            relation_targets: List[str] = []
+            for key in ["agent", "skills", "specs", "prompts", "evals"]:
+                value = capability.get(key)
+                if isinstance(value, str) and value.strip():
+                    target = boost_dir / value.strip()
+                    if target.exists():
+                        relation_targets.append(self._relative(target))
+                elif isinstance(value, list):
+                    for item in value:
+                        item_value = str(item).strip()
+                        if not item_value:
+                            continue
+                        target = boost_dir / item_value
+                        if target.exists():
+                            relation_targets.append(self._relative(target))
+
+            relation_targets = list(dict.fromkeys(relation_targets))
+            relations = [{"target": target, "type": "references"} for target in relation_targets]
+
+            payload = {
+                "title": title,
+                "slug": self._slugify(f"capability-{boost_dir.name}-{capability_id}"),
+                "kind": "capability",
+                "section": "capabilities",
+                "domain": boost_domain,
+                "summary": summary,
+                "owner": boost_dir.name,
+                "source_refs": source_refs,
+                "tags": ["capability", boost_domain, boost_dir.name],
+                "relations": relations,
+            }
+            entity_id = f"{self._relative(boost_dir)}/capabilities/{self._slugify(capability_id)}.json"
+            entities.append(self._entity(entity_id, payload))
+
+        return entities
 
     def _collect_core_docs(self) -> List[Dict[str, Any]]:
         targets: List[Tuple[Path, str]] = [

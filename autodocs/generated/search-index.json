@@ -1,5 +1,31 @@
 [
   {
+    "title": "Backend Architect",
+    "summary": "Analiza arquitectura backend y propone mejoras trazables sin romper contratos.",
+    "kind": "agent",
+    "domain": "backend",
+    "section": "agents",
+    "tags": [
+      "agent",
+      "agents",
+      "backend"
+    ],
+    "path": "agents/agent-backend-architect-md.md"
+  },
+  {
+    "title": "Backend Architecture Review",
+    "summary": "Capability backend.architecture.review del boost backend. Provider needs: code-navigation, dependency-analysis, knowledge-graph, project-memory",
+    "kind": "capability",
+    "domain": "backend",
+    "section": "capabilities",
+    "tags": [
+      "capability",
+      "backend",
+      "backend"
+    ],
+    "path": "capabilities/capability-backend-backend-architecture-review.md"
+  },
+  {
     "title": "Evaluation",
     "summary": "Evalua inputs esperados vs agente/motor real y perfil de optimizacion aplicado.",
     "kind": "report",
@@ -77,6 +103,20 @@
       "observability"
     ],
     "path": "observability/report-scoring-rubric-md.md"
+  },
+  {
+    "title": "architecture-review.cases",
+    "summary": "Artefacto JSON de tipo report en boosts/backend/evals/architecture-review.cases.json.",
+    "kind": "report",
+    "domain": "backend",
+    "section": "observability",
+    "tags": [
+      "report",
+      "observability",
+      "backend",
+      "json"
+    ],
+    "path": "observability/report-architecture-review-cases-json.md"
   },
   {
     "title": "Context Policy",
@@ -327,6 +367,71 @@
       "routing"
     ],
     "path": "routing/report-router-md.md"
+  },
+  {
+    "title": "architecture-review.prompt",
+    "summary": "Analiza arquitectura backend con foco en contratos, aislamiento y trazabilidad.",
+    "kind": "prompt",
+    "domain": "backend",
+    "section": "routing",
+    "tags": [
+      "prompt",
+      "routing",
+      "backend"
+    ],
+    "path": "routing/prompt-architecture-review-prompt-md.md"
+  },
+  {
+    "title": "Skill: Architecture Review",
+    "summary": "Skill operativa del boost backend.",
+    "kind": "skill",
+    "domain": "backend",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "backend"
+    ],
+    "path": "skills/skill-architecture-review-md.md"
+  },
+  {
+    "title": "Skill: Dependency Analysis",
+    "summary": "Skill operativa del boost backend.",
+    "kind": "skill",
+    "domain": "backend",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "backend"
+    ],
+    "path": "skills/skill-dependency-analysis-md.md"
+  },
+  {
+    "title": "Spec: Clean Architecture",
+    "summary": "Las reglas de dependencias deben apuntar hacia adentro y preservar aislamiento de dominio.",
+    "kind": "spec",
+    "domain": "backend",
+    "section": "specs",
+    "tags": [
+      "spec",
+      "specs",
+      "backend"
+    ],
+    "path": "specs/spec-clean-architecture-md.md"
+  },
+  {
+    "title": "Spec: Observability",
+    "summary": "Toda decisi\u00f3n cr\u00edtica debe registrar trazabilidad y m\u00e9tricas de operaci\u00f3n.",
+    "kind": "spec",
+    "domain": "backend",
+    "section": "specs",
+    "tags": [
+      "spec",
+      "specs",
+      "backend"
+    ],
+    "path": "specs/spec-observability-md.md"
   },
   {
     "title": "architecture spec",

@@ -1,8 +1,8 @@
 {
-  "generated_at": "sha256:bb0ab6b4be62db08bb251a3a4fc0f2d3068bb981ae9212b18a6b2fe8142c2f44",
+  "generated_at": "sha256:d02d01a404d1c7a3de4b2222d5752a06ce7a65152c90ded1796a1955e974334b",
   "schema_path": "autodocs/schema/wiki-node.schema.json",
   "summary": {
-    "node_count": 36,
+    "node_count": 44,
     "error_count": 0,
     "warning_count": 0,
     "info_count": 1,
