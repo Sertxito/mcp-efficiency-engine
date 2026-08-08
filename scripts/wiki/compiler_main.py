@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -30,6 +31,31 @@ VALIDATION_REPORT_JSON = GENERATED_OUTPUT_DIR / "validation-report.json"
 VALIDATION_REPORT_MD = GENERATED_OUTPUT_DIR / "validation-report.md"
 ITERATION_LOG = REPO_ROOT / "observability" / "logs" / "iteration-metrics.jsonl"
 ROUTING_LOG = REPO_ROOT / "observability" / "logs" / "routing-decisions.jsonl"
+
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _force_clean_outputs() -> None:
+    # Keep hand-authored docs folders; purge generated wiki projection artifacts.
+    preserve_site_dirs = {"guides", "devlog"}
+
+    if GENERATED_OUTPUT_DIR.exists():
+        shutil.rmtree(GENERATED_OUTPUT_DIR)
+    GENERATED_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    if MARKDOWN_OUTPUT_DIR.exists():
+        for child in MARKDOWN_OUTPUT_DIR.iterdir():
+            if child.is_dir() and child.name in preserve_site_dirs:
+                continue
+            if child.is_dir():
+                shutil.rmtree(child)
+            else:
+                child.unlink(missing_ok=True)
 
 
 def _append_jsonl(path: Path, payload: Dict[str, Any]) -> None:
@@ -113,10 +139,16 @@ def _write_routing_event(
 def main() -> int:
     start = datetime.now(timezone.utc)
     env_snapshot = _read_session_env()
+    force_clean = _env_bool("AUTODOCS_FORCE_CLEAN", default=False)
     collector = build_telemetry_collector(REPO_ROOT)
 
     with collector.start_execution(operation="autodocs-compiler", session_id="autodocs"):
         collector.record_event("ExecutionStarted", {"pipeline": "autodocs", "env_keys": sorted(env_snapshot.keys())})
+
+        if force_clean:
+            with collector.start_span(name="autodocs.force_clean", kind="INTERNAL"):
+                _force_clean_outputs()
+                collector.record_event("ToolFinished", {"tool": "autodocs_force_clean", "status": "ok"})
 
         manager = PluginManager(telemetry_collector=collector)
         include_external = str(os.getenv("AUTODOCS_INCLUDE_EXTERNAL_PROVIDERS", "")).strip().lower() in {
