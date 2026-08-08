@@ -16,7 +16,7 @@ Evalua inputs esperados vs agente/motor real y perfil de optimizacion aplicado.
 
 - section_index: [observability](index.md)
 - wiki_home: [autodocs](../index.md)
-- related_in_section: [Metrics](report-metrics-md.md), [Optimization fields](report-logs-schema-md.md), [Routing Decision Event](report-logs-schema-json.md)
+- related_in_section: [Chat Token Usage Report](report-chat-token-usage-report-md.md), [Iteration Value Report](report-iteration-value-report-md.md), [Learning Loop Report](report-learning-loop-report-md.md)
 
 ## Fuentes
 

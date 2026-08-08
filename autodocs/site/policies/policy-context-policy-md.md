@@ -16,7 +16,7 @@ Usar solo el contexto necesario para resolver la tarea con evidencia trazable y 
 
 - section_index: [policies](index.md)
 - wiki_home: [autodocs](../index.md)
-- related_in_section: [Cost Policy](policy-cost-policy-md.md), [Repo Intake Policy](policy-repo-intake-policy-md.md), [Security Policy](policy-security-policy-md.md)
+- related_in_section: [Cost Policy](policy-cost-policy-md.md), [Repo Intake Policy](policy-repo-intake-policy-md.md), [Response Style Policy — Caveman Always On](policy-response-style-policy-md.md)
 
 ## Fuentes
 

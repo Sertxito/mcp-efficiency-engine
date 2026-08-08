@@ -78,6 +78,8 @@ function parseArgs(argv) {
     repoPrefix: process.env.MCPEE_REPO_PREFIX || "",
     initialRepoName: process.env.MCPEE_INITIAL_REPO_NAME || "",
     initialRepoDomain: process.env.MCPEE_INITIAL_REPO_DOMAIN || "",
+    initialPackageName: process.env.MCPEE_INITIAL_PACKAGE_NAME || "",
+    initialPackagePath: process.env.MCPEE_INITIAL_PACKAGE_PATH || "",
     initialRepoLocation: process.env.MCPEE_INITIAL_REPO_LOCATION || "",
     skipInitialRepo: false,
     cleanupLegacy: process.env.MCPEE_CLEANUP_LEGACY !== "0",
@@ -136,6 +138,14 @@ function parseArgs(argv) {
         break;
       case "--initial-repo-domain":
         options.initialRepoDomain = argv[index + 1] || options.initialRepoDomain;
+        index += 1;
+        break;
+      case "--initial-package-name":
+        options.initialPackageName = argv[index + 1] || options.initialPackageName;
+        index += 1;
+        break;
+      case "--initial-package-path":
+        options.initialPackagePath = argv[index + 1] || options.initialPackagePath;
         index += 1;
         break;
       case "--initial-repo-location":
@@ -394,6 +404,36 @@ function deriveDefaultRepoName(targetRoot, options) {
   return `${deriveRepoPrefix(targetRoot, options)}${safeBaseName}`;
 }
 
+function normalizeDomainForPackage(domain) {
+  const normalized = String(domain || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return normalized || "custom-boost";
+}
+
+function deriveDefaultPackageName(options) {
+  if (options.initialPackageName) {
+    return options.initialPackageName;
+  }
+
+  const domain = options.initialRepoDomain || "backend";
+  return `@your-scope/${normalizeDomainForPackage(domain)}`;
+}
+
+function deriveDefaultPackagePath(options, packageName) {
+  if (options.initialPackagePath) {
+    return options.initialPackagePath;
+  }
+
+  if (options.initialRepoLocation) {
+    return options.initialRepoLocation;
+  }
+
+  return `node_modules/${packageName}`;
+}
+
 function initializeTemplateRegistry(targetRoot, options) {
   const registryPath = path.join(targetRoot, "repo-registry", "repos.yml");
   if (fs.existsSync(registryPath)) {
@@ -413,13 +453,19 @@ function initializeTemplateRegistry(targetRoot, options) {
     args.push("-SkipInitialRepo");
   }
   else {
+    const packageName = deriveDefaultPackageName(options);
+    const packagePath = deriveDefaultPackagePath(options, packageName);
     args.push(
       "-InitialRepoName",
       deriveDefaultRepoName(targetRoot, options),
       "-InitialRepoDomain",
       options.initialRepoDomain || "backend",
+      "-InitialPackageName",
+      packageName,
+      "-InitialPackagePath",
+      packagePath,
       "-InitialRepoLocation",
-      options.initialRepoLocation || ".",
+      packagePath,
     );
   }
 
@@ -495,43 +541,20 @@ function runHostInstall(rawOptions) {
     }
   }
 
-  if (options.skipBootstrap) {
-    const initStatus = initializeTemplateRegistry(targetRoot, options);
-    if (initStatus !== 0) {
-      return initStatus;
-    }
-
-    const hookStatus = installProjectHooks(targetRoot);
-    if (hookStatus !== 0) {
-      return hookStatus;
-    }
-
-    process.stdout.write("[mcpee] Bootstrap omitido. Puedes ejecutar .\\scripts\\bootstrap-portable.cmd mas tarde.\n");
-    return 0;
+  const initStatus = initializeTemplateRegistry(targetRoot, options);
+  if (initStatus !== 0) {
+    return initStatus;
   }
 
-  if (options.nonInteractive) {
-    const initStatus = initializeTemplateRegistry(targetRoot, options);
-    if (initStatus !== 0) {
-      return initStatus;
-    }
-
-    const hookStatus = installProjectHooks(targetRoot);
-    if (hookStatus !== 0) {
-      return hookStatus;
-    }
-
-    process.stdout.write("[mcpee] Modo no interactivo detectado. Se inicializo repos.yml con un repo inicial por defecto y se omitio bootstrap interactivo.\n");
-    process.stdout.write("[mcpee] Si npm bloqueo scripts, ejecuta: npm approve-scripts mcp-efficiency-engine ; npm rebuild mcp-efficiency-engine\n");
-    return 0;
+  const hookStatus = installProjectHooks(targetRoot);
+  if (hookStatus !== 0) {
+    return hookStatus;
   }
 
-  const bootstrapStatus = runBootstrap(targetRoot);
-  if (bootstrapStatus !== 0) {
-    return bootstrapStatus;
-  }
-
-  return installProjectHooks(targetRoot);
+  process.stdout.write("[mcpee] Instalacion completada en modo unico (determinista, sin prompts).\n");
+  process.stdout.write("[mcpee] Bootstrap no se ejecuta automaticamente. Si lo necesitas: .\\scripts\\bootstrap-portable.cmd\n");
+  process.stdout.write("[mcpee] Si npm bloqueo scripts, ejecuta: npm approve-scripts mcp-efficiency-engine ; npm rebuild mcp-efficiency-engine\n");
+  return 0;
 }
 
 function runHostInstallFromCli(argv = process.argv.slice(2)) {

@@ -1,6 +1,6 @@
 from pathlib import Path
 import subprocess
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any, Dict, Iterable, List, Set, Tuple
 
 from scripts.wiki.providers.base_provider import BaseWikiProvider
 
@@ -16,14 +16,28 @@ class RepoContentProvider(BaseWikiProvider):
         entities: List[Dict[str, Any]] = []
         entities.extend(self._collect_core_docs())
         entities.extend(self._collect_boosts())
+        entities.extend(self._collect_installed_boosts())
         entities.extend(self._collect_policies())
         entities.extend(self._collect_specs())
         entities.extend(self._collect_observability())
         entities.extend(self._collect_domains())
         entities.extend(self._collect_routing())
         entities.extend(self._collect_reports())
+        entities.extend(self._collect_workspace_content())
+        entities = self._dedupe_entities(entities)
         self._enrich_relations(entities)
         return {"provider_id": self.provider_id, "entities": entities}
+
+    def _dedupe_entities(self, entities: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        seen: Set[str] = set()
+        unique: List[Dict[str, Any]] = []
+        for entity in entities:
+            entity_id = str(entity.get("id", "")).strip() if isinstance(entity, dict) else ""
+            if not entity_id or entity_id in seen:
+                continue
+            seen.add(entity_id)
+            unique.append(entity)
+        return unique
 
     def _collect_boosts(self) -> List[Dict[str, Any]]:
         boosts_root = self.repo_root / "boosts"
@@ -35,68 +49,170 @@ class RepoContentProvider(BaseWikiProvider):
             if not boost_dir.is_dir() or not self._is_tracked(boost_dir):
                 continue
 
-            boost_manifest_path = boost_dir / "mcpee.json"
-            boost_manifest = self._load_json_file(boost_manifest_path) if boost_manifest_path.exists() else {}
-            boost_domain = str(boost_manifest.get("domain") or boost_dir.name)
-
-            for path in sorted((boost_dir / "agents").glob("*.md")) if (boost_dir / "agents").exists() else []:
-                entities.append(
-                    self._entity_from_markdown(
-                        path,
-                        kind="agent",
-                        section="agents",
-                        domain=boost_domain,
-                        fallback_summary=f"Definicion de agente del boost {boost_dir.name}.",
-                    )
-                )
-
-            for path in sorted((boost_dir / "skills").glob("*.md")) if (boost_dir / "skills").exists() else []:
-                entities.append(
-                    self._entity_from_markdown(
-                        path,
-                        kind="skill",
-                        section="skills",
-                        domain=boost_domain,
-                        fallback_summary=f"Skill operativa del boost {boost_dir.name}.",
-                    )
-                )
-
-            for path in sorted((boost_dir / "prompts").glob("*.md")) if (boost_dir / "prompts").exists() else []:
-                entities.append(
-                    self._entity_from_markdown(
-                        path,
-                        kind="prompt",
-                        section="routing",
-                        domain=boost_domain,
-                        fallback_summary=f"Prompt operativo del boost {boost_dir.name}.",
-                    )
-                )
-
-            for path in sorted((boost_dir / "specs").glob("*.md")) if (boost_dir / "specs").exists() else []:
-                entities.append(
-                    self._entity_from_markdown(
-                        path,
-                        kind="spec",
-                        section="specs",
-                        domain=boost_domain,
-                        fallback_summary=f"Especificacion tecnica del boost {boost_dir.name}.",
-                    )
-                )
-
-            for path in sorted((boost_dir / "evals").glob("*.json")) if (boost_dir / "evals").exists() else []:
-                entities.append(
-                    self._entity_from_json(
-                        path,
-                        kind="report",
-                        section="observability",
-                        domain=boost_domain,
-                    )
-                )
-
-            if boost_manifest_path.exists():
-                entities.extend(self._collect_boost_capabilities(boost_dir, boost_manifest, boost_domain))
+            entities.extend(self._collect_boost_bundle(boost_dir))
 
         return entities
+
+    def _collect_installed_boosts(self) -> List[Dict[str, Any]]:
+        manifest_paths: List[Path] = []
+
+        manifest_paths.extend(sorted((self.repo_root / "node_modules" / "@mcpee").glob("*/mcpee.json")))
+        manifest_paths.extend(sorted((self.repo_root / "node_modules").glob("mcpee-*/mcpee.json")))
+        manifest_paths.extend(
+            sorted((self.repo_root / "node_modules" / "mcp-efficiency-engine" / "boosts").glob("*/mcpee.json"))
+        )
+
+        entities: List[Dict[str, Any]] = []
+        for manifest_path in manifest_paths:
+            boost_dir = manifest_path.parent
+            entities.extend(self._collect_boost_bundle(boost_dir))
+        return entities
+
+    def _collect_boost_bundle(self, boost_dir: Path) -> List[Dict[str, Any]]:
+        entities: List[Dict[str, Any]] = []
+        boost_manifest_path = boost_dir / "mcpee.json"
+        boost_manifest = self._load_json_file(boost_manifest_path) if boost_manifest_path.exists() else {}
+        boost_domain = str(boost_manifest.get("domain") or boost_dir.name)
+
+        for path in sorted((boost_dir / "agents").glob("*.md")) if (boost_dir / "agents").exists() else []:
+            entities.append(
+                self._entity_from_markdown(
+                    path,
+                    kind="agent",
+                    section="agents",
+                    domain=boost_domain,
+                    fallback_summary=f"Definicion de agente del boost {boost_dir.name}.",
+                )
+            )
+
+        for path in sorted((boost_dir / "skills").glob("*.md")) if (boost_dir / "skills").exists() else []:
+            entities.append(
+                self._entity_from_markdown(
+                    path,
+                    kind="skill",
+                    section="skills",
+                    domain=boost_domain,
+                    fallback_summary=f"Skill operativa del boost {boost_dir.name}.",
+                )
+            )
+
+        for path in sorted((boost_dir / "prompts").glob("*.md")) if (boost_dir / "prompts").exists() else []:
+            entities.append(
+                self._entity_from_markdown(
+                    path,
+                    kind="prompt",
+                    section="routing",
+                    domain=boost_domain,
+                    fallback_summary=f"Prompt operativo del boost {boost_dir.name}.",
+                )
+            )
+
+        for path in sorted((boost_dir / "specs").glob("*.md")) if (boost_dir / "specs").exists() else []:
+            entities.append(
+                self._entity_from_markdown(
+                    path,
+                    kind="spec",
+                    section="specs",
+                    domain=boost_domain,
+                    fallback_summary=f"Especificacion tecnica del boost {boost_dir.name}.",
+                )
+            )
+
+        for path in sorted((boost_dir / "evals").glob("*.json")) if (boost_dir / "evals").exists() else []:
+            entities.append(
+                self._entity_from_json(
+                    path,
+                    kind="report",
+                    section="observability",
+                    domain=boost_domain,
+                )
+            )
+
+        if boost_manifest_path.exists():
+            entities.extend(self._collect_boost_capabilities(boost_dir, boost_manifest, boost_domain))
+
+        return entities
+
+    def _collect_workspace_content(self) -> List[Dict[str, Any]]:
+        root_markdown_patterns = [
+            "README*.md",
+            "CHANGELOG*.md",
+            "CONTRIBUTING*.md",
+            "ARCHITECTURE*.md",
+            "DESIGN*.md",
+            "ADR*.md",
+        ]
+        doc_roots = [
+            "docs",
+            "documentation",
+            "guides",
+            "wiki",
+        ]
+        excludes = {
+            ".git",
+            "node_modules",
+            "autodocs",
+            "repo-intake",
+            "observability",
+            "policies",
+            "specs",
+            "boosts",
+            "domains",
+            ".venv",
+            "venv",
+            "dist",
+            "build",
+            "artifacts",
+            ".mcpee",
+            ".gitnexus",
+            "context",
+            "graphify-out",
+        }
+
+        candidates: Set[Path] = set()
+        for pattern in root_markdown_patterns:
+            candidates.update(path for path in self.repo_root.glob(pattern) if path.is_file())
+
+        for root_name in doc_roots:
+            root_path = self.repo_root / root_name
+            if not root_path.exists() or not root_path.is_dir():
+                continue
+            candidates.update(path for path in root_path.rglob("*.md") if path.is_file())
+            candidates.update(path for path in root_path.rglob("*.json") if path.is_file())
+
+        entities: List[Dict[str, Any]] = []
+        for path in sorted(candidates):
+            relative = self._relative(path)
+            if any(relative == ex or relative.startswith(f"{ex}/") for ex in excludes):
+                continue
+
+            kind, section, domain = self._classify_workspace_file(path)
+            if path.suffix.lower() == ".md":
+                entities.append(self._entity_from_markdown(path, kind=kind, section=section, domain=domain))
+            else:
+                entities.append(self._entity_from_json(path, kind=kind, section=section, domain=domain))
+
+        return entities
+
+    def _classify_workspace_file(self, path: Path) -> Tuple[str, str, str]:
+        relative = self._relative(path)
+        lower = relative.lower()
+        name = path.name.lower()
+        domain = path.parent.name.lower() if path.parent != self.repo_root else "workspace"
+
+        if name.endswith(".agent.md") or "/agents/" in lower:
+            return ("agent", "agents", domain)
+        if name == "skill.md" or "/skills/" in lower:
+            return ("skill", "skills", domain)
+        if "/prompts/" in lower or ".prompt." in name:
+            return ("prompt", "routing", domain)
+        if "/specs/" in lower or name.endswith(".spec.md"):
+            return ("spec", "specs", domain)
+        if "/policies/" in lower or "policy" in name:
+            return ("policy", "policies", domain)
+        if "/observability/" in lower or "/evals/" in lower:
+            return ("report", "observability", domain)
+        return ("report", "reports", domain)
 
     def _collect_boost_capabilities(
         self,
@@ -548,6 +664,9 @@ class RepoContentProvider(BaseWikiProvider):
             stem = path.parent.name
         elif path.stem.lower() == "readme" and path.parent != self.repo_root:
             stem = f"{path.parent.name}-{path.name}"
+        elif path.suffix.lower() == ".json" or path.name.lower() == "package.json":
+            parent = path.parent.name if path.parent != self.repo_root else "root"
+            stem = f"{parent}-{path.name}"
         tokens = [kind, stem]
         if kind == "report" and "analysis_mcpee" in relative:
             tokens.insert(1, "autodocs")
@@ -572,6 +691,11 @@ class RepoContentProvider(BaseWikiProvider):
         rel = self._relative(path)
         if not rel:
             return False
+
+        git_dir = self.repo_root / ".git"
+        if not git_dir.exists():
+            return path.exists()
+
         try:
             result = subprocess.run(
                 ["git", "ls-files", "--error-unmatch", rel],
@@ -580,9 +704,11 @@ class RepoContentProvider(BaseWikiProvider):
                 stderr=subprocess.DEVNULL,
                 check=False,
             )
-            return result.returncode == 0
+            if result.returncode == 0:
+                return True
+            return path.exists()
         except OSError:
-            return False
+            return path.exists()
 
     def _owner_for(self, path: Path) -> str:
         relative = self._relative(path)

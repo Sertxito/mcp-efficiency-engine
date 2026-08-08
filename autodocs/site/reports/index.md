@@ -6,17 +6,182 @@ Reportes generados y artefactos de analisis.
 
 ## Resumen
 
-- total_pages: 9
-- domains: autodocs (4), documentation (4), packaging (1)
+- total_pages: 174
+- domains: session (83), templates (10), optimization (5), profiles (5), use-cases (5), workspace (5)
 
 ## Paginas
 
+- ["[BUG] "](report-bug-md.md) - Contenido report en .github/ISSUE_TEMPLATE/bug.md.
+- ["[FEATURE] "](report-feature-request-md.md) - Contenido report en .github/ISSUE_TEMPLATE/feature_request.md.
+- ["[QUESTION] "](report-question-md.md) - Contenido report en .github/ISSUE_TEMPLATE/question.md.
+- [.markdownlint](report-markdownlint-json.md) - Artefacto JSON de tipo report en .markdownlint.json.
+- [.token-saver](report-token-saver-json.md) - Artefacto JSON de tipo report en .token-saver.json.
+- [57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0](report-57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0-json.md) - Artefacto JSON de tipo report en .gitnexus/parse-cache/57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0.json.
+- [57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0-w1-0](report-57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0-w1-0-json.md) - Artefacto JSON de tipo report en .gitnexus/parsedfile-cache/57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0/57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0-w1-0.json.
+- [@mcpee/backend](report-mcpee-json.md) - Local backend boost for core-v2 validation.
+- [Always-On Optimization Instructions](report-always-on-optimization-instructions-md.md) - Aplicar en todas las conversaciones, agentes, prompts y skills.
+- [Always-On Optimization Policy](report-always-on-optimization-md.md) - Caveman Mode y Token Saver deben estar activos por defecto para todo el sistema, incluidos flujos con GitHub Copilot, agentes, prompts, skills y routing.
+- [Always-On Profile](report-always-on-profile-md.md) - Perfil por defecto para todo el sistema.
+- [Architecture Profile](report-architecture-profile-md.md) - Perfil para analisis de arquitectura y diseño.
 - [AutoDocs](report-autodocs-readme-md.md) - AutoDocs es la wiki interna nativa de `mcp-efficiency-engine`.
 - [AutoDocs Analysis](report-autodocs-analysis-mcpee-readme-md.md) - Artefactos de analisis y blueprint de la wiki interna del repositorio.
 - [AutoDocs Projection Engine](report-readme-wiki-md.md) - AutoDocs es una capacidad nativa de `mcp-efficiency-engine`. En el modo actual core-only, toma conocimiento estructurado del contenido operativo del
+- [AutoDocs Wiki Node](report-wiki-node-schema-json.md) - Artefacto JSON de tipo report en autodocs/schema/wiki-node.schema.json.
+- [AutoLearning Loop](report-feedback-loop-md.md) - Cerrar el ciclo de mejora continua para que routing, memoria y optimizacion mejoren con evidencia real de ejecucion (no por intuicion).
+- [Caveman Mode](report-caveman-mode-md.md) - Caveman Mode es la política de interacción para reducir ruido y acelerar loops.
+- [Context Manifest — {{REPO_NAME}}](report-context-manifest-template-md.md) - Dominio: {{DOMAIN}} Ubicación: {{LOCATION}}
+- [Copilot Instructions](report-copilot-instructions-md.md) - Reglas globales, lean y accionables.
+- [Cross Memory Reasoning](report-cross-memory-reasoning-md.md) - Used when a query touches multiple domains.
+- [Debug Profile](report-debug-profile-md.md) - Perfil para bug-fix, troubleshooting y loops de validacion rapidos.
+- [Decisions](report-decisions-md.md) - Contenido report en context/project-notes/decisions.md.
+- [Descripción](report-pull-request-template-md.md) - MCP Efficiency Engine — Pull Request Template Llena todas las secciones antes de enviar el PR.
+- [Enterprise RAG Profile](report-enterprise-rag-profile-md.md) - Perfil para consultas documentales corporativas con grounding obligatorio.
+- [Example: Login Bug](report-login-bug-md.md) - Contenido report en optimization/examples/login-bug.md.
+- [Example: Repo Intake](report-repo-intake-readme-md.md) - Ejemplo minimo para registrar un repo y generar artefactos de intake.
+- [Example: SLA Query](report-sla-query-md.md) - Contenido report en optimization/examples/sla-query.md.
+- [Generated Skill Draft: backend.architecture.review](report-backend-architecture-review-md.md) - Contenido report en .mcpee/generated-skills/backend/backend.architecture.review.md.
+- [Generated Skill Draft: backend.architecture.review](report-backend-architecture-review-md.md) - Contenido report en .mcpee/generated-skills/Core/backend.architecture.review.md.
+- [GitHub MCP Integration](report-github-mcp-integration-md.md) - Controlador central para operaciones automatizadas en GitHub mediante Model Context Protocol (MCP).
+- [GitHub MCP Scripts](report-github-readme-md.md) - Scripts PowerShell para automatización de repositorio mediante GitHub CLI.
+- [GitHub MCP Server — Referencia Oficial](report-github-mcp-references-md.md) - Documento de **referencias canónicas** para integración de GitHub MCP Server en `mcp-efficiency-engine`.
+- [GitNexus — Code Intelligence](report-claude-md.md) - This project is indexed by GitNexus as **mcp-efficiency-engine**. Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+- [Glossary](report-glossary-md.md) - Contenido report en context/project-notes/glossary.md.
+- [Guía de Instalación y Uso — GitHub MCP Scripts](report-install-md.md) - Los scripts usan `gh` CLI que ya está optimizado para GitHub.
 - [Guía de uso — MCP Efficiency Engine](report-final-usage-guide-md.md) - Token Saver y Caveman ya no son modos que se activan manualmente. Son parte del runtime del sistema.
+- [Known Risks](report-known-risks-md.md) - Contenido report en context/project-notes/known-risks.md.
 - [MCP Efficiency Engine](report-readme-md.md) - Motor de orquestación para agentes MCP con routing por dominio, optimización always-on y contratos de intake JSON-first.
+- [Model Pricing Reference (Usage-based)](report-model-pricing-reference-md.md) - Referencia operativa rapida para seleccionar modelo por coste/valor.
+- [NPM Runtime Release Notes](report-npm-release-notes-md.md) - Usa este archivo como alternativa a `README.md` cuando una PR cambie superficie publicada por npm.
 - [OpenWiki Internal Blueprint](report-autodocs-openwiki-internal-blueprint-md.md) - Ubicacion canonica del blueprint y analisis de evolucion de AutoDocs como wiki interna de `mcp-efficiency-engine`.
+- [Optimization Routing — Always On](report-optimization-routing-md.md) - Token Saver y Caveman están siempre activos.
+- [Repo Intake](report-repo-intake-readme-md.md) - Este modulo transforma paquetes npm registrados en capacidades consumibles por el routing.
+- [Repo Registry Schema](report-repos-schema-json.md) - Schema for npm package registry backed by installed boosts in node_modules.
+- [Repo Routing](report-repo-routing-md.md) - Repo Routing base: dba->Graphify, iot->Graphify+GitNexus/CodeGraph, azure-rag->Azure RAG Builder, dev->CodeGraph, frontend->CodeGraph, backend multi-repo->GitNexus, ux-ui->Graphify.
+- [Scripts Index](report-scripts-readme-md.md) - Indice operativo de scripts del repositorio. Objetivo: crecer sin caos, con un punto unico de entrada.
+- [Session Cost Estimate (Pre-flight)](report-session-cost-estimate-md.md) - Plantilla para estimar coste antes de sesiones complejas o iterativas.
+- [Token Saver](report-token-saver-md.md) - Token Saver es la política de optimización de contexto, coste y retrieval.
+- [Training Profile](report-training-profile-md.md) - Perfil para onboarding, formacion y material didactico.
+- [UnifiedKnowledgeGraph](report-unified-knowledge-graph-json.md) - Artefacto JSON de tipo report en specs/wiki/unified-knowledge-graph.json.
+- [WikiProviderContract](report-provider-contract-json.md) - Artefacto JSON de tipo report en specs/wiki/provider-contract.json.
+- [azure-rag-corporate-docs](report-azure-rag-corporate-docs-md.md) - Consulta de SLA/politica corporativa con necesidad de fuentes verificables.
+- [boostDBA](report-readme-boost-dba-md.md) - [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![GitHub Repo](https://img.shields.io/badge/repo-boostDBA-blue)](https://github.com/Sertxito/boostDBA)
+- [boost_RAG-Azure](report-readme-boost-rag-azure-md.md) - [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![GitHub Repo](https://img.shields.io/badge/repo-boost__RAG--Azure-blue)](https://github.com/Sertxito/boost_RAG-Azure)
+- [boost_azure-iot-edge](report-readme-boost-azure-iot-edge-md.md) - [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![GitHub Repo](https://img.shields.io/badge/repo-boost__azure--iot--edge-blue)](https://github.com/Sertxito/boost_azure-iot-edge)
+- [boost_backend](report-readme-boost-backend-md.md) - [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![GitHub Repo](https://img.shields.io/badge/repo-boost__backend-blue)](https://github.com/Sertxito/boost_backend)
+- [boost_{FEATURE_NAME}](report-boost-readme-template-md.md) - [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![GitHub Actions](https://github.com/Sertxito/boost_{FEATURE_NAME}/workflows/CI/badge.svg)](https://github.com/Sertxito/boost_{FEATURE_NAME}/actions)
+- [bye-20260629-221513](report-bye-20260629-221513-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260629-221513.json.
+- [bye-20260629-221545](report-bye-20260629-221545-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260629-221545.json.
+- [bye-20260629-222007](report-bye-20260629-222007-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260629-222007.json.
+- [bye-20260629-222133](report-bye-20260629-222133-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260629-222133.json.
+- [bye-20260629-222412](report-bye-20260629-222412-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260629-222412.json.
+- [bye-20260629-223224](report-bye-20260629-223224-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260629-223224.json.
+- [bye-20260629-224050](report-bye-20260629-224050-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260629-224050.json.
+- [bye-20260630-105732](report-bye-20260630-105732-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260630-105732.json.
+- [bye-20260630-211536](report-bye-20260630-211536-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260630-211536.json.
+- [bye-20260630-223423](report-bye-20260630-223423-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260630-223423.json.
+- [bye-20260630-232534](report-bye-20260630-232534-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260630-232534.json.
+- [bye-20260701-003638](report-bye-20260701-003638-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260701-003638.json.
+- [bye-20260701-003849](report-bye-20260701-003849-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260701-003849.json.
+- [bye-20260701-004315](report-bye-20260701-004315-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260701-004315.json.
+- [bye-20260701-004559](report-bye-20260701-004559-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260701-004559.json.
+- [bye-20260701-005913](report-bye-20260701-005913-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260701-005913.json.
+- [bye-20260701-010753](report-bye-20260701-010753-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260701-010753.json.
+- [bye-20260703-194106](report-bye-20260703-194106-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260703-194106.json.
+- [bye-20260703-233443](report-bye-20260703-233443-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260703-233443.json.
+- [bye-20260703-233653](report-bye-20260703-233653-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260703-233653.json.
+- [bye-20260711-230744](report-bye-20260711-230744-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260711-230744.json.
+- [bye-20260712-161558](report-bye-20260712-161558-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260712-161558.json.
+- [bye-20260713-213007](report-bye-20260713-213007-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260713-213007.json.
+- [bye-20260721-165950](report-bye-20260721-165950-json.md) - Artefacto JSON de tipo report en observability/logs/session/bye-20260721-165950.json.
+- [c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea](report-c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea-json.md) - Artefacto JSON de tipo report en .gitnexus/parse-cache/c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea.json.
+- [c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea-w1-0](report-c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea-w1-0-json.md) - Artefacto JSON de tipo report en .gitnexus/parsedfile-cache/c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea/c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea-w1-0.json.
+- [capabilities](report-capabilities-json.md) - Artefacto JSON de tipo report en .mcpee/knowledge/index/capabilities.json.
+- [community-content](report-community-content-md.md) - Generar contenido tecnico para comunidad (post, hilo, resumen didactico).
+- [config](report-config-json.md) - Artefacto JSON de tipo report en telemetry/config.json.
+- [copilot-usage-ingest-report](report-copilot-usage-ingest-report-json.md) - Artefacto JSON de tipo report en observability/logs/copilot-usage-ingest-report.json.
+- [dev-modern](report-dev-modern-md.md) - Corregir bug en codigo moderno de un repo unico.
+- [exec-00f7514d-7421-4498-822b-eddd1a45b26a](report-exec-00f7514d-7421-4498-822b-eddd1a45b26a-json.md) - Artefacto JSON de tipo report en .mcpee/artifacts/reports/exec-00f7514d-7421-4498-822b-eddd1a45b26a.json.
+- [exec-21493e6a-d63c-47bf-9d0c-6c0bce5eff97](report-exec-21493e6a-d63c-47bf-9d0c-6c0bce5eff97-json.md) - Artefacto JSON de tipo report en .mcpee/artifacts/reports/exec-21493e6a-d63c-47bf-9d0c-6c0bce5eff97.json.
+- [exec-e20c0cac-ae89-4d42-bff2-4014c4e66d64](report-exec-e20c0cac-ae89-4d42-bff2-4014c4e66d64-json.md) - Artefacto JSON de tipo report en .mcpee/artifacts/reports/exec-e20c0cac-ae89-4d42-bff2-4014c4e66d64.json.
+- [hi-20260629-221459](report-hi-20260629-221459-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260629-221459.json.
+- [hi-20260629-221945](report-hi-20260629-221945-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260629-221945.json.
+- [hi-20260629-222108](report-hi-20260629-222108-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260629-222108.json.
+- [hi-20260629-222352](report-hi-20260629-222352-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260629-222352.json.
+- [hi-20260629-225719](report-hi-20260629-225719-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260629-225719.json.
+- [hi-20260629-233722](report-hi-20260629-233722-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260629-233722.json.
+- [hi-20260629-233913](report-hi-20260629-233913-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260629-233913.json.
+- [hi-20260630-110156](report-hi-20260630-110156-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260630-110156.json.
+- [hi-20260630-191243](report-hi-20260630-191243-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260630-191243.json.
+- [hi-20260630-230050](report-hi-20260630-230050-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260630-230050.json.
+- [hi-20260630-230523](report-hi-20260630-230523-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260630-230523.json.
+- [hi-20260630-230855](report-hi-20260630-230855-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260630-230855.json.
+- [hi-20260630-231638](report-hi-20260630-231638-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260630-231638.json.
+- [hi-20260630-231756](report-hi-20260630-231756-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260630-231756.json.
+- [hi-20260701-002842](report-hi-20260701-002842-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260701-002842.json.
+- [hi-20260701-003458](report-hi-20260701-003458-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260701-003458.json.
+- [hi-20260701-004233](report-hi-20260701-004233-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260701-004233.json.
+- [hi-20260701-004554](report-hi-20260701-004554-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260701-004554.json.
+- [hi-20260701-005641](report-hi-20260701-005641-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260701-005641.json.
+- [hi-20260701-010450](report-hi-20260701-010450-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260701-010450.json.
+- [hi-20260703-233854](report-hi-20260703-233854-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260703-233854.json.
+- [hi-20260703-234448](report-hi-20260703-234448-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260703-234448.json.
+- [hi-20260710-001648](report-hi-20260710-001648-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260710-001648.json.
+- [hi-20260710-150357](report-hi-20260710-150357-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260710-150357.json.
+- [hi-20260710-175412](report-hi-20260710-175412-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260710-175412.json.
+- [hi-20260710-201437](report-hi-20260710-201437-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260710-201437.json.
+- [hi-20260711-194704](report-hi-20260711-194704-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260711-194704.json.
+- [hi-20260711-214225](report-hi-20260711-214225-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260711-214225.json.
+- [hi-20260711-215520](report-hi-20260711-215520-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260711-215520.json.
+- [hi-20260711-233430](report-hi-20260711-233430-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260711-233430.json.
+- [hi-20260711-235724](report-hi-20260711-235724-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260711-235724.json.
+- [hi-20260713-203005](report-hi-20260713-203005-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260713-203005.json.
+- [hi-20260713-211559](report-hi-20260713-211559-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260713-211559.json.
+- [hi-20260713-212137](report-hi-20260713-212137-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260713-212137.json.
+- [hi-20260713-213256](report-hi-20260713-213256-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260713-213256.json.
+- [hi-20260713-213803](report-hi-20260713-213803-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260713-213803.json.
+- [hi-20260713-214051](report-hi-20260713-214051-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260713-214051.json.
+- [hi-20260721-111222](report-hi-20260721-111222-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260721-111222.json.
+- [hi-20260721-173015](report-hi-20260721-173015-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260721-173015.json.
+- [hi-20260721-183221](report-hi-20260721-183221-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260721-183221.json.
+- [hi-20260724-111618](report-hi-20260724-111618-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260724-111618.json.
+- [hi-20260806-183628](report-hi-20260806-183628-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260806-183628.json.
+- [hi-20260806-184935](report-hi-20260806-184935-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260806-184935.json.
+- [hi-20260806-185139](report-hi-20260806-185139-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260806-185139.json.
+- [hi-20260806-185716](report-hi-20260806-185716-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260806-185716.json.
+- [hi-20260806-190046](report-hi-20260806-190046-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260806-190046.json.
+- [hi-20260806-190427](report-hi-20260806-190427-json.md) - Artefacto JSON de tipo report en observability/logs/session/hi-20260806-190427.json.
+- [hybrid-graphify-azure-rag](report-hybrid-graphify-azure-rag-md.md) - Necesitas explicacion tecnica local + fuentes corporativas externas.
+- [index](report-index-json.md) - Artefacto JSON de tipo report en .gitnexus/parse-cache/index.json.
+- [index](report-index-json.md) - Artefacto JSON de tipo report en .gitnexus/parsedfile-cache/index.json.
+- [mcp](report-mcp-json.md) - Artefacto JSON de tipo report en .vscode/mcp.json.
 - [mcp-efficiency-engine](report-package-json.md) - Motor de orquestacion capability-centric v2 para agentes MCP con optimizacion always-on.
+- [mcp-efficiency-engine](report-package-lock-json.md) - Artefacto JSON de tipo report en package-lock.json.
+- [mcpee-backend](report-package-json.md) - Backend boost for MCP Efficiency Engine.
+- [meta](report-meta-json.md) - Artefacto JSON de tipo report en .gitnexus/meta.json.
+- [metrics](report-metrics-json.md) - Artefacto JSON de tipo report en .telemetry/metrics.json.
 - [openwiki-internal-blueprint](report-autodocs-openwiki-internal-blueprint-json.md) - Artefacto JSON de tipo report en autodocs/analysis_mcpee/openwiki-internal-blueprint.json.
+- [post-commit-refresh-20260711-150320](report-post-commit-refresh-20260711-150320-json.md) - Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260711-150320.json.
+- [post-commit-refresh-20260808-123022](report-post-commit-refresh-20260808-123022-json.md) - Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-123022.json.
+- [post-commit-refresh-20260808-123417](report-post-commit-refresh-20260808-123417-json.md) - Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-123417.json.
+- [post-commit-refresh-20260808-123639](report-post-commit-refresh-20260808-123639-json.md) - Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-123639.json.
+- [post-commit-refresh-20260808-123749](report-post-commit-refresh-20260808-123749-json.md) - Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-123749.json.
+- [post-commit-refresh-20260808-124055](report-post-commit-refresh-20260808-124055-json.md) - Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-124055.json.
+- [post-commit-refresh-20260808-124649](report-post-commit-refresh-20260808-124649-json.md) - Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-124649.json.
+- [post-commit-refresh-20260808-133108](report-post-commit-refresh-20260808-133108-json.md) - Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-133108.json.
+- [post-commit-refresh-20260808-152422](report-post-commit-refresh-20260808-152422-json.md) - Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-152422.json.
+- [post-commit-refresh-20260808-154137](report-post-commit-refresh-20260808-154137-json.md) - Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-154137.json.
+- [post-commit-refresh-20260808-163125](report-post-commit-refresh-20260808-163125-json.md) - Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-163125.json.
+- [post-commit-refresh-20260808-165134](report-post-commit-refresh-20260808-165134-json.md) - Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-165134.json.
+- [pytest cache directory #](report-pytest-cache-readme-md.md) - This directory contains data from the pytest's cache plugin, which provides the `--lf` and `--ff` options, as well as the `cache` fixture.
+- [rag-local](report-rag-local-md.md) - Responder preguntas de arquitectura usando documentacion tecnica local del workspace.
+- [registry](report-registry-json.md) - Artefacto JSON de tipo report en .mcpee/artifacts/registry.json.
+- [repomix.config](report-repomix-config-json.md) - Artefacto JSON de tipo report en context/repomix/repomix.config.json.
+- [repos.template](report-repos-template-json.md) - Artefacto JSON de tipo report en repo-registry/repos.template.json.
 - [telemetry-recovery-mcp-efficiency-engine-2026-08-08](report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md) - Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.
+- [tooling.manifest](report-tooling-manifest-json.md) - Artefacto JSON de tipo report en tooling/tooling.manifest.json.
+- [traces](report-traces-json.md) - Artefacto JSON de tipo report en .telemetry/traces.json.
+- [{{AGENT_NAME}}](report-agent-template-md.md) - Dominio: {{DOMAIN}} Motor: {{PRIMARY_ENGINE}}
+- [{{SKILL_NAME}}](report-skill-template-md.md) - Contenido report en repo-intake/templates/skill.template.md.
+- [👋 Sertxito — Ingeniería de IA & Arquitectura Cloud](report-personal-readme-template-md.md) - **Arquitecto Cloud | AI/ML Ops | Ingeniería de Agentes**
+- [📋 Portfolio Standardization — Execution Plan](report-portfolio-standardization-plan-md.md) - **Status:** Ready to Execute **Date:** 2026-07-04
+- [🔍 Audit Report — Sertxito Repositories](report-audit-repos-sertxito-md.md) - **Generated:** 2026-07-04 **Target:** Verify alignment of all boost_* repos + main repo

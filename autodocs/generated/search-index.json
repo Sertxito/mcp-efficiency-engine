@@ -26,6 +26,19 @@
     "path": "capabilities/capability-backend-backend-architecture-review.md"
   },
   {
+    "title": "Chat Token Usage Report",
+    "summary": "Contenido report en observability/evals/chat-token-usage-report.md.",
+    "kind": "report",
+    "domain": "evals",
+    "section": "observability",
+    "tags": [
+      "report",
+      "observability",
+      "evals"
+    ],
+    "path": "observability/report-chat-token-usage-report-md.md"
+  },
+  {
     "title": "Evaluation",
     "summary": "Evalua inputs esperados vs agente/motor real y perfil de optimizacion aplicado.",
     "kind": "report",
@@ -37,6 +50,32 @@
       "observability"
     ],
     "path": "observability/report-evaluation-md.md"
+  },
+  {
+    "title": "Iteration Value Report",
+    "summary": "Contenido report en observability/evals/iteration-value-report.md.",
+    "kind": "report",
+    "domain": "evals",
+    "section": "observability",
+    "tags": [
+      "report",
+      "observability",
+      "evals"
+    ],
+    "path": "observability/report-iteration-value-report-md.md"
+  },
+  {
+    "title": "Learning Loop Report",
+    "summary": "Contenido report en observability/evals/learning-loop-report.md.",
+    "kind": "report",
+    "domain": "evals",
+    "section": "observability",
+    "tags": [
+      "report",
+      "observability",
+      "evals"
+    ],
+    "path": "observability/report-learning-loop-report-md.md"
   },
   {
     "title": "Metrics",
@@ -65,6 +104,19 @@
     "path": "observability/report-logs-schema-md.md"
   },
   {
+    "title": "Repo Intake Eval Cases",
+    "summary": "Casos minimos para validar que el intake registra capacidades y dominios esperados.",
+    "kind": "report",
+    "domain": "evals",
+    "section": "observability",
+    "tags": [
+      "report",
+      "observability",
+      "evals"
+    ],
+    "path": "observability/report-repo-intake-eval-cases-md.md"
+  },
+  {
     "title": "Routing Decision Event",
     "summary": "Artefacto JSON de tipo report en observability/logs.schema.json.",
     "kind": "report",
@@ -77,6 +129,19 @@
       "json"
     ],
     "path": "observability/report-logs-schema-json.md"
+  },
+  {
+    "title": "Routing Eval Cases",
+    "summary": "Contenido report en observability/evals/routing-eval-cases.md.",
+    "kind": "report",
+    "domain": "evals",
+    "section": "observability",
+    "tags": [
+      "report",
+      "observability",
+      "evals"
+    ],
+    "path": "observability/report-routing-eval-cases-md.md"
   },
   {
     "title": "Routing Evaluator",
@@ -119,6 +184,90 @@
     "path": "observability/report-architecture-review-cases-json.md"
   },
   {
+    "title": "chat-token-usage-report",
+    "summary": "Artefacto JSON de tipo report en observability/evals/chat-token-usage-report.json.",
+    "kind": "report",
+    "domain": "evals",
+    "section": "observability",
+    "tags": [
+      "report",
+      "observability",
+      "evals",
+      "json"
+    ],
+    "path": "observability/report-chat-token-usage-report-json.md"
+  },
+  {
+    "title": "iteration-value-report",
+    "summary": "Artefacto JSON de tipo report en observability/evals/iteration-value-report.json.",
+    "kind": "report",
+    "domain": "evals",
+    "section": "observability",
+    "tags": [
+      "report",
+      "observability",
+      "evals",
+      "json"
+    ],
+    "path": "observability/report-iteration-value-report-json.md"
+  },
+  {
+    "title": "learning-loop-report",
+    "summary": "Artefacto JSON de tipo report en observability/evals/learning-loop-report.json.",
+    "kind": "report",
+    "domain": "evals",
+    "section": "observability",
+    "tags": [
+      "report",
+      "observability",
+      "evals",
+      "json"
+    ],
+    "path": "observability/report-learning-loop-report-json.md"
+  },
+  {
+    "title": "routing-eval-cases",
+    "summary": "Artefacto JSON de tipo report en observability/evals/routing-eval-cases.json.",
+    "kind": "report",
+    "domain": "evals",
+    "section": "observability",
+    "tags": [
+      "report",
+      "observability",
+      "evals",
+      "json"
+    ],
+    "path": "observability/report-routing-eval-cases-json.md"
+  },
+  {
+    "title": "telemetry-flow-cost-token-report",
+    "summary": "Artefacto JSON de tipo report en observability/evals/telemetry-flow-cost-token-report.json.",
+    "kind": "report",
+    "domain": "evals",
+    "section": "observability",
+    "tags": [
+      "report",
+      "observability",
+      "evals",
+      "json"
+    ],
+    "path": "observability/report-telemetry-flow-cost-token-report-json.md"
+  },
+  {
+    "title": "telemetry-overhead-benchmark",
+    "summary": "Artefacto JSON de tipo report en observability/evals/telemetry-overhead-benchmark.json.",
+    "kind": "report",
+    "domain": "evals",
+    "section": "observability",
+    "tags": [
+      "report",
+      "observability",
+      "evals",
+      "json"
+    ],
+    "path": "observability/report-telemetry-overhead-benchmark-json.md"
+  },
+  {
     "title": "Context Policy",
     "summary": "Usar solo el contexto necesario para resolver la tarea con evidencia trazable y sin retrieval redundante.",
     "kind": "policy",
@@ -158,6 +307,19 @@
     "path": "policies/policy-repo-intake-policy-md.md"
   },
   {
+    "title": "Response Style Policy \u2014 Caveman Always On",
+    "summary": "Caveman nunca se desactiva completamente. Cambia de intensidad.",
+    "kind": "policy",
+    "domain": "policies",
+    "section": "policies",
+    "tags": [
+      "policy",
+      "policies",
+      "policies"
+    ],
+    "path": "policies/policy-response-style-policy-md.md"
+  },
+  {
     "title": "Security Policy",
     "summary": "Evitar exposicion de informacion sensible en indexacion, memoria, logs y respuestas.",
     "kind": "policy",
@@ -169,6 +331,180 @@
       "governance"
     ],
     "path": "policies/policy-security-policy-md.md"
+  },
+  {
+    "title": "Token Budget Policy \u2014 Always On",
+    "summary": "Token Saver nunca se desactiva.",
+    "kind": "policy",
+    "domain": "policies",
+    "section": "policies",
+    "tags": [
+      "policy",
+      "policies",
+      "policies"
+    ],
+    "path": "policies/policy-token-budget-policy-md.md"
+  },
+  {
+    "title": "\"[BUG] \"",
+    "summary": "Contenido report en .github/ISSUE_TEMPLATE/bug.md.",
+    "kind": "report",
+    "domain": "issue_template",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "issue_template"
+    ],
+    "path": "reports/report-bug-md.md"
+  },
+  {
+    "title": "\"[FEATURE] \"",
+    "summary": "Contenido report en .github/ISSUE_TEMPLATE/feature_request.md.",
+    "kind": "report",
+    "domain": "issue_template",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "issue_template"
+    ],
+    "path": "reports/report-feature-request-md.md"
+  },
+  {
+    "title": "\"[QUESTION] \"",
+    "summary": "Contenido report en .github/ISSUE_TEMPLATE/question.md.",
+    "kind": "report",
+    "domain": "issue_template",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "issue_template"
+    ],
+    "path": "reports/report-question-md.md"
+  },
+  {
+    "title": ".markdownlint",
+    "summary": "Artefacto JSON de tipo report en .markdownlint.json.",
+    "kind": "report",
+    "domain": "workspace",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "workspace",
+      "json"
+    ],
+    "path": "reports/report-markdownlint-json.md"
+  },
+  {
+    "title": ".token-saver",
+    "summary": "Artefacto JSON de tipo report en .token-saver.json.",
+    "kind": "report",
+    "domain": "workspace",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "workspace",
+      "json"
+    ],
+    "path": "reports/report-token-saver-json.md"
+  },
+  {
+    "title": "57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0",
+    "summary": "Artefacto JSON de tipo report en .gitnexus/parse-cache/57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0.json.",
+    "kind": "report",
+    "domain": "parse-cache",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "parse-cache",
+      "json"
+    ],
+    "path": "reports/report-57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0-json.md"
+  },
+  {
+    "title": "57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0-w1-0",
+    "summary": "Artefacto JSON de tipo report en .gitnexus/parsedfile-cache/57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0/57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0-w1-0.json.",
+    "kind": "report",
+    "domain": "57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0",
+      "json"
+    ],
+    "path": "reports/report-57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0-w1-0-json.md"
+  },
+  {
+    "title": "@mcpee/backend",
+    "summary": "Local backend boost for core-v2 validation.",
+    "kind": "report",
+    "domain": "backend",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "backend",
+      "json"
+    ],
+    "path": "reports/report-mcpee-json.md"
+  },
+  {
+    "title": "Always-On Optimization Instructions",
+    "summary": "Aplicar en todas las conversaciones, agentes, prompts y skills.",
+    "kind": "report",
+    "domain": "instructions",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "instructions"
+    ],
+    "path": "reports/report-always-on-optimization-instructions-md.md"
+  },
+  {
+    "title": "Always-On Optimization Policy",
+    "summary": "Caveman Mode y Token Saver deben estar activos por defecto para todo el sistema, incluidos flujos con GitHub Copilot, agentes, prompts, skills y routing.",
+    "kind": "report",
+    "domain": "optimization",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "optimization"
+    ],
+    "path": "reports/report-always-on-optimization-md.md"
+  },
+  {
+    "title": "Always-On Profile",
+    "summary": "Perfil por defecto para todo el sistema.",
+    "kind": "report",
+    "domain": "profiles",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "profiles"
+    ],
+    "path": "reports/report-always-on-profile-md.md"
+  },
+  {
+    "title": "Architecture Profile",
+    "summary": "Perfil para analisis de arquitectura y dise\u00f1o.",
+    "kind": "report",
+    "domain": "profiles",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "profiles"
+    ],
+    "path": "reports/report-architecture-profile-md.md"
   },
   {
     "title": "AutoDocs",
@@ -210,6 +546,280 @@
     "path": "reports/report-readme-wiki-md.md"
   },
   {
+    "title": "AutoDocs Wiki Node",
+    "summary": "Artefacto JSON de tipo report en autodocs/schema/wiki-node.schema.json.",
+    "kind": "report",
+    "domain": "schema",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "schema",
+      "json"
+    ],
+    "path": "reports/report-wiki-node-schema-json.md"
+  },
+  {
+    "title": "AutoLearning Loop",
+    "summary": "Cerrar el ciclo de mejora continua para que routing, memoria y optimizacion mejoren con evidencia real de ejecucion (no por intuicion).",
+    "kind": "report",
+    "domain": "autolearning",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "autolearning"
+    ],
+    "path": "reports/report-feedback-loop-md.md"
+  },
+  {
+    "title": "Caveman Mode",
+    "summary": "Caveman Mode es la pol\u00edtica de interacci\u00f3n para reducir ruido y acelerar loops.",
+    "kind": "report",
+    "domain": "optimization",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "optimization"
+    ],
+    "path": "reports/report-caveman-mode-md.md"
+  },
+  {
+    "title": "Context Manifest \u2014 {{REPO_NAME}}",
+    "summary": "Dominio: {{DOMAIN}} Ubicaci\u00f3n: {{LOCATION}}",
+    "kind": "report",
+    "domain": "templates",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "templates"
+    ],
+    "path": "reports/report-context-manifest-template-md.md"
+  },
+  {
+    "title": "Copilot Instructions",
+    "summary": "Reglas globales, lean y accionables.",
+    "kind": "report",
+    "domain": ".github",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      ".github"
+    ],
+    "path": "reports/report-copilot-instructions-md.md"
+  },
+  {
+    "title": "Cross Memory Reasoning",
+    "summary": "Used when a query touches multiple domains.",
+    "kind": "report",
+    "domain": "memory",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "memory"
+    ],
+    "path": "reports/report-cross-memory-reasoning-md.md"
+  },
+  {
+    "title": "Debug Profile",
+    "summary": "Perfil para bug-fix, troubleshooting y loops de validacion rapidos.",
+    "kind": "report",
+    "domain": "profiles",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "profiles"
+    ],
+    "path": "reports/report-debug-profile-md.md"
+  },
+  {
+    "title": "Decisions",
+    "summary": "Contenido report en context/project-notes/decisions.md.",
+    "kind": "report",
+    "domain": "project-notes",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "project-notes"
+    ],
+    "path": "reports/report-decisions-md.md"
+  },
+  {
+    "title": "Descripci\u00f3n",
+    "summary": "MCP Efficiency Engine \u2014 Pull Request Template Llena todas las secciones antes de enviar el PR.",
+    "kind": "report",
+    "domain": ".github",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      ".github"
+    ],
+    "path": "reports/report-pull-request-template-md.md"
+  },
+  {
+    "title": "Enterprise RAG Profile",
+    "summary": "Perfil para consultas documentales corporativas con grounding obligatorio.",
+    "kind": "report",
+    "domain": "profiles",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "profiles"
+    ],
+    "path": "reports/report-enterprise-rag-profile-md.md"
+  },
+  {
+    "title": "Example: Login Bug",
+    "summary": "Contenido report en optimization/examples/login-bug.md.",
+    "kind": "report",
+    "domain": "examples",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "examples"
+    ],
+    "path": "reports/report-login-bug-md.md"
+  },
+  {
+    "title": "Example: Repo Intake",
+    "summary": "Ejemplo minimo para registrar un repo y generar artefactos de intake.",
+    "kind": "report",
+    "domain": "repo-intake",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "repo-intake"
+    ],
+    "path": "reports/report-repo-intake-readme-md.md"
+  },
+  {
+    "title": "Example: SLA Query",
+    "summary": "Contenido report en optimization/examples/sla-query.md.",
+    "kind": "report",
+    "domain": "examples",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "examples"
+    ],
+    "path": "reports/report-sla-query-md.md"
+  },
+  {
+    "title": "Generated Skill Draft: backend.architecture.review",
+    "summary": "Contenido report en .mcpee/generated-skills/backend/backend.architecture.review.md.",
+    "kind": "report",
+    "domain": "backend",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "backend"
+    ],
+    "path": "reports/report-backend-architecture-review-md.md"
+  },
+  {
+    "title": "Generated Skill Draft: backend.architecture.review",
+    "summary": "Contenido report en .mcpee/generated-skills/Core/backend.architecture.review.md.",
+    "kind": "report",
+    "domain": "core",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "core"
+    ],
+    "path": "reports/report-backend-architecture-review-md.md"
+  },
+  {
+    "title": "GitHub MCP Integration",
+    "summary": "Controlador central para operaciones automatizadas en GitHub mediante Model Context Protocol (MCP).",
+    "kind": "report",
+    "domain": ".github",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      ".github"
+    ],
+    "path": "reports/report-github-mcp-integration-md.md"
+  },
+  {
+    "title": "GitHub MCP Scripts",
+    "summary": "Scripts PowerShell para automatizaci\u00f3n de repositorio mediante GitHub CLI.",
+    "kind": "report",
+    "domain": "github",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "github"
+    ],
+    "path": "reports/report-github-readme-md.md"
+  },
+  {
+    "title": "GitHub MCP Server \u2014 Referencia Oficial",
+    "summary": "Documento de **referencias can\u00f3nicas** para integraci\u00f3n de GitHub MCP Server en `mcp-efficiency-engine`.",
+    "kind": "report",
+    "domain": "context",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "context"
+    ],
+    "path": "reports/report-github-mcp-references-md.md"
+  },
+  {
+    "title": "GitNexus \u2014 Code Intelligence",
+    "summary": "This project is indexed by GitNexus as **mcp-efficiency-engine**. Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.",
+    "kind": "report",
+    "domain": "workspace",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "workspace"
+    ],
+    "path": "reports/report-claude-md.md"
+  },
+  {
+    "title": "Glossary",
+    "summary": "Contenido report en context/project-notes/glossary.md.",
+    "kind": "report",
+    "domain": "project-notes",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "project-notes"
+    ],
+    "path": "reports/report-glossary-md.md"
+  },
+  {
+    "title": "Gu\u00eda de Instalaci\u00f3n y Uso \u2014 GitHub MCP Scripts",
+    "summary": "Los scripts usan `gh` CLI que ya est\u00e1 optimizado para GitHub.",
+    "kind": "report",
+    "domain": "github",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "github"
+    ],
+    "path": "reports/report-install-md.md"
+  },
+  {
     "title": "Gu\u00eda de uso \u2014 MCP Efficiency Engine",
     "summary": "Token Saver y Caveman ya no son modos que se activan manualmente. Son parte del runtime del sistema.",
     "kind": "report",
@@ -221,6 +831,19 @@
       "documentation"
     ],
     "path": "reports/report-final-usage-guide-md.md"
+  },
+  {
+    "title": "Known Risks",
+    "summary": "Contenido report en context/project-notes/known-risks.md.",
+    "kind": "report",
+    "domain": "project-notes",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "project-notes"
+    ],
+    "path": "reports/report-known-risks-md.md"
   },
   {
     "title": "MCP Efficiency Engine",
@@ -236,6 +859,32 @@
     "path": "reports/report-readme-md.md"
   },
   {
+    "title": "Model Pricing Reference (Usage-based)",
+    "summary": "Referencia operativa rapida para seleccionar modelo por coste/valor.",
+    "kind": "report",
+    "domain": "optimization",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "optimization"
+    ],
+    "path": "reports/report-model-pricing-reference-md.md"
+  },
+  {
+    "title": "NPM Runtime Release Notes",
+    "summary": "Usa este archivo como alternativa a `README.md` cuando una PR cambie superficie publicada por npm.",
+    "kind": "report",
+    "domain": ".github",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      ".github"
+    ],
+    "path": "reports/report-npm-release-notes-md.md"
+  },
+  {
     "title": "OpenWiki Internal Blueprint",
     "summary": "Ubicacion canonica del blueprint y analisis de evolucion de AutoDocs como wiki interna de `mcp-efficiency-engine`.",
     "kind": "report",
@@ -247,6 +896,1404 @@
       "autodocs"
     ],
     "path": "reports/report-autodocs-openwiki-internal-blueprint-md.md"
+  },
+  {
+    "title": "Optimization Routing \u2014 Always On",
+    "summary": "Token Saver y Caveman est\u00e1n siempre activos.",
+    "kind": "report",
+    "domain": "optimization",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "optimization"
+    ],
+    "path": "reports/report-optimization-routing-md.md"
+  },
+  {
+    "title": "Repo Intake",
+    "summary": "Este modulo transforma paquetes npm registrados en capacidades consumibles por el routing.",
+    "kind": "report",
+    "domain": "repo-intake",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "repo-intake"
+    ],
+    "path": "reports/report-repo-intake-readme-md.md"
+  },
+  {
+    "title": "Repo Registry Schema",
+    "summary": "Schema for npm package registry backed by installed boosts in node_modules.",
+    "kind": "report",
+    "domain": "repo-registry",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "repo-registry",
+      "json"
+    ],
+    "path": "reports/report-repos-schema-json.md"
+  },
+  {
+    "title": "Repo Routing",
+    "summary": "Repo Routing base: dba->Graphify, iot->Graphify+GitNexus/CodeGraph, azure-rag->Azure RAG Builder, dev->CodeGraph, frontend->CodeGraph, backend multi-repo->GitNexus, ux-ui->Graphify.",
+    "kind": "report",
+    "domain": "orchestrator",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "orchestrator"
+    ],
+    "path": "reports/report-repo-routing-md.md"
+  },
+  {
+    "title": "Scripts Index",
+    "summary": "Indice operativo de scripts del repositorio. Objetivo: crecer sin caos, con un punto unico de entrada.",
+    "kind": "report",
+    "domain": "scripts",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "scripts"
+    ],
+    "path": "reports/report-scripts-readme-md.md"
+  },
+  {
+    "title": "Session Cost Estimate (Pre-flight)",
+    "summary": "Plantilla para estimar coste antes de sesiones complejas o iterativas.",
+    "kind": "report",
+    "domain": "templates",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "templates"
+    ],
+    "path": "reports/report-session-cost-estimate-md.md"
+  },
+  {
+    "title": "Token Saver",
+    "summary": "Token Saver es la pol\u00edtica de optimizaci\u00f3n de contexto, coste y retrieval.",
+    "kind": "report",
+    "domain": "optimization",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "optimization"
+    ],
+    "path": "reports/report-token-saver-md.md"
+  },
+  {
+    "title": "Training Profile",
+    "summary": "Perfil para onboarding, formacion y material didactico.",
+    "kind": "report",
+    "domain": "profiles",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "profiles"
+    ],
+    "path": "reports/report-training-profile-md.md"
+  },
+  {
+    "title": "UnifiedKnowledgeGraph",
+    "summary": "Artefacto JSON de tipo report en specs/wiki/unified-knowledge-graph.json.",
+    "kind": "report",
+    "domain": "wiki",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "wiki",
+      "json"
+    ],
+    "path": "reports/report-unified-knowledge-graph-json.md"
+  },
+  {
+    "title": "WikiProviderContract",
+    "summary": "Artefacto JSON de tipo report en specs/wiki/provider-contract.json.",
+    "kind": "report",
+    "domain": "wiki",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "wiki",
+      "json"
+    ],
+    "path": "reports/report-provider-contract-json.md"
+  },
+  {
+    "title": "azure-rag-corporate-docs",
+    "summary": "Consulta de SLA/politica corporativa con necesidad de fuentes verificables.",
+    "kind": "report",
+    "domain": "use-cases",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "use-cases"
+    ],
+    "path": "reports/report-azure-rag-corporate-docs-md.md"
+  },
+  {
+    "title": "boostDBA",
+    "summary": "[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![GitHub Repo](https://img.shields.io/badge/repo-boostDBA-blue)](https://github.com/Sertxito/boostDBA)",
+    "kind": "report",
+    "domain": "templates",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "templates"
+    ],
+    "path": "reports/report-readme-boost-dba-md.md"
+  },
+  {
+    "title": "boost_RAG-Azure",
+    "summary": "[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![GitHub Repo](https://img.shields.io/badge/repo-boost__RAG--Azure-blue)](https://github.com/Sertxito/boost_RAG-Azure)",
+    "kind": "report",
+    "domain": "templates",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "templates"
+    ],
+    "path": "reports/report-readme-boost-rag-azure-md.md"
+  },
+  {
+    "title": "boost_azure-iot-edge",
+    "summary": "[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![GitHub Repo](https://img.shields.io/badge/repo-boost__azure--iot--edge-blue)](https://github.com/Sertxito/boost_azure-iot-edge)",
+    "kind": "report",
+    "domain": "templates",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "templates"
+    ],
+    "path": "reports/report-readme-boost-azure-iot-edge-md.md"
+  },
+  {
+    "title": "boost_backend",
+    "summary": "[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![GitHub Repo](https://img.shields.io/badge/repo-boost__backend-blue)](https://github.com/Sertxito/boost_backend)",
+    "kind": "report",
+    "domain": "templates",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "templates"
+    ],
+    "path": "reports/report-readme-boost-backend-md.md"
+  },
+  {
+    "title": "boost_{FEATURE_NAME}",
+    "summary": "[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![GitHub Actions](https://github.com/Sertxito/boost_{FEATURE_NAME}/workflows/CI/badge.svg)](https://github.com/Sertxito/boost_{FEATURE_NAME}/actions)",
+    "kind": "report",
+    "domain": "templates",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "templates"
+    ],
+    "path": "reports/report-boost-readme-template-md.md"
+  },
+  {
+    "title": "bye-20260629-221513",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260629-221513.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260629-221513-json.md"
+  },
+  {
+    "title": "bye-20260629-221545",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260629-221545.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260629-221545-json.md"
+  },
+  {
+    "title": "bye-20260629-222007",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260629-222007.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260629-222007-json.md"
+  },
+  {
+    "title": "bye-20260629-222133",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260629-222133.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260629-222133-json.md"
+  },
+  {
+    "title": "bye-20260629-222412",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260629-222412.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260629-222412-json.md"
+  },
+  {
+    "title": "bye-20260629-223224",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260629-223224.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260629-223224-json.md"
+  },
+  {
+    "title": "bye-20260629-224050",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260629-224050.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260629-224050-json.md"
+  },
+  {
+    "title": "bye-20260630-105732",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260630-105732.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260630-105732-json.md"
+  },
+  {
+    "title": "bye-20260630-211536",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260630-211536.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260630-211536-json.md"
+  },
+  {
+    "title": "bye-20260630-223423",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260630-223423.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260630-223423-json.md"
+  },
+  {
+    "title": "bye-20260630-232534",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260630-232534.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260630-232534-json.md"
+  },
+  {
+    "title": "bye-20260701-003638",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260701-003638.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260701-003638-json.md"
+  },
+  {
+    "title": "bye-20260701-003849",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260701-003849.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260701-003849-json.md"
+  },
+  {
+    "title": "bye-20260701-004315",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260701-004315.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260701-004315-json.md"
+  },
+  {
+    "title": "bye-20260701-004559",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260701-004559.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260701-004559-json.md"
+  },
+  {
+    "title": "bye-20260701-005913",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260701-005913.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260701-005913-json.md"
+  },
+  {
+    "title": "bye-20260701-010753",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260701-010753.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260701-010753-json.md"
+  },
+  {
+    "title": "bye-20260703-194106",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260703-194106.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260703-194106-json.md"
+  },
+  {
+    "title": "bye-20260703-233443",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260703-233443.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260703-233443-json.md"
+  },
+  {
+    "title": "bye-20260703-233653",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260703-233653.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260703-233653-json.md"
+  },
+  {
+    "title": "bye-20260711-230744",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260711-230744.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260711-230744-json.md"
+  },
+  {
+    "title": "bye-20260712-161558",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260712-161558.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260712-161558-json.md"
+  },
+  {
+    "title": "bye-20260713-213007",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260713-213007.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260713-213007-json.md"
+  },
+  {
+    "title": "bye-20260721-165950",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/bye-20260721-165950.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-bye-20260721-165950-json.md"
+  },
+  {
+    "title": "c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea",
+    "summary": "Artefacto JSON de tipo report en .gitnexus/parse-cache/c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea.json.",
+    "kind": "report",
+    "domain": "parse-cache",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "parse-cache",
+      "json"
+    ],
+    "path": "reports/report-c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea-json.md"
+  },
+  {
+    "title": "c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea-w1-0",
+    "summary": "Artefacto JSON de tipo report en .gitnexus/parsedfile-cache/c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea/c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea-w1-0.json.",
+    "kind": "report",
+    "domain": "c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea",
+      "json"
+    ],
+    "path": "reports/report-c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea-w1-0-json.md"
+  },
+  {
+    "title": "capabilities",
+    "summary": "Artefacto JSON de tipo report en .mcpee/knowledge/index/capabilities.json.",
+    "kind": "report",
+    "domain": "index",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "index",
+      "json"
+    ],
+    "path": "reports/report-capabilities-json.md"
+  },
+  {
+    "title": "community-content",
+    "summary": "Generar contenido tecnico para comunidad (post, hilo, resumen didactico).",
+    "kind": "report",
+    "domain": "use-cases",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "use-cases"
+    ],
+    "path": "reports/report-community-content-md.md"
+  },
+  {
+    "title": "config",
+    "summary": "Artefacto JSON de tipo report en telemetry/config.json.",
+    "kind": "report",
+    "domain": "telemetry",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "telemetry",
+      "json"
+    ],
+    "path": "reports/report-config-json.md"
+  },
+  {
+    "title": "copilot-usage-ingest-report",
+    "summary": "Artefacto JSON de tipo report en observability/logs/copilot-usage-ingest-report.json.",
+    "kind": "report",
+    "domain": "logs",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "logs",
+      "json"
+    ],
+    "path": "reports/report-copilot-usage-ingest-report-json.md"
+  },
+  {
+    "title": "dev-modern",
+    "summary": "Corregir bug en codigo moderno de un repo unico.",
+    "kind": "report",
+    "domain": "use-cases",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "use-cases"
+    ],
+    "path": "reports/report-dev-modern-md.md"
+  },
+  {
+    "title": "exec-00f7514d-7421-4498-822b-eddd1a45b26a",
+    "summary": "Artefacto JSON de tipo report en .mcpee/artifacts/reports/exec-00f7514d-7421-4498-822b-eddd1a45b26a.json.",
+    "kind": "report",
+    "domain": "reports",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "reports",
+      "json"
+    ],
+    "path": "reports/report-exec-00f7514d-7421-4498-822b-eddd1a45b26a-json.md"
+  },
+  {
+    "title": "exec-21493e6a-d63c-47bf-9d0c-6c0bce5eff97",
+    "summary": "Artefacto JSON de tipo report en .mcpee/artifacts/reports/exec-21493e6a-d63c-47bf-9d0c-6c0bce5eff97.json.",
+    "kind": "report",
+    "domain": "reports",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "reports",
+      "json"
+    ],
+    "path": "reports/report-exec-21493e6a-d63c-47bf-9d0c-6c0bce5eff97-json.md"
+  },
+  {
+    "title": "exec-e20c0cac-ae89-4d42-bff2-4014c4e66d64",
+    "summary": "Artefacto JSON de tipo report en .mcpee/artifacts/reports/exec-e20c0cac-ae89-4d42-bff2-4014c4e66d64.json.",
+    "kind": "report",
+    "domain": "reports",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "reports",
+      "json"
+    ],
+    "path": "reports/report-exec-e20c0cac-ae89-4d42-bff2-4014c4e66d64-json.md"
+  },
+  {
+    "title": "hi-20260629-221459",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260629-221459.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260629-221459-json.md"
+  },
+  {
+    "title": "hi-20260629-221945",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260629-221945.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260629-221945-json.md"
+  },
+  {
+    "title": "hi-20260629-222108",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260629-222108.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260629-222108-json.md"
+  },
+  {
+    "title": "hi-20260629-222352",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260629-222352.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260629-222352-json.md"
+  },
+  {
+    "title": "hi-20260629-225719",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260629-225719.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260629-225719-json.md"
+  },
+  {
+    "title": "hi-20260629-233722",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260629-233722.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260629-233722-json.md"
+  },
+  {
+    "title": "hi-20260629-233913",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260629-233913.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260629-233913-json.md"
+  },
+  {
+    "title": "hi-20260630-110156",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260630-110156.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260630-110156-json.md"
+  },
+  {
+    "title": "hi-20260630-191243",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260630-191243.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260630-191243-json.md"
+  },
+  {
+    "title": "hi-20260630-230050",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260630-230050.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260630-230050-json.md"
+  },
+  {
+    "title": "hi-20260630-230523",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260630-230523.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260630-230523-json.md"
+  },
+  {
+    "title": "hi-20260630-230855",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260630-230855.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260630-230855-json.md"
+  },
+  {
+    "title": "hi-20260630-231638",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260630-231638.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260630-231638-json.md"
+  },
+  {
+    "title": "hi-20260630-231756",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260630-231756.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260630-231756-json.md"
+  },
+  {
+    "title": "hi-20260701-002842",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260701-002842.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260701-002842-json.md"
+  },
+  {
+    "title": "hi-20260701-003458",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260701-003458.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260701-003458-json.md"
+  },
+  {
+    "title": "hi-20260701-004233",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260701-004233.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260701-004233-json.md"
+  },
+  {
+    "title": "hi-20260701-004554",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260701-004554.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260701-004554-json.md"
+  },
+  {
+    "title": "hi-20260701-005641",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260701-005641.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260701-005641-json.md"
+  },
+  {
+    "title": "hi-20260701-010450",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260701-010450.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260701-010450-json.md"
+  },
+  {
+    "title": "hi-20260703-233854",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260703-233854.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260703-233854-json.md"
+  },
+  {
+    "title": "hi-20260703-234448",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260703-234448.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260703-234448-json.md"
+  },
+  {
+    "title": "hi-20260710-001648",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260710-001648.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260710-001648-json.md"
+  },
+  {
+    "title": "hi-20260710-150357",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260710-150357.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260710-150357-json.md"
+  },
+  {
+    "title": "hi-20260710-175412",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260710-175412.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260710-175412-json.md"
+  },
+  {
+    "title": "hi-20260710-201437",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260710-201437.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260710-201437-json.md"
+  },
+  {
+    "title": "hi-20260711-194704",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260711-194704.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260711-194704-json.md"
+  },
+  {
+    "title": "hi-20260711-214225",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260711-214225.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260711-214225-json.md"
+  },
+  {
+    "title": "hi-20260711-215520",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260711-215520.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260711-215520-json.md"
+  },
+  {
+    "title": "hi-20260711-233430",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260711-233430.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260711-233430-json.md"
+  },
+  {
+    "title": "hi-20260711-235724",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260711-235724.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260711-235724-json.md"
+  },
+  {
+    "title": "hi-20260713-203005",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260713-203005.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260713-203005-json.md"
+  },
+  {
+    "title": "hi-20260713-211559",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260713-211559.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260713-211559-json.md"
+  },
+  {
+    "title": "hi-20260713-212137",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260713-212137.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260713-212137-json.md"
+  },
+  {
+    "title": "hi-20260713-213256",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260713-213256.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260713-213256-json.md"
+  },
+  {
+    "title": "hi-20260713-213803",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260713-213803.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260713-213803-json.md"
+  },
+  {
+    "title": "hi-20260713-214051",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260713-214051.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260713-214051-json.md"
+  },
+  {
+    "title": "hi-20260721-111222",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260721-111222.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260721-111222-json.md"
+  },
+  {
+    "title": "hi-20260721-173015",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260721-173015.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260721-173015-json.md"
+  },
+  {
+    "title": "hi-20260721-183221",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260721-183221.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260721-183221-json.md"
+  },
+  {
+    "title": "hi-20260724-111618",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260724-111618.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260724-111618-json.md"
+  },
+  {
+    "title": "hi-20260806-183628",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260806-183628.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260806-183628-json.md"
+  },
+  {
+    "title": "hi-20260806-184935",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260806-184935.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260806-184935-json.md"
+  },
+  {
+    "title": "hi-20260806-185139",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260806-185139.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260806-185139-json.md"
+  },
+  {
+    "title": "hi-20260806-185716",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260806-185716.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260806-185716-json.md"
+  },
+  {
+    "title": "hi-20260806-190046",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260806-190046.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260806-190046-json.md"
+  },
+  {
+    "title": "hi-20260806-190427",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/hi-20260806-190427.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-hi-20260806-190427-json.md"
+  },
+  {
+    "title": "hybrid-graphify-azure-rag",
+    "summary": "Necesitas explicacion tecnica local + fuentes corporativas externas.",
+    "kind": "report",
+    "domain": "use-cases",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "use-cases"
+    ],
+    "path": "reports/report-hybrid-graphify-azure-rag-md.md"
+  },
+  {
+    "title": "index",
+    "summary": "Artefacto JSON de tipo report en .gitnexus/parse-cache/index.json.",
+    "kind": "report",
+    "domain": "parse-cache",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "parse-cache",
+      "json"
+    ],
+    "path": "reports/report-index-json.md"
+  },
+  {
+    "title": "index",
+    "summary": "Artefacto JSON de tipo report en .gitnexus/parsedfile-cache/index.json.",
+    "kind": "report",
+    "domain": "parsedfile-cache",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "parsedfile-cache",
+      "json"
+    ],
+    "path": "reports/report-index-json.md"
+  },
+  {
+    "title": "mcp",
+    "summary": "Artefacto JSON de tipo report en .vscode/mcp.json.",
+    "kind": "report",
+    "domain": ".vscode",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      ".vscode",
+      "json"
+    ],
+    "path": "reports/report-mcp-json.md"
   },
   {
     "title": "mcp-efficiency-engine",
@@ -263,6 +2310,62 @@
     "path": "reports/report-package-json.md"
   },
   {
+    "title": "mcp-efficiency-engine",
+    "summary": "Artefacto JSON de tipo report en package-lock.json.",
+    "kind": "report",
+    "domain": "workspace",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "workspace",
+      "json"
+    ],
+    "path": "reports/report-package-lock-json.md"
+  },
+  {
+    "title": "mcpee-backend",
+    "summary": "Backend boost for MCP Efficiency Engine.",
+    "kind": "report",
+    "domain": "backend",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "backend",
+      "json"
+    ],
+    "path": "reports/report-package-json.md"
+  },
+  {
+    "title": "meta",
+    "summary": "Artefacto JSON de tipo report en .gitnexus/meta.json.",
+    "kind": "report",
+    "domain": ".gitnexus",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      ".gitnexus",
+      "json"
+    ],
+    "path": "reports/report-meta-json.md"
+  },
+  {
+    "title": "metrics",
+    "summary": "Artefacto JSON de tipo report en .telemetry/metrics.json.",
+    "kind": "report",
+    "domain": ".telemetry",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      ".telemetry",
+      "json"
+    ],
+    "path": "reports/report-metrics-json.md"
+  },
+  {
     "title": "openwiki-internal-blueprint",
     "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/openwiki-internal-blueprint.json.",
     "kind": "report",
@@ -277,6 +2380,242 @@
     "path": "reports/report-autodocs-openwiki-internal-blueprint-json.md"
   },
   {
+    "title": "post-commit-refresh-20260711-150320",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260711-150320.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-post-commit-refresh-20260711-150320-json.md"
+  },
+  {
+    "title": "post-commit-refresh-20260808-123022",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-123022.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-post-commit-refresh-20260808-123022-json.md"
+  },
+  {
+    "title": "post-commit-refresh-20260808-123417",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-123417.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-post-commit-refresh-20260808-123417-json.md"
+  },
+  {
+    "title": "post-commit-refresh-20260808-123639",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-123639.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-post-commit-refresh-20260808-123639-json.md"
+  },
+  {
+    "title": "post-commit-refresh-20260808-123749",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-123749.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-post-commit-refresh-20260808-123749-json.md"
+  },
+  {
+    "title": "post-commit-refresh-20260808-124055",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-124055.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-post-commit-refresh-20260808-124055-json.md"
+  },
+  {
+    "title": "post-commit-refresh-20260808-124649",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-124649.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-post-commit-refresh-20260808-124649-json.md"
+  },
+  {
+    "title": "post-commit-refresh-20260808-133108",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-133108.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-post-commit-refresh-20260808-133108-json.md"
+  },
+  {
+    "title": "post-commit-refresh-20260808-152422",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-152422.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-post-commit-refresh-20260808-152422-json.md"
+  },
+  {
+    "title": "post-commit-refresh-20260808-154137",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-154137.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-post-commit-refresh-20260808-154137-json.md"
+  },
+  {
+    "title": "post-commit-refresh-20260808-163125",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-163125.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-post-commit-refresh-20260808-163125-json.md"
+  },
+  {
+    "title": "post-commit-refresh-20260808-165134",
+    "summary": "Artefacto JSON de tipo report en observability/logs/session/post-commit-refresh-20260808-165134.json.",
+    "kind": "report",
+    "domain": "session",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "session",
+      "json"
+    ],
+    "path": "reports/report-post-commit-refresh-20260808-165134-json.md"
+  },
+  {
+    "title": "pytest cache directory #",
+    "summary": "This directory contains data from the pytest's cache plugin, which provides the `--lf` and `--ff` options, as well as the `cache` fixture.",
+    "kind": "report",
+    "domain": ".pytest_cache",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      ".pytest_cache"
+    ],
+    "path": "reports/report-pytest-cache-readme-md.md"
+  },
+  {
+    "title": "rag-local",
+    "summary": "Responder preguntas de arquitectura usando documentacion tecnica local del workspace.",
+    "kind": "report",
+    "domain": "use-cases",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "use-cases"
+    ],
+    "path": "reports/report-rag-local-md.md"
+  },
+  {
+    "title": "registry",
+    "summary": "Artefacto JSON de tipo report en .mcpee/artifacts/registry.json.",
+    "kind": "report",
+    "domain": "artifacts",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "artifacts",
+      "json"
+    ],
+    "path": "reports/report-registry-json.md"
+  },
+  {
+    "title": "repomix.config",
+    "summary": "Artefacto JSON de tipo report en context/repomix/repomix.config.json.",
+    "kind": "report",
+    "domain": "repomix",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "repomix",
+      "json"
+    ],
+    "path": "reports/report-repomix-config-json.md"
+  },
+  {
+    "title": "repos.template",
+    "summary": "Artefacto JSON de tipo report en repo-registry/repos.template.json.",
+    "kind": "report",
+    "domain": "repo-registry",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "repo-registry",
+      "json"
+    ],
+    "path": "reports/report-repos-template-json.md"
+  },
+  {
     "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
     "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
     "kind": "report",
@@ -289,6 +2628,99 @@
       "json"
     ],
     "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
+  },
+  {
+    "title": "tooling.manifest",
+    "summary": "Artefacto JSON de tipo report en tooling/tooling.manifest.json.",
+    "kind": "report",
+    "domain": "tooling",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "tooling",
+      "json"
+    ],
+    "path": "reports/report-tooling-manifest-json.md"
+  },
+  {
+    "title": "traces",
+    "summary": "Artefacto JSON de tipo report en .telemetry/traces.json.",
+    "kind": "report",
+    "domain": ".telemetry",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      ".telemetry",
+      "json"
+    ],
+    "path": "reports/report-traces-json.md"
+  },
+  {
+    "title": "{{AGENT_NAME}}",
+    "summary": "Dominio: {{DOMAIN}} Motor: {{PRIMARY_ENGINE}}",
+    "kind": "report",
+    "domain": "templates",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "templates"
+    ],
+    "path": "reports/report-agent-template-md.md"
+  },
+  {
+    "title": "{{SKILL_NAME}}",
+    "summary": "Contenido report en repo-intake/templates/skill.template.md.",
+    "kind": "report",
+    "domain": "templates",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "templates"
+    ],
+    "path": "reports/report-skill-template-md.md"
+  },
+  {
+    "title": "\ud83d\udc4b Sertxito \u2014 Ingenier\u00eda de IA & Arquitectura Cloud",
+    "summary": "**Arquitecto Cloud | AI/ML Ops | Ingenier\u00eda de Agentes**",
+    "kind": "report",
+    "domain": "templates",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "templates"
+    ],
+    "path": "reports/report-personal-readme-template-md.md"
+  },
+  {
+    "title": "\ud83d\udccb Portfolio Standardization \u2014 Execution Plan",
+    "summary": "**Status:** Ready to Execute **Date:** 2026-07-04",
+    "kind": "report",
+    "domain": "workspace",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "workspace"
+    ],
+    "path": "reports/report-portfolio-standardization-plan-md.md"
+  },
+  {
+    "title": "\ud83d\udd0d Audit Report \u2014 Sertxito Repositories",
+    "summary": "**Generated:** 2026-07-04 **Target:** Verify alignment of all boost_* repos + main repo",
+    "kind": "report",
+    "domain": "context",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "context"
+    ],
+    "path": "reports/report-audit-repos-sertxito-md.md"
   },
   {
     "title": "AGENTS.md \u2014 Enterprise Global Contract",
@@ -382,6 +2814,253 @@
     "path": "routing/prompt-architecture-review-prompt-md.md"
   },
   {
+    "title": "auto-route.prompt.md",
+    "summary": "Objetivo: enrutar una solicitud al agente y motor correctos con Always-On activo.",
+    "kind": "prompt",
+    "domain": "prompts",
+    "section": "routing",
+    "tags": [
+      "prompt",
+      "routing",
+      "prompts"
+    ],
+    "path": "routing/prompt-auto-route-prompt-md.md"
+  },
+  {
+    "title": "azure-rag.query.prompt.md",
+    "summary": "Objetivo: responder consultas corporativas con rag-azure usando Azure RAG Builder.",
+    "kind": "prompt",
+    "domain": "prompts",
+    "section": "routing",
+    "tags": [
+      "prompt",
+      "routing",
+      "prompts"
+    ],
+    "path": "routing/prompt-azure-rag-query-prompt-md.md"
+  },
+  {
+    "title": "backend.fix-bug.prompt.md",
+    "summary": "Objetivo: corregir bug de backend con cambio minimo y validacion real.",
+    "kind": "prompt",
+    "domain": "prompts",
+    "section": "routing",
+    "tags": [
+      "prompt",
+      "routing",
+      "prompts"
+    ],
+    "path": "routing/prompt-backend-fix-bug-prompt-md.md"
+  },
+  {
+    "title": "cavecrew.prompt.md",
+    "summary": "Objetivo: orquestar subagentes por rol con salida compacta.",
+    "kind": "prompt",
+    "domain": "prompts",
+    "section": "routing",
+    "tags": [
+      "prompt",
+      "routing",
+      "prompts"
+    ],
+    "path": "routing/prompt-cavecrew-prompt-md.md"
+  },
+  {
+    "title": "caveman-commit.prompt.md",
+    "summary": "Generar commit message en Conventional Commits.",
+    "kind": "prompt",
+    "domain": "prompts",
+    "section": "routing",
+    "tags": [
+      "prompt",
+      "routing",
+      "prompts"
+    ],
+    "path": "routing/prompt-caveman-commit-prompt-md.md"
+  },
+  {
+    "title": "caveman-compress.prompt.md",
+    "summary": "Objetivo: comprimir contenido sin perder decisiones tecnicas.",
+    "kind": "prompt",
+    "domain": "prompts",
+    "section": "routing",
+    "tags": [
+      "prompt",
+      "routing",
+      "prompts"
+    ],
+    "path": "routing/prompt-caveman-compress-prompt-md.md"
+  },
+  {
+    "title": "caveman-debug.prompt.md",
+    "summary": "Objetivo: resolver debugging con salida corta y accionable.",
+    "kind": "prompt",
+    "domain": "prompts",
+    "section": "routing",
+    "tags": [
+      "prompt",
+      "routing",
+      "prompts"
+    ],
+    "path": "routing/prompt-caveman-debug-prompt-md.md"
+  },
+  {
+    "title": "caveman-help.prompt.md",
+    "summary": "Mostrar comandos caveman del repo y cuando usar cada uno.",
+    "kind": "prompt",
+    "domain": "prompts",
+    "section": "routing",
+    "tags": [
+      "prompt",
+      "routing",
+      "prompts"
+    ],
+    "path": "routing/prompt-caveman-help-prompt-md.md"
+  },
+  {
+    "title": "caveman-review.prompt.md",
+    "summary": "Hacer code review en formato caveman.",
+    "kind": "prompt",
+    "domain": "prompts",
+    "section": "routing",
+    "tags": [
+      "prompt",
+      "routing",
+      "prompts"
+    ],
+    "path": "routing/prompt-caveman-review-prompt-md.md"
+  },
+  {
+    "title": "caveman-stats.prompt.md",
+    "summary": "Objetivo: mostrar estado rapido de eficiencia.",
+    "kind": "prompt",
+    "domain": "prompts",
+    "section": "routing",
+    "tags": [
+      "prompt",
+      "routing",
+      "prompts"
+    ],
+    "path": "routing/prompt-caveman-stats-prompt-md.md"
+  },
+  {
+    "title": "caveman.prompt.md",
+    "summary": "Activar respuesta Caveman en este repo.",
+    "kind": "prompt",
+    "domain": "prompts",
+    "section": "routing",
+    "tags": [
+      "prompt",
+      "routing",
+      "prompts"
+    ],
+    "path": "routing/prompt-caveman-prompt-md.md"
+  },
+  {
+    "title": "community.post.prompt.md",
+    "summary": "Objetivo: generar contenido de comunidad basado en conocimiento real del repo.",
+    "kind": "prompt",
+    "domain": "prompts",
+    "section": "routing",
+    "tags": [
+      "prompt",
+      "routing",
+      "prompts"
+    ],
+    "path": "routing/prompt-community-post-prompt-md.md"
+  },
+  {
+    "title": "dba.query-review.prompt.md",
+    "summary": "Objetivo: revisar consultas SQL y riesgos de rendimiento/seguridad.",
+    "kind": "prompt",
+    "domain": "prompts",
+    "section": "routing",
+    "tags": [
+      "prompt",
+      "routing",
+      "prompts"
+    ],
+    "path": "routing/prompt-dba-query-review-prompt-md.md"
+  },
+  {
+    "title": "dev.fix-bug.prompt.md",
+    "summary": "Objetivo: corregir bug con cambio minimo y validacion real.",
+    "kind": "prompt",
+    "domain": "prompts",
+    "section": "routing",
+    "tags": [
+      "prompt",
+      "routing",
+      "prompts"
+    ],
+    "path": "routing/prompt-dev-fix-bug-prompt-md.md"
+  },
+  {
+    "title": "frontend.code.prompt.md",
+    "summary": "Objetivo: implementar o corregir codigo frontend con cambio minimo, preservando UX existente y validacion real.",
+    "kind": "prompt",
+    "domain": "prompts",
+    "section": "routing",
+    "tags": [
+      "prompt",
+      "routing",
+      "prompts"
+    ],
+    "path": "routing/prompt-frontend-code-prompt-md.md"
+  },
+  {
+    "title": "project.kickoff-analysis.prompt.md",
+    "summary": "Objetivo: analizar un alcance funcional desde la raiz del repositorio, seleccionar el agente y motor correctos segun la necesidad real, y dejar un arranque operativo con evidencias, gaps y siguientes pasos.",
+    "kind": "prompt",
+    "domain": "prompts",
+    "section": "routing",
+    "tags": [
+      "prompt",
+      "routing",
+      "prompts"
+    ],
+    "path": "routing/prompt-project-kickoff-analysis-prompt-md.md"
+  },
+  {
+    "title": "rag.knowledge-answer.prompt.md",
+    "summary": "Objetivo: responder preguntas tecnicas con rag-local y Graphify.",
+    "kind": "prompt",
+    "domain": "prompts",
+    "section": "routing",
+    "tags": [
+      "prompt",
+      "routing",
+      "prompts"
+    ],
+    "path": "routing/prompt-rag-knowledge-answer-prompt-md.md"
+  },
+  {
+    "title": "token-saver-review.prompt.md",
+    "summary": "Objetivo: auditar uso de contexto y reducir coste sin perder grounding.",
+    "kind": "prompt",
+    "domain": "prompts",
+    "section": "routing",
+    "tags": [
+      "prompt",
+      "routing",
+      "prompts"
+    ],
+    "path": "routing/prompt-token-saver-review-prompt-md.md"
+  },
+  {
+    "title": "ux-ui.review.prompt.md",
+    "summary": "Objetivo: revisar y gobernar UX/UI con foco en consistencia, accesibilidad y design intent.",
+    "kind": "prompt",
+    "domain": "prompts",
+    "section": "routing",
+    "tags": [
+      "prompt",
+      "routing",
+      "prompts"
+    ],
+    "path": "routing/prompt-ux-ui-review-prompt-md.md"
+  },
+  {
     "title": "Skill: Architecture Review",
     "summary": "Skill operativa del boost backend.",
     "kind": "skill",
@@ -406,6 +3085,123 @@
       "backend"
     ],
     "path": "skills/skill-dependency-analysis-md.md"
+  },
+  {
+    "title": "discovery",
+    "summary": "\"Skill for the Discovery area of MCP Efficiency Engine. 15 symbols across 2 files.\"",
+    "kind": "skill",
+    "domain": "discovery",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "discovery"
+    ],
+    "path": "skills/skill-discovery.md"
+  },
+  {
+    "title": "gitnexus-cli",
+    "summary": "\"Use when the user needs to run GitNexus CLI commands like analyze/index a repo, check status, clean the index, generate a wiki, or list indexed repos. Examples: \\\"Index this repo\\\", \\\"Reanalyze the codebase\\\", \\\"Generate a wiki\\\"\"",
+    "kind": "skill",
+    "domain": "gitnexus-cli",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "gitnexus-cli"
+    ],
+    "path": "skills/skill-gitnexus-cli.md"
+  },
+  {
+    "title": "gitnexus-debugging",
+    "summary": "\"Use when the user is debugging a bug, tracing an error, or asking why something fails. Examples: \\\"Why is X failing?\\\", \\\"Where does this error come from?\\\", \\\"Trace this bug\\\"\"",
+    "kind": "skill",
+    "domain": "gitnexus-debugging",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "gitnexus-debugging"
+    ],
+    "path": "skills/skill-gitnexus-debugging.md"
+  },
+  {
+    "title": "gitnexus-exploring",
+    "summary": "\"Use when the user asks how code works, wants to understand architecture, trace execution flows, or explore unfamiliar parts of the codebase. Examples: \\\"How does X work?\\\", \\\"What calls this function?\\\", \\\"Show me the auth flow\\\"\"",
+    "kind": "skill",
+    "domain": "gitnexus-exploring",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "gitnexus-exploring"
+    ],
+    "path": "skills/skill-gitnexus-exploring.md"
+  },
+  {
+    "title": "gitnexus-guide",
+    "summary": "\"Use when the user asks about GitNexus itself \u2014 available tools, how to query the knowledge graph, MCP resources, graph schema, or workflow reference. Examples: \\\"What GitNexus tools are available?\\\", \\\"How do I use GitNexus?\\\"\"",
+    "kind": "skill",
+    "domain": "gitnexus-guide",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "gitnexus-guide"
+    ],
+    "path": "skills/skill-gitnexus-guide.md"
+  },
+  {
+    "title": "gitnexus-impact-analysis",
+    "summary": "\"Use when the user wants to know what will break if they change something, or needs safety analysis before editing code. Examples: \\\"Is it safe to change X?\\\", \\\"What depends on this?\\\", \\\"What will break?\\\"\"",
+    "kind": "skill",
+    "domain": "gitnexus-impact-analysis",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "gitnexus-impact-analysis"
+    ],
+    "path": "skills/skill-gitnexus-impact-analysis.md"
+  },
+  {
+    "title": "gitnexus-refactoring",
+    "summary": "\"Use when the user wants to rename, extract, split, move, or restructure code safely. Examples: \\\"Rename this function\\\", \\\"Extract this into a module\\\", \\\"Refactor this class\\\", \\\"Move this to a separate file\\\"\"",
+    "kind": "skill",
+    "domain": "gitnexus-refactoring",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "gitnexus-refactoring"
+    ],
+    "path": "skills/skill-gitnexus-refactoring.md"
+  },
+  {
+    "title": "intake",
+    "summary": "\"Skill for the Intake area of MCP Efficiency Engine. 39 symbols across 5 files.\"",
+    "kind": "skill",
+    "domain": "intake",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "intake"
+    ],
+    "path": "skills/skill-intake.md"
+  },
+  {
+    "title": "learning",
+    "summary": "\"Skill for the Learning area of MCP Efficiency Engine. 23 symbols across 4 files.\"",
+    "kind": "skill",
+    "domain": "learning",
+    "section": "skills",
+    "tags": [
+      "skill",
+      "skills",
+      "learning"
+    ],
+    "path": "skills/skill-learning.md"
   },
   {
     "title": "Spec: Clean Architecture",

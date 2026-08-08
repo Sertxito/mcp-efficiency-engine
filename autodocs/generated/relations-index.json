@@ -90,6 +90,12 @@
     "target": "repo-content::README.md"
   },
   {
+    "source": "repo-content::FINAL_USAGE_GUIDE.md",
+    "source_title": "Gu\u00eda de uso \u2014 MCP Efficiency Engine",
+    "type": "extends",
+    "target": "repo-content::scripts/README.md"
+  },
+  {
     "source": "repo-content::policies/context-policy.md",
     "source_title": "Context Policy",
     "type": "governs",

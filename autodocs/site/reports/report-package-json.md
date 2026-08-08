@@ -1,26 +1,26 @@
-# mcp-efficiency-engine
+# mcpee-backend
 
-Motor de orquestacion capability-centric v2 para agentes MCP con optimizacion always-on.
+Backend boost for MCP Efficiency Engine.
 
 ## Contexto
 
 - kind: report
-- domain: packaging
+- domain: backend
 - section: reports
 - provider: repo-content
-- checksum: 31285c888691de85bd21d2e368ae1757729a557dc85d40d54aa92f0e06fd9144
-- owner: repo
-- tags: report, reports, packaging, json
+- checksum: 490dd52ac0d4088153c16089095caeece6114a9f98d349eec0ecbd5c2229c4e9
+- owner: backend
+- tags: report, reports, backend, json
 
 ## Navegacion
 
 - section_index: [reports](index.md)
 - wiki_home: [autodocs](../index.md)
-- related_in_section: [AutoDocs](report-autodocs-readme-md.md), [AutoDocs Analysis](report-autodocs-analysis-mcpee-readme-md.md), [AutoDocs Projection Engine](report-readme-wiki-md.md)
+- related_in_section: ["[BUG] "](report-bug-md.md), ["[FEATURE] "](report-feature-request-md.md), ["[QUESTION] "](report-question-md.md)
 
 ## Fuentes
 
-- [package.json](../../package.json)
+- [boosts/backend/package.json](../../boosts/backend/package.json)
 
 ## Relaciones
 
@@ -35,20 +35,20 @@ Motor de orquestacion capability-centric v2 para agentes MCP con optimizacion al
 
 ```json
 {
-  "title": "mcp-efficiency-engine",
+  "title": "mcpee-backend",
   "slug": "report-package-json",
   "kind": "report",
   "section": "reports",
-  "domain": "packaging",
-  "summary": "Motor de orquestacion capability-centric v2 para agentes MCP con optimizacion always-on.",
-  "owner": "repo",
+  "domain": "backend",
+  "summary": "Backend boost for MCP Efficiency Engine.",
+  "owner": "backend",
   "source_refs": [
-    "package.json"
+    "boosts/backend/package.json"
   ],
   "tags": [
     "report",
     "reports",
-    "packaging",
+    "backend",
     "json"
   ]
 }
