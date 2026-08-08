@@ -15,13 +15,13 @@ Repo origen (owner/repo). Por defecto: Sertxito/mcp-efficiency-engine
 Repo destino (owner/repo). Por defecto: Sertxito/boost_sertxIA
 
 .PARAMETER FilesPattern
-Patrón glob para filtrar archivos a sincronizar. Por defecto: projects/**
+Patrón glob para filtrar archivos a sincronizar. Por defecto: autodocs/**
 
 .PARAMETER BranchName
 Nombre de rama para PR. Por defecto: sync/{timestamp}
 
 .EXAMPLE
-.\sync-repo.ps1 -FilesPattern "projects/**" -DryRun
+.\sync-repo.ps1 -FilesPattern "autodocs/**" -DryRun
 
 .EXAMPLE
 .\sync-repo.ps1 -SourceRepo "Sertxito/mcp-efficiency-engine" -TargetRepo "Sertxito/boost_sertxIA"
@@ -31,7 +31,7 @@ Nombre de rama para PR. Por defecto: sync/{timestamp}
 param(
   [string]$SourceRepo = "Sertxito/mcp-efficiency-engine",
   [string]$TargetRepo = "Sertxito/boost_sertxIA",
-  [string]$FilesPattern = "projects/**",
+  [string]$FilesPattern = "autodocs/**",
   [string]$BranchName = "sync/$(Get-Date -Format 'yyyyMMdd-HHmmss')",
   [switch]$DryRun
 )

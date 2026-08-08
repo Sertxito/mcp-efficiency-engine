@@ -1,9 +1,9 @@
 param(
-    [string]$RunsRoot = ".\projects\TSS2026\analysis_mcpee\demo_runs",
+    [string]$RunsRoot = ".\autodocs\analysis_mcpee\demo_runs",
     [string]$OutputPath,
-    [string]$QualityPath = ".\projects\TSS2026\analysis_mcpee\demo-quality-rubric.json",
-    [string]$TokenMetricsPath = ".\projects\TSS2026\analysis_mcpee\demo-token-metrics.json",
-    [string]$McpSimMetricsPath = ".\projects\TSS2026\analysis_mcpee\demo-mcp-sim-metrics.json",
+    [string]$QualityPath = ".\autodocs\analysis_mcpee\demo-quality-rubric.json",
+    [string]$TokenMetricsPath = ".\autodocs\analysis_mcpee\demo-token-metrics.json",
+    [string]$McpSimMetricsPath = ".\autodocs\analysis_mcpee\demo-mcp-sim-metrics.json",
     [switch]$ShowConsole = $true
 )
 

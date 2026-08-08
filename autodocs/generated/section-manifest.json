@@ -69,9 +69,9 @@
     ]
   },
   {
-    "id": "projects",
-    "title": "Projects",
-    "description": "Proyectos o dominios servidos por MCP Efficiency Engine.",
+    "id": "domains",
+    "title": "Domains",
+    "description": "Dominios funcionales servidos por MCP Efficiency Engine.",
     "page_count": 0,
     "pages": []
   },

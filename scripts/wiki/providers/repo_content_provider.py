@@ -20,7 +20,7 @@ class RepoContentProvider(BaseWikiProvider):
         entities.extend(self._collect_policies())
         entities.extend(self._collect_specs())
         entities.extend(self._collect_observability())
-        entities.extend(self._collect_projects())
+        entities.extend(self._collect_domains())
         entities.extend(self._collect_routing())
         entities.extend(self._collect_reports())
         self._enrich_relations(entities)
@@ -112,27 +112,27 @@ class RepoContentProvider(BaseWikiProvider):
             entities.append(self._entity_from_json(path, kind="report", section="observability", domain="observability"))
         return entities
 
-    def _collect_projects(self) -> List[Dict[str, Any]]:
-        projects_dir = self.repo_root / "projects"
-        if not projects_dir.exists():
+    def _collect_domains(self) -> List[Dict[str, Any]]:
+        domains_dir = self.repo_root / "domains"
+        if not domains_dir.exists():
             return []
         entities: List[Dict[str, Any]] = []
-        for path in sorted(projects_dir.iterdir()):
+        for path in sorted(domains_dir.iterdir()):
             if not path.is_dir():
                 continue
             if not self._is_tracked(path):
                 continue
-            summary = f"Espacio de proyecto interno ubicado en {self._relative(path)}."
+            summary = f"Espacio de dominio interno ubicado en {self._relative(path)}."
             payload = {
                 "title": path.name,
                 "slug": self._slug_for("project", path),
                 "kind": "project",
-                "section": "projects",
-                "domain": "projects",
+                "section": "domains",
+                "domain": "domains",
                 "summary": summary,
                 "owner": "repo",
                 "source_refs": [self._relative(path)],
-                "tags": ["project", "workspace"],
+                "tags": ["domain", "workspace"],
             }
             entities.append(self._entity(path.name, payload))
         return entities

@@ -14,7 +14,6 @@ context/graphify-out/cache/
 context/repomix/repomix-output.xml
 graphify-out/
 observability/logs/
-projects/
 repo-intake/generated/
 
 *.log

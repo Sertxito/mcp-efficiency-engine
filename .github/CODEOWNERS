@@ -21,14 +21,12 @@
 /policies/                                @Sertxito
 /optimization/                            @Sertxito
 /autodocs/                                @Sertxito
+/autodocs/generated/                       @Sertxito
 
 # Repository intake and context
 /repo-intake/                             @Sertxito
 /context/                                 @Sertxito
 /repo-registry/                           @Sertxito
-
-# Project structure
-/projects/                                @Sertxito
 
 # Root configuration files
 /.gitignore                               @Sertxito

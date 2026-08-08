@@ -1,5 +1,5 @@
 param(
-    [string]$ConfigPath = ".\projects\TSS2026\analysis_mcpee\demo-session.config.json",
+    [string]$ConfigPath = ".\autodocs\analysis_mcpee\demo-session.config.json",
     [switch]$StopOnError,
     [switch]$DryRun
 )

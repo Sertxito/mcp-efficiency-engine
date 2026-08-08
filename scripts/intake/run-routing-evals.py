@@ -41,7 +41,12 @@ def parse_event_ids(path: Path) -> set[str]:
     return ids
 
 
-def run_case(repo_root: Path, case: dict[str, Any], routing_log: Path) -> tuple[bool, str, str | None]:
+def run_case(
+    repo_root: Path,
+    case: dict[str, Any],
+    routing_log: Path,
+    metrics_log: Path,
+) -> tuple[bool, str, str | None]:
     before_ids = parse_event_ids(routing_log)
     cmd = [
         sys.executable,
@@ -56,6 +61,10 @@ def run_case(repo_root: Path, case: dict[str, Any], routing_log: Path) -> tuple[
         str(case.get("source_type", "technical-docs")),
         "--capability",
         str(case.get("capability", "")),
+        "--output",
+        str(routing_log),
+        "--metrics-output",
+        str(metrics_log),
     ]
     proc = subprocess.run(cmd, cwd=str(repo_root), capture_output=True, text=True)
     output = (proc.stdout or "") + (proc.stderr or "")
@@ -69,7 +78,13 @@ def run_case(repo_root: Path, case: dict[str, Any], routing_log: Path) -> tuple[
     return proc.returncode == 0, output, event_id
 
 
-def record_feedback(repo_root: Path, event_id: str, case_id: str) -> tuple[bool, str]:
+def record_feedback(
+    repo_root: Path,
+    event_id: str,
+    case_id: str,
+    routing_log: Path,
+    feedback_log: Path,
+) -> tuple[bool, str]:
     cmd = [
         sys.executable,
         str((repo_root / "scripts/learning/record-learning-feedback.py").resolve()),
@@ -83,6 +98,10 @@ def record_feedback(repo_root: Path, event_id: str, case_id: str) -> tuple[bool,
         "ci",
         "--notes",
         f"routing-eval-pass:{case_id}",
+        "--routing-log",
+        str(routing_log),
+        "--output",
+        str(feedback_log),
     ]
     proc = subprocess.run(cmd, cwd=str(repo_root), capture_output=True, text=True)
     output = (proc.stdout or "") + (proc.stderr or "")
@@ -93,10 +112,19 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Run routing eval cases and write JSON report.")
     parser.add_argument("--cases", default="observability/evals/routing-eval-cases.json")
     parser.add_argument("--report", default="observability/evals/routing-eval-report.json")
+    parser.add_argument("--routing-log", default="observability/logs/evals/routing-decisions.eval.jsonl")
+    parser.add_argument("--feedback-log", default="observability/logs/evals/learning-feedback.eval.jsonl")
+    parser.add_argument("--metrics-log", default="observability/logs/evals/iteration-metrics.eval.jsonl")
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[2]
-    routing_log = (repo_root / "observability/logs/routing-decisions.jsonl").resolve()
+    routing_log = (repo_root / args.routing_log).resolve()
+    feedback_log = (repo_root / args.feedback_log).resolve()
+    metrics_log = (repo_root / args.metrics_log).resolve()
+
+    routing_log.parent.mkdir(parents=True, exist_ok=True)
+    feedback_log.parent.mkdir(parents=True, exist_ok=True)
+    metrics_log.parent.mkdir(parents=True, exist_ok=True)
     cases_path = (repo_root / args.cases).resolve()
     if not cases_path.exists():
         print(f"Missing eval cases file: {cases_path}")
@@ -107,13 +135,13 @@ def main() -> int:
     passed = 0
 
     for case in cases:
-        ok, output, event_id = run_case(repo_root, case, routing_log)
+        ok, output, event_id = run_case(repo_root, case, routing_log, metrics_log)
         feedback_ok = False
         feedback_output = ""
         case_id = str(case.get("id", "unknown"))
 
         if ok and event_id:
-            feedback_ok, feedback_output = record_feedback(repo_root, event_id, case_id)
+            feedback_ok, feedback_output = record_feedback(repo_root, event_id, case_id, routing_log, feedback_log)
         if ok:
             passed += 1
         results.append(

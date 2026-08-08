@@ -1,5 +1,5 @@
 param(
-    [string]$ConfigPath = ".\projects\TSS2026\analysis_mcpee\demo-session.config.json",
+    [string]$ConfigPath = ".\autodocs\analysis_mcpee\demo-session.config.json",
     [switch]$StopOnError,
     [switch]$DryRun,
     [switch]$ShowConsoleSummary = $true
@@ -394,7 +394,7 @@ if ($null -eq $config.steps -or @($config.steps).Count -eq 0) {
 }
 
 $outputRootRaw = if ([string]::IsNullOrWhiteSpace([string]$config.output_root)) {
-    '.\projects\TSS2026\analysis_mcpee\demo_runs'
+    '.\autodocs\analysis_mcpee\demo_runs'
 } else {
     [string]$config.output_root
 }

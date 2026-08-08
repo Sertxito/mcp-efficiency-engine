@@ -1,5 +1,5 @@
 {
-  "last_updated": "sha256:4207fdddcea05bb6f00c9812c03f549926486a14f94791390d26499ea0ca79b7",
+  "last_updated": "sha256:627447bc8c091143a9c1394fae35cbc2280e74ef1a90c6a6816d7ce344de2951",
   "nodes": {
     "repo-content::README.md": {
       "node_id": "repo-content::README.md",
@@ -3524,13 +3524,13 @@
       "node_id": "repo-content::AGENTS.md",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "f1baff8c1a7b2215d901f11c3b2b9d523d0479686a8950bdb398d62ce8ea5c68",
+      "checksum": "10be5e7e0a05a36542eeb29c684d2675d888a86ff85db5e1e1f9ddcede427b9e",
       "title": "AGENTS.md \u2014 Enterprise Global Contract",
       "slug": "report-agents-md",
       "kind": "report",
       "domain": "routing",
       "owner": "repo",
-      "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
+      "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un alcance concreto, persistir trazabilidad en `autodocs/analysis_mcpee/`.",
       "source_refs": [
         "AGENTS.md"
       ],
@@ -3562,7 +3562,7 @@
         "kind": "report",
         "section": "routing",
         "domain": "routing",
-        "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
+        "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un alcance concreto, persistir trazabilidad en `autodocs/analysis_mcpee/`.",
         "owner": "repo",
         "source_refs": [
           "AGENTS.md"
@@ -5835,14 +5835,14 @@
       "node_id": "repo-content::AGENTS.md",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "f1baff8c1a7b2215d901f11c3b2b9d523d0479686a8950bdb398d62ce8ea5c68",
+      "checksum": "10be5e7e0a05a36542eeb29c684d2675d888a86ff85db5e1e1f9ddcede427b9e",
       "metadata": {
         "title": "AGENTS.md \u2014 Enterprise Global Contract",
         "slug": "report-agents-md",
         "kind": "report",
         "section": "routing",
         "domain": "routing",
-        "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
+        "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un alcance concreto, persistir trazabilidad en `autodocs/analysis_mcpee/`.",
         "owner": "repo",
         "source_refs": [
           "AGENTS.md"
@@ -9600,13 +9600,13 @@
       "node_id": "repo-content::AGENTS.md",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "f1baff8c1a7b2215d901f11c3b2b9d523d0479686a8950bdb398d62ce8ea5c68",
+      "checksum": "10be5e7e0a05a36542eeb29c684d2675d888a86ff85db5e1e1f9ddcede427b9e",
       "title": "AGENTS.md \u2014 Enterprise Global Contract",
       "slug": "report-agents-md",
       "kind": "report",
       "domain": "routing",
       "owner": "repo",
-      "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
+      "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un alcance concreto, persistir trazabilidad en `autodocs/analysis_mcpee/`.",
       "source_refs": [
         "AGENTS.md"
       ],
@@ -9638,7 +9638,7 @@
         "kind": "report",
         "section": "routing",
         "domain": "routing",
-        "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
+        "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un alcance concreto, persistir trazabilidad en `autodocs/analysis_mcpee/`.",
         "owner": "repo",
         "source_refs": [
           "AGENTS.md"
@@ -10328,9 +10328,9 @@
         ]
       },
       {
-        "id": "projects",
-        "title": "Projects",
-        "description": "Proyectos o dominios servidos por MCP Efficiency Engine.",
+        "id": "domains",
+        "title": "Domains",
+        "description": "Dominios funcionales servidos por MCP Efficiency Engine.",
         "page_count": 0,
         "pages": []
       },
@@ -10921,7 +10921,7 @@
     },
     {
       "title": "AGENTS.md \u2014 Enterprise Global Contract",
-      "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
+      "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un alcance concreto, persistir trazabilidad en `autodocs/analysis_mcpee/`.",
       "kind": "report",
       "domain": "routing",
       "section": "routing",
@@ -11962,9 +11962,9 @@
       ]
     },
     {
-      "id": "projects",
-      "title": "Projects",
-      "description": "Proyectos o dominios servidos por MCP Efficiency Engine.",
+      "id": "domains",
+      "title": "Domains",
+      "description": "Dominios funcionales servidos por MCP Efficiency Engine.",
       "page_count": 0,
       "pages": []
     },

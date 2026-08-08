@@ -1,6 +1,6 @@
 # AGENTS.md — Enterprise Global Contract
 
-2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.
+2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un alcance concreto, persistir trazabilidad en `autodocs/analysis_mcpee/`.
 
 ## Contexto
 
@@ -8,7 +8,7 @@
 - domain: routing
 - section: routing
 - provider: repo-content
-- checksum: f1baff8c1a7b2215d901f11c3b2b9d523d0479686a8950bdb398d62ce8ea5c68
+- checksum: 10be5e7e0a05a36542eeb29c684d2675d888a86ff85db5e1e1f9ddcede427b9e
 - owner: repo
 - tags: report, routing, routing
 
@@ -40,7 +40,7 @@
   "kind": "report",
   "section": "routing",
   "domain": "routing",
-  "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
+  "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un alcance concreto, persistir trazabilidad en `autodocs/analysis_mcpee/`.",
   "owner": "repo",
   "source_refs": [
     "AGENTS.md"

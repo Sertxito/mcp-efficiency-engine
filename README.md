@@ -175,7 +175,8 @@ flowchart TB
 - `repo-intake/`: generación de manifests/capabilities/audit.
 - `scripts/`: setup, intake, operaciones, contexto y learning.
 - `observability/`: esquemas, métricas y evaluaciones.
-- `projects/`: artefactos operativos por proyecto.
+- `autodocs/analysis_mcpee/`: artefactos operativos de analisis y trazabilidad.
+- `autodocs/generated/`: artefactos generados (grafos, indices, proyecciones).
 
 ## Quickstart (Windows)
 
@@ -334,14 +335,14 @@ py -3 .\scripts\intake\agent-pipeline-preflight.py
 py -3 .\scripts\intake\validate-repo-registry.py --strict
 ```
 
-### Flujo automatico al hacer commit en projects/
+### Flujo automatico al hacer commit en la raiz operativa
 
 Cuando instalas el engine en un proyecto host (`mcpee install`), se configura `core.hooksPath=.githooks` con un `post-commit` que ejecuta `scripts/ops/post-commit-refresh.ps1`.
 
 Comportamiento del hook:
 
-- si el ultimo commit no toca `projects/`, no hace nada
-- si detecta cambios en `projects/`, ejecuta:
+- si el ultimo commit no toca rutas relevantes, no hace nada
+- si detecta cambios relevantes, ejecuta:
   - `scripts/wiki/compiler_main.py` (AutoDocs incremental)
   - `scripts/learning/learning-loop-report.py`
   - `scripts/learning/iteration-value-report.py`
@@ -663,7 +664,7 @@ Reglas operativas clave:
 - No mezclar todos los motores a la vez.
 - Priorizar evidencia y fuentes cuando aplique.
 - En cambios de alto impacto, activar confirmación humana (HITL).
-- Mantener outputs de proyecto dentro de `projects/<nombre>/`.
+- Mantener outputs operativos dentro de `autodocs/analysis_mcpee/` y `autodocs/generated/`.
 
 ## Tooling Operativo
 
@@ -728,8 +729,8 @@ Artefactos y docs relacionadas:
 
 - JSON-first para artefactos operativos y reportes.
 - Cambios mínimos y seguros; evitar refactors fuera de scope.
-- Outputs específicos por proyecto dentro de `projects/<nombre>/`.
-- Diagnósticos MCP Efficiency Engine preferentemente en `projects/<nombre>/analysis_mcpee/`.
+- Outputs de analisis y trazabilidad en `autodocs/analysis_mcpee/`.
+- Artefactos generados en `autodocs/generated/`.
 
 ## Licencia
 
