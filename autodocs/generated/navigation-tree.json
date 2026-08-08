@@ -30,7 +30,7 @@
       "id": "skills",
       "title": "Skills",
       "description": "Skills, comandos y utilidades operativas consumibles por agentes.",
-      "page_count": 11,
+      "page_count": 2,
       "pages": [
         {
           "title": "Skill: Architecture Review",
@@ -41,51 +41,6 @@
           "title": "Skill: Dependency Analysis",
           "slug": "skill-dependency-analysis-md",
           "path": "skills/skill-dependency-analysis-md.md"
-        },
-        {
-          "title": "discovery",
-          "slug": "skill-discovery",
-          "path": "skills/skill-discovery.md"
-        },
-        {
-          "title": "gitnexus-cli",
-          "slug": "skill-gitnexus-cli",
-          "path": "skills/skill-gitnexus-cli.md"
-        },
-        {
-          "title": "gitnexus-debugging",
-          "slug": "skill-gitnexus-debugging",
-          "path": "skills/skill-gitnexus-debugging.md"
-        },
-        {
-          "title": "gitnexus-exploring",
-          "slug": "skill-gitnexus-exploring",
-          "path": "skills/skill-gitnexus-exploring.md"
-        },
-        {
-          "title": "gitnexus-guide",
-          "slug": "skill-gitnexus-guide",
-          "path": "skills/skill-gitnexus-guide.md"
-        },
-        {
-          "title": "gitnexus-impact-analysis",
-          "slug": "skill-gitnexus-impact-analysis",
-          "path": "skills/skill-gitnexus-impact-analysis.md"
-        },
-        {
-          "title": "gitnexus-refactoring",
-          "slug": "skill-gitnexus-refactoring",
-          "path": "skills/skill-gitnexus-refactoring.md"
-        },
-        {
-          "title": "intake",
-          "slug": "skill-intake",
-          "path": "skills/skill-intake.md"
-        },
-        {
-          "title": "learning",
-          "slug": "skill-learning",
-          "path": "skills/skill-learning.md"
         }
       ]
     },
@@ -93,7 +48,7 @@
       "id": "routing",
       "title": "Routing",
       "description": "Reglas de orquestacion y decisiones de enrutado.",
-      "page_count": 26,
+      "page_count": 7,
       "pages": [
         {
           "title": "AGENTS.md \u2014 Enterprise Global Contract",
@@ -129,101 +84,6 @@
           "title": "architecture-review.prompt",
           "slug": "prompt-architecture-review-prompt-md",
           "path": "routing/prompt-architecture-review-prompt-md.md"
-        },
-        {
-          "title": "auto-route.prompt.md",
-          "slug": "prompt-auto-route-prompt-md",
-          "path": "routing/prompt-auto-route-prompt-md.md"
-        },
-        {
-          "title": "azure-rag.query.prompt.md",
-          "slug": "prompt-azure-rag-query-prompt-md",
-          "path": "routing/prompt-azure-rag-query-prompt-md.md"
-        },
-        {
-          "title": "backend.fix-bug.prompt.md",
-          "slug": "prompt-backend-fix-bug-prompt-md",
-          "path": "routing/prompt-backend-fix-bug-prompt-md.md"
-        },
-        {
-          "title": "cavecrew.prompt.md",
-          "slug": "prompt-cavecrew-prompt-md",
-          "path": "routing/prompt-cavecrew-prompt-md.md"
-        },
-        {
-          "title": "caveman-commit.prompt.md",
-          "slug": "prompt-caveman-commit-prompt-md",
-          "path": "routing/prompt-caveman-commit-prompt-md.md"
-        },
-        {
-          "title": "caveman-compress.prompt.md",
-          "slug": "prompt-caveman-compress-prompt-md",
-          "path": "routing/prompt-caveman-compress-prompt-md.md"
-        },
-        {
-          "title": "caveman-debug.prompt.md",
-          "slug": "prompt-caveman-debug-prompt-md",
-          "path": "routing/prompt-caveman-debug-prompt-md.md"
-        },
-        {
-          "title": "caveman-help.prompt.md",
-          "slug": "prompt-caveman-help-prompt-md",
-          "path": "routing/prompt-caveman-help-prompt-md.md"
-        },
-        {
-          "title": "caveman-review.prompt.md",
-          "slug": "prompt-caveman-review-prompt-md",
-          "path": "routing/prompt-caveman-review-prompt-md.md"
-        },
-        {
-          "title": "caveman-stats.prompt.md",
-          "slug": "prompt-caveman-stats-prompt-md",
-          "path": "routing/prompt-caveman-stats-prompt-md.md"
-        },
-        {
-          "title": "caveman.prompt.md",
-          "slug": "prompt-caveman-prompt-md",
-          "path": "routing/prompt-caveman-prompt-md.md"
-        },
-        {
-          "title": "community.post.prompt.md",
-          "slug": "prompt-community-post-prompt-md",
-          "path": "routing/prompt-community-post-prompt-md.md"
-        },
-        {
-          "title": "dba.query-review.prompt.md",
-          "slug": "prompt-dba-query-review-prompt-md",
-          "path": "routing/prompt-dba-query-review-prompt-md.md"
-        },
-        {
-          "title": "dev.fix-bug.prompt.md",
-          "slug": "prompt-dev-fix-bug-prompt-md",
-          "path": "routing/prompt-dev-fix-bug-prompt-md.md"
-        },
-        {
-          "title": "frontend.code.prompt.md",
-          "slug": "prompt-frontend-code-prompt-md",
-          "path": "routing/prompt-frontend-code-prompt-md.md"
-        },
-        {
-          "title": "project.kickoff-analysis.prompt.md",
-          "slug": "prompt-project-kickoff-analysis-prompt-md",
-          "path": "routing/prompt-project-kickoff-analysis-prompt-md.md"
-        },
-        {
-          "title": "rag.knowledge-answer.prompt.md",
-          "slug": "prompt-rag-knowledge-answer-prompt-md",
-          "path": "routing/prompt-rag-knowledge-answer-prompt-md.md"
-        },
-        {
-          "title": "token-saver-review.prompt.md",
-          "slug": "prompt-token-saver-review-prompt-md",
-          "path": "routing/prompt-token-saver-review-prompt-md.md"
-        },
-        {
-          "title": "ux-ui.review.prompt.md",
-          "slug": "prompt-ux-ui-review-prompt-md",
-          "path": "routing/prompt-ux-ui-review-prompt-md.md"
         }
       ]
     },
@@ -238,7 +98,7 @@
       "id": "policies",
       "title": "Policies",
       "description": "Politicas y contratos operativos del repositorio.",
-      "page_count": 6,
+      "page_count": 4,
       "pages": [
         {
           "title": "Context Policy",
@@ -256,19 +116,9 @@
           "path": "policies/policy-repo-intake-policy-md.md"
         },
         {
-          "title": "Response Style Policy \u2014 Caveman Always On",
-          "slug": "policy-response-style-policy-md",
-          "path": "policies/policy-response-style-policy-md.md"
-        },
-        {
           "title": "Security Policy",
           "slug": "policy-security-policy-md",
           "path": "policies/policy-security-policy-md.md"
-        },
-        {
-          "title": "Token Budget Policy \u2014 Always On",
-          "slug": "policy-token-budget-policy-md",
-          "path": "policies/policy-token-budget-policy-md.md"
         }
       ]
     },
@@ -349,27 +199,12 @@
       "id": "observability",
       "title": "Observability",
       "description": "Telemetria, metricas y reportes del sistema.",
-      "page_count": 18,
+      "page_count": 7,
       "pages": [
-        {
-          "title": "Chat Token Usage Report",
-          "slug": "report-chat-token-usage-report-md",
-          "path": "observability/report-chat-token-usage-report-md.md"
-        },
         {
           "title": "Evaluation",
           "slug": "report-evaluation-md",
           "path": "observability/report-evaluation-md.md"
-        },
-        {
-          "title": "Iteration Value Report",
-          "slug": "report-iteration-value-report-md",
-          "path": "observability/report-iteration-value-report-md.md"
-        },
-        {
-          "title": "Learning Loop Report",
-          "slug": "report-learning-loop-report-md",
-          "path": "observability/report-learning-loop-report-md.md"
         },
         {
           "title": "Metrics",
@@ -382,19 +217,9 @@
           "path": "observability/report-logs-schema-md.md"
         },
         {
-          "title": "Repo Intake Eval Cases",
-          "slug": "report-repo-intake-eval-cases-md",
-          "path": "observability/report-repo-intake-eval-cases-md.md"
-        },
-        {
           "title": "Routing Decision Event",
-          "slug": "report-logs-schema-json",
-          "path": "observability/report-logs-schema-json.md"
-        },
-        {
-          "title": "Routing Eval Cases",
-          "slug": "report-routing-eval-cases-md",
-          "path": "observability/report-routing-eval-cases-md.md"
+          "slug": "report-observability-logs-schema-json",
+          "path": "observability/report-observability-logs-schema-json.md"
         },
         {
           "title": "Routing Evaluator",
@@ -408,38 +233,8 @@
         },
         {
           "title": "architecture-review.cases",
-          "slug": "report-architecture-review-cases-json",
-          "path": "observability/report-architecture-review-cases-json.md"
-        },
-        {
-          "title": "chat-token-usage-report",
-          "slug": "report-chat-token-usage-report-json",
-          "path": "observability/report-chat-token-usage-report-json.md"
-        },
-        {
-          "title": "iteration-value-report",
-          "slug": "report-iteration-value-report-json",
-          "path": "observability/report-iteration-value-report-json.md"
-        },
-        {
-          "title": "learning-loop-report",
-          "slug": "report-learning-loop-report-json",
-          "path": "observability/report-learning-loop-report-json.md"
-        },
-        {
-          "title": "routing-eval-cases",
-          "slug": "report-routing-eval-cases-json",
-          "path": "observability/report-routing-eval-cases-json.md"
-        },
-        {
-          "title": "telemetry-flow-cost-token-report",
-          "slug": "report-telemetry-flow-cost-token-report-json",
-          "path": "observability/report-telemetry-flow-cost-token-report-json.md"
-        },
-        {
-          "title": "telemetry-overhead-benchmark",
-          "slug": "report-telemetry-overhead-benchmark-json",
-          "path": "observability/report-telemetry-overhead-benchmark-json.md"
+          "slug": "report-evals-architecture-review-cases-json",
+          "path": "observability/report-evals-architecture-review-cases-json.md"
         }
       ]
     },
@@ -447,68 +242,8 @@
       "id": "reports",
       "title": "Reports",
       "description": "Reportes generados y artefactos de analisis.",
-      "page_count": 174,
+      "page_count": 9,
       "pages": [
-        {
-          "title": "\"[BUG] \"",
-          "slug": "report-bug-md",
-          "path": "reports/report-bug-md.md"
-        },
-        {
-          "title": "\"[FEATURE] \"",
-          "slug": "report-feature-request-md",
-          "path": "reports/report-feature-request-md.md"
-        },
-        {
-          "title": "\"[QUESTION] \"",
-          "slug": "report-question-md",
-          "path": "reports/report-question-md.md"
-        },
-        {
-          "title": ".markdownlint",
-          "slug": "report-markdownlint-json",
-          "path": "reports/report-markdownlint-json.md"
-        },
-        {
-          "title": ".token-saver",
-          "slug": "report-token-saver-json",
-          "path": "reports/report-token-saver-json.md"
-        },
-        {
-          "title": "57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0",
-          "slug": "report-57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0-json",
-          "path": "reports/report-57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0-json.md"
-        },
-        {
-          "title": "57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0-w1-0",
-          "slug": "report-57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0-w1-0-json",
-          "path": "reports/report-57751521a8554a4e624d52a25bbbd76888140807a95fec2271cc117ca94683a0-w1-0-json.md"
-        },
-        {
-          "title": "@mcpee/backend",
-          "slug": "report-mcpee-json",
-          "path": "reports/report-mcpee-json.md"
-        },
-        {
-          "title": "Always-On Optimization Instructions",
-          "slug": "report-always-on-optimization-instructions-md",
-          "path": "reports/report-always-on-optimization-instructions-md.md"
-        },
-        {
-          "title": "Always-On Optimization Policy",
-          "slug": "report-always-on-optimization-md",
-          "path": "reports/report-always-on-optimization-md.md"
-        },
-        {
-          "title": "Always-On Profile",
-          "slug": "report-always-on-profile-md",
-          "path": "reports/report-always-on-profile-md.md"
-        },
-        {
-          "title": "Architecture Profile",
-          "slug": "report-architecture-profile-md",
-          "path": "reports/report-architecture-profile-md.md"
-        },
         {
           "title": "AutoDocs",
           "slug": "report-autodocs-readme-md",
@@ -525,119 +260,9 @@
           "path": "reports/report-readme-wiki-md.md"
         },
         {
-          "title": "AutoDocs Wiki Node",
-          "slug": "report-wiki-node-schema-json",
-          "path": "reports/report-wiki-node-schema-json.md"
-        },
-        {
-          "title": "AutoLearning Loop",
-          "slug": "report-feedback-loop-md",
-          "path": "reports/report-feedback-loop-md.md"
-        },
-        {
-          "title": "Caveman Mode",
-          "slug": "report-caveman-mode-md",
-          "path": "reports/report-caveman-mode-md.md"
-        },
-        {
-          "title": "Context Manifest \u2014 {{REPO_NAME}}",
-          "slug": "report-context-manifest-template-md",
-          "path": "reports/report-context-manifest-template-md.md"
-        },
-        {
-          "title": "Copilot Instructions",
-          "slug": "report-copilot-instructions-md",
-          "path": "reports/report-copilot-instructions-md.md"
-        },
-        {
-          "title": "Cross Memory Reasoning",
-          "slug": "report-cross-memory-reasoning-md",
-          "path": "reports/report-cross-memory-reasoning-md.md"
-        },
-        {
-          "title": "Debug Profile",
-          "slug": "report-debug-profile-md",
-          "path": "reports/report-debug-profile-md.md"
-        },
-        {
-          "title": "Decisions",
-          "slug": "report-decisions-md",
-          "path": "reports/report-decisions-md.md"
-        },
-        {
-          "title": "Descripci\u00f3n",
-          "slug": "report-pull-request-template-md",
-          "path": "reports/report-pull-request-template-md.md"
-        },
-        {
-          "title": "Enterprise RAG Profile",
-          "slug": "report-enterprise-rag-profile-md",
-          "path": "reports/report-enterprise-rag-profile-md.md"
-        },
-        {
-          "title": "Example: Login Bug",
-          "slug": "report-login-bug-md",
-          "path": "reports/report-login-bug-md.md"
-        },
-        {
-          "title": "Example: Repo Intake",
-          "slug": "report-repo-intake-readme-md",
-          "path": "reports/report-repo-intake-readme-md.md"
-        },
-        {
-          "title": "Example: SLA Query",
-          "slug": "report-sla-query-md",
-          "path": "reports/report-sla-query-md.md"
-        },
-        {
-          "title": "Generated Skill Draft: backend.architecture.review",
-          "slug": "report-backend-architecture-review-md",
-          "path": "reports/report-backend-architecture-review-md.md"
-        },
-        {
-          "title": "Generated Skill Draft: backend.architecture.review",
-          "slug": "report-backend-architecture-review-md",
-          "path": "reports/report-backend-architecture-review-md.md"
-        },
-        {
-          "title": "GitHub MCP Integration",
-          "slug": "report-github-mcp-integration-md",
-          "path": "reports/report-github-mcp-integration-md.md"
-        },
-        {
-          "title": "GitHub MCP Scripts",
-          "slug": "report-github-readme-md",
-          "path": "reports/report-github-readme-md.md"
-        },
-        {
-          "title": "GitHub MCP Server \u2014 Referencia Oficial",
-          "slug": "report-github-mcp-references-md",
-          "path": "reports/report-github-mcp-references-md.md"
-        },
-        {
-          "title": "GitNexus \u2014 Code Intelligence",
-          "slug": "report-claude-md",
-          "path": "reports/report-claude-md.md"
-        },
-        {
-          "title": "Glossary",
-          "slug": "report-glossary-md",
-          "path": "reports/report-glossary-md.md"
-        },
-        {
-          "title": "Gu\u00eda de Instalaci\u00f3n y Uso \u2014 GitHub MCP Scripts",
-          "slug": "report-install-md",
-          "path": "reports/report-install-md.md"
-        },
-        {
           "title": "Gu\u00eda de uso \u2014 MCP Efficiency Engine",
           "slug": "report-final-usage-guide-md",
           "path": "reports/report-final-usage-guide-md.md"
-        },
-        {
-          "title": "Known Risks",
-          "slug": "report-known-risks-md",
-          "path": "reports/report-known-risks-md.md"
         },
         {
           "title": "MCP Efficiency Engine",
@@ -645,679 +270,24 @@
           "path": "reports/report-readme-md.md"
         },
         {
-          "title": "Model Pricing Reference (Usage-based)",
-          "slug": "report-model-pricing-reference-md",
-          "path": "reports/report-model-pricing-reference-md.md"
-        },
-        {
-          "title": "NPM Runtime Release Notes",
-          "slug": "report-npm-release-notes-md",
-          "path": "reports/report-npm-release-notes-md.md"
-        },
-        {
           "title": "OpenWiki Internal Blueprint",
           "slug": "report-autodocs-openwiki-internal-blueprint-md",
           "path": "reports/report-autodocs-openwiki-internal-blueprint-md.md"
         },
         {
-          "title": "Optimization Routing \u2014 Always On",
-          "slug": "report-optimization-routing-md",
-          "path": "reports/report-optimization-routing-md.md"
-        },
-        {
-          "title": "Repo Intake",
-          "slug": "report-repo-intake-readme-md",
-          "path": "reports/report-repo-intake-readme-md.md"
-        },
-        {
-          "title": "Repo Registry Schema",
-          "slug": "report-repos-schema-json",
-          "path": "reports/report-repos-schema-json.md"
-        },
-        {
-          "title": "Repo Routing",
-          "slug": "report-repo-routing-md",
-          "path": "reports/report-repo-routing-md.md"
-        },
-        {
-          "title": "Scripts Index",
-          "slug": "report-scripts-readme-md",
-          "path": "reports/report-scripts-readme-md.md"
-        },
-        {
-          "title": "Session Cost Estimate (Pre-flight)",
-          "slug": "report-session-cost-estimate-md",
-          "path": "reports/report-session-cost-estimate-md.md"
-        },
-        {
-          "title": "Token Saver",
-          "slug": "report-token-saver-md",
-          "path": "reports/report-token-saver-md.md"
-        },
-        {
-          "title": "Training Profile",
-          "slug": "report-training-profile-md",
-          "path": "reports/report-training-profile-md.md"
-        },
-        {
-          "title": "UnifiedKnowledgeGraph",
-          "slug": "report-unified-knowledge-graph-json",
-          "path": "reports/report-unified-knowledge-graph-json.md"
-        },
-        {
-          "title": "WikiProviderContract",
-          "slug": "report-provider-contract-json",
-          "path": "reports/report-provider-contract-json.md"
-        },
-        {
-          "title": "azure-rag-corporate-docs",
-          "slug": "report-azure-rag-corporate-docs-md",
-          "path": "reports/report-azure-rag-corporate-docs-md.md"
-        },
-        {
-          "title": "boostDBA",
-          "slug": "report-readme-boost-dba-md",
-          "path": "reports/report-readme-boost-dba-md.md"
-        },
-        {
-          "title": "boost_RAG-Azure",
-          "slug": "report-readme-boost-rag-azure-md",
-          "path": "reports/report-readme-boost-rag-azure-md.md"
-        },
-        {
-          "title": "boost_azure-iot-edge",
-          "slug": "report-readme-boost-azure-iot-edge-md",
-          "path": "reports/report-readme-boost-azure-iot-edge-md.md"
-        },
-        {
-          "title": "boost_backend",
-          "slug": "report-readme-boost-backend-md",
-          "path": "reports/report-readme-boost-backend-md.md"
-        },
-        {
-          "title": "boost_{FEATURE_NAME}",
-          "slug": "report-boost-readme-template-md",
-          "path": "reports/report-boost-readme-template-md.md"
-        },
-        {
-          "title": "bye-20260629-221513",
-          "slug": "report-bye-20260629-221513-json",
-          "path": "reports/report-bye-20260629-221513-json.md"
-        },
-        {
-          "title": "bye-20260629-221545",
-          "slug": "report-bye-20260629-221545-json",
-          "path": "reports/report-bye-20260629-221545-json.md"
-        },
-        {
-          "title": "bye-20260629-222007",
-          "slug": "report-bye-20260629-222007-json",
-          "path": "reports/report-bye-20260629-222007-json.md"
-        },
-        {
-          "title": "bye-20260629-222133",
-          "slug": "report-bye-20260629-222133-json",
-          "path": "reports/report-bye-20260629-222133-json.md"
-        },
-        {
-          "title": "bye-20260629-222412",
-          "slug": "report-bye-20260629-222412-json",
-          "path": "reports/report-bye-20260629-222412-json.md"
-        },
-        {
-          "title": "bye-20260629-223224",
-          "slug": "report-bye-20260629-223224-json",
-          "path": "reports/report-bye-20260629-223224-json.md"
-        },
-        {
-          "title": "bye-20260629-224050",
-          "slug": "report-bye-20260629-224050-json",
-          "path": "reports/report-bye-20260629-224050-json.md"
-        },
-        {
-          "title": "bye-20260630-105732",
-          "slug": "report-bye-20260630-105732-json",
-          "path": "reports/report-bye-20260630-105732-json.md"
-        },
-        {
-          "title": "bye-20260630-211536",
-          "slug": "report-bye-20260630-211536-json",
-          "path": "reports/report-bye-20260630-211536-json.md"
-        },
-        {
-          "title": "bye-20260630-223423",
-          "slug": "report-bye-20260630-223423-json",
-          "path": "reports/report-bye-20260630-223423-json.md"
-        },
-        {
-          "title": "bye-20260630-232534",
-          "slug": "report-bye-20260630-232534-json",
-          "path": "reports/report-bye-20260630-232534-json.md"
-        },
-        {
-          "title": "bye-20260701-003638",
-          "slug": "report-bye-20260701-003638-json",
-          "path": "reports/report-bye-20260701-003638-json.md"
-        },
-        {
-          "title": "bye-20260701-003849",
-          "slug": "report-bye-20260701-003849-json",
-          "path": "reports/report-bye-20260701-003849-json.md"
-        },
-        {
-          "title": "bye-20260701-004315",
-          "slug": "report-bye-20260701-004315-json",
-          "path": "reports/report-bye-20260701-004315-json.md"
-        },
-        {
-          "title": "bye-20260701-004559",
-          "slug": "report-bye-20260701-004559-json",
-          "path": "reports/report-bye-20260701-004559-json.md"
-        },
-        {
-          "title": "bye-20260701-005913",
-          "slug": "report-bye-20260701-005913-json",
-          "path": "reports/report-bye-20260701-005913-json.md"
-        },
-        {
-          "title": "bye-20260701-010753",
-          "slug": "report-bye-20260701-010753-json",
-          "path": "reports/report-bye-20260701-010753-json.md"
-        },
-        {
-          "title": "bye-20260703-194106",
-          "slug": "report-bye-20260703-194106-json",
-          "path": "reports/report-bye-20260703-194106-json.md"
-        },
-        {
-          "title": "bye-20260703-233443",
-          "slug": "report-bye-20260703-233443-json",
-          "path": "reports/report-bye-20260703-233443-json.md"
-        },
-        {
-          "title": "bye-20260703-233653",
-          "slug": "report-bye-20260703-233653-json",
-          "path": "reports/report-bye-20260703-233653-json.md"
-        },
-        {
-          "title": "bye-20260711-230744",
-          "slug": "report-bye-20260711-230744-json",
-          "path": "reports/report-bye-20260711-230744-json.md"
-        },
-        {
-          "title": "bye-20260712-161558",
-          "slug": "report-bye-20260712-161558-json",
-          "path": "reports/report-bye-20260712-161558-json.md"
-        },
-        {
-          "title": "bye-20260713-213007",
-          "slug": "report-bye-20260713-213007-json",
-          "path": "reports/report-bye-20260713-213007-json.md"
-        },
-        {
-          "title": "bye-20260721-165950",
-          "slug": "report-bye-20260721-165950-json",
-          "path": "reports/report-bye-20260721-165950-json.md"
-        },
-        {
-          "title": "c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea",
-          "slug": "report-c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea-json",
-          "path": "reports/report-c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea-json.md"
-        },
-        {
-          "title": "c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea-w1-0",
-          "slug": "report-c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea-w1-0-json",
-          "path": "reports/report-c8123f841023d7f92e8803cf0ce02d180f6eab7e646e362a3eff5a8bc3e663ea-w1-0-json.md"
-        },
-        {
-          "title": "capabilities",
-          "slug": "report-capabilities-json",
-          "path": "reports/report-capabilities-json.md"
-        },
-        {
-          "title": "community-content",
-          "slug": "report-community-content-md",
-          "path": "reports/report-community-content-md.md"
-        },
-        {
-          "title": "config",
-          "slug": "report-config-json",
-          "path": "reports/report-config-json.md"
-        },
-        {
-          "title": "copilot-usage-ingest-report",
-          "slug": "report-copilot-usage-ingest-report-json",
-          "path": "reports/report-copilot-usage-ingest-report-json.md"
-        },
-        {
-          "title": "dev-modern",
-          "slug": "report-dev-modern-md",
-          "path": "reports/report-dev-modern-md.md"
-        },
-        {
-          "title": "exec-00f7514d-7421-4498-822b-eddd1a45b26a",
-          "slug": "report-exec-00f7514d-7421-4498-822b-eddd1a45b26a-json",
-          "path": "reports/report-exec-00f7514d-7421-4498-822b-eddd1a45b26a-json.md"
-        },
-        {
-          "title": "exec-21493e6a-d63c-47bf-9d0c-6c0bce5eff97",
-          "slug": "report-exec-21493e6a-d63c-47bf-9d0c-6c0bce5eff97-json",
-          "path": "reports/report-exec-21493e6a-d63c-47bf-9d0c-6c0bce5eff97-json.md"
-        },
-        {
-          "title": "exec-e20c0cac-ae89-4d42-bff2-4014c4e66d64",
-          "slug": "report-exec-e20c0cac-ae89-4d42-bff2-4014c4e66d64-json",
-          "path": "reports/report-exec-e20c0cac-ae89-4d42-bff2-4014c4e66d64-json.md"
-        },
-        {
-          "title": "hi-20260629-221459",
-          "slug": "report-hi-20260629-221459-json",
-          "path": "reports/report-hi-20260629-221459-json.md"
-        },
-        {
-          "title": "hi-20260629-221945",
-          "slug": "report-hi-20260629-221945-json",
-          "path": "reports/report-hi-20260629-221945-json.md"
-        },
-        {
-          "title": "hi-20260629-222108",
-          "slug": "report-hi-20260629-222108-json",
-          "path": "reports/report-hi-20260629-222108-json.md"
-        },
-        {
-          "title": "hi-20260629-222352",
-          "slug": "report-hi-20260629-222352-json",
-          "path": "reports/report-hi-20260629-222352-json.md"
-        },
-        {
-          "title": "hi-20260629-225719",
-          "slug": "report-hi-20260629-225719-json",
-          "path": "reports/report-hi-20260629-225719-json.md"
-        },
-        {
-          "title": "hi-20260629-233722",
-          "slug": "report-hi-20260629-233722-json",
-          "path": "reports/report-hi-20260629-233722-json.md"
-        },
-        {
-          "title": "hi-20260629-233913",
-          "slug": "report-hi-20260629-233913-json",
-          "path": "reports/report-hi-20260629-233913-json.md"
-        },
-        {
-          "title": "hi-20260630-110156",
-          "slug": "report-hi-20260630-110156-json",
-          "path": "reports/report-hi-20260630-110156-json.md"
-        },
-        {
-          "title": "hi-20260630-191243",
-          "slug": "report-hi-20260630-191243-json",
-          "path": "reports/report-hi-20260630-191243-json.md"
-        },
-        {
-          "title": "hi-20260630-230050",
-          "slug": "report-hi-20260630-230050-json",
-          "path": "reports/report-hi-20260630-230050-json.md"
-        },
-        {
-          "title": "hi-20260630-230523",
-          "slug": "report-hi-20260630-230523-json",
-          "path": "reports/report-hi-20260630-230523-json.md"
-        },
-        {
-          "title": "hi-20260630-230855",
-          "slug": "report-hi-20260630-230855-json",
-          "path": "reports/report-hi-20260630-230855-json.md"
-        },
-        {
-          "title": "hi-20260630-231638",
-          "slug": "report-hi-20260630-231638-json",
-          "path": "reports/report-hi-20260630-231638-json.md"
-        },
-        {
-          "title": "hi-20260630-231756",
-          "slug": "report-hi-20260630-231756-json",
-          "path": "reports/report-hi-20260630-231756-json.md"
-        },
-        {
-          "title": "hi-20260701-002842",
-          "slug": "report-hi-20260701-002842-json",
-          "path": "reports/report-hi-20260701-002842-json.md"
-        },
-        {
-          "title": "hi-20260701-003458",
-          "slug": "report-hi-20260701-003458-json",
-          "path": "reports/report-hi-20260701-003458-json.md"
-        },
-        {
-          "title": "hi-20260701-004233",
-          "slug": "report-hi-20260701-004233-json",
-          "path": "reports/report-hi-20260701-004233-json.md"
-        },
-        {
-          "title": "hi-20260701-004554",
-          "slug": "report-hi-20260701-004554-json",
-          "path": "reports/report-hi-20260701-004554-json.md"
-        },
-        {
-          "title": "hi-20260701-005641",
-          "slug": "report-hi-20260701-005641-json",
-          "path": "reports/report-hi-20260701-005641-json.md"
-        },
-        {
-          "title": "hi-20260701-010450",
-          "slug": "report-hi-20260701-010450-json",
-          "path": "reports/report-hi-20260701-010450-json.md"
-        },
-        {
-          "title": "hi-20260703-233854",
-          "slug": "report-hi-20260703-233854-json",
-          "path": "reports/report-hi-20260703-233854-json.md"
-        },
-        {
-          "title": "hi-20260703-234448",
-          "slug": "report-hi-20260703-234448-json",
-          "path": "reports/report-hi-20260703-234448-json.md"
-        },
-        {
-          "title": "hi-20260710-001648",
-          "slug": "report-hi-20260710-001648-json",
-          "path": "reports/report-hi-20260710-001648-json.md"
-        },
-        {
-          "title": "hi-20260710-150357",
-          "slug": "report-hi-20260710-150357-json",
-          "path": "reports/report-hi-20260710-150357-json.md"
-        },
-        {
-          "title": "hi-20260710-175412",
-          "slug": "report-hi-20260710-175412-json",
-          "path": "reports/report-hi-20260710-175412-json.md"
-        },
-        {
-          "title": "hi-20260710-201437",
-          "slug": "report-hi-20260710-201437-json",
-          "path": "reports/report-hi-20260710-201437-json.md"
-        },
-        {
-          "title": "hi-20260711-194704",
-          "slug": "report-hi-20260711-194704-json",
-          "path": "reports/report-hi-20260711-194704-json.md"
-        },
-        {
-          "title": "hi-20260711-214225",
-          "slug": "report-hi-20260711-214225-json",
-          "path": "reports/report-hi-20260711-214225-json.md"
-        },
-        {
-          "title": "hi-20260711-215520",
-          "slug": "report-hi-20260711-215520-json",
-          "path": "reports/report-hi-20260711-215520-json.md"
-        },
-        {
-          "title": "hi-20260711-233430",
-          "slug": "report-hi-20260711-233430-json",
-          "path": "reports/report-hi-20260711-233430-json.md"
-        },
-        {
-          "title": "hi-20260711-235724",
-          "slug": "report-hi-20260711-235724-json",
-          "path": "reports/report-hi-20260711-235724-json.md"
-        },
-        {
-          "title": "hi-20260713-203005",
-          "slug": "report-hi-20260713-203005-json",
-          "path": "reports/report-hi-20260713-203005-json.md"
-        },
-        {
-          "title": "hi-20260713-211559",
-          "slug": "report-hi-20260713-211559-json",
-          "path": "reports/report-hi-20260713-211559-json.md"
-        },
-        {
-          "title": "hi-20260713-212137",
-          "slug": "report-hi-20260713-212137-json",
-          "path": "reports/report-hi-20260713-212137-json.md"
-        },
-        {
-          "title": "hi-20260713-213256",
-          "slug": "report-hi-20260713-213256-json",
-          "path": "reports/report-hi-20260713-213256-json.md"
-        },
-        {
-          "title": "hi-20260713-213803",
-          "slug": "report-hi-20260713-213803-json",
-          "path": "reports/report-hi-20260713-213803-json.md"
-        },
-        {
-          "title": "hi-20260713-214051",
-          "slug": "report-hi-20260713-214051-json",
-          "path": "reports/report-hi-20260713-214051-json.md"
-        },
-        {
-          "title": "hi-20260721-111222",
-          "slug": "report-hi-20260721-111222-json",
-          "path": "reports/report-hi-20260721-111222-json.md"
-        },
-        {
-          "title": "hi-20260721-173015",
-          "slug": "report-hi-20260721-173015-json",
-          "path": "reports/report-hi-20260721-173015-json.md"
-        },
-        {
-          "title": "hi-20260721-183221",
-          "slug": "report-hi-20260721-183221-json",
-          "path": "reports/report-hi-20260721-183221-json.md"
-        },
-        {
-          "title": "hi-20260724-111618",
-          "slug": "report-hi-20260724-111618-json",
-          "path": "reports/report-hi-20260724-111618-json.md"
-        },
-        {
-          "title": "hi-20260806-183628",
-          "slug": "report-hi-20260806-183628-json",
-          "path": "reports/report-hi-20260806-183628-json.md"
-        },
-        {
-          "title": "hi-20260806-184935",
-          "slug": "report-hi-20260806-184935-json",
-          "path": "reports/report-hi-20260806-184935-json.md"
-        },
-        {
-          "title": "hi-20260806-185139",
-          "slug": "report-hi-20260806-185139-json",
-          "path": "reports/report-hi-20260806-185139-json.md"
-        },
-        {
-          "title": "hi-20260806-185716",
-          "slug": "report-hi-20260806-185716-json",
-          "path": "reports/report-hi-20260806-185716-json.md"
-        },
-        {
-          "title": "hi-20260806-190046",
-          "slug": "report-hi-20260806-190046-json",
-          "path": "reports/report-hi-20260806-190046-json.md"
-        },
-        {
-          "title": "hi-20260806-190427",
-          "slug": "report-hi-20260806-190427-json",
-          "path": "reports/report-hi-20260806-190427-json.md"
-        },
-        {
-          "title": "hybrid-graphify-azure-rag",
-          "slug": "report-hybrid-graphify-azure-rag-md",
-          "path": "reports/report-hybrid-graphify-azure-rag-md.md"
-        },
-        {
-          "title": "index",
-          "slug": "report-index-json",
-          "path": "reports/report-index-json.md"
-        },
-        {
-          "title": "index",
-          "slug": "report-index-json",
-          "path": "reports/report-index-json.md"
-        },
-        {
-          "title": "mcp",
-          "slug": "report-mcp-json",
-          "path": "reports/report-mcp-json.md"
-        },
-        {
           "title": "mcp-efficiency-engine",
-          "slug": "report-package-json",
-          "path": "reports/report-package-json.md"
-        },
-        {
-          "title": "mcp-efficiency-engine",
-          "slug": "report-package-lock-json",
-          "path": "reports/report-package-lock-json.md"
-        },
-        {
-          "title": "mcpee-backend",
-          "slug": "report-package-json",
-          "path": "reports/report-package-json.md"
-        },
-        {
-          "title": "meta",
-          "slug": "report-meta-json",
-          "path": "reports/report-meta-json.md"
-        },
-        {
-          "title": "metrics",
-          "slug": "report-metrics-json",
-          "path": "reports/report-metrics-json.md"
+          "slug": "report-root-package-json",
+          "path": "reports/report-root-package-json.md"
         },
         {
           "title": "openwiki-internal-blueprint",
-          "slug": "report-autodocs-openwiki-internal-blueprint-json",
-          "path": "reports/report-autodocs-openwiki-internal-blueprint-json.md"
-        },
-        {
-          "title": "post-commit-refresh-20260711-150320",
-          "slug": "report-post-commit-refresh-20260711-150320-json",
-          "path": "reports/report-post-commit-refresh-20260711-150320-json.md"
-        },
-        {
-          "title": "post-commit-refresh-20260808-123022",
-          "slug": "report-post-commit-refresh-20260808-123022-json",
-          "path": "reports/report-post-commit-refresh-20260808-123022-json.md"
-        },
-        {
-          "title": "post-commit-refresh-20260808-123417",
-          "slug": "report-post-commit-refresh-20260808-123417-json",
-          "path": "reports/report-post-commit-refresh-20260808-123417-json.md"
-        },
-        {
-          "title": "post-commit-refresh-20260808-123639",
-          "slug": "report-post-commit-refresh-20260808-123639-json",
-          "path": "reports/report-post-commit-refresh-20260808-123639-json.md"
-        },
-        {
-          "title": "post-commit-refresh-20260808-123749",
-          "slug": "report-post-commit-refresh-20260808-123749-json",
-          "path": "reports/report-post-commit-refresh-20260808-123749-json.md"
-        },
-        {
-          "title": "post-commit-refresh-20260808-124055",
-          "slug": "report-post-commit-refresh-20260808-124055-json",
-          "path": "reports/report-post-commit-refresh-20260808-124055-json.md"
-        },
-        {
-          "title": "post-commit-refresh-20260808-124649",
-          "slug": "report-post-commit-refresh-20260808-124649-json",
-          "path": "reports/report-post-commit-refresh-20260808-124649-json.md"
-        },
-        {
-          "title": "post-commit-refresh-20260808-133108",
-          "slug": "report-post-commit-refresh-20260808-133108-json",
-          "path": "reports/report-post-commit-refresh-20260808-133108-json.md"
-        },
-        {
-          "title": "post-commit-refresh-20260808-152422",
-          "slug": "report-post-commit-refresh-20260808-152422-json",
-          "path": "reports/report-post-commit-refresh-20260808-152422-json.md"
-        },
-        {
-          "title": "post-commit-refresh-20260808-154137",
-          "slug": "report-post-commit-refresh-20260808-154137-json",
-          "path": "reports/report-post-commit-refresh-20260808-154137-json.md"
-        },
-        {
-          "title": "post-commit-refresh-20260808-163125",
-          "slug": "report-post-commit-refresh-20260808-163125-json",
-          "path": "reports/report-post-commit-refresh-20260808-163125-json.md"
-        },
-        {
-          "title": "post-commit-refresh-20260808-165134",
-          "slug": "report-post-commit-refresh-20260808-165134-json",
-          "path": "reports/report-post-commit-refresh-20260808-165134-json.md"
-        },
-        {
-          "title": "pytest cache directory #",
-          "slug": "report-pytest-cache-readme-md",
-          "path": "reports/report-pytest-cache-readme-md.md"
-        },
-        {
-          "title": "rag-local",
-          "slug": "report-rag-local-md",
-          "path": "reports/report-rag-local-md.md"
-        },
-        {
-          "title": "registry",
-          "slug": "report-registry-json",
-          "path": "reports/report-registry-json.md"
-        },
-        {
-          "title": "repomix.config",
-          "slug": "report-repomix-config-json",
-          "path": "reports/report-repomix-config-json.md"
-        },
-        {
-          "title": "repos.template",
-          "slug": "report-repos-template-json",
-          "path": "reports/report-repos-template-json.md"
+          "slug": "report-autodocs-analysis-mcpee-openwiki-internal-blueprint-json",
+          "path": "reports/report-autodocs-analysis-mcpee-openwiki-internal-blueprint-json.md"
         },
         {
           "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
-          "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
-          "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
-        },
-        {
-          "title": "tooling.manifest",
-          "slug": "report-tooling-manifest-json",
-          "path": "reports/report-tooling-manifest-json.md"
-        },
-        {
-          "title": "traces",
-          "slug": "report-traces-json",
-          "path": "reports/report-traces-json.md"
-        },
-        {
-          "title": "{{AGENT_NAME}}",
-          "slug": "report-agent-template-md",
-          "path": "reports/report-agent-template-md.md"
-        },
-        {
-          "title": "{{SKILL_NAME}}",
-          "slug": "report-skill-template-md",
-          "path": "reports/report-skill-template-md.md"
-        },
-        {
-          "title": "\ud83d\udc4b Sertxito \u2014 Ingenier\u00eda de IA & Arquitectura Cloud",
-          "slug": "report-personal-readme-template-md",
-          "path": "reports/report-personal-readme-template-md.md"
-        },
-        {
-          "title": "\ud83d\udccb Portfolio Standardization \u2014 Execution Plan",
-          "slug": "report-portfolio-standardization-plan-md",
-          "path": "reports/report-portfolio-standardization-plan-md.md"
-        },
-        {
-          "title": "\ud83d\udd0d Audit Report \u2014 Sertxito Repositories",
-          "slug": "report-audit-repos-sertxito-md",
-          "path": "reports/report-audit-repos-sertxito-md.md"
+          "slug": "report-autodocs-analysis-mcpee-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
+          "path": "reports/report-autodocs-analysis-mcpee-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
         }
       ]
     },
