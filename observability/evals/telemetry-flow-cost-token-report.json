@@ -1,47 +1,47 @@
 {
-  "timestamp": "2026-08-08T13:41:25.398937+00:00",
+  "timestamp": "2026-08-08T14:30:09.831866+00:00",
   "source": {
     "traces": "C:\\repo\\mcp-efficiency-engine\\.telemetry\\traces.jsonl",
     "metrics": "C:\\repo\\mcp-efficiency-engine\\.telemetry\\metrics.jsonl"
   },
   "totals": {
-    "trace_records": 186,
-    "metric_records": 4383,
-    "executions": 20,
+    "trace_records": 420,
+    "metric_records": 4613,
+    "executions": 49,
     "warnings": 0,
     "errors": 0
   },
   "kpis": {
     "routing_fallback_rate": 0.0,
     "routing_grounded_rate": 0.0,
-    "avg_span_duration_ms": 461.4187,
-    "p95_span_duration_ms": 3772.255,
+    "avg_span_duration_ms": 231.4432,
+    "p95_span_duration_ms": 826.625,
     "tokens_input": 4640,
     "tokens_output": 1120,
     "total_tokens": 5760,
     "total_cost_usd": 0.0443,
-    "efficiency_score_avg": 57.9583
+    "efficiency_score_avg": 57.9581
   },
   "breakdown": {
     "operation": {
-      "terminal.command": 12,
-      "autodocs-compiler": 2,
-      "unknown": 2,
-      "plugin-manager-gather-all": 2,
-      "wiki-validator": 2,
-      "learning-loop-report": 2
+      "terminal.command": 39,
+      "autodocs-compiler": 3,
+      "unknown": 3,
+      "plugin-manager-gather-all": 3,
+      "wiki-validator": 3,
+      "learning-loop-report": 1
     },
     "session": {
-      "terminal-session": 84,
-      "wiki-orchestrator": 16,
-      "autodocs": 74,
-      "learning": 12
+      "terminal-session": 273,
+      "wiki-orchestrator": 24,
+      "autodocs": 117,
+      "learning": 6
     },
     "engine": {
-      "unknown": 12
+      "unknown": 39
     },
     "agent": {
-      "unknown": 12
+      "unknown": 39
     },
     "exporter_failures": {}
   }
