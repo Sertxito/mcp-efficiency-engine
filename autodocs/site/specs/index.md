@@ -6,11 +6,13 @@ Especificaciones tecnicas y contratos declarativos.
 
 ## Resumen
 
-- total_pages: 11
-- domains: specifications (11)
+- total_pages: 13
+- domains: specifications (11), backend (2)
 
 ## Paginas
 
+- [Spec: Clean Architecture](spec-clean-architecture-md.md) - Las reglas de dependencias deben apuntar hacia adentro y preservar aislamiento de dominio.
+- [Spec: Observability](spec-observability-md.md) - Toda decisión crítica debe registrar trazabilidad y métricas de operación.
 - [architecture spec](spec-architecture-spec-md.md) - Definir la arquitectura operativa del repo y el contrato entre orquestacion, agentes, motores de contexto y observabilidad.
 - [azure-rag spec](spec-azure-rag-spec-md.md) - Definir cuando usar Azure RAG Builder para conocimiento corporativo y como evitar respuestas sin fuente.
 - [coding-standards spec](spec-coding-standards-spec-md.md) - Establecer reglas de cambio seguro y minimo para scripts, docs operativas y artefactos de soporte.

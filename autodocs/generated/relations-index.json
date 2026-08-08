@@ -118,5 +118,47 @@
     "source_title": "Metrics",
     "type": "implements",
     "target": "repo-content::specs/observability.spec.md"
+  },
+  {
+    "source": "repo-content::boosts/backend/capabilities/backend-architecture-review.json",
+    "source_title": "Backend Architecture Review",
+    "type": "references",
+    "target": "repo-content::boosts/backend/agents/backend-architect.md"
+  },
+  {
+    "source": "repo-content::boosts/backend/capabilities/backend-architecture-review.json",
+    "source_title": "Backend Architecture Review",
+    "type": "references",
+    "target": "repo-content::boosts/backend/skills/architecture-review.md"
+  },
+  {
+    "source": "repo-content::boosts/backend/capabilities/backend-architecture-review.json",
+    "source_title": "Backend Architecture Review",
+    "type": "references",
+    "target": "repo-content::boosts/backend/skills/dependency-analysis.md"
+  },
+  {
+    "source": "repo-content::boosts/backend/capabilities/backend-architecture-review.json",
+    "source_title": "Backend Architecture Review",
+    "type": "references",
+    "target": "repo-content::boosts/backend/specs/clean-architecture.md"
+  },
+  {
+    "source": "repo-content::boosts/backend/capabilities/backend-architecture-review.json",
+    "source_title": "Backend Architecture Review",
+    "type": "references",
+    "target": "repo-content::boosts/backend/specs/observability.md"
+  },
+  {
+    "source": "repo-content::boosts/backend/capabilities/backend-architecture-review.json",
+    "source_title": "Backend Architecture Review",
+    "type": "references",
+    "target": "repo-content::boosts/backend/prompts/architecture-review.prompt.md"
+  },
+  {
+    "source": "repo-content::boosts/backend/capabilities/backend-architecture-review.json",
+    "source_title": "Backend Architecture Review",
+    "type": "references",
+    "target": "repo-content::boosts/backend/evals/architecture-review.cases.json"
   }
 ]

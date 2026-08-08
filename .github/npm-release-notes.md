@@ -15,6 +15,13 @@ Usa este archivo como alternativa a `README.md` cuando una PR cambie superficie 
 
 - Fecha: 2026-08-08
 - PR: #29
+- Área: `scripts/wiki/providers/repo_content_provider.py`, `autodocs/site/*`
+- Cambio: AutoDocs ahora ingiere contenido de `boosts/*` (agents, skills, capabilities, prompts, specs, evals) y proyecta secciones `Agents`, `Skills` y `Capabilities` con datos reales.
+- Impacto: compatible
+- Accion recomendada para consumidores: sin acción.
+
+- Fecha: 2026-08-08
+- PR: #29
 - Área: `orchestrator/wiki/graph_consolidator.py`, `autodocs/site/*`
 - Cambio: la proyección de AutoDocs ya no genera ni lista secciones vacías; el índice raíz muestra solo secciones con páginas reales.
 - Impacto: compatible

@@ -1,5 +1,5 @@
 {
-  "last_updated": "sha256:bb0ab6b4be62db08bb251a3a4fc0f2d3068bb981ae9212b18a6b2fe8142c2f44",
+  "last_updated": "sha256:d02d01a404d1c7a3de4b2222d5752a06ce7a65152c90ded1796a1955e974334b",
   "nodes": {
     "repo-content::README.md": {
       "node_id": "repo-content::README.md",
@@ -298,6 +298,500 @@
           "reports",
           "packaging",
           "json"
+        ]
+      }
+    },
+    "repo-content::boosts/backend/agents/backend-architect.md": {
+      "node_id": "repo-content::boosts/backend/agents/backend-architect.md",
+      "provider": "repo-content",
+      "type": "agent",
+      "checksum": "ce54dc34ab32067fb70c7c0d516ba8c0aed9bd5672960c8ca2549fd8ce113c4d",
+      "title": "Backend Architect",
+      "slug": "agent-backend-architect-md",
+      "kind": "agent",
+      "domain": "backend",
+      "owner": "agents",
+      "summary": "Analiza arquitectura backend y propone mejoras trazables sin romper contratos.",
+      "source_refs": [
+        "boosts/backend/agents/backend-architect.md"
+      ],
+      "relations": [],
+      "tags": [
+        "agent",
+        "agents",
+        "backend"
+      ],
+      "path": "agents/agent-backend-architect-md.md",
+      "navigation": {
+        "section": "agents",
+        "weight": 100,
+        "parent": "agents",
+        "tags": [
+          "agent",
+          "agents",
+          "backend"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "Backend Architect",
+        "slug": "agent-backend-architect-md",
+        "kind": "agent",
+        "section": "agents",
+        "domain": "backend",
+        "summary": "Analiza arquitectura backend y propone mejoras trazables sin romper contratos.",
+        "owner": "agents",
+        "source_refs": [
+          "boosts/backend/agents/backend-architect.md"
+        ],
+        "tags": [
+          "agent",
+          "agents",
+          "backend"
+        ]
+      }
+    },
+    "repo-content::boosts/backend/skills/architecture-review.md": {
+      "node_id": "repo-content::boosts/backend/skills/architecture-review.md",
+      "provider": "repo-content",
+      "type": "skill",
+      "checksum": "dc0979f395f0ee63bbc547e620482603544f0f82cdf6ccaf4323e22875d81e48",
+      "title": "Skill: Architecture Review",
+      "slug": "skill-architecture-review-md",
+      "kind": "skill",
+      "domain": "backend",
+      "owner": "skills",
+      "summary": "Skill operativa del boost backend.",
+      "source_refs": [
+        "boosts/backend/skills/architecture-review.md"
+      ],
+      "relations": [],
+      "tags": [
+        "skill",
+        "skills",
+        "backend"
+      ],
+      "path": "skills/skill-architecture-review-md.md",
+      "navigation": {
+        "section": "skills",
+        "weight": 100,
+        "parent": "skills",
+        "tags": [
+          "skill",
+          "skills",
+          "backend"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "Skill: Architecture Review",
+        "slug": "skill-architecture-review-md",
+        "kind": "skill",
+        "section": "skills",
+        "domain": "backend",
+        "summary": "Skill operativa del boost backend.",
+        "owner": "skills",
+        "source_refs": [
+          "boosts/backend/skills/architecture-review.md"
+        ],
+        "tags": [
+          "skill",
+          "skills",
+          "backend"
+        ]
+      }
+    },
+    "repo-content::boosts/backend/skills/dependency-analysis.md": {
+      "node_id": "repo-content::boosts/backend/skills/dependency-analysis.md",
+      "provider": "repo-content",
+      "type": "skill",
+      "checksum": "d8177530dcecd93358a01f145465596c6288664b1ff811e2655cf698440e8cf5",
+      "title": "Skill: Dependency Analysis",
+      "slug": "skill-dependency-analysis-md",
+      "kind": "skill",
+      "domain": "backend",
+      "owner": "skills",
+      "summary": "Skill operativa del boost backend.",
+      "source_refs": [
+        "boosts/backend/skills/dependency-analysis.md"
+      ],
+      "relations": [],
+      "tags": [
+        "skill",
+        "skills",
+        "backend"
+      ],
+      "path": "skills/skill-dependency-analysis-md.md",
+      "navigation": {
+        "section": "skills",
+        "weight": 100,
+        "parent": "skills",
+        "tags": [
+          "skill",
+          "skills",
+          "backend"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "Skill: Dependency Analysis",
+        "slug": "skill-dependency-analysis-md",
+        "kind": "skill",
+        "section": "skills",
+        "domain": "backend",
+        "summary": "Skill operativa del boost backend.",
+        "owner": "skills",
+        "source_refs": [
+          "boosts/backend/skills/dependency-analysis.md"
+        ],
+        "tags": [
+          "skill",
+          "skills",
+          "backend"
+        ]
+      }
+    },
+    "repo-content::boosts/backend/prompts/architecture-review.prompt.md": {
+      "node_id": "repo-content::boosts/backend/prompts/architecture-review.prompt.md",
+      "provider": "repo-content",
+      "type": "prompt",
+      "checksum": "7af11119a7f45b19adc902c9d8d2b608edfc2540b567b68d71141a3bd5cb2908",
+      "title": "architecture-review.prompt",
+      "slug": "prompt-architecture-review-prompt-md",
+      "kind": "prompt",
+      "domain": "backend",
+      "owner": "prompts",
+      "summary": "Analiza arquitectura backend con foco en contratos, aislamiento y trazabilidad.",
+      "source_refs": [
+        "boosts/backend/prompts/architecture-review.prompt.md"
+      ],
+      "relations": [],
+      "tags": [
+        "prompt",
+        "routing",
+        "backend"
+      ],
+      "path": "routing/prompt-architecture-review-prompt-md.md",
+      "navigation": {
+        "section": "routing",
+        "weight": 100,
+        "parent": "routing",
+        "tags": [
+          "prompt",
+          "routing",
+          "backend"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "architecture-review.prompt",
+        "slug": "prompt-architecture-review-prompt-md",
+        "kind": "prompt",
+        "section": "routing",
+        "domain": "backend",
+        "summary": "Analiza arquitectura backend con foco en contratos, aislamiento y trazabilidad.",
+        "owner": "prompts",
+        "source_refs": [
+          "boosts/backend/prompts/architecture-review.prompt.md"
+        ],
+        "tags": [
+          "prompt",
+          "routing",
+          "backend"
+        ]
+      }
+    },
+    "repo-content::boosts/backend/specs/clean-architecture.md": {
+      "node_id": "repo-content::boosts/backend/specs/clean-architecture.md",
+      "provider": "repo-content",
+      "type": "spec",
+      "checksum": "1e9e714eaab450cd4dd44e59a70fe393962d90e2f947327aec4a985db2e90ee4",
+      "title": "Spec: Clean Architecture",
+      "slug": "spec-clean-architecture-md",
+      "kind": "spec",
+      "domain": "backend",
+      "owner": "specs",
+      "summary": "Las reglas de dependencias deben apuntar hacia adentro y preservar aislamiento de dominio.",
+      "source_refs": [
+        "boosts/backend/specs/clean-architecture.md"
+      ],
+      "relations": [],
+      "tags": [
+        "spec",
+        "specs",
+        "backend"
+      ],
+      "path": "specs/spec-clean-architecture-md.md",
+      "navigation": {
+        "section": "specs",
+        "weight": 100,
+        "parent": "specs",
+        "tags": [
+          "spec",
+          "specs",
+          "backend"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "Spec: Clean Architecture",
+        "slug": "spec-clean-architecture-md",
+        "kind": "spec",
+        "section": "specs",
+        "domain": "backend",
+        "summary": "Las reglas de dependencias deben apuntar hacia adentro y preservar aislamiento de dominio.",
+        "owner": "specs",
+        "source_refs": [
+          "boosts/backend/specs/clean-architecture.md"
+        ],
+        "tags": [
+          "spec",
+          "specs",
+          "backend"
+        ]
+      }
+    },
+    "repo-content::boosts/backend/specs/observability.md": {
+      "node_id": "repo-content::boosts/backend/specs/observability.md",
+      "provider": "repo-content",
+      "type": "spec",
+      "checksum": "56c4df473e76e76a1239fb160f7e17f54b735f15fe15ae0646febf1c3c37adc0",
+      "title": "Spec: Observability",
+      "slug": "spec-observability-md",
+      "kind": "spec",
+      "domain": "backend",
+      "owner": "specs",
+      "summary": "Toda decisi\u00f3n cr\u00edtica debe registrar trazabilidad y m\u00e9tricas de operaci\u00f3n.",
+      "source_refs": [
+        "boosts/backend/specs/observability.md"
+      ],
+      "relations": [],
+      "tags": [
+        "spec",
+        "specs",
+        "backend"
+      ],
+      "path": "specs/spec-observability-md.md",
+      "navigation": {
+        "section": "specs",
+        "weight": 100,
+        "parent": "specs",
+        "tags": [
+          "spec",
+          "specs",
+          "backend"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "Spec: Observability",
+        "slug": "spec-observability-md",
+        "kind": "spec",
+        "section": "specs",
+        "domain": "backend",
+        "summary": "Toda decisi\u00f3n cr\u00edtica debe registrar trazabilidad y m\u00e9tricas de operaci\u00f3n.",
+        "owner": "specs",
+        "source_refs": [
+          "boosts/backend/specs/observability.md"
+        ],
+        "tags": [
+          "spec",
+          "specs",
+          "backend"
+        ]
+      }
+    },
+    "repo-content::boosts/backend/evals/architecture-review.cases.json": {
+      "node_id": "repo-content::boosts/backend/evals/architecture-review.cases.json",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "44894cc52e33912aa7b57f79069fe6bf5578be7866c4e7575bd22b8f0f9ed7c6",
+      "title": "architecture-review.cases",
+      "slug": "report-architecture-review-cases-json",
+      "kind": "report",
+      "domain": "backend",
+      "owner": "evals",
+      "summary": "Artefacto JSON de tipo report en boosts/backend/evals/architecture-review.cases.json.",
+      "source_refs": [
+        "boosts/backend/evals/architecture-review.cases.json"
+      ],
+      "relations": [],
+      "tags": [
+        "report",
+        "observability",
+        "backend",
+        "json"
+      ],
+      "path": "observability/report-architecture-review-cases-json.md",
+      "navigation": {
+        "section": "observability",
+        "weight": 100,
+        "parent": "observability",
+        "tags": [
+          "report",
+          "observability",
+          "backend",
+          "json"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "architecture-review.cases",
+        "slug": "report-architecture-review-cases-json",
+        "kind": "report",
+        "section": "observability",
+        "domain": "backend",
+        "summary": "Artefacto JSON de tipo report en boosts/backend/evals/architecture-review.cases.json.",
+        "owner": "evals",
+        "source_refs": [
+          "boosts/backend/evals/architecture-review.cases.json"
+        ],
+        "tags": [
+          "report",
+          "observability",
+          "backend",
+          "json"
+        ]
+      }
+    },
+    "repo-content::boosts/backend/capabilities/backend-architecture-review.json": {
+      "node_id": "repo-content::boosts/backend/capabilities/backend-architecture-review.json",
+      "provider": "repo-content",
+      "type": "capability",
+      "checksum": "f5a0dabed107577fa02a82b7411823c92be15c837b4702e4e3eee3a6769b7703",
+      "title": "Backend Architecture Review",
+      "slug": "capability-backend-backend-architecture-review",
+      "kind": "capability",
+      "domain": "backend",
+      "owner": "backend",
+      "summary": "Capability backend.architecture.review del boost backend. Provider needs: code-navigation, dependency-analysis, knowledge-graph, project-memory",
+      "source_refs": [
+        "boosts/backend/mcpee.json"
+      ],
+      "relations": [
+        {
+          "target": "repo-content::boosts/backend/agents/backend-architect.md",
+          "type": "references"
+        },
+        {
+          "target": "repo-content::boosts/backend/skills/architecture-review.md",
+          "type": "references"
+        },
+        {
+          "target": "repo-content::boosts/backend/skills/dependency-analysis.md",
+          "type": "references"
+        },
+        {
+          "target": "repo-content::boosts/backend/specs/clean-architecture.md",
+          "type": "references"
+        },
+        {
+          "target": "repo-content::boosts/backend/specs/observability.md",
+          "type": "references"
+        },
+        {
+          "target": "repo-content::boosts/backend/prompts/architecture-review.prompt.md",
+          "type": "references"
+        },
+        {
+          "target": "repo-content::boosts/backend/evals/architecture-review.cases.json",
+          "type": "references"
+        }
+      ],
+      "tags": [
+        "capability",
+        "backend",
+        "backend"
+      ],
+      "path": "capabilities/capability-backend-backend-architecture-review.md",
+      "navigation": {
+        "section": "capabilities",
+        "weight": 100,
+        "parent": "capabilities",
+        "tags": [
+          "capability",
+          "backend",
+          "backend"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": true,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "Backend Architecture Review",
+        "slug": "capability-backend-backend-architecture-review",
+        "kind": "capability",
+        "section": "capabilities",
+        "domain": "backend",
+        "summary": "Capability backend.architecture.review del boost backend. Provider needs: code-navigation, dependency-analysis, knowledge-graph, project-memory",
+        "owner": "backend",
+        "source_refs": [
+          "boosts/backend/mcpee.json"
+        ],
+        "tags": [
+          "capability",
+          "backend",
+          "backend"
+        ],
+        "relations": [
+          {
+            "target": "boosts/backend/agents/backend-architect.md",
+            "type": "references"
+          },
+          {
+            "target": "boosts/backend/skills/architecture-review.md",
+            "type": "references"
+          },
+          {
+            "target": "boosts/backend/skills/dependency-analysis.md",
+            "type": "references"
+          },
+          {
+            "target": "boosts/backend/specs/clean-architecture.md",
+            "type": "references"
+          },
+          {
+            "target": "boosts/backend/specs/observability.md",
+            "type": "references"
+          },
+          {
+            "target": "boosts/backend/prompts/architecture-review.prompt.md",
+            "type": "references"
+          },
+          {
+            "target": "boosts/backend/evals/architecture-review.cases.json",
+            "type": "references"
+          }
         ]
       }
     },
@@ -2204,6 +2698,266 @@
       "relations": [],
       "semantic_summary": ""
     },
+    "repo-content::boosts/backend/agents/backend-architect.md": {
+      "node_id": "repo-content::boosts/backend/agents/backend-architect.md",
+      "provider": "repo-content",
+      "type": "agent",
+      "checksum": "ce54dc34ab32067fb70c7c0d516ba8c0aed9bd5672960c8ca2549fd8ce113c4d",
+      "metadata": {
+        "title": "Backend Architect",
+        "slug": "agent-backend-architect-md",
+        "kind": "agent",
+        "section": "agents",
+        "domain": "backend",
+        "summary": "Analiza arquitectura backend y propone mejoras trazables sin romper contratos.",
+        "owner": "agents",
+        "source_refs": [
+          "boosts/backend/agents/backend-architect.md"
+        ],
+        "tags": [
+          "agent",
+          "agents",
+          "backend"
+        ]
+      },
+      "relations": [],
+      "semantic_summary": ""
+    },
+    "repo-content::boosts/backend/skills/architecture-review.md": {
+      "node_id": "repo-content::boosts/backend/skills/architecture-review.md",
+      "provider": "repo-content",
+      "type": "skill",
+      "checksum": "dc0979f395f0ee63bbc547e620482603544f0f82cdf6ccaf4323e22875d81e48",
+      "metadata": {
+        "title": "Skill: Architecture Review",
+        "slug": "skill-architecture-review-md",
+        "kind": "skill",
+        "section": "skills",
+        "domain": "backend",
+        "summary": "Skill operativa del boost backend.",
+        "owner": "skills",
+        "source_refs": [
+          "boosts/backend/skills/architecture-review.md"
+        ],
+        "tags": [
+          "skill",
+          "skills",
+          "backend"
+        ]
+      },
+      "relations": [],
+      "semantic_summary": ""
+    },
+    "repo-content::boosts/backend/skills/dependency-analysis.md": {
+      "node_id": "repo-content::boosts/backend/skills/dependency-analysis.md",
+      "provider": "repo-content",
+      "type": "skill",
+      "checksum": "d8177530dcecd93358a01f145465596c6288664b1ff811e2655cf698440e8cf5",
+      "metadata": {
+        "title": "Skill: Dependency Analysis",
+        "slug": "skill-dependency-analysis-md",
+        "kind": "skill",
+        "section": "skills",
+        "domain": "backend",
+        "summary": "Skill operativa del boost backend.",
+        "owner": "skills",
+        "source_refs": [
+          "boosts/backend/skills/dependency-analysis.md"
+        ],
+        "tags": [
+          "skill",
+          "skills",
+          "backend"
+        ]
+      },
+      "relations": [],
+      "semantic_summary": ""
+    },
+    "repo-content::boosts/backend/prompts/architecture-review.prompt.md": {
+      "node_id": "repo-content::boosts/backend/prompts/architecture-review.prompt.md",
+      "provider": "repo-content",
+      "type": "prompt",
+      "checksum": "7af11119a7f45b19adc902c9d8d2b608edfc2540b567b68d71141a3bd5cb2908",
+      "metadata": {
+        "title": "architecture-review.prompt",
+        "slug": "prompt-architecture-review-prompt-md",
+        "kind": "prompt",
+        "section": "routing",
+        "domain": "backend",
+        "summary": "Analiza arquitectura backend con foco en contratos, aislamiento y trazabilidad.",
+        "owner": "prompts",
+        "source_refs": [
+          "boosts/backend/prompts/architecture-review.prompt.md"
+        ],
+        "tags": [
+          "prompt",
+          "routing",
+          "backend"
+        ]
+      },
+      "relations": [],
+      "semantic_summary": ""
+    },
+    "repo-content::boosts/backend/specs/clean-architecture.md": {
+      "node_id": "repo-content::boosts/backend/specs/clean-architecture.md",
+      "provider": "repo-content",
+      "type": "spec",
+      "checksum": "1e9e714eaab450cd4dd44e59a70fe393962d90e2f947327aec4a985db2e90ee4",
+      "metadata": {
+        "title": "Spec: Clean Architecture",
+        "slug": "spec-clean-architecture-md",
+        "kind": "spec",
+        "section": "specs",
+        "domain": "backend",
+        "summary": "Las reglas de dependencias deben apuntar hacia adentro y preservar aislamiento de dominio.",
+        "owner": "specs",
+        "source_refs": [
+          "boosts/backend/specs/clean-architecture.md"
+        ],
+        "tags": [
+          "spec",
+          "specs",
+          "backend"
+        ]
+      },
+      "relations": [],
+      "semantic_summary": ""
+    },
+    "repo-content::boosts/backend/specs/observability.md": {
+      "node_id": "repo-content::boosts/backend/specs/observability.md",
+      "provider": "repo-content",
+      "type": "spec",
+      "checksum": "56c4df473e76e76a1239fb160f7e17f54b735f15fe15ae0646febf1c3c37adc0",
+      "metadata": {
+        "title": "Spec: Observability",
+        "slug": "spec-observability-md",
+        "kind": "spec",
+        "section": "specs",
+        "domain": "backend",
+        "summary": "Toda decisi\u00f3n cr\u00edtica debe registrar trazabilidad y m\u00e9tricas de operaci\u00f3n.",
+        "owner": "specs",
+        "source_refs": [
+          "boosts/backend/specs/observability.md"
+        ],
+        "tags": [
+          "spec",
+          "specs",
+          "backend"
+        ]
+      },
+      "relations": [],
+      "semantic_summary": ""
+    },
+    "repo-content::boosts/backend/evals/architecture-review.cases.json": {
+      "node_id": "repo-content::boosts/backend/evals/architecture-review.cases.json",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "44894cc52e33912aa7b57f79069fe6bf5578be7866c4e7575bd22b8f0f9ed7c6",
+      "metadata": {
+        "title": "architecture-review.cases",
+        "slug": "report-architecture-review-cases-json",
+        "kind": "report",
+        "section": "observability",
+        "domain": "backend",
+        "summary": "Artefacto JSON de tipo report en boosts/backend/evals/architecture-review.cases.json.",
+        "owner": "evals",
+        "source_refs": [
+          "boosts/backend/evals/architecture-review.cases.json"
+        ],
+        "tags": [
+          "report",
+          "observability",
+          "backend",
+          "json"
+        ]
+      },
+      "relations": [],
+      "semantic_summary": ""
+    },
+    "repo-content::boosts/backend/capabilities/backend-architecture-review.json": {
+      "node_id": "repo-content::boosts/backend/capabilities/backend-architecture-review.json",
+      "provider": "repo-content",
+      "type": "capability",
+      "checksum": "f5a0dabed107577fa02a82b7411823c92be15c837b4702e4e3eee3a6769b7703",
+      "metadata": {
+        "title": "Backend Architecture Review",
+        "slug": "capability-backend-backend-architecture-review",
+        "kind": "capability",
+        "section": "capabilities",
+        "domain": "backend",
+        "summary": "Capability backend.architecture.review del boost backend. Provider needs: code-navigation, dependency-analysis, knowledge-graph, project-memory",
+        "owner": "backend",
+        "source_refs": [
+          "boosts/backend/mcpee.json"
+        ],
+        "tags": [
+          "capability",
+          "backend",
+          "backend"
+        ],
+        "relations": [
+          {
+            "target": "boosts/backend/agents/backend-architect.md",
+            "type": "references"
+          },
+          {
+            "target": "boosts/backend/skills/architecture-review.md",
+            "type": "references"
+          },
+          {
+            "target": "boosts/backend/skills/dependency-analysis.md",
+            "type": "references"
+          },
+          {
+            "target": "boosts/backend/specs/clean-architecture.md",
+            "type": "references"
+          },
+          {
+            "target": "boosts/backend/specs/observability.md",
+            "type": "references"
+          },
+          {
+            "target": "boosts/backend/prompts/architecture-review.prompt.md",
+            "type": "references"
+          },
+          {
+            "target": "boosts/backend/evals/architecture-review.cases.json",
+            "type": "references"
+          }
+        ]
+      },
+      "relations": [
+        {
+          "target": "repo-content::boosts/backend/agents/backend-architect.md",
+          "type": "references"
+        },
+        {
+          "target": "repo-content::boosts/backend/skills/architecture-review.md",
+          "type": "references"
+        },
+        {
+          "target": "repo-content::boosts/backend/skills/dependency-analysis.md",
+          "type": "references"
+        },
+        {
+          "target": "repo-content::boosts/backend/specs/clean-architecture.md",
+          "type": "references"
+        },
+        {
+          "target": "repo-content::boosts/backend/specs/observability.md",
+          "type": "references"
+        },
+        {
+          "target": "repo-content::boosts/backend/prompts/architecture-review.prompt.md",
+          "type": "references"
+        },
+        {
+          "target": "repo-content::boosts/backend/evals/architecture-review.cases.json",
+          "type": "references"
+        }
+      ],
+      "semantic_summary": ""
+    },
     "repo-content::policies/context-policy.md": {
       "node_id": "repo-content::policies/context-policy.md",
       "provider": "repo-content",
@@ -3346,6 +4100,500 @@
           "reports",
           "packaging",
           "json"
+        ]
+      }
+    },
+    "repo-content::boosts/backend/agents/backend-architect.md": {
+      "node_id": "repo-content::boosts/backend/agents/backend-architect.md",
+      "provider": "repo-content",
+      "type": "agent",
+      "checksum": "ce54dc34ab32067fb70c7c0d516ba8c0aed9bd5672960c8ca2549fd8ce113c4d",
+      "title": "Backend Architect",
+      "slug": "agent-backend-architect-md",
+      "kind": "agent",
+      "domain": "backend",
+      "owner": "agents",
+      "summary": "Analiza arquitectura backend y propone mejoras trazables sin romper contratos.",
+      "source_refs": [
+        "boosts/backend/agents/backend-architect.md"
+      ],
+      "relations": [],
+      "tags": [
+        "agent",
+        "agents",
+        "backend"
+      ],
+      "path": "agents/agent-backend-architect-md.md",
+      "navigation": {
+        "section": "agents",
+        "weight": 100,
+        "parent": "agents",
+        "tags": [
+          "agent",
+          "agents",
+          "backend"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "Backend Architect",
+        "slug": "agent-backend-architect-md",
+        "kind": "agent",
+        "section": "agents",
+        "domain": "backend",
+        "summary": "Analiza arquitectura backend y propone mejoras trazables sin romper contratos.",
+        "owner": "agents",
+        "source_refs": [
+          "boosts/backend/agents/backend-architect.md"
+        ],
+        "tags": [
+          "agent",
+          "agents",
+          "backend"
+        ]
+      }
+    },
+    "repo-content::boosts/backend/skills/architecture-review.md": {
+      "node_id": "repo-content::boosts/backend/skills/architecture-review.md",
+      "provider": "repo-content",
+      "type": "skill",
+      "checksum": "dc0979f395f0ee63bbc547e620482603544f0f82cdf6ccaf4323e22875d81e48",
+      "title": "Skill: Architecture Review",
+      "slug": "skill-architecture-review-md",
+      "kind": "skill",
+      "domain": "backend",
+      "owner": "skills",
+      "summary": "Skill operativa del boost backend.",
+      "source_refs": [
+        "boosts/backend/skills/architecture-review.md"
+      ],
+      "relations": [],
+      "tags": [
+        "skill",
+        "skills",
+        "backend"
+      ],
+      "path": "skills/skill-architecture-review-md.md",
+      "navigation": {
+        "section": "skills",
+        "weight": 100,
+        "parent": "skills",
+        "tags": [
+          "skill",
+          "skills",
+          "backend"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "Skill: Architecture Review",
+        "slug": "skill-architecture-review-md",
+        "kind": "skill",
+        "section": "skills",
+        "domain": "backend",
+        "summary": "Skill operativa del boost backend.",
+        "owner": "skills",
+        "source_refs": [
+          "boosts/backend/skills/architecture-review.md"
+        ],
+        "tags": [
+          "skill",
+          "skills",
+          "backend"
+        ]
+      }
+    },
+    "repo-content::boosts/backend/skills/dependency-analysis.md": {
+      "node_id": "repo-content::boosts/backend/skills/dependency-analysis.md",
+      "provider": "repo-content",
+      "type": "skill",
+      "checksum": "d8177530dcecd93358a01f145465596c6288664b1ff811e2655cf698440e8cf5",
+      "title": "Skill: Dependency Analysis",
+      "slug": "skill-dependency-analysis-md",
+      "kind": "skill",
+      "domain": "backend",
+      "owner": "skills",
+      "summary": "Skill operativa del boost backend.",
+      "source_refs": [
+        "boosts/backend/skills/dependency-analysis.md"
+      ],
+      "relations": [],
+      "tags": [
+        "skill",
+        "skills",
+        "backend"
+      ],
+      "path": "skills/skill-dependency-analysis-md.md",
+      "navigation": {
+        "section": "skills",
+        "weight": 100,
+        "parent": "skills",
+        "tags": [
+          "skill",
+          "skills",
+          "backend"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "Skill: Dependency Analysis",
+        "slug": "skill-dependency-analysis-md",
+        "kind": "skill",
+        "section": "skills",
+        "domain": "backend",
+        "summary": "Skill operativa del boost backend.",
+        "owner": "skills",
+        "source_refs": [
+          "boosts/backend/skills/dependency-analysis.md"
+        ],
+        "tags": [
+          "skill",
+          "skills",
+          "backend"
+        ]
+      }
+    },
+    "repo-content::boosts/backend/prompts/architecture-review.prompt.md": {
+      "node_id": "repo-content::boosts/backend/prompts/architecture-review.prompt.md",
+      "provider": "repo-content",
+      "type": "prompt",
+      "checksum": "7af11119a7f45b19adc902c9d8d2b608edfc2540b567b68d71141a3bd5cb2908",
+      "title": "architecture-review.prompt",
+      "slug": "prompt-architecture-review-prompt-md",
+      "kind": "prompt",
+      "domain": "backend",
+      "owner": "prompts",
+      "summary": "Analiza arquitectura backend con foco en contratos, aislamiento y trazabilidad.",
+      "source_refs": [
+        "boosts/backend/prompts/architecture-review.prompt.md"
+      ],
+      "relations": [],
+      "tags": [
+        "prompt",
+        "routing",
+        "backend"
+      ],
+      "path": "routing/prompt-architecture-review-prompt-md.md",
+      "navigation": {
+        "section": "routing",
+        "weight": 100,
+        "parent": "routing",
+        "tags": [
+          "prompt",
+          "routing",
+          "backend"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "architecture-review.prompt",
+        "slug": "prompt-architecture-review-prompt-md",
+        "kind": "prompt",
+        "section": "routing",
+        "domain": "backend",
+        "summary": "Analiza arquitectura backend con foco en contratos, aislamiento y trazabilidad.",
+        "owner": "prompts",
+        "source_refs": [
+          "boosts/backend/prompts/architecture-review.prompt.md"
+        ],
+        "tags": [
+          "prompt",
+          "routing",
+          "backend"
+        ]
+      }
+    },
+    "repo-content::boosts/backend/specs/clean-architecture.md": {
+      "node_id": "repo-content::boosts/backend/specs/clean-architecture.md",
+      "provider": "repo-content",
+      "type": "spec",
+      "checksum": "1e9e714eaab450cd4dd44e59a70fe393962d90e2f947327aec4a985db2e90ee4",
+      "title": "Spec: Clean Architecture",
+      "slug": "spec-clean-architecture-md",
+      "kind": "spec",
+      "domain": "backend",
+      "owner": "specs",
+      "summary": "Las reglas de dependencias deben apuntar hacia adentro y preservar aislamiento de dominio.",
+      "source_refs": [
+        "boosts/backend/specs/clean-architecture.md"
+      ],
+      "relations": [],
+      "tags": [
+        "spec",
+        "specs",
+        "backend"
+      ],
+      "path": "specs/spec-clean-architecture-md.md",
+      "navigation": {
+        "section": "specs",
+        "weight": 100,
+        "parent": "specs",
+        "tags": [
+          "spec",
+          "specs",
+          "backend"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "Spec: Clean Architecture",
+        "slug": "spec-clean-architecture-md",
+        "kind": "spec",
+        "section": "specs",
+        "domain": "backend",
+        "summary": "Las reglas de dependencias deben apuntar hacia adentro y preservar aislamiento de dominio.",
+        "owner": "specs",
+        "source_refs": [
+          "boosts/backend/specs/clean-architecture.md"
+        ],
+        "tags": [
+          "spec",
+          "specs",
+          "backend"
+        ]
+      }
+    },
+    "repo-content::boosts/backend/specs/observability.md": {
+      "node_id": "repo-content::boosts/backend/specs/observability.md",
+      "provider": "repo-content",
+      "type": "spec",
+      "checksum": "56c4df473e76e76a1239fb160f7e17f54b735f15fe15ae0646febf1c3c37adc0",
+      "title": "Spec: Observability",
+      "slug": "spec-observability-md",
+      "kind": "spec",
+      "domain": "backend",
+      "owner": "specs",
+      "summary": "Toda decisi\u00f3n cr\u00edtica debe registrar trazabilidad y m\u00e9tricas de operaci\u00f3n.",
+      "source_refs": [
+        "boosts/backend/specs/observability.md"
+      ],
+      "relations": [],
+      "tags": [
+        "spec",
+        "specs",
+        "backend"
+      ],
+      "path": "specs/spec-observability-md.md",
+      "navigation": {
+        "section": "specs",
+        "weight": 100,
+        "parent": "specs",
+        "tags": [
+          "spec",
+          "specs",
+          "backend"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "Spec: Observability",
+        "slug": "spec-observability-md",
+        "kind": "spec",
+        "section": "specs",
+        "domain": "backend",
+        "summary": "Toda decisi\u00f3n cr\u00edtica debe registrar trazabilidad y m\u00e9tricas de operaci\u00f3n.",
+        "owner": "specs",
+        "source_refs": [
+          "boosts/backend/specs/observability.md"
+        ],
+        "tags": [
+          "spec",
+          "specs",
+          "backend"
+        ]
+      }
+    },
+    "repo-content::boosts/backend/evals/architecture-review.cases.json": {
+      "node_id": "repo-content::boosts/backend/evals/architecture-review.cases.json",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "44894cc52e33912aa7b57f79069fe6bf5578be7866c4e7575bd22b8f0f9ed7c6",
+      "title": "architecture-review.cases",
+      "slug": "report-architecture-review-cases-json",
+      "kind": "report",
+      "domain": "backend",
+      "owner": "evals",
+      "summary": "Artefacto JSON de tipo report en boosts/backend/evals/architecture-review.cases.json.",
+      "source_refs": [
+        "boosts/backend/evals/architecture-review.cases.json"
+      ],
+      "relations": [],
+      "tags": [
+        "report",
+        "observability",
+        "backend",
+        "json"
+      ],
+      "path": "observability/report-architecture-review-cases-json.md",
+      "navigation": {
+        "section": "observability",
+        "weight": 100,
+        "parent": "observability",
+        "tags": [
+          "report",
+          "observability",
+          "backend",
+          "json"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "architecture-review.cases",
+        "slug": "report-architecture-review-cases-json",
+        "kind": "report",
+        "section": "observability",
+        "domain": "backend",
+        "summary": "Artefacto JSON de tipo report en boosts/backend/evals/architecture-review.cases.json.",
+        "owner": "evals",
+        "source_refs": [
+          "boosts/backend/evals/architecture-review.cases.json"
+        ],
+        "tags": [
+          "report",
+          "observability",
+          "backend",
+          "json"
+        ]
+      }
+    },
+    "repo-content::boosts/backend/capabilities/backend-architecture-review.json": {
+      "node_id": "repo-content::boosts/backend/capabilities/backend-architecture-review.json",
+      "provider": "repo-content",
+      "type": "capability",
+      "checksum": "f5a0dabed107577fa02a82b7411823c92be15c837b4702e4e3eee3a6769b7703",
+      "title": "Backend Architecture Review",
+      "slug": "capability-backend-backend-architecture-review",
+      "kind": "capability",
+      "domain": "backend",
+      "owner": "backend",
+      "summary": "Capability backend.architecture.review del boost backend. Provider needs: code-navigation, dependency-analysis, knowledge-graph, project-memory",
+      "source_refs": [
+        "boosts/backend/mcpee.json"
+      ],
+      "relations": [
+        {
+          "target": "repo-content::boosts/backend/agents/backend-architect.md",
+          "type": "references"
+        },
+        {
+          "target": "repo-content::boosts/backend/skills/architecture-review.md",
+          "type": "references"
+        },
+        {
+          "target": "repo-content::boosts/backend/skills/dependency-analysis.md",
+          "type": "references"
+        },
+        {
+          "target": "repo-content::boosts/backend/specs/clean-architecture.md",
+          "type": "references"
+        },
+        {
+          "target": "repo-content::boosts/backend/specs/observability.md",
+          "type": "references"
+        },
+        {
+          "target": "repo-content::boosts/backend/prompts/architecture-review.prompt.md",
+          "type": "references"
+        },
+        {
+          "target": "repo-content::boosts/backend/evals/architecture-review.cases.json",
+          "type": "references"
+        }
+      ],
+      "tags": [
+        "capability",
+        "backend",
+        "backend"
+      ],
+      "path": "capabilities/capability-backend-backend-architecture-review.md",
+      "navigation": {
+        "section": "capabilities",
+        "weight": 100,
+        "parent": "capabilities",
+        "tags": [
+          "capability",
+          "backend",
+          "backend"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": true,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "Backend Architecture Review",
+        "slug": "capability-backend-backend-architecture-review",
+        "kind": "capability",
+        "section": "capabilities",
+        "domain": "backend",
+        "summary": "Capability backend.architecture.review del boost backend. Provider needs: code-navigation, dependency-analysis, knowledge-graph, project-memory",
+        "owner": "backend",
+        "source_refs": [
+          "boosts/backend/mcpee.json"
+        ],
+        "tags": [
+          "capability",
+          "backend",
+          "backend"
+        ],
+        "relations": [
+          {
+            "target": "boosts/backend/agents/backend-architect.md",
+            "type": "references"
+          },
+          {
+            "target": "boosts/backend/skills/architecture-review.md",
+            "type": "references"
+          },
+          {
+            "target": "boosts/backend/skills/dependency-analysis.md",
+            "type": "references"
+          },
+          {
+            "target": "boosts/backend/specs/clean-architecture.md",
+            "type": "references"
+          },
+          {
+            "target": "boosts/backend/specs/observability.md",
+            "type": "references"
+          },
+          {
+            "target": "boosts/backend/prompts/architecture-review.prompt.md",
+            "type": "references"
+          },
+          {
+            "target": "boosts/backend/evals/architecture-review.cases.json",
+            "type": "references"
+          }
         ]
       }
     },
@@ -5104,28 +6352,51 @@
         "id": "capabilities",
         "title": "Capabilities",
         "description": "Capacidades operativas e integraciones disponibles en el motor.",
-        "page_count": 0,
-        "pages": []
+        "page_count": 1,
+        "pages": [
+          {
+            "title": "Backend Architecture Review",
+            "slug": "capability-backend-backend-architecture-review",
+            "path": "capabilities/capability-backend-backend-architecture-review.md"
+          }
+        ]
       },
       {
         "id": "agents",
         "title": "Agents",
         "description": "Agentes y sus responsabilidades dentro del sistema.",
-        "page_count": 0,
-        "pages": []
+        "page_count": 1,
+        "pages": [
+          {
+            "title": "Backend Architect",
+            "slug": "agent-backend-architect-md",
+            "path": "agents/agent-backend-architect-md.md"
+          }
+        ]
       },
       {
         "id": "skills",
         "title": "Skills",
         "description": "Skills, comandos y utilidades operativas consumibles por agentes.",
-        "page_count": 0,
-        "pages": []
+        "page_count": 2,
+        "pages": [
+          {
+            "title": "Skill: Architecture Review",
+            "slug": "skill-architecture-review-md",
+            "path": "skills/skill-architecture-review-md.md"
+          },
+          {
+            "title": "Skill: Dependency Analysis",
+            "slug": "skill-dependency-analysis-md",
+            "path": "skills/skill-dependency-analysis-md.md"
+          }
+        ]
       },
       {
         "id": "routing",
         "title": "Routing",
         "description": "Reglas de orquestacion y decisiones de enrutado.",
-        "page_count": 6,
+        "page_count": 7,
         "pages": [
           {
             "title": "AGENTS.md \u2014 Enterprise Global Contract",
@@ -5156,6 +6427,11 @@
             "title": "Memory-first + Learning",
             "slug": "report-router-md",
             "path": "routing/report-router-md.md"
+          },
+          {
+            "title": "architecture-review.prompt",
+            "slug": "prompt-architecture-review-prompt-md",
+            "path": "routing/prompt-architecture-review-prompt-md.md"
           }
         ]
       },
@@ -5198,8 +6474,18 @@
         "id": "specs",
         "title": "Specs",
         "description": "Especificaciones tecnicas y contratos declarativos.",
-        "page_count": 11,
+        "page_count": 13,
         "pages": [
+          {
+            "title": "Spec: Clean Architecture",
+            "slug": "spec-clean-architecture-md",
+            "path": "specs/spec-clean-architecture-md.md"
+          },
+          {
+            "title": "Spec: Observability",
+            "slug": "spec-observability-md",
+            "path": "specs/spec-observability-md.md"
+          },
           {
             "title": "architecture spec",
             "slug": "spec-architecture-spec-md",
@@ -5261,7 +6547,7 @@
         "id": "observability",
         "title": "Observability",
         "description": "Telemetria, metricas y reportes del sistema.",
-        "page_count": 6,
+        "page_count": 7,
         "pages": [
           {
             "title": "Evaluation",
@@ -5292,6 +6578,11 @@
             "title": "Scoring Rubric",
             "slug": "report-scoring-rubric-md",
             "path": "observability/report-scoring-rubric-md.md"
+          },
+          {
+            "title": "architecture-review.cases",
+            "slug": "report-architecture-review-cases-json",
+            "path": "observability/report-architecture-review-cases-json.md"
           }
         ]
       },
@@ -5358,6 +6649,32 @@
     ]
   },
   "search_index": [
+    {
+      "title": "Backend Architect",
+      "summary": "Analiza arquitectura backend y propone mejoras trazables sin romper contratos.",
+      "kind": "agent",
+      "domain": "backend",
+      "section": "agents",
+      "tags": [
+        "agent",
+        "agents",
+        "backend"
+      ],
+      "path": "agents/agent-backend-architect-md.md"
+    },
+    {
+      "title": "Backend Architecture Review",
+      "summary": "Capability backend.architecture.review del boost backend. Provider needs: code-navigation, dependency-analysis, knowledge-graph, project-memory",
+      "kind": "capability",
+      "domain": "backend",
+      "section": "capabilities",
+      "tags": [
+        "capability",
+        "backend",
+        "backend"
+      ],
+      "path": "capabilities/capability-backend-backend-architecture-review.md"
+    },
     {
       "title": "Evaluation",
       "summary": "Evalua inputs esperados vs agente/motor real y perfil de optimizacion aplicado.",
@@ -5436,6 +6753,20 @@
         "observability"
       ],
       "path": "observability/report-scoring-rubric-md.md"
+    },
+    {
+      "title": "architecture-review.cases",
+      "summary": "Artefacto JSON de tipo report en boosts/backend/evals/architecture-review.cases.json.",
+      "kind": "report",
+      "domain": "backend",
+      "section": "observability",
+      "tags": [
+        "report",
+        "observability",
+        "backend",
+        "json"
+      ],
+      "path": "observability/report-architecture-review-cases-json.md"
     },
     {
       "title": "Context Policy",
@@ -5686,6 +7017,71 @@
         "routing"
       ],
       "path": "routing/report-router-md.md"
+    },
+    {
+      "title": "architecture-review.prompt",
+      "summary": "Analiza arquitectura backend con foco en contratos, aislamiento y trazabilidad.",
+      "kind": "prompt",
+      "domain": "backend",
+      "section": "routing",
+      "tags": [
+        "prompt",
+        "routing",
+        "backend"
+      ],
+      "path": "routing/prompt-architecture-review-prompt-md.md"
+    },
+    {
+      "title": "Skill: Architecture Review",
+      "summary": "Skill operativa del boost backend.",
+      "kind": "skill",
+      "domain": "backend",
+      "section": "skills",
+      "tags": [
+        "skill",
+        "skills",
+        "backend"
+      ],
+      "path": "skills/skill-architecture-review-md.md"
+    },
+    {
+      "title": "Skill: Dependency Analysis",
+      "summary": "Skill operativa del boost backend.",
+      "kind": "skill",
+      "domain": "backend",
+      "section": "skills",
+      "tags": [
+        "skill",
+        "skills",
+        "backend"
+      ],
+      "path": "skills/skill-dependency-analysis-md.md"
+    },
+    {
+      "title": "Spec: Clean Architecture",
+      "summary": "Las reglas de dependencias deben apuntar hacia adentro y preservar aislamiento de dominio.",
+      "kind": "spec",
+      "domain": "backend",
+      "section": "specs",
+      "tags": [
+        "spec",
+        "specs",
+        "backend"
+      ],
+      "path": "specs/spec-clean-architecture-md.md"
+    },
+    {
+      "title": "Spec: Observability",
+      "summary": "Toda decisi\u00f3n cr\u00edtica debe registrar trazabilidad y m\u00e9tricas de operaci\u00f3n.",
+      "kind": "spec",
+      "domain": "backend",
+      "section": "specs",
+      "tags": [
+        "spec",
+        "specs",
+        "backend"
+      ],
+      "path": "specs/spec-observability-md.md"
     },
     {
       "title": "architecture spec",
@@ -5951,6 +7347,48 @@
       "source_title": "Metrics",
       "type": "implements",
       "target": "repo-content::specs/observability.spec.md"
+    },
+    {
+      "source": "repo-content::boosts/backend/capabilities/backend-architecture-review.json",
+      "source_title": "Backend Architecture Review",
+      "type": "references",
+      "target": "repo-content::boosts/backend/agents/backend-architect.md"
+    },
+    {
+      "source": "repo-content::boosts/backend/capabilities/backend-architecture-review.json",
+      "source_title": "Backend Architecture Review",
+      "type": "references",
+      "target": "repo-content::boosts/backend/skills/architecture-review.md"
+    },
+    {
+      "source": "repo-content::boosts/backend/capabilities/backend-architecture-review.json",
+      "source_title": "Backend Architecture Review",
+      "type": "references",
+      "target": "repo-content::boosts/backend/skills/dependency-analysis.md"
+    },
+    {
+      "source": "repo-content::boosts/backend/capabilities/backend-architecture-review.json",
+      "source_title": "Backend Architecture Review",
+      "type": "references",
+      "target": "repo-content::boosts/backend/specs/clean-architecture.md"
+    },
+    {
+      "source": "repo-content::boosts/backend/capabilities/backend-architecture-review.json",
+      "source_title": "Backend Architecture Review",
+      "type": "references",
+      "target": "repo-content::boosts/backend/specs/observability.md"
+    },
+    {
+      "source": "repo-content::boosts/backend/capabilities/backend-architecture-review.json",
+      "source_title": "Backend Architecture Review",
+      "type": "references",
+      "target": "repo-content::boosts/backend/prompts/architecture-review.prompt.md"
+    },
+    {
+      "source": "repo-content::boosts/backend/capabilities/backend-architecture-review.json",
+      "source_title": "Backend Architecture Review",
+      "type": "references",
+      "target": "repo-content::boosts/backend/evals/architecture-review.cases.json"
     }
   ],
   "section_manifest": [
@@ -5958,29 +7396,37 @@
       "id": "capabilities",
       "title": "Capabilities",
       "description": "Capacidades operativas e integraciones disponibles en el motor.",
-      "page_count": 0,
-      "pages": []
+      "page_count": 1,
+      "pages": [
+        "capabilities/capability-backend-backend-architecture-review.md"
+      ]
     },
     {
       "id": "agents",
       "title": "Agents",
       "description": "Agentes y sus responsabilidades dentro del sistema.",
-      "page_count": 0,
-      "pages": []
+      "page_count": 1,
+      "pages": [
+        "agents/agent-backend-architect-md.md"
+      ]
     },
     {
       "id": "skills",
       "title": "Skills",
       "description": "Skills, comandos y utilidades operativas consumibles por agentes.",
-      "page_count": 0,
-      "pages": []
+      "page_count": 2,
+      "pages": [
+        "skills/skill-architecture-review-md.md",
+        "skills/skill-dependency-analysis-md.md"
+      ]
     },
     {
       "id": "routing",
       "title": "Routing",
       "description": "Reglas de orquestacion y decisiones de enrutado.",
-      "page_count": 6,
+      "page_count": 7,
       "pages": [
+        "routing/prompt-architecture-review-prompt-md.md",
         "routing/report-agents-md.md",
         "routing/report-architecture-md.md",
         "routing/report-corporate-routing-md.md",
@@ -6012,13 +7458,15 @@
       "id": "specs",
       "title": "Specs",
       "description": "Especificaciones tecnicas y contratos declarativos.",
-      "page_count": 11,
+      "page_count": 13,
       "pages": [
         "specs/spec-architecture-spec-md.md",
         "specs/spec-azure-rag-spec-md.md",
+        "specs/spec-clean-architecture-md.md",
         "specs/spec-coding-standards-spec-md.md",
         "specs/spec-database-spec-md.md",
         "specs/spec-migration-spec-md.md",
+        "specs/spec-observability-md.md",
         "specs/spec-observability-spec-md.md",
         "specs/spec-optimization-spec-md.md",
         "specs/spec-rag-spec-md.md",
@@ -6031,8 +7479,9 @@
       "id": "observability",
       "title": "Observability",
       "description": "Telemetria, metricas y reportes del sistema.",
-      "page_count": 6,
+      "page_count": 7,
       "pages": [
+        "observability/report-architecture-review-cases-json.md",
         "observability/report-evaluation-md.md",
         "observability/report-logs-schema-json.md",
         "observability/report-logs-schema-md.md",

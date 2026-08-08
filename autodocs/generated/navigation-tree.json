@@ -4,28 +4,51 @@
       "id": "capabilities",
       "title": "Capabilities",
       "description": "Capacidades operativas e integraciones disponibles en el motor.",
-      "page_count": 0,
-      "pages": []
+      "page_count": 1,
+      "pages": [
+        {
+          "title": "Backend Architecture Review",
+          "slug": "capability-backend-backend-architecture-review",
+          "path": "capabilities/capability-backend-backend-architecture-review.md"
+        }
+      ]
     },
     {
       "id": "agents",
       "title": "Agents",
       "description": "Agentes y sus responsabilidades dentro del sistema.",
-      "page_count": 0,
-      "pages": []
+      "page_count": 1,
+      "pages": [
+        {
+          "title": "Backend Architect",
+          "slug": "agent-backend-architect-md",
+          "path": "agents/agent-backend-architect-md.md"
+        }
+      ]
     },
     {
       "id": "skills",
       "title": "Skills",
       "description": "Skills, comandos y utilidades operativas consumibles por agentes.",
-      "page_count": 0,
-      "pages": []
+      "page_count": 2,
+      "pages": [
+        {
+          "title": "Skill: Architecture Review",
+          "slug": "skill-architecture-review-md",
+          "path": "skills/skill-architecture-review-md.md"
+        },
+        {
+          "title": "Skill: Dependency Analysis",
+          "slug": "skill-dependency-analysis-md",
+          "path": "skills/skill-dependency-analysis-md.md"
+        }
+      ]
     },
     {
       "id": "routing",
       "title": "Routing",
       "description": "Reglas de orquestacion y decisiones de enrutado.",
-      "page_count": 6,
+      "page_count": 7,
       "pages": [
         {
           "title": "AGENTS.md \u2014 Enterprise Global Contract",
@@ -56,6 +79,11 @@
           "title": "Memory-first + Learning",
           "slug": "report-router-md",
           "path": "routing/report-router-md.md"
+        },
+        {
+          "title": "architecture-review.prompt",
+          "slug": "prompt-architecture-review-prompt-md",
+          "path": "routing/prompt-architecture-review-prompt-md.md"
         }
       ]
     },
@@ -98,8 +126,18 @@
       "id": "specs",
       "title": "Specs",
       "description": "Especificaciones tecnicas y contratos declarativos.",
-      "page_count": 11,
+      "page_count": 13,
       "pages": [
+        {
+          "title": "Spec: Clean Architecture",
+          "slug": "spec-clean-architecture-md",
+          "path": "specs/spec-clean-architecture-md.md"
+        },
+        {
+          "title": "Spec: Observability",
+          "slug": "spec-observability-md",
+          "path": "specs/spec-observability-md.md"
+        },
         {
           "title": "architecture spec",
           "slug": "spec-architecture-spec-md",
@@ -161,7 +199,7 @@
       "id": "observability",
       "title": "Observability",
       "description": "Telemetria, metricas y reportes del sistema.",
-      "page_count": 6,
+      "page_count": 7,
       "pages": [
         {
           "title": "Evaluation",
@@ -192,6 +230,11 @@
           "title": "Scoring Rubric",
           "slug": "report-scoring-rubric-md",
           "path": "observability/report-scoring-rubric-md.md"
+        },
+        {
+          "title": "architecture-review.cases",
+          "slug": "report-architecture-review-cases-json",
+          "path": "observability/report-architecture-review-cases-json.md"
         }
       ]
     },

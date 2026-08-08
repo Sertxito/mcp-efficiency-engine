@@ -6,8 +6,8 @@ Telemetria, metricas y reportes del sistema.
 
 ## Resumen
 
-- total_pages: 6
-- domains: observability (6)
+- total_pages: 7
+- domains: observability (6), backend (1)
 
 ## Paginas
 
@@ -17,3 +17,4 @@ Telemetria, metricas y reportes del sistema.
 - [Routing Decision Event](report-logs-schema-json.md) - Artefacto JSON de tipo report en observability/logs.schema.json.
 - [Routing Evaluator](report-routing-evaluator-md.md) - Comparar routing real contra matriz esperada.
 - [Scoring Rubric](report-scoring-rubric-md.md) - Contenido report en observability/scoring-rubric.md.
+- [architecture-review.cases](report-architecture-review-cases-json.md) - Artefacto JSON de tipo report en boosts/backend/evals/architecture-review.cases.json.

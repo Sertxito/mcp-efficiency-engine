@@ -16,7 +16,7 @@ Definir cuando usar Azure RAG Builder para conocimiento corporativo y como evita
 
 - section_index: [specs](index.md)
 - wiki_home: [autodocs](../index.md)
-- related_in_section: [architecture spec](spec-architecture-spec-md.md), [coding-standards spec](spec-coding-standards-spec-md.md), [database spec](spec-database-spec-md.md)
+- related_in_section: [Spec: Clean Architecture](spec-clean-architecture-md.md), [Spec: Observability](spec-observability-md.md), [architecture spec](spec-architecture-spec-md.md)
 
 ## Fuentes
 
