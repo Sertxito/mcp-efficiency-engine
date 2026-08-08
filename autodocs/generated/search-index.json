@@ -170,19 +170,6 @@
     "path": "reports/report-readme-wiki-md.md"
   },
   {
-    "title": "File Index",
-    "summary": "Indice del contenido y estructura del repositorio.",
-    "kind": "report",
-    "domain": "documentation",
-    "section": "reports",
-    "tags": [
-      "report",
-      "reports",
-      "documentation"
-    ],
-    "path": "reports/report-file-index-md.md"
-  },
-  {
     "title": "Gu\u00eda de uso \u2014 MCP Efficiency Engine",
     "summary": "Token Saver y Caveman ya no son modos que se activan manualmente. Son parte del runtime del sistema.",
     "kind": "report",
@@ -248,20 +235,6 @@
       "json"
     ],
     "path": "reports/report-autodocs-openwiki-internal-blueprint-json.md"
-  },
-  {
-    "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
-    "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
-    "kind": "report",
-    "domain": "autodocs",
-    "section": "reports",
-    "tags": [
-      "report",
-      "reports",
-      "autodocs",
-      "json"
-    ],
-    "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
   },
   {
     "title": "AGENTS.md \u2014 Enterprise Global Contract",

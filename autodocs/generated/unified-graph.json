@@ -1,5 +1,5 @@
 {
-  "last_updated": "sha256:8b12ebb26629480f4729d6ce39ab6c951ca1c9d5e1b123af321a923b34c3ade3",
+  "last_updated": "sha256:e7dd9cc393a8af0db315c53a975ad8ab391ffec5675955caa3934d1f4301adc0",
   "nodes": {
     "repo-content::README.md": {
       "node_id": "repo-content::README.md",
@@ -177,60 +177,6 @@
         "owner": "repo",
         "source_refs": [
           "FINAL_USAGE_GUIDE.md"
-        ],
-        "tags": [
-          "report",
-          "reports",
-          "documentation"
-        ]
-      }
-    },
-    "repo-content::FILE_INDEX.md": {
-      "node_id": "repo-content::FILE_INDEX.md",
-      "provider": "repo-content",
-      "type": "report",
-      "checksum": "211985f6f0d41cc08825cc0151e2d507845269db20d4de2b6f8da86adc1cb192",
-      "title": "File Index",
-      "slug": "report-file-index-md",
-      "kind": "report",
-      "domain": "documentation",
-      "owner": "repo",
-      "summary": "Indice del contenido y estructura del repositorio.",
-      "source_refs": [
-        "FILE_INDEX.md"
-      ],
-      "relations": [],
-      "tags": [
-        "report",
-        "reports",
-        "documentation"
-      ],
-      "path": "reports/report-file-index-md.md",
-      "navigation": {
-        "section": "reports",
-        "weight": 100,
-        "parent": "reports",
-        "tags": [
-          "report",
-          "reports",
-          "documentation"
-        ]
-      },
-      "quality": {
-        "has_summary": true,
-        "has_relations": false,
-        "has_sources": true
-      },
-      "metadata": {
-        "title": "File Index",
-        "slug": "report-file-index-md",
-        "kind": "report",
-        "section": "reports",
-        "domain": "documentation",
-        "summary": "Indice del contenido y estructura del repositorio.",
-        "owner": "repo",
-        "source_refs": [
-          "FILE_INDEX.md"
         ],
         "tags": [
           "report",
@@ -2045,63 +1991,6 @@
           "autodocs"
         ]
       }
-    },
-    "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json": {
-      "node_id": "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json",
-      "provider": "repo-content",
-      "type": "report",
-      "checksum": "e31a15e28d2946659b5ec12a2b0998ad6c187143f8f2cffe2701ea647c494045",
-      "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
-      "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
-      "kind": "report",
-      "domain": "autodocs",
-      "owner": "analysis_mcpee",
-      "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
-      "source_refs": [
-        "autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json"
-      ],
-      "relations": [],
-      "tags": [
-        "report",
-        "reports",
-        "autodocs",
-        "json"
-      ],
-      "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md",
-      "navigation": {
-        "section": "reports",
-        "weight": 100,
-        "parent": "reports",
-        "tags": [
-          "report",
-          "reports",
-          "autodocs",
-          "json"
-        ]
-      },
-      "quality": {
-        "has_summary": true,
-        "has_relations": false,
-        "has_sources": true
-      },
-      "metadata": {
-        "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
-        "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
-        "kind": "report",
-        "section": "reports",
-        "domain": "autodocs",
-        "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
-        "owner": "analysis_mcpee",
-        "source_refs": [
-          "autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json"
-        ],
-        "tags": [
-          "report",
-          "reports",
-          "autodocs",
-          "json"
-        ]
-      }
     }
   },
   "raw_nodes": {
@@ -2200,31 +2089,6 @@
           "type": "extends"
         }
       ],
-      "semantic_summary": ""
-    },
-    "repo-content::FILE_INDEX.md": {
-      "node_id": "repo-content::FILE_INDEX.md",
-      "provider": "repo-content",
-      "type": "report",
-      "checksum": "211985f6f0d41cc08825cc0151e2d507845269db20d4de2b6f8da86adc1cb192",
-      "metadata": {
-        "title": "File Index",
-        "slug": "report-file-index-md",
-        "kind": "report",
-        "section": "reports",
-        "domain": "documentation",
-        "summary": "Indice del contenido y estructura del repositorio.",
-        "owner": "repo",
-        "source_refs": [
-          "FILE_INDEX.md"
-        ],
-        "tags": [
-          "report",
-          "reports",
-          "documentation"
-        ]
-      },
-      "relations": [],
       "semantic_summary": ""
     },
     "repo-content::autodocs/README.md": {
@@ -3095,32 +2959,6 @@
           "report",
           "reports",
           "autodocs"
-        ]
-      },
-      "relations": [],
-      "semantic_summary": ""
-    },
-    "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json": {
-      "node_id": "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json",
-      "provider": "repo-content",
-      "type": "report",
-      "checksum": "e31a15e28d2946659b5ec12a2b0998ad6c187143f8f2cffe2701ea647c494045",
-      "metadata": {
-        "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
-        "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
-        "kind": "report",
-        "section": "reports",
-        "domain": "autodocs",
-        "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
-        "owner": "analysis_mcpee",
-        "source_refs": [
-          "autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json"
-        ],
-        "tags": [
-          "report",
-          "reports",
-          "autodocs",
-          "json"
         ]
       },
       "relations": [],
@@ -3312,60 +3150,6 @@
         ]
       }
     },
-    "repo-content::FILE_INDEX.md": {
-      "node_id": "repo-content::FILE_INDEX.md",
-      "provider": "repo-content",
-      "type": "report",
-      "checksum": "211985f6f0d41cc08825cc0151e2d507845269db20d4de2b6f8da86adc1cb192",
-      "title": "File Index",
-      "slug": "report-file-index-md",
-      "kind": "report",
-      "domain": "documentation",
-      "owner": "repo",
-      "summary": "Indice del contenido y estructura del repositorio.",
-      "source_refs": [
-        "FILE_INDEX.md"
-      ],
-      "relations": [],
-      "tags": [
-        "report",
-        "reports",
-        "documentation"
-      ],
-      "path": "reports/report-file-index-md.md",
-      "navigation": {
-        "section": "reports",
-        "weight": 100,
-        "parent": "reports",
-        "tags": [
-          "report",
-          "reports",
-          "documentation"
-        ]
-      },
-      "quality": {
-        "has_summary": true,
-        "has_relations": false,
-        "has_sources": true
-      },
-      "metadata": {
-        "title": "File Index",
-        "slug": "report-file-index-md",
-        "kind": "report",
-        "section": "reports",
-        "domain": "documentation",
-        "summary": "Indice del contenido y estructura del repositorio.",
-        "owner": "repo",
-        "source_refs": [
-          "FILE_INDEX.md"
-        ],
-        "tags": [
-          "report",
-          "reports",
-          "documentation"
-        ]
-      }
-    },
     "repo-content::autodocs/README.md": {
       "node_id": "repo-content::autodocs/README.md",
       "provider": "repo-content",
@@ -5170,63 +4954,6 @@
           "report",
           "reports",
           "autodocs"
-        ]
-      }
-    },
-    "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json": {
-      "node_id": "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json",
-      "provider": "repo-content",
-      "type": "report",
-      "checksum": "e31a15e28d2946659b5ec12a2b0998ad6c187143f8f2cffe2701ea647c494045",
-      "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
-      "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
-      "kind": "report",
-      "domain": "autodocs",
-      "owner": "analysis_mcpee",
-      "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
-      "source_refs": [
-        "autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json"
-      ],
-      "relations": [],
-      "tags": [
-        "report",
-        "reports",
-        "autodocs",
-        "json"
-      ],
-      "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md",
-      "navigation": {
-        "section": "reports",
-        "weight": 100,
-        "parent": "reports",
-        "tags": [
-          "report",
-          "reports",
-          "autodocs",
-          "json"
-        ]
-      },
-      "quality": {
-        "has_summary": true,
-        "has_relations": false,
-        "has_sources": true
-      },
-      "metadata": {
-        "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
-        "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
-        "kind": "report",
-        "section": "reports",
-        "domain": "autodocs",
-        "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
-        "owner": "analysis_mcpee",
-        "source_refs": [
-          "autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json"
-        ],
-        "tags": [
-          "report",
-          "reports",
-          "autodocs",
-          "json"
         ]
       }
     }
@@ -5432,7 +5159,7 @@
         "id": "reports",
         "title": "Reports",
         "description": "Reportes generados y artefactos de analisis.",
-        "page_count": 10,
+        "page_count": 8,
         "pages": [
           {
             "title": "AutoDocs",
@@ -5448,11 +5175,6 @@
             "title": "AutoDocs Projection Engine",
             "slug": "report-readme-wiki-md",
             "path": "reports/report-readme-wiki-md.md"
-          },
-          {
-            "title": "File Index",
-            "slug": "report-file-index-md",
-            "path": "reports/report-file-index-md.md"
           },
           {
             "title": "Gu\u00eda de uso \u2014 MCP Efficiency Engine",
@@ -5478,11 +5200,6 @@
             "title": "openwiki-internal-blueprint",
             "slug": "report-autodocs-openwiki-internal-blueprint-json",
             "path": "reports/report-autodocs-openwiki-internal-blueprint-json.md"
-          },
-          {
-            "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
-            "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
-            "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
           }
         ]
       },
@@ -5667,19 +5384,6 @@
       "path": "reports/report-readme-wiki-md.md"
     },
     {
-      "title": "File Index",
-      "summary": "Indice del contenido y estructura del repositorio.",
-      "kind": "report",
-      "domain": "documentation",
-      "section": "reports",
-      "tags": [
-        "report",
-        "reports",
-        "documentation"
-      ],
-      "path": "reports/report-file-index-md.md"
-    },
-    {
       "title": "Gu\u00eda de uso \u2014 MCP Efficiency Engine",
       "summary": "Token Saver y Caveman ya no son modos que se activan manualmente. Son parte del runtime del sistema.",
       "kind": "report",
@@ -5745,20 +5449,6 @@
         "json"
       ],
       "path": "reports/report-autodocs-openwiki-internal-blueprint-json.md"
-    },
-    {
-      "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
-      "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
-      "kind": "report",
-      "domain": "autodocs",
-      "section": "reports",
-      "tags": [
-        "report",
-        "reports",
-        "autodocs",
-        "json"
-      ],
-      "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
     },
     {
       "title": "AGENTS.md \u2014 Enterprise Global Contract",
@@ -6196,14 +5886,12 @@
       "id": "reports",
       "title": "Reports",
       "description": "Reportes generados y artefactos de analisis.",
-      "page_count": 10,
+      "page_count": 8,
       "pages": [
         "reports/report-autodocs-analysis-mcpee-readme-md.md",
         "reports/report-autodocs-openwiki-internal-blueprint-json.md",
         "reports/report-autodocs-openwiki-internal-blueprint-md.md",
         "reports/report-autodocs-readme-md.md",
-        "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md",
-        "reports/report-file-index-md.md",
         "reports/report-final-usage-guide-md.md",
         "reports/report-package-json.md",
         "reports/report-readme-md.md",

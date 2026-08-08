@@ -199,7 +199,7 @@
       "id": "reports",
       "title": "Reports",
       "description": "Reportes generados y artefactos de analisis.",
-      "page_count": 10,
+      "page_count": 8,
       "pages": [
         {
           "title": "AutoDocs",
@@ -215,11 +215,6 @@
           "title": "AutoDocs Projection Engine",
           "slug": "report-readme-wiki-md",
           "path": "reports/report-readme-wiki-md.md"
-        },
-        {
-          "title": "File Index",
-          "slug": "report-file-index-md",
-          "path": "reports/report-file-index-md.md"
         },
         {
           "title": "Gu\u00eda de uso \u2014 MCP Efficiency Engine",
@@ -245,11 +240,6 @@
           "title": "openwiki-internal-blueprint",
           "slug": "report-autodocs-openwiki-internal-blueprint-json",
           "path": "reports/report-autodocs-openwiki-internal-blueprint-json.md"
-        },
-        {
-          "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
-          "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
-          "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
         }
       ]
     },
