@@ -100,7 +100,7 @@ function printHelp() {
       "  npx mcp-efficiency-engine skillopt-sleep",
       "  npx mcp-efficiency-engine artifact-report",
       "",
-      "Nota: comandos legacy (bootstrap/validate/hi/bye/intake/observe-*)",
+      "Nota: comandos históricos (bootstrap/validate/hi/bye/intake/observe-*)",
       "ya no forman parte de la superficie publica del CLI.",
     ].join("\n") + "\n",
   );

@@ -38,7 +38,7 @@ Reducir:
 
 ### GitNexus
 
-- Usar para impacto multi-repo o legacy.
+- Usar para impacto multi-repo o migraciones históricas.
 - Pedir flows o dependencias concretas.
 
 ### Graphify

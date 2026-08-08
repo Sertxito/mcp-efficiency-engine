@@ -21,8 +21,8 @@ labels: ["enhancement", "triage"]
 
 - [ ] Cambio en specs (`specs/*.spec.md`)
 - [ ] Nuevo script (`scripts/intake/` o similar)
-- [ ] Nuevo agente (`.github/agents/*.agent.md`)
-- [ ] Nuevo skill (`.github/skills/*/*.SKILL.md`)
+- [ ] Nuevo prompt (`.github/prompts/*.prompt.md`)
+- [ ] Nueva instrucción (`.github/instructions/*.instructions.md`)
 - [ ] Cambio en routing o políticas
 - [ ] Otro (describe):
 

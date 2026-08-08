@@ -5,7 +5,6 @@
 1. `bug login` -> `backend` + `CodeGraph` + Caveman `full`.
 1. `SLA` -> `rag-azure` + `Azure RAG Builder` + `sources` no vacio.
 1. `arquitectura` -> `rag-local`/`dba` segun dominio con `Graphify`.
-1. `legacy migration` -> `legacy` + `GitNexus` + `hitl.required=true` cuando haya alto impacto/fallback.
 
 ## Suite ejecutable JSON-first
 

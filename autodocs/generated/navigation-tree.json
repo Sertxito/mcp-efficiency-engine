@@ -11,177 +11,15 @@
       "id": "agents",
       "title": "Agents",
       "description": "Agentes y sus responsabilidades dentro del sistema.",
-      "page_count": 11,
-      "pages": [
-        {
-          "title": "Mission",
-          "slug": "agent-github-repository-manager-agent-md",
-          "path": "agents/agent-github-repository-manager-agent-md.md"
-        },
-        {
-          "title": "backend",
-          "slug": "agent-backend-agent-md",
-          "path": "agents/agent-backend-agent-md.md"
-        },
-        {
-          "title": "community-manager",
-          "slug": "agent-community-manager-agent-md",
-          "path": "agents/agent-community-manager-agent-md.md"
-        },
-        {
-          "title": "dba",
-          "slug": "agent-dba-agent-md",
-          "path": "agents/agent-dba-agent-md.md"
-        },
-        {
-          "title": "frontend-agent",
-          "slug": "agent-frontend-agent-agent-md",
-          "path": "agents/agent-frontend-agent-agent-md.md"
-        },
-        {
-          "title": "iot",
-          "slug": "agent-iot-agent-md",
-          "path": "agents/agent-iot-agent-md.md"
-        },
-        {
-          "title": "rag-azure",
-          "slug": "agent-rag-azure-agent-md",
-          "path": "agents/agent-rag-azure-agent-md.md"
-        },
-        {
-          "title": "rag-local",
-          "slug": "agent-rag-local-agent-md",
-          "path": "agents/agent-rag-local-agent-md.md"
-        },
-        {
-          "title": "snapshot",
-          "slug": "agent-snapshot-agent-md",
-          "path": "agents/agent-snapshot-agent-md.md"
-        },
-        {
-          "title": "ux-ui",
-          "slug": "agent-ux-ui-agent-md",
-          "path": "agents/agent-ux-ui-agent-md.md"
-        },
-        {
-          "title": "wiki-agent",
-          "slug": "agent-wiki-agent-agent-md",
-          "path": "agents/agent-wiki-agent-agent-md.md"
-        }
-      ]
+      "page_count": 0,
+      "pages": []
     },
     {
       "id": "skills",
       "title": "Skills",
       "description": "Skills, comandos y utilidades operativas consumibles por agentes.",
-      "page_count": 21,
-      "pages": [
-        {
-          "title": "Azure RAG Enterprise Skill",
-          "slug": "skill-azure-rag-enterprise",
-          "path": "skills/skill-azure-rag-enterprise.md"
-        },
-        {
-          "title": "Backend Coding Skill",
-          "slug": "skill-backend-coding",
-          "path": "skills/skill-backend-coding.md"
-        },
-        {
-          "title": "Cavecrew Skill \u2014 Local",
-          "slug": "skill-cavecrew",
-          "path": "skills/skill-cavecrew.md"
-        },
-        {
-          "title": "Caveman Commit Skill \u2014 Local",
-          "slug": "skill-caveman-commit",
-          "path": "skills/skill-caveman-commit.md"
-        },
-        {
-          "title": "Caveman Compress Skill \u2014 Local",
-          "slug": "skill-caveman-compress",
-          "path": "skills/skill-caveman-compress.md"
-        },
-        {
-          "title": "Caveman Help Skill \u2014 Local",
-          "slug": "skill-caveman-help",
-          "path": "skills/skill-caveman-help.md"
-        },
-        {
-          "title": "Caveman Mode Skill \u2014 Always On",
-          "slug": "skill-caveman-mode",
-          "path": "skills/skill-caveman-mode.md"
-        },
-        {
-          "title": "Caveman Review Skill \u2014 Local",
-          "slug": "skill-caveman-review",
-          "path": "skills/skill-caveman-review.md"
-        },
-        {
-          "title": "Caveman Skill \u2014 Local",
-          "slug": "skill-caveman",
-          "path": "skills/skill-caveman.md"
-        },
-        {
-          "title": "Caveman Stats Skill \u2014 Local",
-          "slug": "skill-caveman-stats",
-          "path": "skills/skill-caveman-stats.md"
-        },
-        {
-          "title": "Community Content Skill",
-          "slug": "skill-community-content",
-          "path": "skills/skill-community-content.md"
-        },
-        {
-          "title": "Database Analysis Skill",
-          "slug": "skill-database-analysis",
-          "path": "skills/skill-database-analysis.md"
-        },
-        {
-          "title": "Dev Coding Skill",
-          "slug": "skill-dev-coding",
-          "path": "skills/skill-dev-coding.md"
-        },
-        {
-          "title": "Frontend Coding Skill",
-          "slug": "skill-frontend-coding",
-          "path": "skills/skill-frontend-coding.md"
-        },
-        {
-          "title": "Human In The Loop (HITL)",
-          "slug": "skill-human-in-the-loop",
-          "path": "skills/skill-human-in-the-loop.md"
-        },
-        {
-          "title": "IoT Architecture Skill",
-          "slug": "skill-iot-architecture",
-          "path": "skills/skill-iot-architecture.md"
-        },
-        {
-          "title": "RAG Knowledge Skill",
-          "slug": "skill-rag-knowledge",
-          "path": "skills/skill-rag-knowledge.md"
-        },
-        {
-          "title": "Skill: ahorro-tokens",
-          "slug": "skill-ahorro-tokens",
-          "path": "skills/skill-ahorro-tokens.md"
-        },
-        {
-          "title": "Token Saver Skill \u2014 Always On",
-          "slug": "skill-token-saver",
-          "path": "skills/skill-token-saver.md"
-        },
-        {
-          "title": "UX UI Governance Skill",
-          "slug": "skill-ux-ui-governance",
-          "path": "skills/skill-ux-ui-governance.md"
-        },
-        {
-          "title": "wiki-tools",
-          "slug": "skill-wiki-tools-json",
-          "path": "skills/skill-wiki-tools-json.md"
-        }
-      ]
+      "page_count": 0,
+      "pages": []
     },
     {
       "id": "routing",
@@ -361,7 +199,7 @@
       "id": "reports",
       "title": "Reports",
       "description": "Reportes generados y artefactos de analisis.",
-      "page_count": 10,
+      "page_count": 9,
       "pages": [
         {
           "title": "AutoDocs",
@@ -377,11 +215,6 @@
           "title": "AutoDocs Projection Engine",
           "slug": "report-readme-wiki-md",
           "path": "reports/report-readme-wiki-md.md"
-        },
-        {
-          "title": "File Index",
-          "slug": "report-file-index-md",
-          "path": "reports/report-file-index-md.md"
         },
         {
           "title": "Gu\u00eda de uso \u2014 MCP Efficiency Engine",

@@ -33,14 +33,6 @@
       "capability": "database-analysis"
     },
     {
-      "id": "case-legacy-migration",
-      "input": "Plan de migracion legacy",
-      "intent": "migration",
-      "domain": "legacy",
-      "source_type": "code",
-      "capability": "legacy-migration"
-    },
-    {
       "id": "case-rag-tech-docs-local",
       "input": "explica guia tecnica local",
       "intent": "info",

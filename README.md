@@ -167,8 +167,7 @@ flowchart TB
 
 ## Estructura Clave
 
-- `.github/agents/`: definición de agentes por dominio.
-- `.github/skills/`: skills ejecutables y reutilizables.
+- `.github/instructions/`: reglas aplicables por scope y boosts sincronizados.
 - `.github/prompts/`: prompts de routing por caso.
 - `orchestrator/`: reglas corporativas y matriz de decisión.
 - `repo-registry/`: registro de boosts aprobados.
@@ -378,8 +377,6 @@ Instalacion manual de hooks (si necesitas reprovisionar):
 Sincronización runtime de boosts npm:
 
 - `instructions` -> `.github/instructions/mcpee-boost-*.instructions.md`
-- `agents` -> `.github/agents/mcpee-boost-<paquete>/...`
-- `skills` -> `.github/skills/mcpee-boost-<paquete>/...`
 - `prompts` -> `.github/prompts/mcpee-boost-<paquete>/...`
 - `specs` -> `specs/mcpee-boost-<paquete>/...`
 - `evals` -> `observability/evals/boosts/mcpee-boost-<paquete>/...`

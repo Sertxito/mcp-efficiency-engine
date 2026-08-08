@@ -12,9 +12,7 @@
 /orchestrator/                            @Sertxito
 /observability/                           @Sertxito
 
-# Skills and agents configuration
-/.github/skills/                          @Sertxito
-/.github/agents/                          @Sertxito
+# Prompt configuration
 /.github/prompts/                         @Sertxito
 
 # Policies and standards

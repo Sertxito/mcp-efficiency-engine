@@ -441,16 +441,10 @@ def select_prompt_for_route(
 
 
 def select_skill_for_route(*, capability: str, skill_root: Path) -> tuple[str, bool]:
-    """Return skill file path relative to repo root and whether it exists."""
-    normalized = capability.strip()
-    candidate = f".github/skills/{normalized}/SKILL.md" if normalized else ".github/skills/token-saver/SKILL.md"
-    exists = (skill_root / candidate).exists()
-    if exists:
-        return candidate, True
-
-    # Safe fallback: always-on optimization skill.
-    fallback = ".github/skills/token-saver/SKILL.md"
-    return fallback, (skill_root / fallback).exists()
+    """Core-only mode: local skill files are not part of runtime routing."""
+    _ = capability
+    _ = skill_root
+    return "", False
 
 
 def append_jsonl(path: Path, event: dict[str, Any]) -> None:
@@ -601,7 +595,7 @@ def main() -> int:
             skill_exists = True
             notes.append(f"skill_selected_from_boost={boost_skill}")
     if not skill_exists:
-        notes.append(f"skill_not_found={selected_skill}")
+        notes.append("skill_layer_disabled=core_only")
 
     selected_agent_asset = pick_boost_asset(
         runtime_index=boost_runtime_index,

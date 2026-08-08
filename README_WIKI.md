@@ -1,9 +1,41 @@
 # AutoDocs Projection Engine
 
-AutoDocs es una capacidad nativa de `mcp-efficiency-engine`. Toma
-conocimiento estructurado de artefactos existentes en `repo-intake/generated/`,
-lo normaliza a un modelo wiki canonico, valida calidad estructural y proyecta
-una wiki interna en `autodocs/site/`.
+AutoDocs es una capacidad nativa de `mcp-efficiency-engine`. En el modo
+actual core-only, toma conocimiento estructurado del contenido operativo del
+repo instalado, lo normaliza a un modelo wiki canonico, valida calidad
+estructural y proyecta una wiki interna en `autodocs/site/`.
+
+## Fuentes que consume hoy (core-only)
+
+El proveedor local consume unicamente estas rutas:
+
+- Core docs: `README.md`, `README_WIKI.md`, `FINAL_USAGE_GUIDE.md`,
+  `FILE_INDEX.md`, `autodocs/README.md`, `package.json`.
+- Politicas: `policies/*.md`.
+- Specs: `specs/**/*.md`.
+- Observabilidad: `observability/*.md` y `observability/*.json`.
+- Routing: `AGENTS.md`, `ARCHITECTURE.md`, `orchestrator/*.md`,
+  `autodocs/site/guides/03-mcp-routing-guide.md` (si existe).
+- Reportes operativos: `autodocs/analysis_mcpee/*.{md,json}`.
+
+No consume contenido de agentes/skills locales fuera del scope core-only.
+
+## Como meter videos para que AutoDocs los trabaje
+
+AutoDocs no analiza binarios de video (`.mp4`, `.mov`) directamente. El flujo
+correcto es:
+
+1. Guardar el video fuente donde quieras (por ejemplo en `context/project-notes/`).
+2. Generar transcript/resumen en texto (Markdown o JSON).
+3. Guardar esos artefactos en `autodocs/analysis_mcpee/`.
+4. Ejecutar `py -3 -m scripts.wiki.wiki_compiler`.
+
+Resultado:
+
+- Se actualiza `autodocs/generated/unified-graph.json`.
+- Aparecen/actualizan paginas en `autodocs/site/reports/`.
+- Se refrescan indices en `autodocs/site/index.md` y manifests en
+  `autodocs/generated/`.
 
 ## Flujo operativo
 
@@ -77,8 +109,8 @@ Todo proveedor debe devolver:
 1. Crea un archivo en `scripts/wiki/providers/`, por ejemplo `my_provider.py`.
 2. Hereda de `BaseWikiProvider`.
 3. Define `provider_id` y `gather_knowledge()`.
-4. Reusa artefactos existentes de `repo-intake/generated/` (no reescanear
-  codigo fuente).
+4. Reusa artefactos estructurados del repo (o rutas de contexto controladas)
+  y evita reescanear codigo fuente completo innecesariamente.
 5. Registra el proveedor en `scripts/wiki/compiler_main.py`.
 
 Ejemplo minimo:

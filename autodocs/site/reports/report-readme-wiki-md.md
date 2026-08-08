@@ -1,6 +1,6 @@
 # AutoDocs Projection Engine
 
-AutoDocs es una capacidad nativa de `mcp-efficiency-engine`. Toma conocimiento estructurado de artefactos existentes en `repo-intake/generated/`,
+AutoDocs es una capacidad nativa de `mcp-efficiency-engine`. En el modo actual core-only, toma conocimiento estructurado del contenido operativo del
 
 ## Contexto
 
@@ -8,7 +8,7 @@ AutoDocs es una capacidad nativa de `mcp-efficiency-engine`. Toma conocimiento e
 - domain: documentation
 - section: reports
 - provider: repo-content
-- checksum: 75f74dbf0179ac9bbdd97d1c9db74da8f249b29137b7f22eb2e2e5291cfcbc40
+- checksum: 9bbb492b27105371f66ba850da76d78c7e5b9af3e55b402d4417d9a827b9215f
 - owner: repo
 - tags: report, reports, documentation
 
@@ -40,7 +40,7 @@ AutoDocs es una capacidad nativa de `mcp-efficiency-engine`. Toma conocimiento e
   "kind": "report",
   "section": "reports",
   "domain": "documentation",
-  "summary": "AutoDocs es una capacidad nativa de `mcp-efficiency-engine`. Toma conocimiento estructurado de artefactos existentes en `repo-intake/generated/`,",
+  "summary": "AutoDocs es una capacidad nativa de `mcp-efficiency-engine`. En el modo actual core-only, toma conocimiento estructurado del contenido operativo del",
   "owner": "repo",
   "source_refs": [
     "README_WIKI.md"

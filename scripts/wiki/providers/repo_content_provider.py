@@ -15,8 +15,6 @@ class RepoContentProvider(BaseWikiProvider):
     def gather_knowledge(self) -> Dict[str, Any]:
         entities: List[Dict[str, Any]] = []
         entities.extend(self._collect_core_docs())
-        entities.extend(self._collect_agents())
-        entities.extend(self._collect_skills())
         entities.extend(self._collect_policies())
         entities.extend(self._collect_specs())
         entities.extend(self._collect_observability())
@@ -60,27 +58,6 @@ class RepoContentProvider(BaseWikiProvider):
                 )
             )
 
-        return entities
-
-    def _collect_agents(self) -> List[Dict[str, Any]]:
-        agents_dir = self.repo_root / ".github" / "agents"
-        if not agents_dir.exists():
-            return []
-        files = sorted(agents_dir.glob("*.agent.md"))
-        return [self._entity_from_markdown(path, kind="agent", section="agents", domain="agents") for path in files]
-
-    def _collect_skills(self) -> List[Dict[str, Any]]:
-        skills_dir = self.repo_root / ".github" / "skills"
-        if not skills_dir.exists():
-            return []
-        entities: List[Dict[str, Any]] = []
-        for path in sorted(skills_dir.iterdir()):
-            if path.is_dir():
-                skill_file = path / "SKILL.md"
-                if skill_file.exists():
-                    entities.append(self._entity_from_markdown(skill_file, kind="skill", section="skills", domain="skills"))
-            elif path.is_file() and path.suffix == ".json":
-                entities.append(self._entity_from_json(path, kind="skill", section="skills", domain="skills"))
         return entities
 
     def _collect_policies(self) -> List[Dict[str, Any]]:
@@ -248,11 +225,7 @@ class RepoContentProvider(BaseWikiProvider):
             source_ref = str(source_refs[0]) if source_refs else ""
             title = str(raw_data.get("title", "")).strip().lower()
 
-            if kind == "agent":
-                self._relate_agent(entity, entities_by_id, title)
-            elif kind == "skill":
-                self._relate_skill(entity, entities_by_id, source_ref)
-            elif kind == "policy":
+            if kind == "policy":
                 self._relate_policy(entity, entities_by_id, source_ref)
             elif kind == "spec":
                 self._relate_spec(entity, entities_by_id, source_ref)
@@ -260,47 +233,6 @@ class RepoContentProvider(BaseWikiProvider):
                 self._relate_report(entity, entities_by_id, source_ref)
             elif kind == "project":
                 self._relate_project(entity, entities_by_id, title)
-
-    def _relate_agent(self, entity: Dict[str, Any], entities_by_id: Dict[str, Dict[str, Any]], title: str) -> None:
-        skill_map = {
-            "backend": ".github/skills/backend-coding/SKILL.md",
-            "frontend-agent": ".github/skills/frontend-coding/SKILL.md",
-            "dba": ".github/skills/database-analysis/SKILL.md",
-            "iot": ".github/skills/iot-architecture/SKILL.md",
-            "rag-local": ".github/skills/rag-knowledge/SKILL.md",
-            "rag-azure": ".github/skills/azure-rag-enterprise/SKILL.md",
-            "community-manager": ".github/skills/community-content/SKILL.md",
-            "ux-ui": ".github/skills/ux-ui-governance/SKILL.md",
-            "wiki": ".github/skills/wiki-tools.json",
-        }
-        for needle, target_id in skill_map.items():
-            if needle in title and target_id in entities_by_id:
-                self._add_relation(entity, target_id, "uses_skill")
-
-        shared_targets = [
-            ".github/skills/token-saver/SKILL.md",
-            ".github/skills/caveman-mode/SKILL.md",
-            "AGENTS.md",
-            "ARCHITECTURE.md",
-        ]
-        for target_id in shared_targets:
-            if target_id in entities_by_id:
-                relation_type = "follows" if target_id.endswith(".md") else "uses_skill"
-                self._add_relation(entity, target_id, relation_type)
-
-    def _relate_skill(self, entity: Dict[str, Any], entities_by_id: Dict[str, Dict[str, Any]], source_ref: str) -> None:
-        if source_ref == ".github/skills/token-saver/SKILL.md":
-            for target_id in ["specs/optimization.spec.md", "observability/metrics.md"]:
-                if target_id in entities_by_id:
-                    self._add_relation(entity, target_id, "supports")
-        if source_ref == ".github/skills/caveman-mode/SKILL.md":
-            for target_id in ["specs/optimization.spec.md", "observability/metrics.md"]:
-                if target_id in entities_by_id:
-                    self._add_relation(entity, target_id, "supports")
-        if source_ref == ".github/skills/wiki-tools.json":
-            for target_id in ["README_WIKI.md", "autodocs/README.md"]:
-                if target_id in entities_by_id:
-                    self._add_relation(entity, target_id, "documents")
 
     def _relate_policy(self, entity: Dict[str, Any], entities_by_id: Dict[str, Dict[str, Any]], source_ref: str) -> None:
         policy_to_spec = {
@@ -370,6 +302,12 @@ class RepoContentProvider(BaseWikiProvider):
         relations.append({"target": target_id, "type": relation_type})
 
     def _extract_title(self, content: str) -> str:
+        frontmatter = self._parse_frontmatter(content)
+        for key in ["title", "name"]:
+            value = str(frontmatter.get(key, "")).strip()
+            if value:
+                return value
+
         for line in content.splitlines():
             stripped = line.strip()
             if stripped.startswith("#"):
@@ -377,9 +315,26 @@ class RepoContentProvider(BaseWikiProvider):
         return ""
 
     def _extract_summary(self, content: str) -> str:
+        frontmatter = self._parse_frontmatter(content)
+        for key in ["summary", "description"]:
+            value = str(frontmatter.get(key, "")).strip()
+            if value:
+                return value
+
         lines = [line.strip() for line in content.splitlines()]
         in_fence = False
+        in_frontmatter = False
+        frontmatter_started = False
         for index, line in enumerate(lines):
+            if line == "---" and not frontmatter_started and not in_fence:
+                in_frontmatter = True
+                frontmatter_started = True
+                continue
+            if line == "---" and in_frontmatter and not in_fence:
+                in_frontmatter = False
+                continue
+            if in_frontmatter:
+                continue
             if line.startswith("```"):
                 in_fence = not in_fence
                 continue
@@ -389,9 +344,17 @@ class RepoContentProvider(BaseWikiProvider):
                 continue
             if line.startswith("<!--"):
                 continue
+            if line.startswith(">"):
+                continue
             if line.startswith("-") or line.startswith("1."):
                 continue
+            if line and line[0].isdigit() and "." in line:
+                prefix = line.split(".", 1)[0]
+                if prefix.isdigit():
+                    continue
             if line.startswith("|") or line.endswith(":"):
+                continue
+            if self._looks_like_metadata(line):
                 continue
             next_line = lines[index + 1] if index + 1 < len(lines) else ""
             if next_line.startswith("```") or next_line.startswith("|") or next_line.startswith("<!--"):
@@ -400,6 +363,39 @@ class RepoContentProvider(BaseWikiProvider):
                 return f"{line} {next_line}".strip()
             return line
         return ""
+
+    def _parse_frontmatter(self, content: str) -> Dict[str, str]:
+        lines = content.splitlines()
+        if not lines or lines[0].strip() != "---":
+            return {}
+
+        frontmatter: Dict[str, str] = {}
+        for raw_line in lines[1:]:
+            line = raw_line.strip()
+            if line == "---":
+                break
+            if not line or ":" not in line:
+                continue
+            key, value = line.split(":", 1)
+            key = key.strip().lower()
+            if not key:
+                continue
+            frontmatter[key] = value.strip()
+        return frontmatter
+
+    def _looks_like_metadata(self, line: str) -> bool:
+        key, sep, value = line.partition(":")
+        if not sep:
+            return False
+        normalized_key = key.strip()
+        if not normalized_key or normalized_key != normalized_key.lower():
+            return False
+        compact = normalized_key.replace("_", "").replace("-", "")
+        if not compact.isalnum():
+            return False
+        if " " in normalized_key:
+            return False
+        return bool(value.strip())
 
     def _normalize_summary(self, summary: str, fallback: str) -> str:
         normalized = summary.strip()
@@ -410,6 +406,8 @@ class RepoContentProvider(BaseWikiProvider):
     def _slug_for(self, kind: str, path: Path) -> str:
         relative = self._relative(path)
         stem = path.name
+        if kind == "agent" and path.name.lower().endswith(".agent.md"):
+            stem = path.name[: -len(".agent.md")]
         if path.name.lower() == "skill.md" and path.parent.name:
             stem = path.parent.name
         elif path.stem.lower() == "readme" and path.parent != self.repo_root:

@@ -6,17 +6,7 @@ from pathlib import Path
 from typing import Any
 
 
-REQUIRED_AGENT_ALIASES: dict[str, list[str]] = {
-    "backend": ["backend", "backend"],
-    "frontend": ["frontend-agent"],
-    "dba": ["dba", "dba"],
-    "rag-local": ["rag-local", "rag-local"],
-    "rag-azure": ["rag-azure", "rag-azure"],
-    "iot": ["iot", "iot"],
-    "ux-ui": ["ux-ui", "ux-ui"],
-    "community-manager": ["community-manager", "community-manager"],
-    "snapshot": ["snapshot", "snapshot"],
-}
+REQUIRED_AGENT_ALIASES: dict[str, list[str]] = {}
 
 AGENT_TEMPLATE: dict[str, str] = {
     "backend": "Modern development tasks on a single repository.",
@@ -55,9 +45,9 @@ def write_agent_template(agent_name: str, path: Path) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate agent -> skills -> boost pipeline prerequisites.")
+    parser = argparse.ArgumentParser(description="Validate routing/prerequisites pipeline in core-only mode.")
     parser.add_argument("--registry", default="repo-registry/repos.yml")
-    parser.add_argument("--agents-dir", default=".github/agents")
+    parser.add_argument("--agents-dir", default=".github/prompts")
     parser.add_argument("--generated-root", default="repo-intake/generated")
     parser.add_argument("--create-missing-templates", action="store_true")
     args = parser.parse_args()
@@ -106,9 +96,9 @@ def main() -> int:
         if not capability.exists():
             missing_capabilities.append(str(capability))
 
-    print("Agent Pipeline Preflight")
+    print("Routing Pipeline Preflight")
     print(f"- agents_dir: {agents_dir}")
-    print(f"- required_agents: {len(REQUIRED_AGENT_ALIASES)}")
+    print(f"- required_agent_templates: {len(REQUIRED_AGENT_ALIASES)}")
     print(f"- missing_agents: {len(missing_agents)}")
     print(f"- missing_boost_paths: {len(missing_boost_paths)}")
     print(f"- missing_manifests: {len(missing_manifests)}")
@@ -140,7 +130,7 @@ def main() -> int:
     if missing_agents or missing_boost_paths or missing_manifests or missing_capabilities:
         return 1
 
-    print("Preflight OK. Agent pipeline can route to skills and boost platforms.")
+    print("Preflight OK. Core-only routing prerequisites are healthy.")
     return 0
 
 

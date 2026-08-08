@@ -1,67 +1,48 @@
 {
-  "timestamp": "2026-08-08T10:37:41.102571+00:00",
+  "timestamp": "2026-08-08T13:41:25.398937+00:00",
   "source": {
     "traces": "C:\\repo\\mcp-efficiency-engine\\.telemetry\\traces.jsonl",
     "metrics": "C:\\repo\\mcp-efficiency-engine\\.telemetry\\metrics.jsonl"
   },
   "totals": {
-    "trace_records": 10110,
-    "metric_records": 4016,
-    "executions": 1421,
-    "warnings": 4,
+    "trace_records": 186,
+    "metric_records": 4383,
+    "executions": 20,
+    "warnings": 0,
     "errors": 0
   },
   "kpis": {
-    "routing_fallback_rate": 0.0095,
-    "routing_grounded_rate": 0.1292,
-    "avg_span_duration_ms": 258.0601,
-    "p95_span_duration_ms": 8.627,
+    "routing_fallback_rate": 0.0,
+    "routing_grounded_rate": 0.0,
+    "avg_span_duration_ms": 461.4187,
+    "p95_span_duration_ms": 3772.255,
     "tokens_input": 4640,
     "tokens_output": 1120,
     "total_tokens": 5760,
     "total_cost_usd": 0.0443,
-    "efficiency_score_avg": 57.965
+    "efficiency_score_avg": 57.9583
   },
   "breakdown": {
     "operation": {
-      "resolve-routing": 195,
-      "learning-loop-report": 22,
-      "mcpee.hi": 2,
-      "mcpee.langsmith-kpis": 2,
-      "mcpee.install-terminal-telemetry-hook": 1,
-      "terminal.command": 1167,
-      "autodocs-compiler": 9,
-      "unknown": 9,
-      "plugin-manager-gather-all": 9,
-      "wiki-validator": 9
+      "terminal.command": 12,
+      "autodocs-compiler": 2,
+      "unknown": 2,
+      "plugin-manager-gather-all": 2,
+      "wiki-validator": 2,
+      "learning-loop-report": 2
     },
     "session": {
-      "intake-routing": 1369,
-      "learning": 132,
-      "mcpee-cli": 30,
-      "terminal-session": 8174,
-      "wiki-orchestrator": 72,
-      "autodocs": 333
+      "terminal-session": 84,
+      "wiki-orchestrator": 16,
+      "autodocs": 74,
+      "learning": 12
     },
     "engine": {
-      "CodeGraph": 71,
-      "Azure RAG Builder": 21,
-      "Graphify": 86,
-      "GitNexus": 17,
-      "unknown": 1167
+      "unknown": 12
     },
     "agent": {
-      "backend": 50,
-      "rag-azure": 21,
-      "dba": 44,
-      "legacy": 17,
-      "rag-local": 21,
-      "frontend-agent": 21,
-      "ux-ui": 21,
-      "unknown": 1167
+      "unknown": 12
     },
-    "exporter_failures": {
-      "langsmith": 4
-    }
+    "exporter_failures": {}
   }
 }

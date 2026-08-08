@@ -355,7 +355,7 @@ jobs:
 - [GitHub REST API Documentation](https://docs.github.com/en/rest)
 - [GitHub CLI (gh) Documentation](https://cli.github.com/manual)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [boost_sertxIA - GitHub Devlog Maintainer](https://github.com/Sertxito/boost_sertxIA/blob/main/.github/agents/github-devlog-maintainer.agent.md)
+- [boost_sertxIA - GitHub Devlog Maintainer](https://github.com/Sertxito/boost_sertxIA)
 
 ## Estado
 

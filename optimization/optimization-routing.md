@@ -12,7 +12,7 @@ Memory MCP y Learning son transversales (always-on), pero la eleccion de engine 
 | --- | --- | --- |
 | Debug / bug / CLI | strict | full |
 | Refactor | strict | full/lite |
-| Legacy impact | balanced | lite |
+| Impacto histórico | balanced | lite |
 | Arquitectura | balanced | lite |
 | DBA / SQL | strict | full/lite |
 | RAG local | balanced | lite |

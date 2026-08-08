@@ -279,18 +279,6 @@ def sync_installed_boost_artifacts(repo_root: Path, installed_repos: list[dict])
             ],
             'extensions': {'.md'},
         },
-        'agents': {
-            'contract_keys': ['agents', 'defaultAgent'],
-            'capability_keys': ['agent', 'agents'],
-            'fallback_globs': ['agents/**/*.md', '.github/agents/**/*.md'],
-            'extensions': {'.md'},
-        },
-        'skills': {
-            'contract_keys': ['skills', 'defaultSkill'],
-            'capability_keys': ['skills'],
-            'fallback_globs': ['skills/**/*.md', 'skills/**/*.json', '.github/skills/**/*.md'],
-            'extensions': {'.md', '.json'},
-        },
         'prompts': {
             'contract_keys': ['prompts'],
             'capability_keys': ['prompts'],
@@ -313,8 +301,6 @@ def sync_installed_boost_artifacts(repo_root: Path, installed_repos: list[dict])
 
     cleanup_roots = [
         repo_root / '.github' / 'instructions',
-        repo_root / '.github' / 'agents',
-        repo_root / '.github' / 'skills',
         repo_root / '.github' / 'prompts',
         repo_root / 'specs',
         repo_root / 'observability' / 'evals' / 'boosts',

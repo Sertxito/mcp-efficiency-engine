@@ -46,6 +46,27 @@ const runtimeDirs = [
   "repo-intake/generated/reports",
 ];
 
+const legacyCleanupTargets = [
+  ".github/agents",
+  ".github/skills",
+  "FILE_INDEX.md",
+  ".gitnexus",
+  ".telemetry/traces.jsonl",
+  "observability/evals/routing-eval-report.json",
+  "observability/evals/telemetry-flow-cost-token-report.json",
+  "observability/logs/evals/learning-feedback.eval.jsonl",
+  "observability/logs/evals/routing-decisions.eval.jsonl",
+  "observability/logs/learning-feedback.jsonl.bak.20260808-094311",
+  "observability/logs/routing-decisions.jsonl.bak.20260808-094311",
+];
+
+const legacyCleanupGlobRoots = [
+  {
+    dir: "observability/logs/session",
+    pattern: /^repomix-refresh-.*\.log$/,
+  },
+];
+
 function parseArgs(argv) {
   const options = {
     postinstall: false,
@@ -59,6 +80,9 @@ function parseArgs(argv) {
     initialRepoDomain: process.env.MCPEE_INITIAL_REPO_DOMAIN || "",
     initialRepoLocation: process.env.MCPEE_INITIAL_REPO_LOCATION || "",
     skipInitialRepo: false,
+    cleanupLegacy: process.env.MCPEE_CLEANUP_LEGACY !== "0",
+    cleanupDryRun: process.env.MCPEE_CLEANUP_DRY_RUN === "1",
+    reindexGitNexus: process.env.MCPEE_REINDEX_GITNEXUS !== "0",
     help: false,
   };
 
@@ -84,6 +108,15 @@ function parseArgs(argv) {
         break;
       case "--skip-initial-repo":
         options.skipInitialRepo = true;
+        break;
+      case "--no-cleanup-legacy":
+        options.cleanupLegacy = false;
+        break;
+      case "--cleanup-dry-run":
+        options.cleanupDryRun = true;
+        break;
+      case "--skip-gitnexus-reindex":
+        options.reindexGitNexus = false;
         break;
       case "--target":
         options.targetDir = argv[index + 1] || options.targetDir;
@@ -138,6 +171,9 @@ function printInstallHelp() {
       "  --owner <valor>            Owner para repo-registry/repos.yml.",
       "  --repo-prefix <valor>      Prefijo de nombres para repos del intake.",
       "  --skip-initial-repo        Crea el registry sin alta inicial de repos.",
+      "  --no-cleanup-legacy        No elimina artefactos legacy conocidos.",
+      "  --cleanup-dry-run          Simula limpieza legacy sin borrar archivos.",
+      "  --skip-gitnexus-reindex    Omite regenerar GitNexus tras limpieza.",
     ].join("\n") + "\n",
   );
 }
@@ -200,6 +236,48 @@ function ensureRuntimeLayout(targetRoot) {
   }
 }
 
+function cleanupLegacyArtifacts(targetRoot, options) {
+  if (!options.cleanupLegacy) {
+    return { removed: [], dryRun: Boolean(options.cleanupDryRun), skipped: true };
+  }
+
+  const removed = [];
+  const dryRun = Boolean(options.cleanupDryRun);
+
+  for (const relativePath of legacyCleanupTargets) {
+    const fullPath = path.join(targetRoot, relativePath);
+    if (!fs.existsSync(fullPath)) {
+      continue;
+    }
+
+    removed.push(relativePath.replaceAll("\\", "/"));
+    if (!dryRun) {
+      fs.rmSync(fullPath, { recursive: true, force: true });
+    }
+  }
+
+  for (const root of legacyCleanupGlobRoots) {
+    const rootPath = path.join(targetRoot, root.dir);
+    if (!fs.existsSync(rootPath) || !fs.statSync(rootPath).isDirectory()) {
+      continue;
+    }
+
+    for (const entryName of fs.readdirSync(rootPath)) {
+      if (!root.pattern.test(entryName)) {
+        continue;
+      }
+
+      const relPath = path.posix.join(root.dir, entryName);
+      removed.push(relPath);
+      if (!dryRun) {
+        fs.rmSync(path.join(rootPath, entryName), { recursive: true, force: true });
+      }
+    }
+  }
+
+  return { removed, dryRun, skipped: false };
+}
+
 function resolveShellCandidates() {
   if (process.platform === "win32") {
     return ["pwsh", "powershell"];
@@ -229,6 +307,69 @@ function runPowerShell(scriptPath, args, cwd) {
   }
 
   throw new Error("PowerShell no esta disponible. Instala pwsh para completar la instalacion.");
+}
+
+function hasGitRepository(targetRoot) {
+  return fs.existsSync(path.join(targetRoot, ".git"));
+}
+
+function runGitNexusAnalyze(targetRoot) {
+  const cmdCandidates = [
+    { cmd: "gitnexus", args: ["analyze"] },
+    { cmd: "npx", args: ["--yes", "gitnexus", "analyze"] },
+  ];
+
+  for (const candidate of cmdCandidates) {
+    const result = spawnSync(candidate.cmd, candidate.args, {
+      cwd: targetRoot,
+      stdio: "inherit",
+      env: process.env,
+    });
+
+    if (result.error && result.error.code === "ENOENT") {
+      continue;
+    }
+
+    if (result.error) {
+      return {
+        attempted: true,
+        success: false,
+        method: `${candidate.cmd} ${candidate.args.join(" ")}`,
+        error: result.error.message,
+      };
+    }
+
+    if ((result.status ?? 1) === 0) {
+      return {
+        attempted: true,
+        success: true,
+        method: `${candidate.cmd} ${candidate.args.join(" ")}`,
+      };
+    }
+  }
+
+  return {
+    attempted: false,
+    success: false,
+    method: "gitnexus analyze",
+    error: "CLI no disponible en PATH y npx no pudo ejecutarse",
+  };
+}
+
+function maybeReindexGitNexus(targetRoot, options, cleanupResult) {
+  if (!options.reindexGitNexus) {
+    return { skipped: true, reason: "disabled" };
+  }
+
+  if (cleanupResult.dryRun || cleanupResult.skipped) {
+    return { skipped: true, reason: "dry-run-or-cleanup-skipped" };
+  }
+
+  if (!hasGitRepository(targetRoot)) {
+    return { skipped: true, reason: "not-a-git-repo" };
+  }
+
+  return runGitNexusAnalyze(targetRoot);
 }
 
 function deriveRepoPrefix(targetRoot, options) {
@@ -309,8 +450,44 @@ function runHostInstall(rawOptions) {
     copyEntry(entry, targetRoot, options.force, stats);
   }
 
+  const cleanupResult = cleanupLegacyArtifacts(targetRoot, options);
+  const gitNexusReindexResult = maybeReindexGitNexus(targetRoot, options, cleanupResult);
+
   ensureRuntimeLayout(targetRoot);
   process.stdout.write(`[mcpee] Archivos copiados: ${stats.copied}; existentes preservados: ${stats.skippedExisting}\n`);
+  if (cleanupResult.skipped) {
+    process.stdout.write("[mcpee] Limpieza legacy omitida por opcion --no-cleanup-legacy\n");
+  }
+  else if (cleanupResult.removed.length > 0) {
+    const actionLabel = cleanupResult.dryRun ? "detectados (dry-run)" : "eliminados";
+    process.stdout.write(`[mcpee] Artefactos legacy ${actionLabel}: ${cleanupResult.removed.length}\n`);
+    for (const relPath of cleanupResult.removed) {
+      process.stdout.write(`  - ${relPath}\n`);
+    }
+  }
+  else {
+    const actionLabel = cleanupResult.dryRun ? "detectados" : "eliminados";
+    process.stdout.write(`[mcpee] Limpieza legacy completada: 0 artefactos ${actionLabel}.\n`);
+  }
+
+  if (gitNexusReindexResult.skipped) {
+    if (gitNexusReindexResult.reason === "disabled") {
+      process.stdout.write("[mcpee] Reindex GitNexus omitido por opcion --skip-gitnexus-reindex\n");
+    }
+    else if (gitNexusReindexResult.reason === "not-a-git-repo") {
+      process.stdout.write("[mcpee] Reindex GitNexus omitido: target no es un repo git.\n");
+    }
+  }
+  else if (gitNexusReindexResult.success) {
+    process.stdout.write(`[mcpee] GitNexus regenerado correctamente con: ${gitNexusReindexResult.method}\n`);
+  }
+  else {
+    process.stdout.write("[mcpee] WARNING: no se pudo regenerar GitNexus automaticamente.\n");
+    process.stdout.write(`[mcpee] Ejecuta manualmente en el host: gitnexus analyze\n`);
+    if (gitNexusReindexResult.error) {
+      process.stdout.write(`[mcpee] Detalle: ${gitNexusReindexResult.error}\n`);
+    }
+  }
 
   if (options.skipBootstrap) {
     const initStatus = initializeTemplateRegistry(targetRoot, options);

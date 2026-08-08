@@ -1,148 +1,5 @@
 [
   {
-    "title": "Mission",
-    "summary": "name: GitHub Repository Manager description: Automatizaci\u00f3n completa del repositorio mediante GitHub MCP. Control total de branches, PRs, issues, releases y sincronizaci\u00f3n multi-repo.",
-    "kind": "agent",
-    "domain": "agents",
-    "section": "agents",
-    "tags": [
-      "agent",
-      "agents",
-      "agents"
-    ],
-    "path": "agents/agent-github-repository-manager-agent-md.md"
-  },
-  {
-    "title": "backend",
-    "summary": "Modern development tasks on a single repository: bug fix, refactor, tests, and debugging.",
-    "kind": "agent",
-    "domain": "agents",
-    "section": "agents",
-    "tags": [
-      "agent",
-      "agents",
-      "agents"
-    ],
-    "path": "agents/agent-backend-agent-md.md"
-  },
-  {
-    "title": "community-manager",
-    "summary": "Technical education, community posts, and storytelling grounded in repository knowledge.",
-    "kind": "agent",
-    "domain": "agents",
-    "section": "agents",
-    "tags": [
-      "agent",
-      "agents",
-      "agents"
-    ],
-    "path": "agents/agent-community-manager-agent-md.md"
-  },
-  {
-    "title": "dba",
-    "summary": "SQL/schema/procedure analysis and DBA-oriented technical diagnostics.",
-    "kind": "agent",
-    "domain": "agents",
-    "section": "agents",
-    "tags": [
-      "agent",
-      "agents",
-      "agents"
-    ],
-    "path": "agents/agent-dba-agent-md.md"
-  },
-  {
-    "title": "frontend-agent",
-    "summary": "Frontend development tasks on a single repository: UI feature implementation, bug fixes, refactors, and test support.",
-    "kind": "agent",
-    "domain": "agents",
-    "section": "agents",
-    "tags": [
-      "agent",
-      "agents",
-      "agents"
-    ],
-    "path": "agents/agent-frontend-agent-agent-md.md"
-  },
-  {
-    "title": "iot",
-    "summary": "IoT/edge/telemetry architecture and mixed code+docs analysis.",
-    "kind": "agent",
-    "domain": "agents",
-    "section": "agents",
-    "tags": [
-      "agent",
-      "agents",
-      "agents"
-    ],
-    "path": "agents/agent-iot-agent-md.md"
-  },
-  {
-    "title": "rag-azure",
-    "summary": "Corporate documents retrieval with mandatory evidence and citations.",
-    "kind": "agent",
-    "domain": "agents",
-    "section": "agents",
-    "tags": [
-      "agent",
-      "agents",
-      "agents"
-    ],
-    "path": "agents/agent-rag-azure-agent-md.md"
-  },
-  {
-    "title": "rag-local",
-    "summary": "Local knowledge and technical documentation retrieval.",
-    "kind": "agent",
-    "domain": "agents",
-    "section": "agents",
-    "tags": [
-      "agent",
-      "agents",
-      "agents"
-    ],
-    "path": "agents/agent-rag-local-agent-md.md"
-  },
-  {
-    "title": "snapshot",
-    "summary": "Portable context export with scoped/safe packaging.",
-    "kind": "agent",
-    "domain": "agents",
-    "section": "agents",
-    "tags": [
-      "agent",
-      "agents",
-      "agents"
-    ],
-    "path": "agents/agent-snapshot-agent-md.md"
-  },
-  {
-    "title": "ux-ui",
-    "summary": "UX/UI governance and design intent control to keep interfaces consistent, intentional, and reusable across projects.",
-    "kind": "agent",
-    "domain": "agents",
-    "section": "agents",
-    "tags": [
-      "agent",
-      "agents",
-      "agents"
-    ],
-    "path": "agents/agent-ux-ui-agent-md.md"
-  },
-  {
-    "title": "wiki-agent",
-    "summary": "Gestion y proyeccion incremental de conocimiento tecnico hacia AutoDocs, con grafo estructural como fuente de verdad y Markdown como vista derivada.",
-    "kind": "agent",
-    "domain": "agents",
-    "section": "agents",
-    "tags": [
-      "agent",
-      "agents",
-      "agents"
-    ],
-    "path": "agents/agent-wiki-agent-agent-md.md"
-  },
-  {
     "title": "Evaluation",
     "summary": "Evalua inputs esperados vs agente/motor real y perfil de optimizacion aplicado.",
     "kind": "report",
@@ -210,7 +67,7 @@
   },
   {
     "title": "Scoring Rubric",
-    "summary": "> El score de eficiencia es nativo del Telemetry Engine y no depende de LangSmith.",
+    "summary": "Contenido report en observability/scoring-rubric.md.",
     "kind": "report",
     "domain": "observability",
     "section": "observability",
@@ -301,7 +158,7 @@
   },
   {
     "title": "AutoDocs Projection Engine",
-    "summary": "AutoDocs es una capacidad nativa de `mcp-efficiency-engine`. Toma conocimiento estructurado de artefactos existentes en `repo-intake/generated/`,",
+    "summary": "AutoDocs es una capacidad nativa de `mcp-efficiency-engine`. En el modo actual core-only, toma conocimiento estructurado del contenido operativo del",
     "kind": "report",
     "domain": "documentation",
     "section": "reports",
@@ -311,19 +168,6 @@
       "documentation"
     ],
     "path": "reports/report-readme-wiki-md.md"
-  },
-  {
-    "title": "File Index",
-    "summary": "Indice del contenido y estructura del repositorio.",
-    "kind": "report",
-    "domain": "documentation",
-    "section": "reports",
-    "tags": [
-      "report",
-      "reports",
-      "documentation"
-    ],
-    "path": "reports/report-file-index-md.md"
   },
   {
     "title": "Gu\u00eda de uso \u2014 MCP Efficiency Engine",
@@ -408,7 +252,7 @@
   },
   {
     "title": "AGENTS.md \u2014 Enterprise Global Contract",
-    "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un alcance concreto, persistir trazabilidad en `autodocs/analysis_mcpee/`.",
+    "summary": "onboarding profundo y con grounding m\u00e1ximo relevante, aunque tarde m\u00e1s. 2. En esa primera pasada se debe recuperar la mayor cantidad de contexto \u00fatil",
     "kind": "report",
     "domain": "routing",
     "section": "routing",
@@ -473,7 +317,7 @@
   },
   {
     "title": "Memory-first + Learning",
-    "summary": "2. Detect domain 3. **Select memory (memory layer)**",
+    "summary": "Clasifica intenci\u00f3n y enruta a agente/motor seg\u00fan AGENTS.md y optimization-routing.md.",
     "kind": "report",
     "domain": "routing",
     "section": "routing",
@@ -483,280 +327,6 @@
       "routing"
     ],
     "path": "routing/report-router-md.md"
-  },
-  {
-    "title": "Azure RAG Enterprise Skill",
-    "summary": "Answer corporate-document questions with grounding and mandatory evidence.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills"
-    ],
-    "path": "skills/skill-azure-rag-enterprise.md"
-  },
-  {
-    "title": "Backend Coding Skill",
-    "summary": "Implement and validate code changes in single-repo backend tasks.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills"
-    ],
-    "path": "skills/skill-backend-coding.md"
-  },
-  {
-    "title": "Cavecrew Skill \u2014 Local",
-    "summary": "Delegar trabajo a subagentes con salida comprimida para ahorrar contexto.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills"
-    ],
-    "path": "skills/skill-cavecrew.md"
-  },
-  {
-    "title": "Caveman Commit Skill \u2014 Local",
-    "summary": "Generar mensajes de commit concisos en formato Conventional Commits.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills"
-    ],
-    "path": "skills/skill-caveman-commit.md"
-  },
-  {
-    "title": "Caveman Compress Skill \u2014 Local",
-    "summary": "Comprimir archivos de memoria/documentaci\u00f3n manteniendo sustancia t\u00e9cnica.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills"
-    ],
-    "path": "skills/skill-caveman-compress.md"
-  },
-  {
-    "title": "Caveman Help Skill \u2014 Local",
-    "summary": "Mostrar comandos caveman disponibles y su uso en este repositorio.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills"
-    ],
-    "path": "skills/skill-caveman-help.md"
-  },
-  {
-    "title": "Caveman Mode Skill \u2014 Always On",
-    "summary": "Siempre activo por defecto.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills"
-    ],
-    "path": "skills/skill-caveman-mode.md"
-  },
-  {
-    "title": "Caveman Review Skill \u2014 Local",
-    "summary": "Revisi\u00f3n de c\u00f3digo ultracompacta y accionable.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills"
-    ],
-    "path": "skills/skill-caveman-review.md"
-  },
-  {
-    "title": "Caveman Skill \u2014 Local",
-    "summary": "Disponible como capacidad local del repositorio.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills"
-    ],
-    "path": "skills/skill-caveman.md"
-  },
-  {
-    "title": "Caveman Stats Skill \u2014 Local",
-    "summary": "Mostrar consumo de tokens y ahorro estimado para la sesi\u00f3n.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills"
-    ],
-    "path": "skills/skill-caveman-stats.md"
-  },
-  {
-    "title": "Community Content Skill",
-    "summary": "Create educational/community-facing content grounded in repo knowledge.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills"
-    ],
-    "path": "skills/skill-community-content.md"
-  },
-  {
-    "title": "Database Analysis Skill",
-    "summary": "Review SQL/schema/procedure questions with performance and safety focus.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills"
-    ],
-    "path": "skills/skill-database-analysis.md"
-  },
-  {
-    "title": "Dev Coding Skill",
-    "summary": "Implement and validate code changes in single-repo development tasks.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills"
-    ],
-    "path": "skills/skill-dev-coding.md"
-  },
-  {
-    "title": "Frontend Coding Skill",
-    "summary": "Implement and validate code changes in single-repo frontend tasks.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills"
-    ],
-    "path": "skills/skill-frontend-coding.md"
-  },
-  {
-    "title": "Human In The Loop (HITL)",
-    "summary": "Asegurar confirmacion humana solo cuando una decision o accion tiene riesgo alto, impacto externo o potencial destructivo.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills"
-    ],
-    "path": "skills/skill-human-in-the-loop.md"
-  },
-  {
-    "title": "IoT Architecture Skill",
-    "summary": "Handle IoT/edge/telemetry tasks combining code and technical docs.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills"
-    ],
-    "path": "skills/skill-iot-architecture.md"
-  },
-  {
-    "title": "RAG Knowledge Skill",
-    "summary": "Answer technical/local documentation questions from local knowledge sources.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills"
-    ],
-    "path": "skills/skill-rag-knowledge.md"
-  },
-  {
-    "title": "Skill: ahorro-tokens",
-    "summary": "Aplicar ahorro de tokens sin perder calidad, evidencia ni trazabilidad.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills"
-    ],
-    "path": "skills/skill-ahorro-tokens.md"
-  },
-  {
-    "title": "Token Saver Skill \u2014 Always On",
-    "summary": "Contenido skill en .github/skills/token-saver/SKILL.md.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills"
-    ],
-    "path": "skills/skill-token-saver.md"
-  },
-  {
-    "title": "UX UI Governance Skill",
-    "summary": "Apply UX/UI quality gates and design-intent controls grounded in project guidelines.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills"
-    ],
-    "path": "skills/skill-ux-ui-governance.md"
-  },
-  {
-    "title": "wiki-tools",
-    "summary": "Artefacto JSON de tipo skill en .github/skills/wiki-tools.json.",
-    "kind": "skill",
-    "domain": "skills",
-    "section": "skills",
-    "tags": [
-      "skill",
-      "skills",
-      "skills",
-      "json"
-    ],
-    "path": "skills/skill-wiki-tools-json.md"
   },
   {
     "title": "architecture spec",

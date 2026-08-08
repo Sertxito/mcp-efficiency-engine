@@ -7,7 +7,7 @@ Definir la arquitectura operativa del repo y el contrato entre orquestacion, age
 ## Componentes canonicos
 
 1. Orquestacion: `orchestrator/`.
-2. Agentes: `AGENTS.md` y `.github/agents/`.
+2. Routing: `AGENTS.md`, `.github/instructions/` y `.github/prompts/`.
 3. Motores: CodeGraph, GitNexus, Graphify, Azure RAG Builder, Repomix.
 4. Politicas: `policies/` y `optimization/policies/`.
 5. Observabilidad: `observability/`.
