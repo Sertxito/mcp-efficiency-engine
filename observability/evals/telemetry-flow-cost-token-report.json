@@ -1,47 +1,47 @@
 {
-  "timestamp": "2026-08-08T10:33:40.281088+00:00",
+  "timestamp": "2026-08-08T10:36:29.881088+00:00",
   "source": {
     "traces": "C:\\repo\\mcp-efficiency-engine\\.telemetry\\traces.jsonl",
     "metrics": "C:\\repo\\mcp-efficiency-engine\\.telemetry\\metrics.jsonl"
   },
   "totals": {
-    "trace_records": 10008,
-    "metric_records": 3976,
-    "executions": 1413,
+    "trace_records": 10059,
+    "metric_records": 3996,
+    "executions": 1417,
     "warnings": 4,
     "errors": 0
   },
   "kpis": {
     "routing_fallback_rate": 0.0095,
     "routing_grounded_rate": 0.1292,
-    "avg_span_duration_ms": 255.0909,
-    "p95_span_duration_ms": 6.454,
+    "avg_span_duration_ms": 255.876,
+    "p95_span_duration_ms": 7.142,
     "tokens_input": 4640,
     "tokens_output": 1120,
     "total_tokens": 5760,
     "total_cost_usd": 0.0443,
-    "efficiency_score_avg": 57.9657
+    "efficiency_score_avg": 57.9655
   },
   "breakdown": {
     "operation": {
       "resolve-routing": 195,
-      "learning-loop-report": 20,
+      "learning-loop-report": 21,
       "mcpee.hi": 2,
       "mcpee.langsmith-kpis": 2,
       "mcpee.install-terminal-telemetry-hook": 1,
       "terminal.command": 1167,
-      "autodocs-compiler": 7,
-      "unknown": 7,
-      "plugin-manager-gather-all": 7,
-      "wiki-validator": 7
+      "autodocs-compiler": 8,
+      "unknown": 8,
+      "plugin-manager-gather-all": 8,
+      "wiki-validator": 8
     },
     "session": {
       "intake-routing": 1369,
-      "learning": 120,
+      "learning": 126,
       "mcpee-cli": 30,
       "terminal-session": 8174,
-      "wiki-orchestrator": 56,
-      "autodocs": 259
+      "wiki-orchestrator": 64,
+      "autodocs": 296
     },
     "engine": {
       "CodeGraph": 71,
