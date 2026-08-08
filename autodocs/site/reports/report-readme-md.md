@@ -29,7 +29,7 @@ Motor de orquestación para agentes MCP con routing por dominio, optimización a
 | documents | [AGENTS.md — Enterprise Global Contract](../routing/report-agents-md.md) |
 | documents | [Arquitectura de MCP Efficiency Engine](../routing/report-architecture-md.md) |
 | documents | [Guía de uso — MCP Efficiency Engine](report-final-usage-guide-md.md) |
-| documents | [mcp-efficiency-engine](report-package-json.md) |
+| documents | [mcp-efficiency-engine](report-root-package-json.md) |
 
 ## Datos tecnicos
 

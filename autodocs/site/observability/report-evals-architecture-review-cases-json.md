@@ -8,7 +8,7 @@ Artefacto JSON de tipo report en boosts/backend/evals/architecture-review.cases.
 - domain: backend
 - section: observability
 - provider: repo-content
-- checksum: 44894cc52e33912aa7b57f79069fe6bf5578be7866c4e7575bd22b8f0f9ed7c6
+- checksum: 03e247f2af6d25d62e8d93ecaeec5babb5d9ed7d3ecd74b57b42811a1f6e85b5
 - owner: evals
 - tags: report, observability, backend, json
 
@@ -36,7 +36,7 @@ Artefacto JSON de tipo report en boosts/backend/evals/architecture-review.cases.
 ```json
 {
   "title": "architecture-review.cases",
-  "slug": "report-architecture-review-cases-json",
+  "slug": "report-evals-architecture-review-cases-json",
   "kind": "report",
   "section": "observability",
   "domain": "backend",

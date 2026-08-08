@@ -8,7 +8,7 @@ Motor de orquestacion capability-centric v2 para agentes MCP con optimizacion al
 - domain: packaging
 - section: reports
 - provider: repo-content
-- checksum: 31285c888691de85bd21d2e368ae1757729a557dc85d40d54aa92f0e06fd9144
+- checksum: db8d2359dc7fa4998e163c97dddd3e71086ce41fde7ad6111c49cba8bd207c56
 - owner: repo
 - tags: report, reports, packaging, json
 
@@ -36,7 +36,7 @@ Motor de orquestacion capability-centric v2 para agentes MCP con optimizacion al
 ```json
 {
   "title": "mcp-efficiency-engine",
-  "slug": "report-package-json",
+  "slug": "report-root-package-json",
   "kind": "report",
   "section": "reports",
   "domain": "packaging",

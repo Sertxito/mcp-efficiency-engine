@@ -218,8 +218,8 @@
         },
         {
           "title": "Routing Decision Event",
-          "slug": "report-logs-schema-json",
-          "path": "observability/report-logs-schema-json.md"
+          "slug": "report-observability-logs-schema-json",
+          "path": "observability/report-observability-logs-schema-json.md"
         },
         {
           "title": "Routing Evaluator",
@@ -233,8 +233,8 @@
         },
         {
           "title": "architecture-review.cases",
-          "slug": "report-architecture-review-cases-json",
-          "path": "observability/report-architecture-review-cases-json.md"
+          "slug": "report-evals-architecture-review-cases-json",
+          "path": "observability/report-evals-architecture-review-cases-json.md"
         }
       ]
     },
@@ -276,18 +276,18 @@
         },
         {
           "title": "mcp-efficiency-engine",
-          "slug": "report-package-json",
-          "path": "reports/report-package-json.md"
+          "slug": "report-root-package-json",
+          "path": "reports/report-root-package-json.md"
         },
         {
           "title": "openwiki-internal-blueprint",
-          "slug": "report-autodocs-openwiki-internal-blueprint-json",
-          "path": "reports/report-autodocs-openwiki-internal-blueprint-json.md"
+          "slug": "report-autodocs-analysis-mcpee-openwiki-internal-blueprint-json",
+          "path": "reports/report-autodocs-analysis-mcpee-openwiki-internal-blueprint-json.md"
         },
         {
           "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
-          "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
-          "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
+          "slug": "report-autodocs-analysis-mcpee-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
+          "path": "reports/report-autodocs-analysis-mcpee-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
         }
       ]
     },

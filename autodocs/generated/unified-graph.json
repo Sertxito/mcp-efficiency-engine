@@ -1,5 +1,5 @@
 {
-  "last_updated": "sha256:d02d01a404d1c7a3de4b2222d5752a06ce7a65152c90ded1796a1955e974334b",
+  "last_updated": "sha256:73e9cb33c8079dc5d46bc1ac906ebcdb398d3232bdb2a20feadbd8fe25ba1ac1",
   "nodes": {
     "repo-content::README.md": {
       "node_id": "repo-content::README.md",
@@ -248,9 +248,9 @@
       "node_id": "repo-content::package.json",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "31285c888691de85bd21d2e368ae1757729a557dc85d40d54aa92f0e06fd9144",
+      "checksum": "db8d2359dc7fa4998e163c97dddd3e71086ce41fde7ad6111c49cba8bd207c56",
       "title": "mcp-efficiency-engine",
-      "slug": "report-package-json",
+      "slug": "report-root-package-json",
       "kind": "report",
       "domain": "packaging",
       "owner": "repo",
@@ -265,7 +265,7 @@
         "packaging",
         "json"
       ],
-      "path": "reports/report-package-json.md",
+      "path": "reports/report-root-package-json.md",
       "navigation": {
         "section": "reports",
         "weight": 100,
@@ -284,7 +284,7 @@
       },
       "metadata": {
         "title": "mcp-efficiency-engine",
-        "slug": "report-package-json",
+        "slug": "report-root-package-json",
         "kind": "report",
         "section": "reports",
         "domain": "packaging",
@@ -629,9 +629,9 @@
       "node_id": "repo-content::boosts/backend/evals/architecture-review.cases.json",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "44894cc52e33912aa7b57f79069fe6bf5578be7866c4e7575bd22b8f0f9ed7c6",
+      "checksum": "03e247f2af6d25d62e8d93ecaeec5babb5d9ed7d3ecd74b57b42811a1f6e85b5",
       "title": "architecture-review.cases",
-      "slug": "report-architecture-review-cases-json",
+      "slug": "report-evals-architecture-review-cases-json",
       "kind": "report",
       "domain": "backend",
       "owner": "evals",
@@ -646,7 +646,7 @@
         "backend",
         "json"
       ],
-      "path": "observability/report-architecture-review-cases-json.md",
+      "path": "observability/report-evals-architecture-review-cases-json.md",
       "navigation": {
         "section": "observability",
         "weight": 100,
@@ -665,7 +665,7 @@
       },
       "metadata": {
         "title": "architecture-review.cases",
-        "slug": "report-architecture-review-cases-json",
+        "slug": "report-evals-architecture-review-cases-json",
         "kind": "report",
         "section": "observability",
         "domain": "backend",
@@ -1926,9 +1926,9 @@
       "node_id": "repo-content::observability/logs.schema.json",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "c561e6ef4998c1e2bccc2416e27fcf97ae7735caba60e63aa39da7b4735bd17a",
+      "checksum": "b6489949ba07bfa50878861432b5b22623be3d383a2f612b34738bca59ecf1bf",
       "title": "Routing Decision Event",
-      "slug": "report-logs-schema-json",
+      "slug": "report-observability-logs-schema-json",
       "kind": "report",
       "domain": "observability",
       "owner": "observability",
@@ -1943,7 +1943,7 @@
         "observability",
         "json"
       ],
-      "path": "observability/report-logs-schema-json.md",
+      "path": "observability/report-observability-logs-schema-json.md",
       "navigation": {
         "section": "observability",
         "weight": 100,
@@ -1962,7 +1962,7 @@
       },
       "metadata": {
         "title": "Routing Decision Event",
-        "slug": "report-logs-schema-json",
+        "slug": "report-observability-logs-schema-json",
         "kind": "report",
         "section": "observability",
         "domain": "observability",
@@ -2316,9 +2316,9 @@
       "node_id": "repo-content::autodocs/analysis_mcpee/openwiki-internal-blueprint.json",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "6ae68467f8deebba71912a8e41f5075aa786f2182bd193aa9d1386c13ee940bc",
+      "checksum": "51ae01dd2be7e9a9eb08f9e8217ad3cd23fec192d793f7034674683b5984e2f8",
       "title": "openwiki-internal-blueprint",
-      "slug": "report-autodocs-openwiki-internal-blueprint-json",
+      "slug": "report-autodocs-analysis-mcpee-openwiki-internal-blueprint-json",
       "kind": "report",
       "domain": "autodocs",
       "owner": "analysis_mcpee",
@@ -2333,7 +2333,7 @@
         "autodocs",
         "json"
       ],
-      "path": "reports/report-autodocs-openwiki-internal-blueprint-json.md",
+      "path": "reports/report-autodocs-analysis-mcpee-openwiki-internal-blueprint-json.md",
       "navigation": {
         "section": "reports",
         "weight": 100,
@@ -2352,7 +2352,7 @@
       },
       "metadata": {
         "title": "openwiki-internal-blueprint",
-        "slug": "report-autodocs-openwiki-internal-blueprint-json",
+        "slug": "report-autodocs-analysis-mcpee-openwiki-internal-blueprint-json",
         "kind": "report",
         "section": "reports",
         "domain": "autodocs",
@@ -2490,9 +2490,9 @@
       "node_id": "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "e31a15e28d2946659b5ec12a2b0998ad6c187143f8f2cffe2701ea647c494045",
+      "checksum": "8cc237a9dd6487af764c05f87cf5b2cf16254cb658451343debcf95da7999af0",
       "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
-      "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
+      "slug": "report-autodocs-analysis-mcpee-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
       "kind": "report",
       "domain": "autodocs",
       "owner": "analysis_mcpee",
@@ -2507,7 +2507,7 @@
         "autodocs",
         "json"
       ],
-      "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md",
+      "path": "reports/report-autodocs-analysis-mcpee-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md",
       "navigation": {
         "section": "reports",
         "weight": 100,
@@ -2526,7 +2526,7 @@
       },
       "metadata": {
         "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
-        "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
+        "slug": "report-autodocs-analysis-mcpee-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
         "kind": "report",
         "section": "reports",
         "domain": "autodocs",
@@ -2676,10 +2676,10 @@
       "node_id": "repo-content::package.json",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "31285c888691de85bd21d2e368ae1757729a557dc85d40d54aa92f0e06fd9144",
+      "checksum": "db8d2359dc7fa4998e163c97dddd3e71086ce41fde7ad6111c49cba8bd207c56",
       "metadata": {
         "title": "mcp-efficiency-engine",
-        "slug": "report-package-json",
+        "slug": "report-root-package-json",
         "kind": "report",
         "section": "reports",
         "domain": "packaging",
@@ -2852,10 +2852,10 @@
       "node_id": "repo-content::boosts/backend/evals/architecture-review.cases.json",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "44894cc52e33912aa7b57f79069fe6bf5578be7866c4e7575bd22b8f0f9ed7c6",
+      "checksum": "03e247f2af6d25d62e8d93ecaeec5babb5d9ed7d3ecd74b57b42811a1f6e85b5",
       "metadata": {
         "title": "architecture-review.cases",
-        "slug": "report-architecture-review-cases-json",
+        "slug": "report-evals-architecture-review-cases-json",
         "kind": "report",
         "section": "observability",
         "domain": "backend",
@@ -3509,10 +3509,10 @@
       "node_id": "repo-content::observability/logs.schema.json",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "c561e6ef4998c1e2bccc2416e27fcf97ae7735caba60e63aa39da7b4735bd17a",
+      "checksum": "b6489949ba07bfa50878861432b5b22623be3d383a2f612b34738bca59ecf1bf",
       "metadata": {
         "title": "Routing Decision Event",
-        "slug": "report-logs-schema-json",
+        "slug": "report-observability-logs-schema-json",
         "kind": "report",
         "section": "observability",
         "domain": "observability",
@@ -3694,10 +3694,10 @@
       "node_id": "repo-content::autodocs/analysis_mcpee/openwiki-internal-blueprint.json",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "6ae68467f8deebba71912a8e41f5075aa786f2182bd193aa9d1386c13ee940bc",
+      "checksum": "51ae01dd2be7e9a9eb08f9e8217ad3cd23fec192d793f7034674683b5984e2f8",
       "metadata": {
         "title": "openwiki-internal-blueprint",
-        "slug": "report-autodocs-openwiki-internal-blueprint-json",
+        "slug": "report-autodocs-analysis-mcpee-openwiki-internal-blueprint-json",
         "kind": "report",
         "section": "reports",
         "domain": "autodocs",
@@ -3779,10 +3779,10 @@
       "node_id": "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "e31a15e28d2946659b5ec12a2b0998ad6c187143f8f2cffe2701ea647c494045",
+      "checksum": "8cc237a9dd6487af764c05f87cf5b2cf16254cb658451343debcf95da7999af0",
       "metadata": {
         "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
-        "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
+        "slug": "report-autodocs-analysis-mcpee-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
         "kind": "report",
         "section": "reports",
         "domain": "autodocs",
@@ -4050,9 +4050,9 @@
       "node_id": "repo-content::package.json",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "31285c888691de85bd21d2e368ae1757729a557dc85d40d54aa92f0e06fd9144",
+      "checksum": "db8d2359dc7fa4998e163c97dddd3e71086ce41fde7ad6111c49cba8bd207c56",
       "title": "mcp-efficiency-engine",
-      "slug": "report-package-json",
+      "slug": "report-root-package-json",
       "kind": "report",
       "domain": "packaging",
       "owner": "repo",
@@ -4067,7 +4067,7 @@
         "packaging",
         "json"
       ],
-      "path": "reports/report-package-json.md",
+      "path": "reports/report-root-package-json.md",
       "navigation": {
         "section": "reports",
         "weight": 100,
@@ -4086,7 +4086,7 @@
       },
       "metadata": {
         "title": "mcp-efficiency-engine",
-        "slug": "report-package-json",
+        "slug": "report-root-package-json",
         "kind": "report",
         "section": "reports",
         "domain": "packaging",
@@ -4431,9 +4431,9 @@
       "node_id": "repo-content::boosts/backend/evals/architecture-review.cases.json",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "44894cc52e33912aa7b57f79069fe6bf5578be7866c4e7575bd22b8f0f9ed7c6",
+      "checksum": "03e247f2af6d25d62e8d93ecaeec5babb5d9ed7d3ecd74b57b42811a1f6e85b5",
       "title": "architecture-review.cases",
-      "slug": "report-architecture-review-cases-json",
+      "slug": "report-evals-architecture-review-cases-json",
       "kind": "report",
       "domain": "backend",
       "owner": "evals",
@@ -4448,7 +4448,7 @@
         "backend",
         "json"
       ],
-      "path": "observability/report-architecture-review-cases-json.md",
+      "path": "observability/report-evals-architecture-review-cases-json.md",
       "navigation": {
         "section": "observability",
         "weight": 100,
@@ -4467,7 +4467,7 @@
       },
       "metadata": {
         "title": "architecture-review.cases",
-        "slug": "report-architecture-review-cases-json",
+        "slug": "report-evals-architecture-review-cases-json",
         "kind": "report",
         "section": "observability",
         "domain": "backend",
@@ -5728,9 +5728,9 @@
       "node_id": "repo-content::observability/logs.schema.json",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "c561e6ef4998c1e2bccc2416e27fcf97ae7735caba60e63aa39da7b4735bd17a",
+      "checksum": "b6489949ba07bfa50878861432b5b22623be3d383a2f612b34738bca59ecf1bf",
       "title": "Routing Decision Event",
-      "slug": "report-logs-schema-json",
+      "slug": "report-observability-logs-schema-json",
       "kind": "report",
       "domain": "observability",
       "owner": "observability",
@@ -5745,7 +5745,7 @@
         "observability",
         "json"
       ],
-      "path": "observability/report-logs-schema-json.md",
+      "path": "observability/report-observability-logs-schema-json.md",
       "navigation": {
         "section": "observability",
         "weight": 100,
@@ -5764,7 +5764,7 @@
       },
       "metadata": {
         "title": "Routing Decision Event",
-        "slug": "report-logs-schema-json",
+        "slug": "report-observability-logs-schema-json",
         "kind": "report",
         "section": "observability",
         "domain": "observability",
@@ -6118,9 +6118,9 @@
       "node_id": "repo-content::autodocs/analysis_mcpee/openwiki-internal-blueprint.json",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "6ae68467f8deebba71912a8e41f5075aa786f2182bd193aa9d1386c13ee940bc",
+      "checksum": "51ae01dd2be7e9a9eb08f9e8217ad3cd23fec192d793f7034674683b5984e2f8",
       "title": "openwiki-internal-blueprint",
-      "slug": "report-autodocs-openwiki-internal-blueprint-json",
+      "slug": "report-autodocs-analysis-mcpee-openwiki-internal-blueprint-json",
       "kind": "report",
       "domain": "autodocs",
       "owner": "analysis_mcpee",
@@ -6135,7 +6135,7 @@
         "autodocs",
         "json"
       ],
-      "path": "reports/report-autodocs-openwiki-internal-blueprint-json.md",
+      "path": "reports/report-autodocs-analysis-mcpee-openwiki-internal-blueprint-json.md",
       "navigation": {
         "section": "reports",
         "weight": 100,
@@ -6154,7 +6154,7 @@
       },
       "metadata": {
         "title": "openwiki-internal-blueprint",
-        "slug": "report-autodocs-openwiki-internal-blueprint-json",
+        "slug": "report-autodocs-analysis-mcpee-openwiki-internal-blueprint-json",
         "kind": "report",
         "section": "reports",
         "domain": "autodocs",
@@ -6292,9 +6292,9 @@
       "node_id": "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "e31a15e28d2946659b5ec12a2b0998ad6c187143f8f2cffe2701ea647c494045",
+      "checksum": "8cc237a9dd6487af764c05f87cf5b2cf16254cb658451343debcf95da7999af0",
       "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
-      "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
+      "slug": "report-autodocs-analysis-mcpee-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
       "kind": "report",
       "domain": "autodocs",
       "owner": "analysis_mcpee",
@@ -6309,7 +6309,7 @@
         "autodocs",
         "json"
       ],
-      "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md",
+      "path": "reports/report-autodocs-analysis-mcpee-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md",
       "navigation": {
         "section": "reports",
         "weight": 100,
@@ -6328,7 +6328,7 @@
       },
       "metadata": {
         "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
-        "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
+        "slug": "report-autodocs-analysis-mcpee-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
         "kind": "report",
         "section": "reports",
         "domain": "autodocs",
@@ -6566,8 +6566,8 @@
           },
           {
             "title": "Routing Decision Event",
-            "slug": "report-logs-schema-json",
-            "path": "observability/report-logs-schema-json.md"
+            "slug": "report-observability-logs-schema-json",
+            "path": "observability/report-observability-logs-schema-json.md"
           },
           {
             "title": "Routing Evaluator",
@@ -6581,8 +6581,8 @@
           },
           {
             "title": "architecture-review.cases",
-            "slug": "report-architecture-review-cases-json",
-            "path": "observability/report-architecture-review-cases-json.md"
+            "slug": "report-evals-architecture-review-cases-json",
+            "path": "observability/report-evals-architecture-review-cases-json.md"
           }
         ]
       },
@@ -6624,18 +6624,18 @@
           },
           {
             "title": "mcp-efficiency-engine",
-            "slug": "report-package-json",
-            "path": "reports/report-package-json.md"
+            "slug": "report-root-package-json",
+            "path": "reports/report-root-package-json.md"
           },
           {
             "title": "openwiki-internal-blueprint",
-            "slug": "report-autodocs-openwiki-internal-blueprint-json",
-            "path": "reports/report-autodocs-openwiki-internal-blueprint-json.md"
+            "slug": "report-autodocs-analysis-mcpee-openwiki-internal-blueprint-json",
+            "path": "reports/report-autodocs-analysis-mcpee-openwiki-internal-blueprint-json.md"
           },
           {
             "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
-            "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
-            "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
+            "slug": "report-autodocs-analysis-mcpee-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
+            "path": "reports/report-autodocs-analysis-mcpee-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
           }
         ]
       },
@@ -6726,7 +6726,7 @@
         "observability",
         "json"
       ],
-      "path": "observability/report-logs-schema-json.md"
+      "path": "observability/report-observability-logs-schema-json.md"
     },
     {
       "title": "Routing Evaluator",
@@ -6766,7 +6766,7 @@
         "backend",
         "json"
       ],
-      "path": "observability/report-architecture-review-cases-json.md"
+      "path": "observability/report-evals-architecture-review-cases-json.md"
     },
     {
       "title": "Context Policy",
@@ -6910,7 +6910,7 @@
         "packaging",
         "json"
       ],
-      "path": "reports/report-package-json.md"
+      "path": "reports/report-root-package-json.md"
     },
     {
       "title": "openwiki-internal-blueprint",
@@ -6924,7 +6924,7 @@
         "autodocs",
         "json"
       ],
-      "path": "reports/report-autodocs-openwiki-internal-blueprint-json.md"
+      "path": "reports/report-autodocs-analysis-mcpee-openwiki-internal-blueprint-json.md"
     },
     {
       "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
@@ -6938,7 +6938,7 @@
         "autodocs",
         "json"
       ],
-      "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
+      "path": "reports/report-autodocs-analysis-mcpee-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
     },
     {
       "title": "AGENTS.md \u2014 Enterprise Global Contract",
@@ -7481,11 +7481,11 @@
       "description": "Telemetria, metricas y reportes del sistema.",
       "page_count": 7,
       "pages": [
-        "observability/report-architecture-review-cases-json.md",
+        "observability/report-evals-architecture-review-cases-json.md",
         "observability/report-evaluation-md.md",
-        "observability/report-logs-schema-json.md",
         "observability/report-logs-schema-md.md",
         "observability/report-metrics-md.md",
+        "observability/report-observability-logs-schema-json.md",
         "observability/report-routing-evaluator-md.md",
         "observability/report-scoring-rubric-md.md"
       ]
@@ -7496,15 +7496,15 @@
       "description": "Reportes generados y artefactos de analisis.",
       "page_count": 9,
       "pages": [
+        "reports/report-autodocs-analysis-mcpee-openwiki-internal-blueprint-json.md",
         "reports/report-autodocs-analysis-mcpee-readme-md.md",
-        "reports/report-autodocs-openwiki-internal-blueprint-json.md",
+        "reports/report-autodocs-analysis-mcpee-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md",
         "reports/report-autodocs-openwiki-internal-blueprint-md.md",
         "reports/report-autodocs-readme-md.md",
-        "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md",
         "reports/report-final-usage-guide-md.md",
-        "reports/report-package-json.md",
         "reports/report-readme-md.md",
-        "reports/report-readme-wiki-md.md"
+        "reports/report-readme-wiki-md.md",
+        "reports/report-root-package-json.md"
       ]
     },
     {

@@ -1,6 +1,6 @@
-# openwiki-internal-blueprint
+# telemetry-recovery-mcp-efficiency-engine-2026-08-08
 
-Artefacto JSON de tipo report en autodocs/analysis_mcpee/openwiki-internal-blueprint.json.
+Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.
 
 ## Contexto
 
@@ -8,7 +8,7 @@ Artefacto JSON de tipo report en autodocs/analysis_mcpee/openwiki-internal-bluep
 - domain: autodocs
 - section: reports
 - provider: repo-content
-- checksum: 6ae68467f8deebba71912a8e41f5075aa786f2182bd193aa9d1386c13ee940bc
+- checksum: 8cc237a9dd6487af764c05f87cf5b2cf16254cb658451343debcf95da7999af0
 - owner: analysis_mcpee
 - tags: report, reports, autodocs, json
 
@@ -20,7 +20,7 @@ Artefacto JSON de tipo report en autodocs/analysis_mcpee/openwiki-internal-bluep
 
 ## Fuentes
 
-- [autodocs/analysis_mcpee/openwiki-internal-blueprint.json](../../autodocs/analysis_mcpee/openwiki-internal-blueprint.json)
+- [autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json](../../autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json)
 
 ## Relaciones
 
@@ -35,15 +35,15 @@ Artefacto JSON de tipo report en autodocs/analysis_mcpee/openwiki-internal-bluep
 
 ```json
 {
-  "title": "openwiki-internal-blueprint",
-  "slug": "report-autodocs-openwiki-internal-blueprint-json",
+  "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
+  "slug": "report-autodocs-analysis-mcpee-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
   "kind": "report",
   "section": "reports",
   "domain": "autodocs",
-  "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/openwiki-internal-blueprint.json.",
+  "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
   "owner": "analysis_mcpee",
   "source_refs": [
-    "autodocs/analysis_mcpee/openwiki-internal-blueprint.json"
+    "autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json"
   ],
   "tags": [
     "report",

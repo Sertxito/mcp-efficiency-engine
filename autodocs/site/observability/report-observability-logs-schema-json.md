@@ -8,7 +8,7 @@ Artefacto JSON de tipo report en observability/logs.schema.json.
 - domain: observability
 - section: observability
 - provider: repo-content
-- checksum: c561e6ef4998c1e2bccc2416e27fcf97ae7735caba60e63aa39da7b4735bd17a
+- checksum: b6489949ba07bfa50878861432b5b22623be3d383a2f612b34738bca59ecf1bf
 - owner: observability
 - tags: report, observability, observability, json
 
@@ -36,7 +36,7 @@ Artefacto JSON de tipo report en observability/logs.schema.json.
 ```json
 {
   "title": "Routing Decision Event",
-  "slug": "report-logs-schema-json",
+  "slug": "report-observability-logs-schema-json",
   "kind": "report",
   "section": "observability",
   "domain": "observability",

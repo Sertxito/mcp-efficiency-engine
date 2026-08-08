@@ -88,11 +88,11 @@
     "description": "Telemetria, metricas y reportes del sistema.",
     "page_count": 7,
     "pages": [
-      "observability/report-architecture-review-cases-json.md",
+      "observability/report-evals-architecture-review-cases-json.md",
       "observability/report-evaluation-md.md",
-      "observability/report-logs-schema-json.md",
       "observability/report-logs-schema-md.md",
       "observability/report-metrics-md.md",
+      "observability/report-observability-logs-schema-json.md",
       "observability/report-routing-evaluator-md.md",
       "observability/report-scoring-rubric-md.md"
     ]
@@ -103,15 +103,15 @@
     "description": "Reportes generados y artefactos de analisis.",
     "page_count": 9,
     "pages": [
+      "reports/report-autodocs-analysis-mcpee-openwiki-internal-blueprint-json.md",
       "reports/report-autodocs-analysis-mcpee-readme-md.md",
-      "reports/report-autodocs-openwiki-internal-blueprint-json.md",
+      "reports/report-autodocs-analysis-mcpee-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md",
       "reports/report-autodocs-openwiki-internal-blueprint-md.md",
       "reports/report-autodocs-readme-md.md",
-      "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md",
       "reports/report-final-usage-guide-md.md",
-      "reports/report-package-json.md",
       "reports/report-readme-md.md",
-      "reports/report-readme-wiki-md.md"
+      "reports/report-readme-wiki-md.md",
+      "reports/report-root-package-json.md"
     ]
   },
   {

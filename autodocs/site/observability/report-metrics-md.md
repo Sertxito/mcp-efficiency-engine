@@ -16,7 +16,7 @@ Métricas: routing accuracy, tool usage, tool misuse, tool switching, grounding 
 
 - section_index: [observability](index.md)
 - wiki_home: [autodocs](../index.md)
-- related_in_section: [Evaluation](report-evaluation-md.md), [Optimization fields](report-logs-schema-md.md), [Routing Decision Event](report-logs-schema-json.md)
+- related_in_section: [Evaluation](report-evaluation-md.md), [Optimization fields](report-logs-schema-md.md), [Routing Decision Event](report-observability-logs-schema-json.md)
 
 ## Fuentes
 

@@ -16,7 +16,7 @@ Schema: timestamp, input, intent, source_type, agent, engine, optimization_profi
 
 - section_index: [observability](index.md)
 - wiki_home: [autodocs](../index.md)
-- related_in_section: [Evaluation](report-evaluation-md.md), [Metrics](report-metrics-md.md), [Routing Decision Event](report-logs-schema-json.md)
+- related_in_section: [Evaluation](report-evaluation-md.md), [Metrics](report-metrics-md.md), [Routing Decision Event](report-observability-logs-schema-json.md)
 
 ## Fuentes
 

@@ -31,7 +31,7 @@ Capability backend.architecture.review del boost backend. Provider needs: code-n
 | references | [Spec: Clean Architecture](../specs/spec-clean-architecture-md.md) |
 | references | [Spec: Observability](../specs/spec-observability-md.md) |
 | references | [architecture-review.prompt](../routing/prompt-architecture-review-prompt-md.md) |
-| references | [architecture-review.cases](../observability/report-architecture-review-cases-json.md) |
+| references | [architecture-review.cases](../observability/report-evals-architecture-review-cases-json.md) |
 
 ## Datos tecnicos
 

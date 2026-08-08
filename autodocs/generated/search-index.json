@@ -76,7 +76,7 @@
       "observability",
       "json"
     ],
-    "path": "observability/report-logs-schema-json.md"
+    "path": "observability/report-observability-logs-schema-json.md"
   },
   {
     "title": "Routing Evaluator",
@@ -116,7 +116,7 @@
       "backend",
       "json"
     ],
-    "path": "observability/report-architecture-review-cases-json.md"
+    "path": "observability/report-evals-architecture-review-cases-json.md"
   },
   {
     "title": "Context Policy",
@@ -260,7 +260,7 @@
       "packaging",
       "json"
     ],
-    "path": "reports/report-package-json.md"
+    "path": "reports/report-root-package-json.md"
   },
   {
     "title": "openwiki-internal-blueprint",
@@ -274,7 +274,7 @@
       "autodocs",
       "json"
     ],
-    "path": "reports/report-autodocs-openwiki-internal-blueprint-json.md"
+    "path": "reports/report-autodocs-analysis-mcpee-openwiki-internal-blueprint-json.md"
   },
   {
     "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
@@ -288,7 +288,7 @@
       "autodocs",
       "json"
     ],
-    "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
+    "path": "reports/report-autodocs-analysis-mcpee-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
   },
   {
     "title": "AGENTS.md \u2014 Enterprise Global Contract",

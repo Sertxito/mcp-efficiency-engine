@@ -13,6 +13,13 @@ Usa este archivo como alternativa a `README.md` cuando una PR cambie superficie 
 
 ## Historial
 
+- Fecha: 2026-08-09
+- PR: #31
+- Área: `bin/install-host.js`, `scripts/wiki/providers/repo_content_provider.py`, `observability/evals/telemetry-flow-cost-token-report.json`
+- Cambio: instalación host unificada a modo único determinista (sin prompts ni bootstrap automático), con defaults de paquete inicial para evitar bloqueos interactivos; `RepoContentProvider` ahora hace fallback a existencia en filesystem cuando no hay `.git` o `git ls-files` no resuelve el archivo; se actualiza el reporte de telemetría asociado.
+- Impacto: compatible
+- Accion recomendada para consumidores: sin acción.
+
 - Fecha: 2026-08-08
 - PR: #29
 - Área: `scripts/wiki/providers/repo_content_provider.py`, `autodocs/site/*`
