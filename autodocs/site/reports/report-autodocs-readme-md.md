@@ -16,7 +16,7 @@ AutoDocs es la wiki interna nativa de `mcp-efficiency-engine`.
 
 - section_index: [reports](index.md)
 - wiki_home: [autodocs](../index.md)
-- related_in_section: [AutoDocs Analysis](report-autodocs-analysis-mcpee-readme-md.md), [AutoDocs Projection Engine](report-readme-wiki-md.md), [File Index](report-file-index-md.md)
+- related_in_section: [AutoDocs Analysis](report-autodocs-analysis-mcpee-readme-md.md), [AutoDocs Projection Engine](report-readme-wiki-md.md), [Guía de uso — MCP Efficiency Engine](report-final-usage-guide-md.md)
 
 ## Fuentes
 

@@ -16,7 +16,7 @@ AutoDocs es una capacidad nativa de `mcp-efficiency-engine`. En el modo actual c
 
 - section_index: [reports](index.md)
 - wiki_home: [autodocs](../index.md)
-- related_in_section: [AutoDocs](report-autodocs-readme-md.md), [AutoDocs Analysis](report-autodocs-analysis-mcpee-readme-md.md), [File Index](report-file-index-md.md)
+- related_in_section: [AutoDocs](report-autodocs-readme-md.md), [AutoDocs Analysis](report-autodocs-analysis-mcpee-readme-md.md), [Guía de uso — MCP Efficiency Engine](report-final-usage-guide-md.md)
 
 ## Fuentes
 
