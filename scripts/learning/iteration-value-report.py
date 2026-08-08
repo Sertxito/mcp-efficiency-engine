@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -35,6 +35,36 @@ def parse_jsonl(path: Path) -> list[dict[str, Any]]:
     return rows
 
 
+def parse_timestamp(value: Any) -> datetime | None:
+    if not isinstance(value, str):
+        return None
+    raw = value.strip()
+    if not raw:
+        return None
+    try:
+        dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except Exception:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
+def filter_rows_by_window(rows: list[dict[str, Any]], window_days: int) -> tuple[list[dict[str, Any]], int]:
+    if window_days <= 0:
+        return rows, 0
+    cutoff = datetime.now(timezone.utc) - timedelta(days=window_days)
+    kept: list[dict[str, Any]] = []
+    excluded = 0
+    for row in rows:
+        ts = parse_timestamp(row.get("timestamp"))
+        if ts is not None and ts < cutoff:
+            excluded += 1
+            continue
+        kept.append(row)
+    return kept, excluded
+
+
 def latest_by_event(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     out: dict[str, dict[str, Any]] = {}
     for row in rows:
@@ -50,6 +80,9 @@ def build_report(
     feedback_map: dict[str, dict[str, Any]],
     metrics_map: dict[str, dict[str, Any]],
     sources: dict[str, str],
+    *,
+    window_days: int,
+    excluded_outside_window: int,
 ) -> dict[str, Any]:
     total = len(events)
     with_event_id = 0
@@ -114,6 +147,10 @@ def build_report(
 
     report = {
         "timestamp": utc_now(),
+        "window": {
+            "days": window_days,
+            "excluded_outside_window": excluded_outside_window,
+        },
         "sources": sources,
         "totals": {
             "events": total,
@@ -235,6 +272,12 @@ def main() -> int:
     parser.add_argument("--metrics-log", default="observability/logs/iteration-metrics.jsonl")
     parser.add_argument("--out-json", default="observability/evals/iteration-value-report.json")
     parser.add_argument("--out-md", default="observability/evals/iteration-value-report.md")
+    parser.add_argument(
+        "--window-days",
+        type=int,
+        default=30,
+        help="Include only events from the last N days (<=0 disables filtering).",
+    )
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[2]
@@ -244,7 +287,8 @@ def main() -> int:
     out_json = (repo_root / args.out_json).resolve()
     out_md = (repo_root / args.out_md).resolve()
 
-    events = parse_jsonl(routing_path)
+    all_events = parse_jsonl(routing_path)
+    events, excluded_events = filter_rows_by_window(all_events, args.window_days)
     feedback_rows = parse_jsonl(feedback_path)
     metrics_rows = parse_jsonl(metrics_path)
 
@@ -257,6 +301,8 @@ def main() -> int:
             "feedback": args.feedback_log.replace("\\", "/"),
             "metrics": args.metrics_log.replace("\\", "/"),
         },
+        window_days=args.window_days,
+        excluded_outside_window=excluded_events,
     )
 
     out_json.parent.mkdir(parents=True, exist_ok=True)
@@ -266,6 +312,7 @@ def main() -> int:
     out_md.write_text(to_markdown(report), encoding="utf-8")
 
     print(f"Iteration value report generated.")
+    print(f"Events in window: {len(events)} (excluded_outside_window={excluded_events})")
     print(f"JSON: {out_json}")
     print(f"MD: {out_md}")
     return 0

@@ -1,5 +1,5 @@
 {
-  "last_updated": "sha256:4207fdddcea05bb6f00c9812c03f549926486a14f94791390d26499ea0ca79b7",
+  "last_updated": "sha256:419041ff35a47fd49ed0e58209f322093533311187bb1ba00301d2abc5aaedee",
   "nodes": {
     "repo-content::README.md": {
       "node_id": "repo-content::README.md",
@@ -3524,13 +3524,13 @@
       "node_id": "repo-content::AGENTS.md",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "f1baff8c1a7b2215d901f11c3b2b9d523d0479686a8950bdb398d62ce8ea5c68",
+      "checksum": "10be5e7e0a05a36542eeb29c684d2675d888a86ff85db5e1e1f9ddcede427b9e",
       "title": "AGENTS.md \u2014 Enterprise Global Contract",
       "slug": "report-agents-md",
       "kind": "report",
       "domain": "routing",
       "owner": "repo",
-      "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
+      "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un alcance concreto, persistir trazabilidad en `autodocs/analysis_mcpee/`.",
       "source_refs": [
         "AGENTS.md"
       ],
@@ -3562,7 +3562,7 @@
         "kind": "report",
         "section": "routing",
         "domain": "routing",
-        "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
+        "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un alcance concreto, persistir trazabilidad en `autodocs/analysis_mcpee/`.",
         "owner": "repo",
         "source_refs": [
           "AGENTS.md"
@@ -4024,6 +4024,63 @@
           "report",
           "reports",
           "autodocs"
+        ]
+      }
+    },
+    "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json": {
+      "node_id": "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "e31a15e28d2946659b5ec12a2b0998ad6c187143f8f2cffe2701ea647c494045",
+      "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
+      "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
+      "kind": "report",
+      "domain": "autodocs",
+      "owner": "analysis_mcpee",
+      "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
+      "source_refs": [
+        "autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json"
+      ],
+      "relations": [],
+      "tags": [
+        "report",
+        "reports",
+        "autodocs",
+        "json"
+      ],
+      "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md",
+      "navigation": {
+        "section": "reports",
+        "weight": 100,
+        "parent": "reports",
+        "tags": [
+          "report",
+          "reports",
+          "autodocs",
+          "json"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
+        "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
+        "kind": "report",
+        "section": "reports",
+        "domain": "autodocs",
+        "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
+        "owner": "analysis_mcpee",
+        "source_refs": [
+          "autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "autodocs",
+          "json"
         ]
       }
     }
@@ -5835,14 +5892,14 @@
       "node_id": "repo-content::AGENTS.md",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "f1baff8c1a7b2215d901f11c3b2b9d523d0479686a8950bdb398d62ce8ea5c68",
+      "checksum": "10be5e7e0a05a36542eeb29c684d2675d888a86ff85db5e1e1f9ddcede427b9e",
       "metadata": {
         "title": "AGENTS.md \u2014 Enterprise Global Contract",
         "slug": "report-agents-md",
         "kind": "report",
         "section": "routing",
         "domain": "routing",
-        "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
+        "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un alcance concreto, persistir trazabilidad en `autodocs/analysis_mcpee/`.",
         "owner": "repo",
         "source_refs": [
           "AGENTS.md"
@@ -6070,6 +6127,32 @@
           "report",
           "reports",
           "autodocs"
+        ]
+      },
+      "relations": [],
+      "semantic_summary": ""
+    },
+    "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json": {
+      "node_id": "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "e31a15e28d2946659b5ec12a2b0998ad6c187143f8f2cffe2701ea647c494045",
+      "metadata": {
+        "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
+        "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
+        "kind": "report",
+        "section": "reports",
+        "domain": "autodocs",
+        "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
+        "owner": "analysis_mcpee",
+        "source_refs": [
+          "autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "autodocs",
+          "json"
         ]
       },
       "relations": [],
@@ -9600,13 +9683,13 @@
       "node_id": "repo-content::AGENTS.md",
       "provider": "repo-content",
       "type": "report",
-      "checksum": "f1baff8c1a7b2215d901f11c3b2b9d523d0479686a8950bdb398d62ce8ea5c68",
+      "checksum": "10be5e7e0a05a36542eeb29c684d2675d888a86ff85db5e1e1f9ddcede427b9e",
       "title": "AGENTS.md \u2014 Enterprise Global Contract",
       "slug": "report-agents-md",
       "kind": "report",
       "domain": "routing",
       "owner": "repo",
-      "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
+      "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un alcance concreto, persistir trazabilidad en `autodocs/analysis_mcpee/`.",
       "source_refs": [
         "AGENTS.md"
       ],
@@ -9638,7 +9721,7 @@
         "kind": "report",
         "section": "routing",
         "domain": "routing",
-        "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
+        "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un alcance concreto, persistir trazabilidad en `autodocs/analysis_mcpee/`.",
         "owner": "repo",
         "source_refs": [
           "AGENTS.md"
@@ -10102,6 +10185,63 @@
           "autodocs"
         ]
       }
+    },
+    "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json": {
+      "node_id": "repo-content::autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json",
+      "provider": "repo-content",
+      "type": "report",
+      "checksum": "e31a15e28d2946659b5ec12a2b0998ad6c187143f8f2cffe2701ea647c494045",
+      "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
+      "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
+      "kind": "report",
+      "domain": "autodocs",
+      "owner": "analysis_mcpee",
+      "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
+      "source_refs": [
+        "autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json"
+      ],
+      "relations": [],
+      "tags": [
+        "report",
+        "reports",
+        "autodocs",
+        "json"
+      ],
+      "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md",
+      "navigation": {
+        "section": "reports",
+        "weight": 100,
+        "parent": "reports",
+        "tags": [
+          "report",
+          "reports",
+          "autodocs",
+          "json"
+        ]
+      },
+      "quality": {
+        "has_summary": true,
+        "has_relations": false,
+        "has_sources": true
+      },
+      "metadata": {
+        "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
+        "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
+        "kind": "report",
+        "section": "reports",
+        "domain": "autodocs",
+        "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
+        "owner": "analysis_mcpee",
+        "source_refs": [
+          "autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json"
+        ],
+        "tags": [
+          "report",
+          "reports",
+          "autodocs",
+          "json"
+        ]
+      }
     }
   },
   "navigation_tree": {
@@ -10328,9 +10468,9 @@
         ]
       },
       {
-        "id": "projects",
-        "title": "Projects",
-        "description": "Proyectos o dominios servidos por MCP Efficiency Engine.",
+        "id": "domains",
+        "title": "Domains",
+        "description": "Dominios funcionales servidos por MCP Efficiency Engine.",
         "page_count": 0,
         "pages": []
       },
@@ -10467,7 +10607,7 @@
         "id": "reports",
         "title": "Reports",
         "description": "Reportes generados y artefactos de analisis.",
-        "page_count": 9,
+        "page_count": 10,
         "pages": [
           {
             "title": "AutoDocs",
@@ -10513,6 +10653,11 @@
             "title": "openwiki-internal-blueprint",
             "slug": "report-autodocs-openwiki-internal-blueprint-json",
             "path": "reports/report-autodocs-openwiki-internal-blueprint-json.md"
+          },
+          {
+            "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
+            "slug": "report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json",
+            "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
           }
         ]
       },
@@ -10920,8 +11065,22 @@
       "path": "reports/report-autodocs-openwiki-internal-blueprint-json.md"
     },
     {
+      "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
+      "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
+      "kind": "report",
+      "domain": "autodocs",
+      "section": "reports",
+      "tags": [
+        "report",
+        "reports",
+        "autodocs",
+        "json"
+      ],
+      "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
+    },
+    {
       "title": "AGENTS.md \u2014 Enterprise Global Contract",
-      "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
+      "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un alcance concreto, persistir trazabilidad en `autodocs/analysis_mcpee/`.",
       "kind": "report",
       "domain": "routing",
       "section": "routing",
@@ -11962,9 +12121,9 @@
       ]
     },
     {
-      "id": "projects",
-      "title": "Projects",
-      "description": "Proyectos o dominios servidos por MCP Efficiency Engine.",
+      "id": "domains",
+      "title": "Domains",
+      "description": "Dominios funcionales servidos por MCP Efficiency Engine.",
       "page_count": 0,
       "pages": []
     },
@@ -12017,12 +12176,13 @@
       "id": "reports",
       "title": "Reports",
       "description": "Reportes generados y artefactos de analisis.",
-      "page_count": 9,
+      "page_count": 10,
       "pages": [
         "reports/report-autodocs-analysis-mcpee-readme-md.md",
         "reports/report-autodocs-openwiki-internal-blueprint-json.md",
         "reports/report-autodocs-openwiki-internal-blueprint-md.md",
         "reports/report-autodocs-readme-md.md",
+        "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md",
         "reports/report-file-index-md.md",
         "reports/report-final-usage-guide-md.md",
         "reports/report-package-json.md",

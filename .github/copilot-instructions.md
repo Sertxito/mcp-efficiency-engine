@@ -6,8 +6,8 @@ Reglas globales, lean y accionables.
 
 - Este archivo define reglas de ejecucion del asistente.
 - La politica Always-On detallada vive en `.github/instructions/always-on-optimization.instructions.md`.
-- El alcance operativo por defecto para analizar, controlar y trabajar proyectos vive en `projects/`.
-- Todo artefacto especifico de un proyecto debe quedar dentro de su carpeta en `projects/`, aunque un subagente proponga otra ubicacion.
+- El alcance operativo por defecto para analizar, controlar y trabajar es la raiz del repositorio.
+- Todo artefacto operativo de analisis y trazabilidad debe quedar bajo `autodocs/analysis_mcpee/` o `autodocs/generated/` segun su naturaleza.
 
 ## Reglas obligatorias
 
@@ -23,12 +23,12 @@ Reglas globales, lean y accionables.
 - Trazabilidad obligatoria por tarea: reportar siempre boost/agente/skill usado, motor aplicado, fallback (si existe) y evidencia de validacion.
 - Mantener consistencia con patrones existentes del repositorio.
 - No introducir nuevas convenciones sin necesidad explicita.
-- No generar artefactos especificos de proyecto fuera de `projects/<nombre-proyecto>/`.
-- Si una tarea afecta a un proyecto concreto, priorizar contexto, salidas y documentacion dentro de `projects/<nombre-proyecto>/`.
+- No generar artefactos operativos fuera de `autodocs/analysis_mcpee/` y `autodocs/generated/`, salvo contrato explicito.
+- Si una tarea afecta a un alcance funcional concreto, priorizar contexto, salidas y documentacion en la raiz y en `autodocs/`.
 - Los analisis, diagnosticos y reportes generados por MCP Efficiency Engine
   para un proyecto deben guardarse preferentemente en
-  `projects/<nombre-proyecto>/analysis_mcpee/`.
-- La trazabilidad de boost-first debe persistirse en artefactos del proyecto cuando aplique, bajo `projects/<nombre-proyecto>/analysis_mcpee/`.
+	`autodocs/analysis_mcpee/`.
+- La trazabilidad de boost-first debe persistirse cuando aplique, bajo `autodocs/analysis_mcpee/`.
 - En la primera pasada sobre un boost o proyecto nuevo, hacer onboarding
 	profundo y recuperar el maximo contexto verificable relevante, aunque tarde
 	mas, usando repo-intake, onboarding y los agentes/skills/prompts/

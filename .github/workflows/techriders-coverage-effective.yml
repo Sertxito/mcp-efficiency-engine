@@ -4,12 +4,12 @@ on:
   push:
     branches: [ main, develop ]
     paths:
-      - 'projects/techriders/**'
+      - 'backend/**'
       - '.github/workflows/techriders-coverage-effective.yml'
   pull_request:
     branches: [ main, develop ]
     paths:
-      - 'projects/techriders/**'
+      - 'backend/**'
       - '.github/workflows/techriders-coverage-effective.yml'
 
 permissions:
@@ -23,7 +23,7 @@ jobs:
     name: TechRiders Effective Coverage Gate (Windows)
     runs-on: windows-latest
     env:
-      TECHRIDERS_BACKEND_PATH: projects/techriders/backend
+      TECHRIDERS_BACKEND_PATH: backend
 
     steps:
       - name: Checkout code
@@ -87,5 +87,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: techriders-effective-coverage
-          path: projects/techriders/backend/tests/TechRiders.Api.Tests/TestResults/**/coverage.cobertura.xml
+          path: backend/tests/TechRiders.Api.Tests/TestResults/**/coverage.cobertura.xml
           retention-days: 30

@@ -4,7 +4,7 @@ import argparse
 import json
 import sys
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -47,6 +47,36 @@ def parse_events(path: Path) -> list[dict[str, Any]]:
     return events
 
 
+def parse_timestamp(value: Any) -> datetime | None:
+    if not isinstance(value, str):
+        return None
+    raw = value.strip()
+    if not raw:
+        return None
+    try:
+        dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except Exception:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
+def filter_events_by_window(events: list[dict[str, Any]], window_days: int) -> tuple[list[dict[str, Any]], int]:
+    if window_days <= 0:
+        return events, 0
+    cutoff = datetime.now(timezone.utc) - timedelta(days=window_days)
+    kept: list[dict[str, Any]] = []
+    excluded = 0
+    for event in events:
+        ts = parse_timestamp(event.get("timestamp"))
+        if ts is not None and ts < cutoff:
+            excluded += 1
+            continue
+        kept.append(event)
+    return kept, excluded
+
+
 def parse_feedback(path: Path) -> dict[str, dict[str, Any]]:
     latest_by_event: dict[str, dict[str, Any]] = {}
     if not path.exists():
@@ -70,7 +100,13 @@ def parse_feedback(path: Path) -> dict[str, dict[str, Any]]:
 
 
 def build_report(
-    events: list[dict[str, Any]], source_path: str, feedback_by_event: dict[str, dict[str, Any]], feedback_source: str
+    events: list[dict[str, Any]],
+    source_path: str,
+    feedback_by_event: dict[str, dict[str, Any]],
+    feedback_source: str,
+    *,
+    window_days: int,
+    excluded_outside_window: int,
 ) -> dict[str, Any]:
     total = len(events)
     fallback_count = 0
@@ -169,6 +205,10 @@ def build_report(
     global_confidence_avg = round((confidence_sum / confidence_count), 3) if confidence_count else 0.0
     report = {
         "timestamp": utc_now(),
+        "window": {
+            "days": window_days,
+            "excluded_outside_window": excluded_outside_window,
+        },
         "source": source_path,
         "feedback_source": feedback_source,
         "total_events": total,
@@ -251,6 +291,12 @@ def main() -> int:
     parser.add_argument("--feedback", default="observability/logs/learning-feedback.jsonl")
     parser.add_argument("--out-json", default="observability/evals/learning-loop-report.json")
     parser.add_argument("--out-md", default="observability/evals/learning-loop-report.md")
+    parser.add_argument(
+        "--window-days",
+        type=int,
+        default=30,
+        help="Include only events from the last N days (<=0 disables filtering).",
+    )
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[2]
@@ -262,9 +308,17 @@ def main() -> int:
 
     with collector.start_execution(operation="learning-loop-report", session_id="learning"):
         with collector.start_span(name="learning.report.build", kind="INTERNAL"):
-            events = parse_events(in_path)
+            all_events = parse_events(in_path)
+            events, excluded_events = filter_events_by_window(all_events, args.window_days)
             feedback = parse_feedback(feedback_path)
-            report = build_report(events, str(in_path), feedback, str(feedback_path))
+            report = build_report(
+                events,
+                str(in_path),
+                feedback,
+                str(feedback_path),
+                window_days=args.window_days,
+                excluded_outside_window=excluded_events,
+            )
 
             out_json.parent.mkdir(parents=True, exist_ok=True)
             out_md.parent.mkdir(parents=True, exist_ok=True)
@@ -278,7 +332,7 @@ def main() -> int:
             collector.record_metric("grounded_rate", float(kpis.get("grounded_rate", 0.0)), unit="ratio")
             collector.record_metric("confidence_avg", float(kpis.get("confidence_avg", 0.0)), unit="score")
 
-            print(f"Learning events processed: {len(events)}")
+            print(f"Learning events processed: {len(events)} (excluded_outside_window={excluded_events})")
             print(f"Report JSON: {out_json}")
             print(f"Report MD: {out_md}")
 

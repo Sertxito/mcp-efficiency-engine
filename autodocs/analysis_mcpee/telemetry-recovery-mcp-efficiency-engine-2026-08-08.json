@@ -1,0 +1,457 @@
+{
+  "timestamp": "2026-08-08T10:37:41.125189+00:00",
+  "host_project": "mcp-efficiency-engine",
+  "telemetry_scope": "platform",
+  "sources": {
+    "learning": "C:\\repo\\mcp-efficiency-engine\\observability\\evals\\learning-loop-report.json",
+    "iteration_value": "C:\\repo\\mcp-efficiency-engine\\observability\\evals\\iteration-value-report.json",
+    "telemetry_snapshot": "C:\\repo\\mcp-efficiency-engine\\observability\\evals\\telemetry-flow-cost-token-report.json",
+    "chat_usage": "C:\\repo\\mcp-efficiency-engine\\observability\\evals\\chat-token-usage-report.json"
+  },
+  "learning": {
+    "timestamp": "2026-08-08T10:37:32.052066+00:00",
+    "window": {
+      "days": 30,
+      "excluded_outside_window": 237
+    },
+    "source": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\routing-decisions.jsonl",
+    "feedback_source": "C:\\repo\\mcp-efficiency-engine\\observability\\logs\\learning-feedback.jsonl",
+    "total_events": 121,
+    "pending_events": 111,
+    "confirmed_events": 10,
+    "kpis": {
+      "fallback_rate": 0.0083,
+      "grounded_rate": 0.9752,
+      "success_rate": 1.0,
+      "confidence_avg": 0.91
+    },
+    "thresholds": {
+      "fallback_rate_max": 0.2,
+      "grounded_rate_min": 0.8,
+      "confidence_avg_min": 0.8
+    },
+    "health": {
+      "fallback_ok": true,
+      "grounded_ok": true,
+      "confidence_ok": true
+    },
+    "patterns": [
+      {
+        "pattern": "backend+bug-fix",
+        "total": 1,
+        "fallback_rate": 0.0,
+        "grounded_rate": 0.0,
+        "pending_count": 1,
+        "confirmed_count": 0,
+        "success_rate": 0.0,
+        "confidence_avg": 0.0,
+        "engines": {
+          "CodeGraph": 1
+        },
+        "agents": {
+          "backend": 1
+        }
+      },
+      {
+        "pattern": "backend+explain",
+        "total": 1,
+        "fallback_rate": 0.0,
+        "grounded_rate": 1.0,
+        "pending_count": 1,
+        "confirmed_count": 0,
+        "success_rate": 0.0,
+        "confidence_avg": 0.0,
+        "engines": {
+          "CodeGraph": 1
+        },
+        "agents": {
+          "backend": 1
+        }
+      },
+      {
+        "pattern": "backend+feature",
+        "total": 94,
+        "fallback_rate": 0.0,
+        "grounded_rate": 1.0,
+        "pending_count": 94,
+        "confirmed_count": 0,
+        "success_rate": 0.0,
+        "confidence_avg": 0.0,
+        "engines": {
+          "CodeGraph": 94
+        },
+        "agents": {
+          "backend": 94
+        }
+      },
+      {
+        "pattern": "backend+implement",
+        "total": 5,
+        "fallback_rate": 0.0,
+        "grounded_rate": 1.0,
+        "pending_count": 5,
+        "confirmed_count": 0,
+        "success_rate": 0.0,
+        "confidence_avg": 0.0,
+        "engines": {
+          "CodeGraph": 5
+        },
+        "agents": {
+          "backend": 5
+        }
+      },
+      {
+        "pattern": "backend+implementation",
+        "total": 4,
+        "fallback_rate": 0.0,
+        "grounded_rate": 1.0,
+        "pending_count": 4,
+        "confirmed_count": 0,
+        "success_rate": 0.0,
+        "confidence_avg": 0.0,
+        "engines": {
+          "CodeGraph": 4
+        },
+        "agents": {
+          "backend": 4
+        }
+      },
+      {
+        "pattern": "backend+query",
+        "total": 1,
+        "fallback_rate": 0.0,
+        "grounded_rate": 1.0,
+        "pending_count": 1,
+        "confirmed_count": 0,
+        "success_rate": 0.0,
+        "confidence_avg": 0.0,
+        "engines": {
+          "CodeGraph": 1
+        },
+        "agents": {
+          "backend": 1
+        }
+      },
+      {
+        "pattern": "backend+review",
+        "total": 2,
+        "fallback_rate": 0.5,
+        "grounded_rate": 0.5,
+        "pending_count": 2,
+        "confirmed_count": 0,
+        "success_rate": 0.0,
+        "confidence_avg": 0.0,
+        "engines": {
+          "CodeGraph": 2
+        },
+        "agents": {
+          "backend": 2
+        }
+      },
+      {
+        "pattern": "dba+sql",
+        "total": 2,
+        "fallback_rate": 0.0,
+        "grounded_rate": 1.0,
+        "pending_count": 2,
+        "confirmed_count": 0,
+        "success_rate": 0.0,
+        "confidence_avg": 0.0,
+        "engines": {
+          "Graphify": 2
+        },
+        "agents": {
+          "dba": 2
+        }
+      },
+      {
+        "pattern": "incremental-json-projection",
+        "total": 10,
+        "fallback_rate": 0.0,
+        "grounded_rate": 1.0,
+        "pending_count": 0,
+        "confirmed_count": 10,
+        "success_rate": 1.0,
+        "confidence_avg": 0.91,
+        "engines": {
+          "CodeGraph": 10
+        },
+        "agents": {
+          "autodocs-agent": 10
+        }
+      },
+      {
+        "pattern": "unknown-domain+info",
+        "total": 1,
+        "fallback_rate": 0.0,
+        "grounded_rate": 0.0,
+        "pending_count": 1,
+        "confirmed_count": 0,
+        "success_rate": 0.0,
+        "confidence_avg": 0.0,
+        "engines": {
+          "CodeGraph": 1
+        },
+        "agents": {
+          "backend": 1
+        }
+      }
+    ]
+  },
+  "iteration_value": {
+    "timestamp": "2026-08-08T10:37:37.907803+00:00",
+    "window": {
+      "days": 30,
+      "excluded_outside_window": 237
+    },
+    "sources": {
+      "routing": "observability/logs/routing-decisions.jsonl",
+      "feedback": "observability/logs/learning-feedback.jsonl",
+      "metrics": "observability/logs/iteration-metrics.jsonl"
+    },
+    "totals": {
+      "events": 121,
+      "events_with_event_id": 111,
+      "metrics_covered": 97,
+      "feedback_confirmed": 0,
+      "confirmed_success": 0
+    },
+    "kpis": {
+      "metrics_coverage_rate": 0.8739,
+      "confirmed_feedback_rate": 0.0,
+      "confirmed_success_rate": 0.0,
+      "total_tokens": 19455,
+      "total_cost_usd": 0.3099,
+      "tokens_per_confirmed_success": 0.0,
+      "cost_per_confirmed_success_usd": 0.0
+    },
+    "breakdown": {
+      "tool_mode": {
+        "hybrid": {
+          "count": 93,
+          "tokens": 15345,
+          "cost_usd": 0.2976
+        },
+        "model-only": {
+          "count": 4,
+          "tokens": 4110,
+          "cost_usd": 0.012299999999999998
+        }
+      },
+      "model": {
+        "GPT-5.3-Codex": {
+          "count": 93,
+          "tokens": 15345,
+          "cost_usd": 0.2976
+        },
+        "gpt-5.3-codex": {
+          "count": 4,
+          "tokens": 4110,
+          "cost_usd": 0.012299999999999998
+        }
+      },
+      "engine": {
+        "CodeGraph": {
+          "count": 97,
+          "tokens": 19455,
+          "cost_usd": 0.30989999999999995
+        }
+      }
+    },
+    "assessment": {
+      "has_value_signal": false,
+      "notes": "Insufficient confirmed outcomes or metrics coverage."
+    }
+  },
+  "telemetry": {
+    "timestamp": "2026-08-08T10:37:41.102571+00:00",
+    "source": {
+      "traces": "C:\\repo\\mcp-efficiency-engine\\.telemetry\\traces.jsonl",
+      "metrics": "C:\\repo\\mcp-efficiency-engine\\.telemetry\\metrics.jsonl"
+    },
+    "totals": {
+      "trace_records": 10110,
+      "metric_records": 4016,
+      "executions": 1421,
+      "warnings": 4,
+      "errors": 0
+    },
+    "kpis": {
+      "routing_fallback_rate": 0.0095,
+      "routing_grounded_rate": 0.1292,
+      "avg_span_duration_ms": 258.0601,
+      "p95_span_duration_ms": 8.627,
+      "tokens_input": 4640,
+      "tokens_output": 1120,
+      "total_tokens": 5760,
+      "total_cost_usd": 0.0443,
+      "efficiency_score_avg": 57.965
+    },
+    "breakdown": {
+      "operation": {
+        "resolve-routing": 195,
+        "learning-loop-report": 22,
+        "mcpee.hi": 2,
+        "mcpee.langsmith-kpis": 2,
+        "mcpee.install-terminal-telemetry-hook": 1,
+        "terminal.command": 1167,
+        "autodocs-compiler": 9,
+        "unknown": 9,
+        "plugin-manager-gather-all": 9,
+        "wiki-validator": 9
+      },
+      "session": {
+        "intake-routing": 1369,
+        "learning": 132,
+        "mcpee-cli": 30,
+        "terminal-session": 8174,
+        "wiki-orchestrator": 72,
+        "autodocs": 333
+      },
+      "engine": {
+        "CodeGraph": 71,
+        "Azure RAG Builder": 21,
+        "Graphify": 86,
+        "GitNexus": 17,
+        "unknown": 1167
+      },
+      "agent": {
+        "backend": 50,
+        "rag-azure": 21,
+        "dba": 44,
+        "legacy": 17,
+        "rag-local": 21,
+        "frontend-agent": 21,
+        "ux-ui": 21,
+        "unknown": 1167
+      },
+      "exporter_failures": {
+        "langsmith": 4
+      }
+    }
+  },
+  "chat_usage": {
+    "timestamp": "2026-08-06T17:04:23.864535+00:00",
+    "source": "C:\\repo\\mcp-efficiency-engine\\observability\\evals\\chat-token-usage-report.json",
+    "kpis": {
+      "input_tokens": 16425416,
+      "output_tokens": 554273,
+      "total_tokens": 16979689,
+      "copilot_credits": 4409.951797,
+      "budget_utilization_rate": 232.102726
+    },
+    "raw": {
+      "timestamp": "2026-08-06T17:04:23.864535+00:00",
+      "source": "observability/logs/iteration-metrics.jsonl",
+      "filters": {
+        "source": "copilot-session",
+        "from": "",
+        "to": ""
+      },
+      "totals": {
+        "events": 141,
+        "input_tokens": 16425416,
+        "output_tokens": 554273,
+        "total_tokens": 16979689,
+        "copilot_credits": 4409.951797
+      },
+      "breakdown": {
+        "model": {
+          "copilot/auto": {
+            "count": 141,
+            "input_tokens": 16425416,
+            "output_tokens": 554273,
+            "total_tokens": 16979689,
+            "copilot_credits": 4409.951797
+          }
+        },
+        "day": {
+          "2026-07-03": {
+            "count": 19,
+            "input_tokens": 2219137,
+            "output_tokens": 67846,
+            "total_tokens": 2286983,
+            "copilot_credits": 492.07088600000003
+          },
+          "2026-07-04": {
+            "count": 9,
+            "input_tokens": 876490,
+            "output_tokens": 21560,
+            "total_tokens": 898050,
+            "copilot_credits": 160.161499
+          },
+          "2026-07-05": {
+            "count": 8,
+            "input_tokens": 797775,
+            "output_tokens": 37486,
+            "total_tokens": 835261,
+            "copilot_credits": 164.690315
+          },
+          "2026-07-09": {
+            "count": 14,
+            "input_tokens": 1787826,
+            "output_tokens": 70322,
+            "total_tokens": 1858148,
+            "copilot_credits": 477.594181
+          },
+          "2026-07-10": {
+            "count": 21,
+            "input_tokens": 2572790,
+            "output_tokens": 71484,
+            "total_tokens": 2644274,
+            "copilot_credits": 710.214182
+          },
+          "2026-07-11": {
+            "count": 33,
+            "input_tokens": 3520504,
+            "output_tokens": 135325,
+            "total_tokens": 3655829,
+            "copilot_credits": 978.2632710000001
+          },
+          "2026-07-12": {
+            "count": 34,
+            "input_tokens": 4458593,
+            "output_tokens": 123926,
+            "total_tokens": 4582519,
+            "copilot_credits": 1342.5410989999998
+          },
+          "2026-07-20": {
+            "count": 1,
+            "input_tokens": 46597,
+            "output_tokens": 2531,
+            "total_tokens": 49128,
+            "copilot_credits": 13.923662
+          },
+          "2026-07-23": {
+            "count": 1,
+            "input_tokens": 77162,
+            "output_tokens": 8944,
+            "total_tokens": 86106,
+            "copilot_credits": 24.355251
+          },
+          "2026-08-06": {
+            "count": 1,
+            "input_tokens": 68542,
+            "output_tokens": 14849,
+            "total_tokens": 83391,
+            "copilot_credits": 46.137451
+          }
+        }
+      },
+      "license": {
+        "plan": "business",
+        "seats": 1,
+        "included_credits_per_user_month": 19.0,
+        "included_credits_total_month": 19.0,
+        "official_plans_url": "https://github.com/features/copilot/plans?ref_cta=View+pricing+and+plans&ref_loc=hero&ref_page=%2Ffeatures_copilot_copilot_business&plans=business"
+      },
+      "budget": {
+        "used_copilot_credits": 4409.951797,
+        "budget_utilization_rate": 232.102726,
+        "overage_credits": 4390.951797,
+        "equivalent_seats_used": 232.102726,
+        "percent_of_one_seat": 23210.27
+      }
+    }
+  }
+}

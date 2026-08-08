@@ -18,17 +18,15 @@ Fuente de verdad:
 - `repo-intake/generated/<slug>/context-manifests/manifest.json`
 - `repo-intake/generated/<slug>/capabilities/capability.json`
 
-Regla de alcance para proyectos locales:
+Regla de alcance para repos locales:
 
-- Si el repositorio contiene proyectos en `projects/`, esos son el perimetro
-  canonico para trabajo especifico de proyecto dentro de esta plataforma.
-- Los artefactos, reportes y documentacion especificos de cada proyecto deben
-  quedar en `projects/<nombre-proyecto>/`.
-- Los analisis y reportes generados por MCP Efficiency Engine deben ir, por
-  defecto, a `projects/<nombre-proyecto>/analysis_mcpee/`.
-- El routing o los subagentes no deben promover escritura de artefactos
-  especificos de proyecto en la raiz del repo salvo que se trate de artefactos
-  globales de plataforma.
+- El perimetro canonico de trabajo es la raiz del repositorio.
+- Los artefactos de analisis, reportes y trazabilidad deben quedar en
+  `autodocs/analysis_mcpee/`.
+- Los artefactos generados de proyeccion/indice deben quedar en
+  `autodocs/generated/`.
+- El routing o los subagentes no deben promover escritura fuera de
+  `autodocs/` salvo que se trate de artefactos globales de plataforma.
 
 Regla de primera pasada por capability o boost:
 

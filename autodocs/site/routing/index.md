@@ -11,7 +11,7 @@ Reglas de orquestacion y decisiones de enrutado.
 
 ## Paginas
 
-- [AGENTS.md — Enterprise Global Contract](report-agents-md.md) - 2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.
+- [AGENTS.md — Enterprise Global Contract](report-agents-md.md) - 2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un alcance concreto, persistir trazabilidad en `autodocs/analysis_mcpee/`.
 - [Arquitectura de MCP Efficiency Engine](report-architecture-md.md) - Vista de arquitectura y flujo de agentes y motores.
 - [Corporate Routing](report-corporate-routing-md.md) - Definir reglas corporativas para seleccionar agente y motor principal por tarea sin mezclar engines de forma innecesaria.
 - [Decision Matrix](report-decision-matrix-md.md) - Matriz de decision rapida para resolver agente y motor por tipo de entrada.

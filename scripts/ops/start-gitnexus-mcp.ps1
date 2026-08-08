@@ -36,10 +36,10 @@ function Resolve-TargetPath {
 
     $projectCandidates = @()
     $indexedProjectCandidates = @()
-    $projectsRoot = Join-Path $RepoRoot 'projects'
+    $domainsRoot = Join-Path $RepoRoot 'domains'
 
-    if (Test-Path $projectsRoot) {
-        foreach ($projectDir in Get-ChildItem -Path $projectsRoot -Directory -ErrorAction SilentlyContinue) {
+    if (Test-Path $domainsRoot) {
+        foreach ($projectDir in Get-ChildItem -Path $domainsRoot -Directory -ErrorAction SilentlyContinue) {
             if (Is-GitRepo $projectDir.FullName) {
                 $projectCandidates += $projectDir.FullName
                 if (Has-GitNexusIndex $projectDir.FullName) {

@@ -1,10 +1,10 @@
 # project.kickoff-analysis.prompt.md
 
-Objetivo: analizar un proyecto {projects/} desde cero, seleccionar el agente y motor correctos segun la necesidad real, y dejar un arranque operativo con evidencias, gaps y siguientes pasos.
+Objetivo: analizar un alcance funcional desde la raiz del repositorio, seleccionar el agente y motor correctos segun la necesidad real, y dejar un arranque operativo con evidencias, gaps y siguientes pasos.
 
 Entrada minima:
 - objetivo del analisis
-- path o nombre del proyecto/boost
+- path o nombre del alcance/boost
 - tipo de fuente esperado (code | technical-docs | corporate-docs | snapshot) si ya se conoce
 - restriccion de salida o artefacto esperado
 
@@ -29,7 +29,7 @@ Flujo:
 	- que falta para operar
 	- que boost/agente cubre cada gap
 	- riesgos, bloqueos y dependencias
-7. Si aplica a un proyecto bajo `projects/`, guardar los artefactos del analisis en `projects/<nombre-proyecto>/analysis_mcpee/`.
+7. Guardar los artefactos del analisis en `autodocs/analysis_mcpee/`.
 
 Salida esperada:
 Diagnostico -> accion -> validacion -> riesgo/gap

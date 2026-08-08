@@ -393,8 +393,22 @@
     "path": "reports/report-autodocs-openwiki-internal-blueprint-json.md"
   },
   {
+    "title": "telemetry-recovery-mcp-efficiency-engine-2026-08-08",
+    "summary": "Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.",
+    "kind": "report",
+    "domain": "autodocs",
+    "section": "reports",
+    "tags": [
+      "report",
+      "reports",
+      "autodocs",
+      "json"
+    ],
+    "path": "reports/report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md"
+  },
+  {
     "title": "AGENTS.md \u2014 Enterprise Global Contract",
-    "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un proyecto concreto, persistir trazabilidad en `projects/<nombre-proyecto>/analysis_mcpee/`.",
+    "summary": "2. En cada tarea, exponer evidencia minima de ejecucion: boost/agente/skill, motor, fallback (si aplica), validacion. 3. Cuando la tarea afecte a un alcance concreto, persistir trazabilidad en `autodocs/analysis_mcpee/`.",
     "kind": "report",
     "domain": "routing",
     "section": "routing",

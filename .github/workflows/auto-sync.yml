@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'projects/**'
+      - 'autodocs/**'
       - '.github/specs/**'
   workflow_dispatch:
 
@@ -48,7 +48,7 @@ jobs:
         run: |
           echo "✅ Auto-Sync workflow completed" >> $GITHUB_STEP_SUMMARY
           echo "- Sync check: Completed" >> $GITHUB_STEP_SUMMARY
-          echo "- Source: projects/** changes" >> $GITHUB_STEP_SUMMARY
+          echo "- Source: autodocs/** changes" >> $GITHUB_STEP_SUMMARY
           echo "- Target: boost_sertxIA" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Note:** Running in DryRun mode. Manual sync available on demand." >> $GITHUB_STEP_SUMMARY

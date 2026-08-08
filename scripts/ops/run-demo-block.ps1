@@ -1,7 +1,7 @@
 param(
     [ValidateSet('demo1', 'demo2', 'demo3', 'demo4', 'all')]
     [string]$Demo,
-    [string]$ConfigPath = ".\projects\TSS2026\analysis_mcpee\demo-session.config.json",
+    [string]$ConfigPath = ".\autodocs\analysis_mcpee\demo-session.config.json",
     [switch]$StopOnError,
     [switch]$DryRun
 )
@@ -26,7 +26,7 @@ $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $configAbsPath = Resolve-AbsolutePath -Path $ConfigPath -BasePath $repoRoot
 
 if (-not (Test-Path $configAbsPath)) {
-    $fallbackConfig = Resolve-AbsolutePath -Path ".\projects\TSS2026\analysis_mcpee\demo-session.config.example.json" -BasePath $repoRoot
+    $fallbackConfig = Resolve-AbsolutePath -Path ".\autodocs\analysis_mcpee\demo-session.config.example.json" -BasePath $repoRoot
     if (Test-Path $fallbackConfig) {
         Write-Host ("Config no encontrado, usando ejemplo: {0}" -f $fallbackConfig) -ForegroundColor Yellow
         $configAbsPath = $fallbackConfig
@@ -54,7 +54,7 @@ if ($selectedSteps.Count -eq 0) {
     throw "No steps match block '$Demo' in config: $configAbsPath"
 }
 
-$tmpRoot = Join-Path $repoRoot "projects\TSS2026\analysis_mcpee\tmp"
+$tmpRoot = Join-Path $repoRoot "autodocs\analysis_mcpee\tmp"
 New-Item -ItemType Directory -Path $tmpRoot -Force | Out-Null
 $tmpConfigPath = Join-Path $tmpRoot ("demo-block-{0}-{1}.json" -f $Demo, (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
 

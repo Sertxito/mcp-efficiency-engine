@@ -118,7 +118,7 @@ cd mcp-efficiency-engine
 
 ```powershell
 # Ver qué haría sin hacer cambios
-pwsh scripts/github/sync-repo.ps1 -FilesPattern "projects/**" -DryRun
+pwsh scripts/github/sync-repo.ps1 -FilesPattern "autodocs/**" -DryRun
 ```
 
 #### Generar DevLog
@@ -152,7 +152,7 @@ Los workflows ya están configurados. Se ejecutan automáticamente:
 
 | Workflow | Trigger | Qué Hace |
 |----------|---------|---------|
-| **auto-sync.yml** | Push a main (projects/) | Sincroniza cambios a boost_sertxIA |
+| **auto-sync.yml** | Push a main (autodocs/) | Sincroniza cambios a boost_sertxIA |
 | **auto-devlog.yml** | Push a main | Genera devlog de commits |
 | **auto-manage-issues.yml** | Lunes 9 AM | Gestiona issues automáticamente |
 

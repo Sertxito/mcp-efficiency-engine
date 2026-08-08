@@ -207,7 +207,7 @@ Hook incluido:
 
 Regla:
 
-- Solo actua cuando el commit toca rutas bajo `projects/`.
+- Solo se omite cuando no hay cambios relevantes en la raiz operativa del repositorio.
 
 Pipeline ejecutado en ese caso:
 

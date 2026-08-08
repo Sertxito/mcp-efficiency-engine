@@ -196,7 +196,7 @@ Mantiene sincronización entre repos principales.
 param(
   [string]$SourceRepo = "Sertxito/mcp-efficiency-engine",
   [string]$TargetRepo = "Sertxito/boost_sertxIA",
-  [string]$FilesPattern = "projects/**"
+  [string]$FilesPattern = "autodocs/**"
 )
 
 # 1. Detectar cambios en SourceRepo
@@ -249,7 +249,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'projects/**'
+      - 'autodocs/**'
       - '.github/specs/**'
 
 jobs:

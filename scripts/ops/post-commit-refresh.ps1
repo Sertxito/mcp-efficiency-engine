@@ -21,12 +21,11 @@ function Get-PythonCommand {
 function Invoke-PythonScript {
     param(
         [string]$ScriptPath,
-        [string[]]$Args = @(),
         [switch]$IgnoreErrors
     )
 
     $python = Get-PythonCommand
-    & $python[0] $python[1] $ScriptPath @Args
+    & $python[0] $python[1] $ScriptPath
     $exitCode = $LASTEXITCODE
     if ($exitCode -ne 0 -and -not $IgnoreErrors) {
         throw "Command failed ($exitCode): $ScriptPath"
@@ -48,9 +47,11 @@ if ($LASTEXITCODE -ne 0) {
     exit 0
 }
 
-$projectChanges = @($changedFiles | Where-Object { $_ -match '^projects/' })
-if (-not $Force -and $projectChanges.Count -eq 0) {
-    Write-Host '[mcpee] post-commit-refresh skipped: no changes under projects/ in last commit.'
+$relevantChanges = @($changedFiles | Where-Object {
+    $_ -notmatch '^(\.gitignore|LICENSE|README(\.md)?|docs/.*)$'
+})
+if (-not $Force -and $relevantChanges.Count -eq 0) {
+    Write-Host '[mcpee] post-commit-refresh skipped: no relevant repo-root changes in last commit.'
     exit 0
 }
 
@@ -93,7 +94,7 @@ $summary = [ordered]@{
     operation = 'post-commit-refresh'
     status = $status
     duration_sec = $duration
-    changed_projects_files = $projectChanges.Count
+    changed_relevant_files = $relevantChanges.Count
     steps = $steps
     errors = $errors
 }

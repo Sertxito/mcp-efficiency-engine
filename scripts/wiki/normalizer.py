@@ -24,9 +24,9 @@ _SECTION_CATALOG = [
         "description": "Reglas de orquestacion y decisiones de enrutado.",
     },
     {
-        "id": "projects",
-        "title": "Projects",
-        "description": "Proyectos o dominios servidos por MCP Efficiency Engine.",
+        "id": "domains",
+        "title": "Domains",
+        "description": "Dominios funcionales servidos por MCP Efficiency Engine.",
     },
     {
         "id": "policies",
@@ -150,7 +150,7 @@ def _section_for_kind(kind: str) -> str:
         "skill": "skills",
         "prompt": "routing",
         "policy": "policies",
-        "project": "projects",
+        "project": "domains",
         "spec": "specs",
         "report": "reports",
         "capability": "capabilities",

@@ -42,7 +42,7 @@
       "properties": {
         "section": {
           "type": "string",
-          "enum": ["capabilities", "agents", "skills", "routing", "projects", "policies", "specs", "observability", "reports", "misc"]
+          "enum": ["capabilities", "agents", "skills", "routing", "domains", "policies", "specs", "observability", "reports", "misc"]
         },
         "weight": { "type": "number" },
         "parent": { "type": "string" },

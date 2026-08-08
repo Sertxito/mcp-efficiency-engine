@@ -347,10 +347,9 @@ def main() -> int:
 
     project_traceability_path = (
         repo_root
-        / "projects"
-        / "techriders"
+        / "autodocs"
         / "analysis_mcpee"
-        / f"telemetry-recovery-{datetime.now(timezone.utc).strftime('%Y-%m-%d')}.json"
+        / f"telemetry-recovery-{host_slug}-{datetime.now(timezone.utc).strftime('%Y-%m-%d')}.json"
     )
     unified_snapshot = {
         "timestamp": _iso_now().isoformat(),

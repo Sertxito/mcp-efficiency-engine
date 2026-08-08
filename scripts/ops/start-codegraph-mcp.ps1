@@ -31,9 +31,9 @@ function Resolve-TargetPath {
     }
 
     $projectCandidates = @()
-    $projectsRoot = Join-Path $RepoRoot 'projects'
-    if (Test-Path $projectsRoot) {
-        foreach ($projectDir in Get-ChildItem -Path $projectsRoot -Directory -ErrorAction SilentlyContinue) {
+    $domainsRoot = Join-Path $RepoRoot 'domains'
+    if (Test-Path $domainsRoot) {
+        foreach ($projectDir in Get-ChildItem -Path $domainsRoot -Directory -ErrorAction SilentlyContinue) {
             if (Has-CodegraphIndex $projectDir.FullName) {
                 $projectCandidates += $projectDir.FullName
             }

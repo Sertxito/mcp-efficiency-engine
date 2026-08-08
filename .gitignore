@@ -6,9 +6,6 @@ __pycache__/
 # Cache local
 .cache/
 
-# Proyectos gestionados externamente
-projects/
-
 # Logs de runtime (se regeneran en cada ejecucion)
 observability/logs/*.jsonl
 observability/logs/session/

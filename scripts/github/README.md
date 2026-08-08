@@ -14,13 +14,13 @@ Sincroniza cambios entre repositorios principales automáticamente.
 
 **Uso:**
 ```powershell
-.\sync-repo.ps1 -FilesPattern "projects/**"
+.\sync-repo.ps1 -FilesPattern "autodocs/**"
 ```
 
 **Parámetros:**
 - `-SourceRepo` — Repo origen (default: Sertxito/mcp-efficiency-engine)
 - `-TargetRepo` — Repo destino (default: Sertxito/boost_sertxIA)
-- `-FilesPattern` — Patrón glob para filtrar archivos (default: projects/**)
+- `-FilesPattern` — Patrón glob para filtrar archivos (default: autodocs/**)
 - `-BranchName` — Nombre de rama (default: sync/{timestamp})
 - `-DryRun` — Mostrar cambios sin hacer modificaciones
 
@@ -30,7 +30,7 @@ Sincroniza cambios entre repositorios principales automáticamente.
 .\sync-repo.ps1 -FilesPattern ".github/specs/**"
 
 # Modo dry-run para validar
-.\sync-repo.ps1 -FilesPattern "projects/**" -DryRun
+.\sync-repo.ps1 -FilesPattern "autodocs/**" -DryRun
 
 # Repos personalizados
 .\sync-repo.ps1 -SourceRepo "Sertxito/repo-A" -TargetRepo "Sertxito/repo-B"
@@ -50,8 +50,8 @@ Encontrados 3 cambios
 Creando rama sync/20260704-120000 en Sertxito/boost_sertxIA...
 ✓ Rama creada: sync/20260704-120000
 Sincronizando 3 archivos...
-  Sincronizando: projects/project-a/spec.md
-  ✓ projects/project-a/spec.md sincronizado
+  Sincronizando: autodocs/site/devlog/2026-07-04.md
+  ✓ autodocs/site/devlog/2026-07-04.md sincronizado
   ...
 ✓ PR creada: https://github.com/Sertxito/boost_sertxIA/pull/XXX
 ```
@@ -256,7 +256,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'projects/**'
+      - 'autodocs/**'
 
 jobs:
   sync:

@@ -76,7 +76,7 @@ Si el prompt contiene:
 ```
 Detecta cambios en mcp-efficiency-engine
   ↓
-Filtra archivos (projects/**, .github/specs/**)
+Filtra archivos (autodocs/**, .github/specs/**)
   ↓
 Crea rama en boost_sertxIA
   ↓
@@ -189,7 +189,7 @@ $trigger = @{
 }
 
 # Acciones:
-1. sync-repo.ps1 -FilesPattern "projects/**"
+1. sync-repo.ps1 -FilesPattern "autodocs/**"
 2. create-devlog.ps1 -CommitsToAnalyze 20
 3. manage-issues.ps1 -Action assign
 4. manage-issues.ps1 -Action review
@@ -243,7 +243,7 @@ $trigger = @{
 **Commits:** abc1234, def5678, ...
 
 ### Cambios
-- projects/project-a/spec.md
+- autodocs/site/devlog/2026-07-04.md
 - .github/specs/routing.spec.md
 - .github/GITHUB_MCP_INTEGRATION.md
 

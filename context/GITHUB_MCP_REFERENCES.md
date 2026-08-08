@@ -121,7 +121,7 @@ El servidor MCP de GitHub expone las siguientes capacidades:
 
 **Uso:**
 ```powershell
-.\sync-repo.ps1 -FilesPattern "projects/**" -DryRun
+.\sync-repo.ps1 -FilesPattern "autodocs/**" -DryRun
 ```
 
 #### `scripts/github/create-devlog.ps1`

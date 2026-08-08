@@ -6,8 +6,8 @@ Reportes generados y artefactos de analisis.
 
 ## Resumen
 
-- total_pages: 9
-- domains: documentation (5), autodocs (3), packaging (1)
+- total_pages: 10
+- domains: documentation (5), autodocs (4), packaging (1)
 
 ## Paginas
 
@@ -20,3 +20,4 @@ Reportes generados y artefactos de analisis.
 - [OpenWiki Internal Blueprint](report-autodocs-openwiki-internal-blueprint-md.md) - Ubicacion canonica del blueprint y analisis de evolucion de AutoDocs como wiki interna de `mcp-efficiency-engine`.
 - [mcp-efficiency-engine](report-package-json.md) - Motor de orquestacion capability-centric v2 para agentes MCP con optimizacion always-on.
 - [openwiki-internal-blueprint](report-autodocs-openwiki-internal-blueprint-json.md) - Artefacto JSON de tipo report en autodocs/analysis_mcpee/openwiki-internal-blueprint.json.
+- [telemetry-recovery-mcp-efficiency-engine-2026-08-08](report-autodocs-telemetry-recovery-mcp-efficiency-engine-2026-08-08-json.md) - Artefacto JSON de tipo report en autodocs/analysis_mcpee/telemetry-recovery-mcp-efficiency-engine-2026-08-08.json.
