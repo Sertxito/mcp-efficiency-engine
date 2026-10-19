@@ -8,22 +8,32 @@ repository. The npm package remains **`mcp-efficiency-engine`** and both
 
 ## Install and upgrade
 
-MCPEE 0.1.22 is a pre-1.0 replacement for the legacy implementation, not a
+MCPEE 0.1.23 is a pre-1.0 replacement for the legacy implementation, not a
 drop-in compatibility release. It requires Node.js 24 or newer; a complete
 tool installation additionally checks the latest official Node.js LTS patch.
 Existing Copilot authentication and a host supporting MCP elicitation are
 needed for approved model execution.
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.22
+npm install --global mcp-efficiency-engine@0.1.23
 mcpee init --project C:\path\to\project
 ```
 
 Alternatively run a pinned package without a global install:
 
 ```sh
-npx --package=mcp-efficiency-engine@0.1.22 mcpee init --project C:\path\to\project
+npx --package=mcp-efficiency-engine@0.1.23 mcpee init --project C:\path\to\project
 ```
+
+If npm reports that the Copilot SDK's native `koffi` dependency has a blocked
+install script, authorize just that dependency for this installation:
+
+```sh
+npm install --global mcp-efficiency-engine@0.1.23 --allow-scripts=koffi
+```
+
+This does not enable scripts globally. A successful `mcpee help` checks the
+CLI entrypoint, not native SDK execution or Copilot authentication.
 
 Installing the package does not run project setup, install tools, or change
 Copilot settings. Run `init` explicitly and approve each required download.
@@ -33,6 +43,19 @@ and hooks are not automatically migrated; read the
 Release and npm deployment procedures are in [RELEASING.md](docs/RELEASING.md).
 
 ## Current implementation
+
+Long-running terminal commands emit an activity heartbeat to stderr every ten
+seconds, including elapsed time; BGE setup also names download and indexing
+phases. The indicator remains active while synchronous subprocesses run and
+does not claim a percentage or prove forward progress. It is disabled for
+non-terminal output, `--json` and MCP `--chat-json` responses.
+CPU BGE indexing additionally reports tokenizer progress and encoded chunks,
+with a measured completed/total count and reused cached vectors. Its timeout
+is thirty minutes without a progress event, not thirty minutes for the entire
+corpus. Completed batches are committed to a local owned SQLite cache; an
+interrupted run reuses matching chunks and model files on the next index
+command. A partial cache is not a usable or enabled index. Concurrent indexing
+of the same destination fails explicitly instead of overwriting another run.
 
 - `mcpee init` creates the project-side directories, configuration, Copilot
   instructions and hooks, and renders the current catalog without overwriting
@@ -256,6 +279,10 @@ Release and npm deployment procedures are in [RELEASING.md](docs/RELEASING.md).
   after approval; MCPEE does not install Ollama. `bge-m3` asks once for approval
   to install pinned packages into an isolated, project-local Python 3.12
   environment and download `BAAI/bge-m3` model weights. BGE-M3 runs on CPU with
+  an explicitly pinned compatibility stack (`transformers==4.44.2`,
+  `sentence-transformers==3.0.1`, `peft==0.12.0`) to avoid incompatible newer
+  transitive releases. Rerun embeddings setup to repair an older environment;
+  existing owned model weights are reused. It uses
   batches of 16, tokenizer-checked chunks capped at 4,000 tokens, complete
   Markdown table headers repeated when a table is split, and 15% overlap between
   adjacent code chunks. It persists a FAISS dense index and BM25 token data and

@@ -806,7 +806,16 @@ async function refreshConfiguredEmbeddings(root) {
   if (profile === "bge-m3" && !status.available) {
     return { warning: status.environment_error || "The local BGE-M3 Python environment is unavailable." };
   }
-  return buildEmbeddingIndex(root, { profile });
+  return buildEmbeddingIndex(root, { profile, onProgress: reportEmbeddingProgress });
+}
+
+function reportEmbeddingProgress(progress) {
+  const count = Number.isInteger(progress.completed) && Number.isInteger(progress.total)
+    ? ` ${progress.completed}/${progress.total}` : "";
+  const cached = Number.isInteger(progress.cached) ? `; cached=${progress.cached}` : "";
+  const message = `BGE-M3: ${progress.phase}${count}${cached}`;
+  require("./activity").reportActivity(message);
+  if (process.stderr.isTTY) process.stderr.write(`[mcpee] ${message}\n`);
 }
 
 async function runSync(root) {
@@ -1156,7 +1165,8 @@ async function runEmbeddingCommand(root, options) {
   }
   if (action === "index") {
     try {
-      const result = await buildEmbeddingIndex(root, { profile });
+      require("./activity").reportActivity(`Embeddings ${profile}: loading model and building local index`);
+      const result = await buildEmbeddingIndex(root, { profile, onProgress: reportEmbeddingProgress });
       writeEmbeddingProfile(root, profile);
       process.stdout.write(`[mcpee] Local embedding index updated: ${result.chunkCount} grounded chunk(s), model=${result.model}.\n`);
       return 0;
@@ -1172,9 +1182,12 @@ async function runEmbeddingCommand(root, options) {
       `Install a project-isolated Python 3.12 CPU environment (${BGE_PACKAGES.join(", ")}) and download ${BGE_MODEL} into .mcpee/models/bge-m3. This downloads packages/model weights only; project source stays local and indexing/search run offline.`,
     )) return 1;
     try {
+      require("./activity").reportActivity("BGE-M3: preparing isolated Python dependencies");
       installPythonEnvironment(root, "bge_embeddings", "3.12", BGE_PACKAGES);
+      require("./activity").reportActivity("BGE-M3: downloading or checking local model");
       downloadBgeModel(root);
-      const result = await buildEmbeddingIndex(root, { profile });
+      require("./activity").reportActivity("BGE-M3: loading model, tokenizing and indexing on CPU");
+      const result = await buildEmbeddingIndex(root, { profile, onProgress: reportEmbeddingProgress });
       writeEmbeddingProfile(root, profile);
       process.stdout.write(`[mcpee] BGE-M3 local CPU embeddings enabled: ${result.chunkCount} grounded chunk(s) indexed with FAISS, BM25, and RRF.\n`);
       return 0;

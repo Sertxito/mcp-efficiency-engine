@@ -3,7 +3,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
-const { spawnSync } = require("node:child_process");
+const { spawn, spawnSync } = require("node:child_process");
 const { recordEvent } = require("../../core/src/telemetry");
 
 const MODEL = "embeddinggemma";
@@ -12,6 +12,9 @@ const BGE_PACKAGES = Object.freeze([
   "FlagEmbedding==1.3.5",
   "faiss-cpu==1.12.0",
   "rank-bm25==0.2.2",
+  "transformers==4.44.2",
+  "sentence-transformers==3.0.1",
+  "peft==0.12.0",
 ]);
 const INDEX_PATH = ".mcpee/indexes/embedding-index.json";
 const BGE_INDEX_PATH = ".mcpee/indexes/embedding-bge";
@@ -385,21 +388,26 @@ function assertManagedPath(projectRoot, relativePath) {
   return target;
 }
 
-function runBgeBackend(projectRoot, request, options = {}) {
-  const root = path.resolve(projectRoot);
-  const python = managedBgeEnvironment(root);
+function bgeEnvironment(root, offline = true) {
   const env = {
     ...process.env,
     HF_HOME: assertManagedPath(root, path.join(BGE_MODEL_PATH, "hf-home")),
     HF_HUB_CACHE: assertManagedPath(root, path.join(BGE_MODEL_PATH, "hf-home", "hub")),
   };
-  if (options.offline === false) {
+  if (!offline) {
     delete env.HF_HUB_OFFLINE;
     delete env.TRANSFORMERS_OFFLINE;
   } else {
     env.HF_HUB_OFFLINE = "1";
     env.TRANSFORMERS_OFFLINE = "1";
   }
+  return env;
+}
+
+function runBgeBackend(projectRoot, request, options = {}) {
+  const root = path.resolve(projectRoot);
+  const python = managedBgeEnvironment(root);
+  const env = bgeEnvironment(root, options.offline !== false);
   const result = spawnSync(python, [BGE_BACKEND], {
     cwd: root,
     input: JSON.stringify(request),
@@ -422,6 +430,71 @@ function runBgeBackend(projectRoot, request, options = {}) {
   }
 }
 
+function runBgeIndexBackend(projectRoot, request, options = {}) {
+  const root = path.resolve(projectRoot);
+  return new Promise((resolve, reject) => {
+    const child = (options.spawnProcess || spawn)(managedBgeEnvironment(root), [BGE_BACKEND], {
+      cwd: root, env: bgeEnvironment(root), windowsHide: true, shell: false,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    let pending = "";
+    let failure;
+    let timer;
+    const fail = error => {
+      failure ||= error;
+      child.kill();
+    };
+    const resetTimer = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fail(new Error(
+        "BGE-M3 indexing produced no progress for 30 minutes. Completed batches are cached; rerun indexing to resume.",
+      )), options.idleTimeoutMs || 30 * 60 * 1000);
+    };
+    const cancel = () => fail(new Error("BGE-M3 indexing cancelled; completed batches are cached."));
+    process.once("SIGINT", cancel);
+    process.once("SIGTERM", cancel);
+    child.stdout.setEncoding("utf8");
+    child.stderr.setEncoding("utf8");
+    child.stdout.on("data", data => {
+      stdout += data;
+      if (Buffer.byteLength(stdout) > 1024 * 1024) fail(new Error("BGE-M3 index response exceeded 1 MiB."));
+    });
+    child.stderr.on("data", data => {
+      stderr = (stderr + data).slice(-8000);
+      pending += data;
+      let newline;
+      while ((newline = pending.indexOf("\n")) >= 0) {
+        const line = pending.slice(0, newline);
+        pending = pending.slice(newline + 1);
+        if (!line.startsWith("mcpee-bge-progress:")) continue;
+        try {
+          const progress = JSON.parse(line.slice("mcpee-bge-progress:".length));
+          resetTimer();
+          if (options.onProgress) options.onProgress(progress);
+        } catch (error) {
+          fail(new Error(`Invalid BGE-M3 progress event: ${error.message}`));
+        }
+      }
+      if (pending.length > 64 * 1024) fail(new Error("BGE-M3 stderr line exceeded 64 KiB."));
+    });
+    child.once("error", error => { failure ||= error; });
+    child.stdin.on("error", error => fail(new Error(`BGE-M3 input failed: ${error.message}`)));
+    child.once("close", code => {
+      clearTimeout(timer);
+      process.removeListener("SIGINT", cancel);
+      process.removeListener("SIGTERM", cancel);
+      if (failure) return reject(failure);
+      if (code !== 0) return reject(new Error(`BGE-M3 backend failed: ${stderr.trim() || `exit ${code}`}`));
+      try { resolve(JSON.parse(stdout)); }
+      catch (error) { reject(new Error(`BGE-M3 backend returned invalid JSON: ${error.message}`)); }
+    });
+    resetTimer();
+    child.stdin.end(JSON.stringify(request));
+  });
+}
+
 function localBgeEmbeddingStatus(projectRoot) {
   const root = path.resolve(projectRoot);
   const modelPath = assertManagedPath(root, BGE_MODEL_PATH);
@@ -440,7 +513,7 @@ function localBgeEmbeddingStatus(projectRoot) {
     model: BGE_MODEL,
     available: Boolean(python),
     model_available: fs.existsSync(configPath) && fs.existsSync(markerPath) &&
-      fs.readFileSync(markerPath, "utf8") === "MCPEE BGE-M3 model\n",
+      fs.readFileSync(markerPath, "utf8").replace(/\r\n/g, "\n") === "MCPEE BGE-M3 model\n",
     ...(environmentError ? { environment_error: environmentError } : {}),
   };
 }
@@ -452,7 +525,7 @@ function downloadBgeModel(projectRoot) {
   const configPath = assertManagedPath(root, path.join(BGE_MODEL_PATH, "config.json"));
   if (fs.existsSync(configPath)) {
     if (!fs.existsSync(markerPath) ||
-        fs.readFileSync(markerPath, "utf8") !== "MCPEE BGE-M3 model\n") {
+        fs.readFileSync(markerPath, "utf8").replace(/\r\n/g, "\n") !== "MCPEE BGE-M3 model\n") {
       throw new Error(`Refusing to reuse a BGE-M3 model without MCPEE ownership marker: ${modelPath}`);
     }
     return { model: BGE_MODEL, model_available: true, already_downloaded: true };
@@ -467,7 +540,7 @@ function downloadBgeModel(projectRoot) {
   return result;
 }
 
-function buildBgeEmbeddingIndex(projectRoot) {
+async function buildBgeEmbeddingIndex(projectRoot, options = {}) {
   const root = path.resolve(projectRoot);
   const status = localBgeEmbeddingStatus(root);
   if (!status.available) throw new Error(status.environment_error || "BGE-M3 environment is unavailable.");
@@ -478,15 +551,16 @@ function buildBgeEmbeddingIndex(projectRoot) {
   const chunks = documents.flatMap((document) =>
     chunkDocument(root, document, { profile: "bge-m3" }));
   const indexPath = assertManagedPath(root, BGE_INDEX_PATH);
-  for (const file of ["bge-m3.index", "chunks.json", "bm25.json"]) {
+  for (const file of ["bge-m3.index", "chunks.json", "bm25.json", "vectors.sqlite3",
+    "vectors.sqlite3-journal", ".indexing.lock", ".indexing.lock-journal"]) {
     assertManagedPath(root, path.join(BGE_INDEX_PATH, file));
   }
-  const result = runBgeBackend(root, {
+  const result = await runBgeIndexBackend(root, {
     action: "index",
     model_path: assertManagedPath(root, BGE_MODEL_PATH),
     index_path: indexPath,
     chunks,
-  });
+  }, options);
   return { chunkCount: result.chunk_count, model: BGE_MODEL, provider: "bge-m3-local" };
 }
 
@@ -541,7 +615,7 @@ function currentDocuments(projectRoot) {
 
 async function buildEmbeddingIndex(projectRoot, options = {}) {
   const profile = options.profile || projectEmbeddingProfile(projectRoot) || "light";
-  if (profile === "bge-m3") return buildBgeEmbeddingIndex(projectRoot);
+  if (profile === "bge-m3") return buildBgeEmbeddingIndex(projectRoot, options);
   if (profile !== "light") throw new Error(`Unsupported local embedding profile: ${profile}`);
   const status = await localEmbeddingStatus();
   if (!status.model_available) {
@@ -792,6 +866,7 @@ module.exports = {
   localBgeEmbeddingStatus,
   localEmbeddingStatus,
   projectEmbeddingProfile,
+  runBgeIndexBackend,
   searchGroundedContext,
   writeGeneratedJson,
 };
