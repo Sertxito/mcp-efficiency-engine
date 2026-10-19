@@ -20,7 +20,7 @@ tool installation checks the latest official LTS patch as described in the
 2. Stop the old MCPEE MCP process and inspect existing project hooks, MCP
    entries and instructions. Disable legacy registrations deliberately; the
    new CLI does not uninstall or translate them automatically.
-3. Install `npm install --global mcp-efficiency-engine@0.1.24`. If npm blocks
+3. Install `npm install --global mcp-efficiency-engine@0.1.25`. If npm blocks
    `koffi`'s native install script, repeat this install with
    `--allow-scripts=koffi` rather than allowing all scripts globally. Installation
    has no `postinstall` project mutation. Do not use the old `install:host`
@@ -52,7 +52,7 @@ an indexed or enabled embedding profile.
 
 An older BGE environment can also contain incompatible transitive releases
 of Transformers, sentence-transformers and PEFT. If importing FlagEmbedding
-fails on `is_torch_fx_available`, upgrade to 0.1.24 and run
+fails on `is_torch_fx_available`, upgrade to 0.1.25 and run
 `mcpee knowledge embeddings setup --profile bge-m3 --project C:\path\to\project`.
 Authorize with `download` when prompted. This repairs the pinned compatibility
 stack and indexes the sources, reusing an already downloaded owned model;
@@ -81,6 +81,23 @@ each smaller batch, and preserves existing cached vectors and chunk content.
 Measured phase, chunk, cache and batch counts now appear in redirected stderr
 logs as well as terminals. Machine-output flags suppress these progress lines.
 Timeout errors include the last backend progress event for diagnosis.
+
+### Windows pipe encoding before 0.1.25
+
+The Python backend could inherit Windows-1252 for redirected stdin while Node
+wrote UTF-8. Non-ASCII text could be misdecoded or fail later with
+`surrogates not allowed`. Version 0.1.25 explicitly decodes request bytes as
+strict UTF-8 and forces UTF-8 for Python standard streams across indexing,
+search and downloads. Invalid UTF-8 requests fail explicitly, not with
+replacement characters.
+
+Upgrade and repeat `mcpee knowledge embeddings index --profile bge-m3`.
+Keep the model and vector cache. Cache keys include the decoded chunk and
+metadata, so unchanged correctly decoded entries remain reusable while
+misdecoded entries no longer match and are recomputed. A previously completed
+index should also be rebuilt before trusting non-ASCII semantic results.
+The displayed total and cache-hit count may differ from earlier runs because
+tokenization now receives the original Unicode text.
 
 Legacy boosts, bundles, presets, Python routing scripts, AutoDocs wiki
 projection and global installation hooks are not carried into the new

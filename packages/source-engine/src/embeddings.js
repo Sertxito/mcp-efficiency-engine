@@ -391,6 +391,8 @@ function assertManagedPath(projectRoot, relativePath) {
 function bgeEnvironment(root, offline = true) {
   const env = {
     ...process.env,
+    PYTHONUTF8: "1",
+    PYTHONIOENCODING: "utf-8:strict",
     HF_HOME: assertManagedPath(root, path.join(BGE_MODEL_PATH, "hf-home")),
     HF_HUB_CACHE: assertManagedPath(root, path.join(BGE_MODEL_PATH, "hf-home", "hub")),
   };

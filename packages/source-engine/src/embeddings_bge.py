@@ -19,8 +19,8 @@ GENERATED_BY = "mcpee"
 
 def read_request():
     try:
-        request = json.load(sys.stdin)
-    except json.JSONDecodeError as error:
+        request = json.loads(sys.stdin.buffer.read().decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise ValueError(f"Invalid request JSON: {error}") from error
     if not isinstance(request, dict):
         raise ValueError("Request must be a JSON object.")

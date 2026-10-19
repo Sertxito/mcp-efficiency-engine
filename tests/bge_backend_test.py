@@ -1,6 +1,8 @@
 import importlib.util
+import io
 import json
 import sqlite3
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -15,6 +17,30 @@ spec.loader.exec_module(backend)
 
 
 class CacheTests(unittest.TestCase):
+    def test_request_decodes_utf8_independently_of_windows_pipe_locale(self):
+        original = sys.stdin
+        text = "Espa\u00f1ol: informaci\u00f3n \u0141 \u4e2d\u6587 \U0001f680"
+        request = {"action": "index", "chunks": [{"text": text}]}
+        raw = json.dumps(request, ensure_ascii=False).encode("utf-8")
+        try:
+            sys.stdin = io.TextIOWrapper(io.BytesIO(raw), encoding="cp1252",
+                                        errors="surrogateescape")
+            decoded = backend.read_request()
+            self.assertEqual(decoded, request)
+            self.assertEqual(backend.vector_key(decoded["chunks"][0], "model"),
+                             backend.vector_key(request["chunks"][0], "model"))
+            correct = {"text": "informaci\u00f3n", "source_path": "doc.txt"}
+            misdecoded = {**correct, "text": correct["text"].encode("utf-8").decode("cp1252")}
+            self.assertNotEqual(backend.vector_key(correct, "model"),
+                                backend.vector_key(misdecoded, "model"))
+            sys.stdin = io.TextIOWrapper(io.BytesIO(b'{"query":"\\x81"}'),
+                                        encoding="cp1252", errors="surrogateescape")
+            with self.assertRaisesRegex(ValueError, "Invalid request JSON"):
+                backend.read_request()
+        finally:
+            sys.stdin.close()
+            sys.stdin = original
+
     def test_completed_vector_survives_reopen(self):
         with tempfile.TemporaryDirectory() as directory:
             file = Path(directory) / "vectors.sqlite3"
