@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "python_runtime": {
+    "manager": "uv",
+    "version": "0.12.24",
+    "policy": "latest-stable",
+    "url": "https://github.com/astral-sh/uv"
+  },
+  "tools": [
+    { "id": "git", "command": "git", "version_args": ["--version"], "optional": true, "url": "https://git-scm.com/", "installation": "detect-only" },
+    { "id": "node", "command": "node", "version_args": ["--version"], "optional": false, "url": "https://nodejs.org/", "installation": "global-runtime; latest LTS required" },
+    { "id": "npm", "command": "npm", "version_args": ["--version"], "optional": true, "url": "https://docs.npmjs.com/", "installation": "bundled with Node.js" },
+    { "id": "python", "command": "python", "version_args": ["--version"], "optional": true, "url": "https://www.python.org/", "installation": "project-local latest stable runtime managed by uv" },
+    { "id": "dotnet", "command": "dotnet", "version_args": ["--version"], "optional": true, "url": "https://dotnet.microsoft.com/", "installation": "detect-only" },
+    { "id": "azure-cli", "command": "az", "version_args": ["--version"], "optional": true, "url": "https://learn.microsoft.com/cli/azure/", "installation": "detect-only; uses the existing Azure CLI identity for explicit read-only cloud inventory" },
+    { "id": "aws-cli", "command": "aws", "version_args": ["--version"], "optional": true, "url": "https://docs.aws.amazon.com/cli/", "installation": "detect-only; uses the existing AWS CLI credential chain for explicit read-only cloud inventory" },
+    { "id": "markitdown", "command": "markitdown", "version_args": ["--help"], "optional": true, "url": "https://github.com/microsoft/markitdown", "license": "MIT", "auto_install": true, "installer": { "type": "python-venv", "package": "markitdown[pdf,docx,pptx,xlsx]", "version": "0.1.8" } },
+    { "id": "codegraph", "command": "codegraph", "version_args": ["--version"], "optional": false, "url": "https://github.com/colbymchenry/codegraph", "license": "MIT", "auto_install": true, "installer": { "type": "npm-prefix", "package": "@colbymchenry/codegraph", "version": "1.6.2", "node_minimum": "20.0.0", "entry_point": "npm-shim.js", "platform_package_prefix": "@colbymchenry/codegraph-", "env": { "CODEGRAPH_NO_DOWNLOAD": "1", "CODEGRAPH_NO_UPDATE_CHECK": "1", "DO_NOT_TRACK": "1" } } },
+    { "id": "gitnexus", "command": "gitnexus", "version_args": ["--version"], "optional": true, "url": "https://github.com/abhigyanpatwari/GitNexus", "license": "PolyForm Noncommercial 1.0.0", "auto_install": false, "reason": "Non-commercial-use restriction; manual installation only after license review." },
+    { "id": "graphify", "command": "graphify", "version_args": ["--help"], "optional": true, "url": "https://github.com/Graphify-Labs/graphify", "license": "Apache-2.0", "auto_install": true, "installer": { "type": "python-venv", "package": "graphifyy", "version": "0.9.80" } },
+    { "id": "repomix", "command": "repomix", "version_args": ["--version"], "optional": true, "url": "https://github.com/yamadashy/repomix", "license": "MIT", "auto_install": true, "installer": { "type": "npm-prefix", "package": "repomix", "version": "1.18.1", "node_minimum": "22.0.0", "entry_point": "bin/repomix.cjs" } }
+  ]
+}

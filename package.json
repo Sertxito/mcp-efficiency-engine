@@ -1,81 +1,65 @@
 {
   "name": "mcp-efficiency-engine",
-  "version": "0.1.11",
-  "description": "Motor de orquestacion capability-centric v2 para agentes MCP con optimizacion always-on.",
+  "version": "0.1.22",
+  "description": "Local-first engineering harness platform for GitHub Copilot projects",
   "license": "MIT",
   "type": "commonjs",
   "bin": {
-    "mcpee": "./bin/mcpee.js",
-    "mcp-efficiency-engine": "./bin/mcpee.js"
+    "mcpee": "./packages/cli/bin/mcpee.js",
+    "mcp-efficiency-engine": "./packages/cli/bin/mcpee.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sertxito/mcp-efficiency-engine.git"
+  },
+  "homepage": "https://github.com/Sertxito/mcp-efficiency-engine#readme",
+  "bugs": {
+    "url": "https://github.com/Sertxito/mcp-efficiency-engine/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "files": [
-    ".githooks/",
-    "bin/",
-    "telemetry/",
-    "autodocs/README.md",
-    "autodocs/schema/",
-    "autolearning/",
-    "scripts/",
-    "tooling/",
+    "agents/",
+    "catalog/",
+    "docs/ARCHITECTURE.md",
+    "docs/MIGRATION.md",
+    "docs/RELEASING.md",
+    "instructions/",
+    "packages/",
+    "patterns/",
+    "playbooks/",
+    "prompts/",
+    "schemas/",
+    "skills/",
     "templates/",
-    "repo-intake/",
-    "repo-registry/repos.schema.json",
-    "repo-registry/repos.template.json",
-    "orchestrator/",
-    "observability/evaluation.md",
-    "observability/evals/",
-    "observability/logs.schema.json",
-    "observability/logs.schema.md",
-    "observability/metrics.md",
-    "observability/routing-evaluator.md",
-    "observability/scoring-rubric.md",
-    "optimization/",
-    "policies/",
-    "specs/",
-    "memory/",
-    "context/repomix/repomix.config.json",
-    ".github/",
-    ".vscode/mcp.json",
-    "AGENTS.md",
-    "ARCHITECTURE.md",
-    "FINAL_USAGE_GUIDE.md",
+    "workflows/",
     "README.md",
-    "README_WIKI.md",
-    "LICENSE",
-    "requirements.txt"
+    "LICENSE"
   ],
   "scripts": {
-    "postinstall": "node ./bin/install-host.js --postinstall",
-    "install:host": "node ./bin/install-host.js",
-    "init": "node ./bin/mcpee.js init",
-    "doctor": "node ./bin/mcpee.js doctor",
-    "health": "node ./bin/mcpee.js health",
-    "chat": "node ./bin/mcpee.js chat",
-    "telemetry:report": "node ./bin/mcpee.js telemetry-report",
-    "knowledge:build": "node ./bin/mcpee.js knowledge-build",
-    "skillopt-sleep": "node ./bin/mcpee.js skillopt-sleep",
-    "artifact:report": "node ./bin/mcpee.js artifact-report",
-    "pack:check": "npm pack --dry-run"
+    "test": "node --test",
+    "init": "node packages/cli/bin/mcpee.js init",
+    "pack:check": "node scripts/check-package.js",
+    "docs:check-links": "node scripts/check-doc-links.js",
+    "docs:check-official-links": "node scripts/check-official-links.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=24.0.0"
   },
   "keywords": [
-    "mcp",
-    "agents",
-    "routing",
-    "codegraph",
-    "gitnexus",
-    "bootstrap",
-    "autodocs",
-    "autolearning",
+    "github-copilot",
+    "harness",
+    "local-first",
+    "memory",
     "observability"
   ],
-  "devDependencies": {
-    "@storybook/addon-a11y": "^10.4.6",
-    "@storybook/addon-essentials": "^8.6.14",
-    "@storybook/addon-interactions": "^8.6.14",
-    "@storybook/angular": "^10.4.6",
-    "storybook": "^10.4.6"
+  "dependencies": {
+    "@opentelemetry/api": "1.9.1",
+    "@opentelemetry/sdk-trace-base": "2.12.0",
+    "@github/copilot-sdk": "1.0.19",
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "zod": "4.3.6"
   }
 }

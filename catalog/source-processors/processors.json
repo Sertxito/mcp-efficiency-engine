@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "processors": [
+    {
+      "id": "markdown",
+      "categories": ["documentation", "business", "architecture", "decisions", "external"],
+      "formats": [".md", ".mdx", ".txt", ".rst", ".adoc", "README", "CHANGELOG", "LICENSE"],
+      "mode": "local",
+      "outputs": ["normalized", "headings", "traceability"]
+    },
+    {
+      "id": "source-code",
+      "categories": ["source-code"],
+      "formats": [".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".mts", ".cts", ".py", ".pyi", ".go", ".rs", ".java", ".kt", ".kts", ".cs", ".fs", ".vb", ".c", ".h", ".cc", ".cpp", ".hpp", ".html", ".htm", ".css", ".scss", ".less", ".sh", ".bash", ".zsh", ".ps1", ".psm1", ".ipynb", ".sln", ".slnx", ".csproj", ".fsproj", ".vbproj", ".props", ".targets", ".gradle", ".make", ".mk", ".gitignore"],
+      "mode": "local",
+      "outputs": ["normalized", "symbols", "traceability"]
+    },
+    {
+      "id": "configuration",
+      "categories": ["configuration"],
+      "formats": [".json", ".jsonc", ".json5", ".yaml", ".yml", ".toml", ".xml", ".ini", ".cfg", ".conf", ".properties", ".editorconfig"],
+      "mode": "local",
+      "outputs": ["normalized", "traceability"]
+    },
+    {
+      "id": "infrastructure",
+      "categories": ["infrastructure"],
+      "formats": [".tf", ".tfvars", ".bicep", ".dockerfile", "Dockerfile", "terraform/**", "infra/**", "infrastructure/**", "k8s/**", "kubernetes/**"],
+      "mode": "local",
+      "outputs": ["normalized", "traceability"]
+    },
+    {
+      "id": "structured-data",
+      "categories": ["data"],
+      "formats": [".csv", ".tsv"],
+      "known_non_text_formats": [".parquet", ".avro"],
+      "mode": "local",
+      "outputs": ["normalized", "traceability"]
+    },
+    {
+      "id": "api-contracts",
+      "categories": ["api-contracts"],
+      "formats": [".graphql", ".gql", ".proto", "openapi.json", "swagger.json"],
+      "mode": "local",
+      "outputs": ["normalized", "traceability"]
+    },
+    {
+      "id": "tests",
+      "categories": ["tests"],
+      "formats": [".test.*", ".spec.*", "tests/**"],
+      "mode": "local",
+      "outputs": ["normalized", "symbols", "traceability"]
+    },
+    {
+      "id": "office-documents",
+      "categories": ["office-documents"],
+      "formats": [".pdf", ".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx"],
+      "mode": "local-tool-required",
+      "tool": "markitdown",
+      "outputs": ["normalized", "traceability"]
+    },
+    {
+      "id": "pipelines",
+      "categories": ["pipelines"],
+      "formats": [".github/workflows/**", ".gitlab-ci.yml", ".circleci/**", "azure-pipelines.yml", "Jenkinsfile"],
+      "mode": "local",
+      "outputs": ["normalized", "traceability"]
+    },
+    {
+      "id": "database",
+      "categories": ["database"],
+      "formats": [".sql", ".prisma", ".dbml"],
+      "mode": "local",
+      "outputs": ["normalized", "symbols", "traceability"]
+    },
+    {
+      "id": "logs",
+      "categories": ["logs"],
+      "formats": [".log", ".jsonl", ".ndjson", "logs/**", "telemetry/**"],
+      "mode": "local",
+      "outputs": ["normalized", "traceability"]
+    },
+    {
+      "id": "operations",
+      "categories": ["operations"],
+      "formats": ["knowledge/sources/operations/**"],
+      "mode": "local",
+      "outputs": ["normalized", "traceability"]
+    }
+  ]
+}

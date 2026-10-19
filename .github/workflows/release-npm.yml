@@ -2,119 +2,85 @@ name: Release & Publish NPM
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
     inputs:
       npm_version:
-        description: "Version especifica a publicar (ej. 0.2.0). Si se omite, se autoajusta."
+        description: Optional confirmation of the committed version; must match package.json.
         required: false
         type: string
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: npm-release
+  cancel-in-progress: false
 
 jobs:
-  release-and-publish:
-    runs-on: ubuntu-latest
+  validate:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/ci.yml
 
+  release-and-publish:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: '24'
           registry-url: https://registry.npmjs.org
-
-      - name: Resolve publish version
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Validate committed release version
         id: version
+        env:
+          REQUESTED_VERSION: ${{ inputs.npm_version }}
         run: |
-          PACKAGE_NAME=$(node -p "require('./package.json').name")
-          BASE_VERSION=$(node -p "require('./package.json').version")
-          REQUESTED_VERSION="${{ github.event.inputs.npm_version || '' }}"
-
-          version_exists() {
-            npm view "$PACKAGE_NAME@$1" version >/dev/null 2>&1
-          }
-
-          if [ -n "$REQUESTED_VERSION" ]; then
-            TARGET_VERSION="$REQUESTED_VERSION"
-            MODE="explicit"
-          else
-            TARGET_VERSION="$BASE_VERSION"
-            MODE="auto"
-          fi
-
-          if [ "$MODE" = "explicit" ]; then
-            if version_exists "$TARGET_VERSION"; then
-              echo "Requested version $TARGET_VERSION is already published in npm."
-              exit 1
-            fi
-          else
-            CANDIDATE="$TARGET_VERSION"
-            while version_exists "$CANDIDATE"; do
-              CANDIDATE=$(node -e "const parts = process.argv[1].split('.').map(Number); if (parts.length !== 3 || parts.some(Number.isNaN)) { process.exit(2); } parts[2] += 1; process.stdout.write(parts.join('.'));" "$CANDIDATE") || {
-                echo "Cannot auto-bump non x.y.z version: $CANDIDATE"
-                exit 1
-              }
-            done
-            TARGET_VERSION="$CANDIDATE"
-          fi
-
-          CHANGED=false
-          if [ "$TARGET_VERSION" != "$BASE_VERSION" ]; then
-            npm version "$TARGET_VERSION" --no-git-tag-version
-            CHANGED=true
-          fi
-
-          echo "version=$TARGET_VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=v$TARGET_VERSION" >> "$GITHUB_OUTPUT"
-          echo "changed=$CHANGED" >> "$GITHUB_OUTPUT"
-          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
-
-      - name: Ensure NPM token is configured
+          npm view mcp-efficiency-engine version --json > "$RUNNER_TEMP/registry-version.json"
+          node scripts/check-release-version.js "$RUNNER_TEMP/registry-version.json"
+      - name: Require existing npm publishing secret
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          if [ -z "${NODE_AUTH_TOKEN}" ]; then
-            echo "Missing NODE_AUTH_TOKEN/NPM_TOKEN secret. Configure repository secret NPM_TOKEN."
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "::error::Repository secret NPM_TOKEN is required."
             exit 1
           fi
+      - name: Recheck package and create deployment artifact
+        run: |
+          npm run pack:check
+          mkdir -p "$RUNNER_TEMP/mcpee-publish"
+          npm pack --pack-destination "$RUNNER_TEMP/mcpee-publish"
+      - name: Publish committed version to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Remove Python cache artifacts from workspace
-        run: |
-          find . -type d -name "__pycache__" -prune -exec rm -rf {} +
-          find . -type f -name "*.pyc" -delete
-
-      - name: Publish to npm
-        run: npm publish --access public
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: npm publish "$RUNNER_TEMP/mcpee-publish/mcp-efficiency-engine-$RELEASE_VERSION.tgz" --access public
+      - name: Verify registry publication
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Record package.json sync requirement
-        if: steps.version.outputs.changed == 'true'
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
         run: |
-          echo "package.json was bumped in CI to publish an available npm version (${{ steps.version.outputs.tag }})."
-          echo "Repository sync is skipped because main is protected and requires PR-based updates."
-          echo "Open a follow-up PR to align package.json with npm published version."
-
-      - name: Release summary
+          for attempt in 1 2 3 4 5 6; do
+            if npm view "mcp-efficiency-engine@$RELEASE_VERSION" version --json > "$RUNNER_TEMP/published-version.json"; then
+              node -e 'const fs = require("node:fs"); if (JSON.parse(fs.readFileSync(process.argv[1], "utf8")) !== process.env.RELEASE_VERSION) process.exit(1)' "$RUNNER_TEMP/published-version.json"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::Published version could not be verified in npm."
+          exit 1
+      - name: Create GitHub release for this exact commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
         run: |
-          echo "## NPM Release" >> "$GITHUB_STEP_SUMMARY"
-          echo "- mode: ${{ steps.version.outputs.mode }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- published: ${{ steps.version.outputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
-          if [ "${{ steps.version.outputs.changed }}" = "true" ]; then
-            echo "- package.json sync: skipped (protected branch, requires PR)" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "- package.json sync: not required" >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: ${{ steps.version.outputs.tag }}
-          generate_release_notes: true
+          gh release create "v$RELEASE_VERSION" --target "$GITHUB_SHA" --title "v$RELEASE_VERSION" --generate-notes
+          echo "Published mcp-efficiency-engine@$RELEASE_VERSION from $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"

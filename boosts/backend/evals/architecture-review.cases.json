@@ -1,9 +1,0 @@
-{
-  "cases": [
-    {
-      "id": "basic-architecture-review",
-      "input": "Revisa arquitectura backend",
-      "expected": ["riesgo", "plan", "trazabilidad"]
-    }
-  ]
-}

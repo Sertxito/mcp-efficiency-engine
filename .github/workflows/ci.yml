@@ -1,68 +1,36 @@
-name: CI General — Spec Validation
+name: MCPEE CI
 
 on:
-  push:
-    branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
+  push:
+    branches: [develop]
+  workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   validate:
-    name: Validate Specs & Code (Windows)
-    runs-on: windows-latest
-    
+    name: Validate MCPEE (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
         with:
-          python-version: '3.11'
-
-      - name: Compile Python scripts
-        run: python -m compileall -q .\scripts
-        shell: pwsh
-        env:
-          PYTHONIOENCODING: utf-8
-
-      - name: Validate routing evals
-        run: py -3 .\scripts\intake\run-routing-evals.py
-        shell: pwsh
-        env:
-          PYTHONIOENCODING: utf-8
-
-      - name: Validate security
-        run: py -3 .\scripts\intake\validate-security.py
-        shell: pwsh
-        env:
-          PYTHONIOENCODING: utf-8
-
-      - name: Validate database routing
-        run: py -3 .\scripts\intake\validate-database-routing.py
-        shell: pwsh
-        env:
-          PYTHONIOENCODING: utf-8
-
-      - name: Validate RAG routing
-        run: py -3 .\scripts\intake\validate-rag-routing.py
-        shell: pwsh
-        env:
-          PYTHONIOENCODING: utf-8
-
-      - name: Validate context
-        run: pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup\validate-context.ps1 -CIMode
-        shell: pwsh
-
-      - name: Upload eval report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: routing-eval-report
-          path: observability/evals/routing-eval-report.json
-          retention-days: 30
-
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Test runtime and catalog
+        run: npm test
+      - name: Validate local documentation
+        run: npm run docs:check-links
+      - name: Validate installed npm package
+        run: npm run pack:check
