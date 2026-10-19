@@ -440,6 +440,7 @@ function runBgeIndexBackend(projectRoot, request, options = {}) {
     let stdout = "";
     let stderr = "";
     let pending = "";
+    let lastProgress;
     let failure;
     let timer;
     const fail = error => {
@@ -449,7 +450,9 @@ function runBgeIndexBackend(projectRoot, request, options = {}) {
     const resetTimer = () => {
       clearTimeout(timer);
       timer = setTimeout(() => fail(new Error(
-        "BGE-M3 indexing produced no progress for 30 minutes. Completed batches are cached; rerun indexing to resume.",
+        `BGE-M3 indexing produced no progress for ${(options.idleTimeoutMs || 30 * 60 * 1000) / 60000} minutes.` +
+        (lastProgress ? ` Last progress: ${JSON.stringify(lastProgress)}.` : " No backend progress event was received.") +
+        " Completed batches are cached; rerun indexing to resume.",
       )), options.idleTimeoutMs || 30 * 60 * 1000);
     };
     const cancel = () => fail(new Error("BGE-M3 indexing cancelled; completed batches are cached."));
@@ -471,6 +474,7 @@ function runBgeIndexBackend(projectRoot, request, options = {}) {
         if (!line.startsWith("mcpee-bge-progress:")) continue;
         try {
           const progress = JSON.parse(line.slice("mcpee-bge-progress:".length));
+          lastProgress = progress;
           resetTimer();
           if (options.onProgress) options.onProgress(progress);
         } catch (error) {

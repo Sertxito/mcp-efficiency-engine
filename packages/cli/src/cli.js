@@ -5,6 +5,7 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 const { spawnSync } = require("node:child_process");
 const readline = require("node:readline/promises");
+const { reportEmbeddingProgress } = require("./activity");
 const { addMemory, listMemory, searchMemory } = require("../../memory-engine/src/memory");
 const { initializeProject, PROJECT_DIRECTORIES, approvalHookInstalled } = require("../../core/src/project");
 const {
@@ -809,15 +810,6 @@ async function refreshConfiguredEmbeddings(root) {
   return buildEmbeddingIndex(root, { profile, onProgress: reportEmbeddingProgress });
 }
 
-function reportEmbeddingProgress(progress) {
-  const count = Number.isInteger(progress.completed) && Number.isInteger(progress.total)
-    ? ` ${progress.completed}/${progress.total}` : "";
-  const cached = Number.isInteger(progress.cached) ? `; cached=${progress.cached}` : "";
-  const message = `BGE-M3: ${progress.phase}${count}${cached}`;
-  require("./activity").reportActivity(message);
-  if (process.stderr.isTTY) process.stderr.write(`[mcpee] ${message}\n`);
-}
-
 async function runSync(root) {
   const statePath = path.join(root, ".mcpee", "state", "project.json");
   if (!fs.existsSync(statePath)) {
@@ -1166,7 +1158,10 @@ async function runEmbeddingCommand(root, options) {
   if (action === "index") {
     try {
       require("./activity").reportActivity(`Embeddings ${profile}: loading model and building local index`);
-      const result = await buildEmbeddingIndex(root, { profile, onProgress: reportEmbeddingProgress });
+      const result = await buildEmbeddingIndex(root, {
+        profile,
+        onProgress: options.includes("--json") || options.includes("--chat-json") ? undefined : reportEmbeddingProgress,
+      });
       writeEmbeddingProfile(root, profile);
       process.stdout.write(`[mcpee] Local embedding index updated: ${result.chunkCount} grounded chunk(s), model=${result.model}.\n`);
       return 0;
@@ -1187,7 +1182,10 @@ async function runEmbeddingCommand(root, options) {
       require("./activity").reportActivity("BGE-M3: downloading or checking local model");
       downloadBgeModel(root);
       require("./activity").reportActivity("BGE-M3: loading model, tokenizing and indexing on CPU");
-      const result = await buildEmbeddingIndex(root, { profile, onProgress: reportEmbeddingProgress });
+      const result = await buildEmbeddingIndex(root, {
+        profile,
+        onProgress: options.includes("--json") || options.includes("--chat-json") ? undefined : reportEmbeddingProgress,
+      });
       writeEmbeddingProfile(root, profile);
       process.stdout.write(`[mcpee] BGE-M3 local CPU embeddings enabled: ${result.chunkCount} grounded chunk(s) indexed with FAISS, BM25, and RRF.\n`);
       return 0;
