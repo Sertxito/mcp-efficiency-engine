@@ -64,6 +64,25 @@ class CacheTests(unittest.TestCase):
             backend.split_chunk = original_split
             backend.progress = original_progress
 
+    def test_cpu_batches_bound_padding_without_truncating_or_reordering(self):
+        lengths = [28, 955, 95, 8, 83, 142, 15, 63, 3981, 796, 93, 11, 80, 82, 15, 33]
+        tokenizer = lambda text, **options: {"input_ids": range(int(text))}
+        chunks = [{"text": str(length)} for length in lengths]
+        batches = list(backend.cpu_batches(chunks, range(len(chunks)), tokenizer))
+        self.assertEqual([position for batch, _ in batches for position in batch],
+                         list(range(len(chunks))))
+        for positions, longest in batches:
+            self.assertLessEqual(len(positions), backend.BATCH_SIZE)
+            self.assertEqual(longest, max(lengths[position] for position in positions))
+            self.assertLessEqual(longest * len(positions), backend.MAX_PADDED_BATCH_TOKENS)
+        self.assertIn(([8], 3981), batches)
+        self.assertEqual(list(backend.cpu_batches([], [], tokenizer)), [])
+        with self.assertRaisesRegex(ValueError, "exceeding"):
+            list(backend.cpu_batches([{"text": "4001"}], [0], tokenizer))
+        short = [{"text": "2"} for _ in range(33)]
+        self.assertEqual([len(batch) for batch, _ in
+                          backend.cpu_batches(short, range(33), tokenizer)], [16, 16, 1])
+
 
 if __name__ == "__main__":
     unittest.main()

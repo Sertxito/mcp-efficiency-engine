@@ -38,7 +38,7 @@ test("BGE backend persists checkpoints, validates ownership and releases interru
   if (result.error?.code === "ENOENT") return t.skip("Python is unavailable for the standard-library backend tests.");
   assert.equal(result.error, undefined);
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
-  assert.match(result.stderr, /Ran 3 tests/);
+  assert.match(result.stderr, /Ran 4 tests/);
 });
 
 test("index timeout follows measured progress rather than total wall time", async t => {

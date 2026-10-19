@@ -8,6 +8,17 @@ function reportActivity(phase) {
   if (reporter?.connected) reporter.send({ phase });
 }
 
+function reportEmbeddingProgress(progress, stream = process.stderr) {
+  const count = Number.isInteger(progress.completed) && Number.isInteger(progress.total)
+    ? ` ${progress.completed}/${progress.total}` : "";
+  const cached = Number.isInteger(progress.cached) ? `; cached=${progress.cached}` : "";
+  const batch = Number.isInteger(progress.batch_size) && Number.isInteger(progress.max_tokens)
+    ? `; batch=${progress.batch_size}; max_tokens=${progress.max_tokens}` : "";
+  const message = `BGE-M3: ${progress.phase}${count}${cached}${batch}`;
+  reportActivity(message);
+  stream.write(`[mcpee] ${message}\n`);
+}
+
 function startActivity(args, stream = process.stderr) {
   if (!stream.isTTY || !args[0] || args[0] === "help" ||
       args.includes("--help") || args.includes("-h") || args.includes("--version") ||
@@ -40,4 +51,4 @@ if (require.main === module && process.argv[2] === "--activity-worker") {
   setInterval(tick, 10_000);
 }
 
-module.exports = { startActivity, reportActivity };
+module.exports = { startActivity, reportActivity, reportEmbeddingProgress };

@@ -11,6 +11,7 @@ from pathlib import Path
 
 MODEL_ID = "BAAI/bge-m3"
 BATCH_SIZE = 16
+MAX_PADDED_BATCH_TOKENS = 4096
 MAX_LENGTH = 8192
 MAX_CHUNK_TOKENS = 4000
 GENERATED_BY = "mcpee"
@@ -176,6 +177,25 @@ def vector_key(chunk, model_signature):
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
+def cpu_batches(chunks, positions, tokenizer):
+    batch = []
+    longest = 0
+    for position in positions:
+        length = token_count(chunks[position]["text"], tokenizer)
+        if length > MAX_CHUNK_TOKENS:
+            raise ValueError("CPU batch contains a chunk exceeding its token budget.")
+        candidate_longest = max(longest, length)
+        if batch and (len(batch) >= BATCH_SIZE
+                      or candidate_longest * (len(batch) + 1) > MAX_PADDED_BATCH_TOKENS):
+            yield batch, longest
+            batch = []
+            longest = 0
+        batch.append(position)
+        longest = max(longest, length)
+    if batch:
+        yield batch, longest
+
+
 def load_model(model_path, offline=True):
     if offline:
         os.environ["HF_HUB_OFFLINE"] = "1"
@@ -294,10 +314,14 @@ def encode_index(request, chunks, model, signature, cache):
         rows = [cache.execute("SELECT dimension,data FROM vectors WHERE key=?", (key,)).fetchone()
                 for key in keys]
         missing = [position for position, row in enumerate(rows) if row is None]
-        if missing:
+        reused += len(batch) - len(missing)
+        completed = offset + len(batch) - len(missing)
+        for positions, longest in cpu_batches(batch, missing, model.tokenizer):
+            progress("inference", completed=completed, total=len(chunks), cached=reused,
+                     batch_size=len(positions), max_tokens=longest)
             encoded = model.encode_corpus(
-                [batch[position]["text"] for position in missing],
-                batch_size=BATCH_SIZE,
+                [batch[position]["text"] for position in positions],
+                batch_size=len(positions),
                 max_length=MAX_CHUNK_TOKENS,
                 return_dense=True,
                 return_sparse=False,
@@ -306,11 +330,13 @@ def encode_index(request, chunks, model, signature, cache):
             new_vectors = np.asarray(encoded["dense_vecs"], dtype=np.float32)
             faiss.normalize_L2(new_vectors)
             with cache:
-                for position, vector in zip(missing, new_vectors, strict=True):
+                for position, vector in zip(positions, new_vectors, strict=True):
                     cache.execute("INSERT OR REPLACE INTO vectors VALUES (?,?,?)",
                                   (keys[position], len(vector), vector.tobytes()))
                     rows[position] = (len(vector), vector.tobytes())
-        reused += len(batch) - len(missing)
+            completed += len(positions)
+            progress("encoding", completed=completed, total=len(chunks), cached=reused,
+                     elapsed_seconds=round(time.monotonic() - started, 1))
         matrix = np.stack([np.frombuffer(row[1], dtype=np.float32, count=row[0]) for row in rows])
         if faiss_index is None:
             faiss_index = faiss.IndexFlatIP(matrix.shape[1])

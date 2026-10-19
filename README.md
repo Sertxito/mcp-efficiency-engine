@@ -8,28 +8,28 @@ repository. The npm package remains **`mcp-efficiency-engine`** and both
 
 ## Install and upgrade
 
-MCPEE 0.1.23 is a pre-1.0 replacement for the legacy implementation, not a
+MCPEE 0.1.24 is a pre-1.0 replacement for the legacy implementation, not a
 drop-in compatibility release. It requires Node.js 24 or newer; a complete
 tool installation additionally checks the latest official Node.js LTS patch.
 Existing Copilot authentication and a host supporting MCP elicitation are
 needed for approved model execution.
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.23
+npm install --global mcp-efficiency-engine@0.1.24
 mcpee init --project C:\path\to\project
 ```
 
 Alternatively run a pinned package without a global install:
 
 ```sh
-npx --package=mcp-efficiency-engine@0.1.23 mcpee init --project C:\path\to\project
+npx --package=mcp-efficiency-engine@0.1.24 mcpee init --project C:\path\to\project
 ```
 
 If npm reports that the Copilot SDK's native `koffi` dependency has a blocked
 install script, authorize just that dependency for this installation:
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.23 --allow-scripts=koffi
+npm install --global mcp-efficiency-engine@0.1.24 --allow-scripts=koffi
 ```
 
 This does not enable scripts globally. A successful `mcpee help` checks the
@@ -50,7 +50,11 @@ phases. The indicator remains active while synchronous subprocesses run and
 does not claim a percentage or prove forward progress. It is disabled for
 non-terminal output, `--json` and MCP `--chat-json` responses.
 CPU BGE indexing additionally reports tokenizer progress and encoded chunks,
-with a measured completed/total count and reused cached vectors. Its timeout
+with a measured completed/total count and reused cached vectors, including in
+redirected stderr logs (except `--json` and `--chat-json`). CPU inference uses
+at most 16 texts and 4,096 padded tokens per batch: long chunks run separately
+instead of padding every short text to the longest chunk. Chunk content and
+the 4,000-token per-chunk limit are unchanged. Its timeout
 is thirty minutes without a progress event, not thirty minutes for the entire
 corpus. Completed batches are committed to a local owned SQLite cache; an
 interrupted run reuses matching chunks and model files on the next index

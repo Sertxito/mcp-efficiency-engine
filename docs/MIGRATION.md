@@ -20,7 +20,7 @@ tool installation checks the latest official LTS patch as described in the
 2. Stop the old MCPEE MCP process and inspect existing project hooks, MCP
    entries and instructions. Disable legacy registrations deliberately; the
    new CLI does not uninstall or translate them automatically.
-3. Install `npm install --global mcp-efficiency-engine@0.1.23`. If npm blocks
+3. Install `npm install --global mcp-efficiency-engine@0.1.24`. If npm blocks
    `koffi`'s native install script, repeat this install with
    `--allow-scripts=koffi` rather than allowing all scripts globally. Installation
    has no `postinstall` project mutation. Do not use the old `install:host`
@@ -52,7 +52,7 @@ an indexed or enabled embedding profile.
 
 An older BGE environment can also contain incompatible transitive releases
 of Transformers, sentence-transformers and PEFT. If importing FlagEmbedding
-fails on `is_torch_fx_available`, upgrade to 0.1.23 and run
+fails on `is_torch_fx_available`, upgrade to 0.1.24 and run
 `mcpee knowledge embeddings setup --profile bge-m3 --project C:\path\to\project`.
 Authorize with `download` when prompted. This repairs the pinned compatibility
 stack and indexes the sources, reusing an already downloaded owned model;
@@ -71,6 +71,16 @@ reuses matching vectors rather than starting inference from zero. This cache
 does not enable semantic search until the complete index has been written.
 The older 0.1.22 implementation did not save intermediate vectors, so work
 lost in that version's timeout cannot be recovered retroactively.
+
+### Long CPU batches and redirected logs in 0.1.23
+
+Version 0.1.23 can still time out inside inference when a long chunk causes a
+16-text batch to be padded to thousands of tokens per text. Version 0.1.24
+limits each CPU batch to 4,096 padded tokens and at most 16 texts, commits
+each smaller batch, and preserves existing cached vectors and chunk content.
+Measured phase, chunk, cache and batch counts now appear in redirected stderr
+logs as well as terminals. Machine-output flags suppress these progress lines.
+Timeout errors include the last backend progress event for diagnosis.
 
 Legacy boosts, bundles, presets, Python routing scripts, AutoDocs wiki
 projection and global installation hooks are not carried into the new
