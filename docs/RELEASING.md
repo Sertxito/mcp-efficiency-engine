@@ -5,7 +5,7 @@
 - Repository: <https://github.com/Sertxito/mcp-efficiency-engine>
 - npm package: `mcp-efficiency-engine`
 - Commands: `mcpee` and `mcp-efficiency-engine`
-- Current candidate: **0.1.22**, following published **0.1.21**
+- Current candidate: **0.1.23**, following published **0.1.22**
 - Runtime: Node.js **>=24**
 
 Keep the normal pre-1.0 version sequence until stable acceptance is complete.
@@ -55,12 +55,16 @@ matching GitHub release and tag. It does not silently bump the version in CI
 or overwrite an existing release. The optional dispatch `npm_version` must
 match the committed version.
 
+Registry verification retries for up to three minutes with a fresh npm cache
+on each attempt. Both registry errors and a version mismatch remain retryable
+during propagation; publication is not repeated by this verification step.
+
 After deployment, verify:
 
 ```sh
 npm view mcp-efficiency-engine version
-npm view mcp-efficiency-engine@0.1.22 bin engines dist.integrity --json
-npx --package=mcp-efficiency-engine@0.1.22 mcpee help
+npm view mcp-efficiency-engine@0.1.23 bin engines dist.integrity --json
+npx --package=mcp-efficiency-engine@0.1.23 mcpee help
 ```
 
 Also check the release workflow and GitHub Pages deployment. A failed

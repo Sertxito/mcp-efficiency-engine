@@ -2,6 +2,9 @@ import json
 import os
 import re
 import sys
+import hashlib
+import sqlite3
+import time
 from contextlib import redirect_stdout
 from pathlib import Path
 
@@ -133,7 +136,44 @@ def split_chunk(chunk, tokenizer):
 
 
 def enforce_token_budget(chunks, tokenizer):
-    return [part for chunk in chunks for part in split_chunk(chunk, tokenizer)]
+    result = []
+    for offset, chunk in enumerate(chunks):
+        result.extend(split_chunk(chunk, tokenizer))
+        if offset % 50 == 0:
+            progress("tokenizing", completed=offset + 1, total=len(chunks))
+    return result
+
+
+def progress(phase, **values):
+    print("mcpee-bge-progress:" + json.dumps({"phase": phase, **values}),
+          file=sys.stderr, flush=True)
+
+
+def open_cache(file):
+    if file.is_symlink():
+        raise ValueError(f"Refusing linked BGE cache: {file}")
+    existed = file.exists()
+    connection = sqlite3.connect(file, timeout=1)
+    try:
+        if existed:
+            owner = connection.execute("SELECT value FROM metadata WHERE key='owner'").fetchone()
+            if owner != (GENERATED_BY,):
+                raise ValueError(f"Refusing unowned BGE cache: {file}")
+        else:
+            connection.execute("CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT)")
+            connection.execute("INSERT INTO metadata VALUES ('owner', ?)", (GENERATED_BY,))
+            connection.execute("CREATE TABLE vectors (key TEXT PRIMARY KEY, dimension INTEGER, data BLOB)")
+            connection.commit()
+        return connection
+    except Exception:
+        connection.close()
+        raise
+
+
+def vector_key(chunk, model_signature):
+    value = json.dumps({"model": model_signature, "chunk": chunk},
+                       sort_keys=True, ensure_ascii=False)
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
 def load_model(model_path, offline=True):
@@ -190,7 +230,7 @@ def download_model(request):
     elif any(model_path.iterdir()):
         raise ValueError(f"Refusing to reuse a non-empty model directory: {model_path}")
     else:
-        marker.write_text("MCPEE BGE-M3 model\n", encoding="utf-8")
+        marker.write_text("MCPEE BGE-M3 model\n", encoding="utf-8", newline="\n")
     os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
     from huggingface_hub import snapshot_download
 
@@ -199,6 +239,17 @@ def download_model(request):
 
 
 def index(request):
+    index_path = Path(request["index_path"]).resolve()
+    index_path.mkdir(parents=True, exist_ok=True)
+    lock = open_cache(index_path / ".indexing.lock")
+    try:
+        lock.execute("BEGIN EXCLUSIVE")
+        return index_locked(request)
+    finally:
+        lock.close()
+
+
+def index_locked(request):
     import faiss
     import numpy as np
 
@@ -211,29 +262,68 @@ def index(request):
         for chunk in chunks
     ):
         raise ValueError("Index request requires chunks with text.")
+    progress("loading_model")
     model = load_model(model_path)
+    progress("tokenizing", completed=0, total=len(chunks))
     chunks = enforce_token_budget(chunks, model.tokenizer)
+    model_files = [file for file in model_path.iterdir()
+                   if file.is_file() and file.suffix in {".bin", ".safetensors", ".json", ".model", ".pt"}]
+    signature = hashlib.sha256(json.dumps([
+        (file.name, file.stat().st_size, file.stat().st_mtime_ns)
+        for file in sorted(model_files)
+    ]).encode("utf-8")).hexdigest()
+    cache = open_cache(index_path / "vectors.sqlite3")
+    try:
+        return encode_index(request, chunks, model, signature, cache)
+    finally:
+        cache.close()
+
+
+def encode_index(request, chunks, model, signature, cache):
+    import faiss
+    import numpy as np
+
+    index_path = Path(request["index_path"]).resolve()
     faiss_index = None
+    reused = 0
+    started = time.monotonic()
+    progress("encoding", completed=0, total=len(chunks), cached=0)
     for offset in range(0, len(chunks), BATCH_SIZE):
-        batch = [chunk["text"] for chunk in chunks[offset : offset + BATCH_SIZE]]
-        if batch:
+        batch = chunks[offset : offset + BATCH_SIZE]
+        keys = [vector_key(chunk, signature) for chunk in batch]
+        rows = [cache.execute("SELECT dimension,data FROM vectors WHERE key=?", (key,)).fetchone()
+                for key in keys]
+        missing = [position for position, row in enumerate(rows) if row is None]
+        if missing:
             encoded = model.encode_corpus(
-                batch,
+                [batch[position]["text"] for position in missing],
                 batch_size=BATCH_SIZE,
-                max_length=MAX_LENGTH,
+                max_length=MAX_CHUNK_TOKENS,
                 return_dense=True,
+                return_sparse=False,
+                return_colbert_vecs=False,
             )
-            matrix = np.asarray(encoded["dense_vecs"], dtype=np.float32)
-            faiss.normalize_L2(matrix)
-            if faiss_index is None:
-                faiss_index = faiss.IndexFlatIP(matrix.shape[1])
-            faiss_index.add(matrix)
+            new_vectors = np.asarray(encoded["dense_vecs"], dtype=np.float32)
+            faiss.normalize_L2(new_vectors)
+            with cache:
+                for position, vector in zip(missing, new_vectors, strict=True):
+                    cache.execute("INSERT OR REPLACE INTO vectors VALUES (?,?,?)",
+                                  (keys[position], len(vector), vector.tobytes()))
+                    rows[position] = (len(vector), vector.tobytes())
+        reused += len(batch) - len(missing)
+        matrix = np.stack([np.frombuffer(row[1], dtype=np.float32, count=row[0]) for row in rows])
+        if faiss_index is None:
+            faiss_index = faiss.IndexFlatIP(matrix.shape[1])
+        faiss_index.add(matrix)
+        progress("encoding", completed=offset + len(batch), total=len(chunks),
+                 cached=reused, elapsed_seconds=round(time.monotonic() - started, 1))
     if faiss_index is None:
         dimension = model.encode_corpus(
             [" "], batch_size=1, max_length=MAX_LENGTH, return_dense=True
         )["dense_vecs"].shape[1]
         faiss_index = faiss.IndexFlatIP(dimension)
 
+    progress("saving_index", completed=len(chunks), total=len(chunks), cached=reused)
     index_file = index_path / "bge-m3.index"
     chunks_file = index_path / "chunks.json"
     bm25_file = index_path / "bm25.json"
@@ -262,7 +352,9 @@ def index(request):
             "tokens": [tokenise(chunk["text"]) for chunk in chunks],
         },
     )
-    return {"chunk_count": len(chunks), "dimension": faiss_index.d, "model": MODEL_ID}
+    progress("completed", completed=len(chunks), total=len(chunks), cached=reused)
+    return {"chunk_count": len(chunks), "dimension": faiss_index.d, "model": MODEL_ID,
+            "cached_count": reused}
 
 
 def search(request):
