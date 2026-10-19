@@ -38,7 +38,29 @@ test("BGE backend persists checkpoints, validates ownership and releases interru
   if (result.error?.code === "ENOENT") return t.skip("Python is unavailable for the standard-library backend tests.");
   assert.equal(result.error, undefined);
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
-  assert.match(result.stderr, /Ran 4 tests/);
+  assert.match(result.stderr, /Ran 5 tests/);
+});
+
+test("BGE pipes force strict UTF-8 instead of inheriting the Windows locale", async t => {
+  for (const [key, value] of Object.entries({ PYTHONUTF8: "0", PYTHONIOENCODING: "cp1252:surrogateescape" })) {
+    const previous = process.env[key];
+    t.after(() => {
+      if (previous === undefined) delete process.env[key];
+      else process.env[key] = previous;
+    });
+    process.env[key] = value;
+  }
+  const { root, child } = backendFixture(t);
+  const result = runBgeIndexBackend(root, { action: "index", query: "Espa\u00f1ol \u0141 \u4e2d\u6587 \u{1f680}" }, {
+    spawnProcess: (python, args, options) => {
+      assert.equal(options.env.PYTHONUTF8, "1");
+      assert.equal(options.env.PYTHONIOENCODING, "utf-8:strict");
+      return child;
+    },
+  });
+  child.stdout.write(JSON.stringify({ query: "Espa\u00f1ol \u0141 \u4e2d\u6587 \u{1f680}" }));
+  child.emit("close", 0);
+  assert.deepEqual(await result, { query: "Espa\u00f1ol \u0141 \u4e2d\u6587 \u{1f680}" });
 });
 
 test("index timeout follows measured progress rather than total wall time", async t => {
