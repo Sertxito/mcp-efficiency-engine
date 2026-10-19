@@ -1,0 +1,190 @@
+{
+  "schema_version": 1,
+  "fallback_workflow": "understand-project",
+  "routes": [
+    {
+      "workflow": "architecture-challenge",
+      "keywords": ["challenge architecture", "challenge the architecture", "architecture challenge", "challenge the design", "should we rewrite", "rewrite decision", "microservices decision", "platform adoption"],
+      "agent": "architect-challenger",
+      "skills": ["analysis", "architecture-challenge", "architecture-review", "evidence-and-findings"]
+    },
+    {
+      "workflow": "technical-due-diligence",
+      "keywords": ["technical due diligence", "acquisition review", "acquisition assessment", "outsourcing review", "investment review"],
+      "agent": "technical-due-diligence",
+      "skills": ["analysis", "technical-due-diligence", "system-forensics", "evidence-and-findings"]
+    },
+    {
+      "workflow": "technical-debt-assessment",
+      "keywords": ["technical debt", "debt register", "maintenance liabilities", "code smells assessment"],
+      "agent": "technical-debt-assessor",
+      "skills": ["analysis", "technical-debt-assessment", "dependency-analysis", "evidence-and-findings"]
+    },
+    {
+      "workflow": "performance-forensics",
+      "keywords": ["performance forensics", "performance regression", "performance bottleneck", "latency regression", "profile performance"],
+      "agent": "performance-forensics",
+      "skills": ["analysis", "performance-investigation", "dependency-analysis", "evidence-and-findings"]
+    },
+    {
+      "workflow": "review-security",
+      "keywords": ["security", "vulnerability", "vulnerabilities", "secret", "credential", "threat", "exploit"],
+      "agent": "security",
+      "skills": ["analysis", "quality"]
+    },
+    {
+      "workflow": "respond-to-incident",
+      "keywords": ["incident", "incident response", "incident commander", "outage", "service degradation", "production incident", "incident timeline"],
+      "agent": "observability",
+      "skills": ["operations", "incident-response", "observability-design", "evidence-and-findings"]
+    },
+    {
+      "workflow": "diagnose-operation",
+      "keywords": ["latency", "runtime", "crash", "diagnose", "observability", "service health", "slow", "azure resource health", "aws resource health", "cloud resource query", "resource inventory", "cloudwatch", "application insights", "core web vitals", "frontend telemetry"],
+      "agent": "observability",
+      "skills": ["operations", "analysis", "cloud-resource-diagnostics", "application-insights-instrumentation", "frontend-observability-performance"]
+    },
+    {
+      "workflow": "change-architecture",
+      "keywords": ["architecture", "architectural", "design", "topology", "boundary", "threat model", "security architecture"],
+      "agent": "architecture",
+      "skills": ["analysis", "architecture"]
+    },
+    {
+      "workflow": "modernize-legacy",
+      "keywords": ["legacy", "modernize", "modernization", "upgrade", "migration", "migrate"],
+      "agent": "legacy",
+      "skills": ["analysis", "architecture", "quality"]
+    },
+    {
+      "workflow": "synchronize-documentation",
+      "keywords": ["documentation", "document", "docs", "readme", "adr", "describe"],
+      "agent": "documentation",
+      "skills": ["knowledge", "documentation", "quality"]
+    },
+    {
+      "workflow": "ingest-knowledge",
+      "keywords": ["knowledge", "index", "ingest", "sources", "source", "catalog"],
+      "agent": "documentation",
+      "skills": ["knowledge", "analysis"]
+    },
+    {
+      "workflow": "refactor-code",
+      "keywords": ["refactor", "refactoring", "cleanup", "simplify"],
+      "agent": "backend",
+      "skills": ["analysis", "implementation", "quality"]
+    },
+    {
+      "workflow": "resolve-bug",
+      "keywords": ["bug", "broken", "regression", "wrong", "fails", "failure", "error", "fix", "issue"],
+      "agent": "qa",
+      "skills": ["analysis", "implementation", "quality"]
+    },
+    {
+      "workflow": "create-or-update-work-items",
+      "keywords": ["github issue", "azure devops", "ado work item", "create issue", "update issue", "create work item", "update work item", "assign issue", "close issue", "devops task"],
+      "agent": "orchestrator",
+      "skills": ["analysis", "backlog-refinement", "github-ado-work-items", "evidence-and-findings"]
+    },
+    {
+      "workflow": "database-change-with-baseline",
+      "keywords": ["database change", "database migration", "schema migration", "database baseline", "migration baseline", "database test data", "synthetic database data", "sql anonymization", "database jobs", "database high availability", "database monitoring baseline", "stored procedure migration", "database platform migration"],
+      "agent": "database",
+      "skills": ["analysis", "database-change-operations", "database-migration-safety", "database-test-data-protection", "database-operations-reliability", "database-platform-migration", "test-strategy"]
+    },
+    {
+      "workflow": "design-and-accessibility-gate",
+      "keywords": ["accessibility review", "accessibility gate", "design system", "design review", "user journey review", "figma", "screenshot evidence", "component inventory", "storybook documentation", "functional ux specification"],
+      "agent": "ux-ui",
+      "skills": ["requirements-discovery", "design-system-governance", "frontend-accessibility-review", "ux-design-evidence", "test-strategy"]
+    },
+    {
+      "workflow": "cross-stack-feature-review",
+      "keywords": ["cross-stack", "frontend backend", "ui api contract", "end-to-end feature review", "full stack contract", "microfrontend decision", "frontend modernization", "angular production review", "react production review"],
+      "agent": "backend",
+      "skills": ["analysis", "api-contract-review", "frontend-change-review", "frontend-modernization-review", "frontend-observability-performance", "test-strategy"]
+    },
+    {
+      "workflow": "build-and-promote",
+      "keywords": ["build and promote", "release readiness", "build provenance", "release candidate", "promote artifact", "pipeline promotion"],
+      "agent": "devops",
+      "skills": ["analysis", "ci-cd-review", "deployment-readiness", "evidence-and-findings"]
+    },
+    {
+      "workflow": "deploy-with-approval",
+      "keywords": ["deploy", "deployment", "production rollout", "deploy to", "release to", "deployment approval", "cloud deployment preflight", "deployment preflight", "quota check", "cloud pricing", "azure pricing", "aws pricing", "role selection", "minimum cloud role"],
+      "agent": "infrastructure",
+      "skills": ["analysis", "deployment-readiness", "cloud-release-cost-preflight", "observability-design", "threat-modeling"]
+    },
+    {
+      "workflow": "validate-change",
+      "keywords": ["validate change", "run validation", "validation plan", "verify this change", "test change"],
+      "agent": "qa",
+      "skills": ["analysis", "quality", "test-strategy", "evidence-and-findings"]
+    },
+    {
+      "workflow": "forensic-assessment",
+      "keywords": ["forensic assessment", "forensic", "system map", "trace architecture", "reconstruct architecture"],
+      "agent": "architecture",
+      "skills": ["knowledge", "system-forensics", "evidence-and-findings"]
+    },
+    {
+      "workflow": "evaluate-agent-assets",
+      "keywords": ["evaluate agent", "evaluate skill", "evaluate workflow", "agent asset", "skill quality"],
+      "agent": "qa",
+      "skills": ["quality", "analysis", "test-strategy", "evidence-and-findings"]
+    },
+    {
+      "workflow": "close-loop-and-learn",
+      "keywords": ["retrospective", "lessons learned", "close the loop", "post-incident review", "continuous improvement"],
+      "agent": "orchestrator",
+      "skills": ["analysis", "documentation-sync", "evidence-and-findings", "retrospective-learning"]
+    },
+    {
+      "workflow": "deliver-feature",
+      "keywords": ["feature", "implement", "implementation", "add", "create", "instrument application insights", "add application insights", "build mcp server", "build an mcp server", "create mcp server", "publish python package", "containerize asp.net framework", "dotnet timezone"],
+      "agent": "backend",
+      "skills": ["analysis", "implementation", "test-strategy", "evidence-and-findings", "application-insights-instrumentation", "backend-mcp-package-authoring", "dotnet-legacy-runtime"]
+    },
+    {
+      "workflow": "refine-backlog",
+      "keywords": ["backlog", "sprint", "user story", "acceptance criteria", "requirements discovery"],
+      "agent": "product",
+      "skills": ["business", "analysis", "quality"]
+    },
+    {
+      "workflow": "evaluate-execution",
+      "keywords": ["evaluate", "evaluation", "measure", "assess", "score"],
+      "agent": "qa",
+      "skills": ["quality", "analysis"]
+    },
+    {
+      "workflow": "understand-project",
+      "keywords": ["understand", "overview", "explain", "project", "system", "discovery", "plan project", "roadmap", "context budget", "token budget", "reduce context", "minimize tokens"],
+      "agent": "orchestrator",
+      "skills": ["knowledge", "analysis", "context-budgeting"]
+    }
+  ],
+  "specialists": [
+    { "agent": "architect-challenger", "keywords": ["architect challenger", "challenge architecture", "architecture challenge", "rewrite review"] },
+    { "agent": "technical-debt-assessor", "keywords": ["technical debt assessor", "debt register", "technical debt assessment"] },
+    { "agent": "technical-due-diligence", "keywords": ["technical due diligence", "acquisition assessment", "outsourcing assessment"] },
+    { "agent": "performance-forensics", "keywords": ["performance forensics", "performance profiler", "bottleneck investigation"] },
+    { "agent": "orchestrator", "keywords": ["team lead", "scrum master", "project delivery manager", "cross-functional", "coordinate delivery", "sprint planning", "context budget", "token budget", "minimize context"] },
+    { "agent": "backend", "keywords": ["backend", "back-end", "server-side", "endpoint", "api", "service", "authorization", "idempotency", "express", "fastapi", "asp.net", "spring boot", "c#", "csharp", ".net", "dotnet", "csproj", "mcp server", "python package", "application insights", "time zone"] },
+    { "agent": "security", "keywords": ["security", "application security", "security architect", "vulnerability", "secret", "credential", "threat"] },
+    { "agent": "database", "keywords": ["database", "sql", "schema", "migration", "query"] },
+    { "agent": "infrastructure", "keywords": ["infrastructure", "platform engineer", "terraform", "bicep", "kubernetes", "network", "cloud resource health", "azure resource", "aws resource", "cloud pricing", "quota check"] },
+    { "agent": "frontend", "keywords": ["frontend", "front-end", "ui", "browser", "react", "vue", "angular", "microfrontend", "core web vitals", "frontend modernization", "angular production review", "react production review"] },
+    { "agent": "ux-ui", "keywords": ["ux", "accessibility", "usability", "user experience", "figma", "storybook", "component inventory", "screenshot evidence"] },
+    { "agent": "data", "keywords": ["data", "pipeline", "dataset", "etl", "analytics"] },
+    { "agent": "ai", "keywords": ["ai", "llm", "model", "prompt", "agent"] },
+    { "agent": "devops", "keywords": ["devops", "release manager", "release readiness", "pipeline", "ci", "cd", "deployment", "release", "rollout"] },
+    { "agent": "product", "keywords": ["product", "product owner", "backlog", "requirement", "acceptance", "user story"] },
+    { "agent": "business", "keywords": ["business", "domain", "business rule", "process"] },
+    { "agent": "qa", "keywords": ["test automation", "automated test", "test suite"] },
+    { "agent": "observability", "keywords": ["incident commander", "incident response", "sre", "slo", "reliability"] },
+    { "agent": "architecture", "keywords": ["principal architect", "forensic architect"] },
+    { "agent": "documentation", "keywords": ["technical writer"] }
+  ]
+}

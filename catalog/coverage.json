@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "status_semantics": {
+    "mapped": "All required catalog references exist. This measures catalog mapping only; it does not certify correctness, runtime compatibility, or production readiness.",
+    "validation": "A listed validation basis describes how project-local checks may be discovered. Only a recorded passing workflow is evidence that a check ran successfully."
+  },
+  "required_asset_categories": [
+    "agents",
+    "skills",
+    "workflows",
+    "technical_guidance",
+    "patterns",
+    "scorecards",
+    "eval_cases",
+    "prompt_examples"
+  ],
+  "technologies": [
+    {
+      "id": "dotnet",
+      "name": ".NET / C#",
+      "required_assets": {
+        "agents": ["backend"],
+        "skills": ["backend-change", "dotnet-legacy-runtime", "backend-mcp-package-authoring"],
+        "workflows": ["deliver-feature", "validate-change"],
+        "technical_guidance": ["backend-dotnet-python-node"],
+        "patterns": ["dotnet-csharp-quality"],
+        "scorecards": ["software-change-quality"],
+        "eval_cases": ["backend-tooling-contract", "evidence-grounding"],
+        "prompt_examples": ["backend-change-example", "backend-tooling-contract-example"]
+      },
+      "validation_basis": "dotnet-test-project"
+    },
+    {
+      "id": "python",
+      "name": "Python",
+      "required_assets": {
+        "agents": ["backend"],
+        "skills": ["backend-change", "backend-mcp-package-authoring"],
+        "workflows": ["deliver-feature", "validate-change"],
+        "technical_guidance": ["backend-dotnet-python-node"],
+        "patterns": ["clean-code-and-naming"],
+        "scorecards": ["software-change-quality"],
+        "eval_cases": ["backend-tooling-contract", "evidence-grounding"],
+        "prompt_examples": ["backend-change-example", "backend-tooling-contract-example"]
+      },
+      "validation_basis": "python-pytest-config"
+    },
+    {
+      "id": "node",
+      "name": "Node.js",
+      "required_assets": {
+        "agents": ["backend"],
+        "skills": ["backend-change", "application-insights-instrumentation"],
+        "workflows": ["deliver-feature", "validate-change"],
+        "technical_guidance": ["backend-dotnet-python-node"],
+        "patterns": ["clean-code-and-naming"],
+        "scorecards": ["software-change-quality"],
+        "eval_cases": ["evidence-grounding"],
+        "prompt_examples": ["backend-change-example"]
+      },
+      "validation_basis": "npm-declared-scripts"
+    },
+    {
+      "id": "angular",
+      "name": "Angular",
+      "required_assets": {
+        "agents": ["frontend"],
+        "skills": ["frontend-accessibility-review", "frontend-modernization-review", "frontend-observability-performance", "ux-design-evidence"],
+        "workflows": ["deliver-feature", "design-and-accessibility-gate"],
+        "technical_guidance": ["frontend-angular-react"],
+        "patterns": ["angular-signals-architecture"],
+        "scorecards": ["frontend-quality"],
+        "eval_cases": ["frontend-framework-fit", "frontend-modernization-evidence", "ux-design-traceability"],
+        "prompt_examples": ["frontend-change-example", "frontend-modernization-evidence-example", "ux-design-traceability-example"]
+      },
+      "validation_basis": "npm-declared-scripts"
+    },
+    {
+      "id": "react",
+      "name": "React",
+      "required_assets": {
+        "agents": ["frontend"],
+        "skills": ["frontend-accessibility-review", "frontend-modernization-review", "frontend-observability-performance", "ux-design-evidence"],
+        "workflows": ["deliver-feature", "design-and-accessibility-gate"],
+        "technical_guidance": ["frontend-angular-react"],
+        "patterns": ["clean-code-and-naming"],
+        "scorecards": ["frontend-quality"],
+        "eval_cases": ["frontend-framework-fit", "frontend-modernization-evidence", "ux-design-traceability"],
+        "prompt_examples": ["frontend-change-example", "frontend-modernization-evidence-example", "ux-design-traceability-example"]
+      },
+      "validation_basis": "npm-declared-scripts"
+    },
+    {
+      "id": "sql",
+      "name": "SQL / SQL Server",
+      "required_assets": {
+        "agents": ["database"],
+        "skills": ["database-migration-safety", "database-test-data-protection", "database-operations-reliability"],
+        "workflows": ["database-change-with-baseline", "validate-change"],
+        "technical_guidance": ["data-sql-server-cosmos"],
+        "patterns": ["change-rollout-plan"],
+        "scorecards": ["data-change-quality"],
+        "eval_cases": ["database-operational-safety", "database-safe-change"],
+        "prompt_examples": ["database-change-example", "database-operational-safety-example"]
+      },
+      "validation_basis": "project-declared-check"
+    },
+    {
+      "id": "cosmos-db",
+      "name": "Azure Cosmos DB",
+      "required_assets": {
+        "agents": ["database"],
+        "skills": ["database-migration-safety", "database-test-data-protection", "database-operations-reliability"],
+        "workflows": ["database-change-with-baseline", "validate-change"],
+        "technical_guidance": ["data-sql-server-cosmos"],
+        "patterns": ["change-rollout-plan"],
+        "scorecards": ["data-change-quality"],
+        "eval_cases": ["database-operational-safety", "database-safe-change"],
+        "prompt_examples": ["database-change-example", "database-operational-safety-example"]
+      },
+      "validation_basis": "project-declared-check"
+    },
+    {
+      "id": "azure",
+      "name": "Microsoft Azure",
+      "required_assets": {
+        "agents": ["infrastructure"],
+        "skills": ["cloud-architecture-planning", "cloud-resource-diagnostics", "cloud-release-cost-preflight", "application-insights-instrumentation"],
+        "workflows": ["build-and-promote", "deploy-with-approval"],
+        "technical_guidance": ["azure-engineering"],
+        "patterns": ["change-rollout-plan"],
+        "scorecards": ["cloud-iac-quality"],
+        "eval_cases": ["cloud-operational-evidence", "cloud-version-and-approval"],
+        "prompt_examples": ["cloud-infrastructure-review-example", "cloud-operational-evidence-example"]
+      },
+      "validation_basis": "project-declared-check"
+    },
+    {
+      "id": "aws",
+      "name": "Amazon Web Services",
+      "required_assets": {
+        "agents": ["infrastructure"],
+        "skills": ["cloud-architecture-planning", "cloud-resource-diagnostics", "cloud-release-cost-preflight"],
+        "workflows": ["build-and-promote", "deploy-with-approval"],
+        "technical_guidance": ["aws-engineering"],
+        "patterns": ["change-rollout-plan"],
+        "scorecards": ["cloud-iac-quality"],
+        "eval_cases": ["cloud-operational-evidence", "cloud-version-and-approval"],
+        "prompt_examples": ["cloud-infrastructure-review-example", "cloud-operational-evidence-example"]
+      },
+      "validation_basis": "project-declared-check"
+    },
+    {
+      "id": "bicep",
+      "name": "Azure Bicep",
+      "required_assets": {
+        "agents": ["infrastructure"],
+        "skills": ["cloud-architecture-planning"],
+        "workflows": ["build-and-promote", "deploy-with-approval"],
+        "technical_guidance": ["azure-engineering", "iac-and-yaml"],
+        "patterns": ["change-rollout-plan"],
+        "scorecards": ["cloud-iac-quality"],
+        "eval_cases": ["cloud-version-and-approval"],
+        "prompt_examples": ["cloud-infrastructure-review-example"]
+      },
+      "validation_basis": "project-declared-check"
+    },
+    {
+      "id": "terraform",
+      "name": "Terraform",
+      "required_assets": {
+        "agents": ["infrastructure"],
+        "skills": ["cloud-architecture-planning"],
+        "workflows": ["build-and-promote", "deploy-with-approval"],
+        "technical_guidance": ["iac-and-yaml"],
+        "patterns": ["change-rollout-plan"],
+        "scorecards": ["cloud-iac-quality"],
+        "eval_cases": ["cloud-version-and-approval"],
+        "prompt_examples": ["cloud-infrastructure-review-example"]
+      },
+      "validation_basis": "project-declared-check"
+    },
+    {
+      "id": "yaml-pipelines",
+      "name": "CI/CD YAML",
+      "required_assets": {
+        "agents": ["devops"],
+        "skills": ["ci-cd-review"],
+        "workflows": ["build-and-promote", "deploy-with-approval"],
+        "technical_guidance": ["iac-and-yaml"],
+        "patterns": ["validate-before-document"],
+        "scorecards": ["cloud-iac-quality"],
+        "eval_cases": ["cloud-version-and-approval"],
+        "prompt_examples": ["cloud-infrastructure-review-example"]
+      },
+      "validation_basis": "project-declared-check"
+    }
+  ]
+}

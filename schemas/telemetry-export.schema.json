@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mcpee.dev/schemas/telemetry-export.schema.json",
+  "title": "MCPEE detailed local telemetry export",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_by",
+    "export_kind",
+    "generated_at",
+    "retention_days",
+    "event_count",
+    "events"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "generated_by": { "const": "mcpee" },
+    "export_kind": { "const": "mcpee.telemetry.events" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "retention_days": { "const": 30 },
+    "event_count": { "type": "integer", "minimum": 0 },
+    "events": {
+      "type": "array",
+      "items": { "$ref": "telemetry-event.schema.json" }
+    }
+  },
+  "additionalProperties": true
+}

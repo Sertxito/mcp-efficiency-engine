@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mcpee.dev/schemas/telemetry-event.schema.json",
+  "title": "MCPEE local telemetry event",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "event_id",
+    "timestamp",
+    "source",
+    "event_name"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "event_id": { "type": "string", "minLength": 1 },
+    "source_event_id": { "type": ["string", "null"] },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "source": { "type": "string", "minLength": 1 },
+    "event_name": { "type": "string", "minLength": 1 },
+    "session_id": { "type": ["string", "null"] },
+    "trace_id": { "type": ["string", "null"] },
+    "parent_id": { "type": ["string", "null"] },
+    "tool_name": { "type": ["string", "null"] },
+    "tool_call_id": { "type": ["string", "null"] },
+    "attributes": { "type": "object" },
+    "payload": {
+      "type": ["object", "array", "string", "number", "boolean", "null"]
+    }
+  },
+  "additionalProperties": true
+}
