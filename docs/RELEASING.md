@@ -27,7 +27,10 @@ based only on passing automated tests.
    npm run pack:check
    ```
 
-   The tarball check installs offline from the cache populated by `npm ci`,
+   The tarball check seeds a consumer lockfile with the exact dependency
+   versions and integrities from the project lockfile, then uses `npm ci
+   --offline` with the cached tarballs populated by the initial `npm ci`.
+   It does not require previously cached registry metadata. It
    tests both command aliases, preserves consumer-owned instructions on
    refresh, and exports local OTLP. Its CodeGraph fixture is a contract test,
    not a real indexer certification. Optional official-reference URL checks

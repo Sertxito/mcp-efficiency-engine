@@ -671,6 +671,8 @@ npm run init
 ```
 
 `pack:check` installs the packed tarball in a temporary offline consumer and
+seeds its dependency lock from the project's exact lockfile, rather than
+relying on cached registry metadata. It
 exercises the installed CLI and initialization path with a deterministic local
 CodeGraph contract fixture. It also verifies preservation of user-owned
 instructions during refresh and local OTLP export from the installed package.

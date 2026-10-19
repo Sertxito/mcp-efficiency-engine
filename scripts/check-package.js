@@ -4,6 +4,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
+const crypto = require("node:crypto");
 const { execFileSync } = require("node:child_process");
 
 const packageRoot = path.resolve(__dirname, "..");
@@ -85,15 +86,32 @@ try {
   fs.mkdirSync(consumerRoot);
   const actualPack = packResult(runNpm(["pack", "--json", "--pack-destination", archiveRoot]));
   const tarball = path.join(archiveRoot, actualPack.filename);
+  const tarballReference = `file:../archive/${actualPack.filename}`;
+  const consumer = { name: "mcpee-package-consumer", version: "1.0.0", private: true,
+    dependencies: { [metadata.name]: tarballReference } };
+  const consumerLock = JSON.parse(fs.readFileSync(path.join(packageRoot, "package-lock.json"), "utf8"));
+  consumerLock.name = consumer.name;
+  consumerLock.version = consumer.version;
+  consumerLock.packages[""] = consumer;
+  consumerLock.packages[`node_modules/${metadata.name}`] = {
+    version: metadata.version,
+    resolved: tarballReference,
+    integrity: `sha512-${crypto.createHash("sha512").update(fs.readFileSync(tarball)).digest("base64")}`,
+    dependencies: metadata.dependencies,
+    bin: metadata.bin,
+    license: metadata.license,
+    engines: metadata.engines,
+  };
+  fs.writeFileSync(path.join(consumerRoot, "package.json"), JSON.stringify(consumer));
+  fs.writeFileSync(path.join(consumerRoot, "package-lock.json"), JSON.stringify(consumerLock));
   runNpm([
-    "install",
+    "ci",
     "--offline",
     "--ignore-scripts",
     "--no-audit",
     "--no-fund",
     "--prefix",
     consumerRoot,
-    tarball,
   ]);
 
   const installedCli = path.join(
