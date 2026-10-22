@@ -213,7 +213,8 @@ try {
     stdio: ["ignore", "pipe", "pipe"],
     timeout: 120_000,
   });
-  assert.match(initOutput, /Initialized project/);
+  assert.match(initOutput, /Project files configured/);
+  assert.match(initOutput, /SETUP COMPLETE/);
   assert.match(initOutput, /CodeGraph init completed/);
   assert.ok(fs.existsSync(path.join(projectRoot, ".github", "copilot-instructions.md")));
   assert.ok(fs.existsSync(path.join(projectRoot, ".mcpee", "generated", "project-capabilities.json")));

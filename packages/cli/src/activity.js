@@ -3,6 +3,31 @@
 const { spawn } = require("node:child_process");
 
 let reporter;
+let paused = false;
+
+async function pauseActivity() {
+  paused = true;
+  const child = reporter;
+  if (!child?.connected) return;
+  await new Promise(resolve => {
+    const done = () => {
+      child.removeListener("message", onMessage);
+      child.removeListener("exit", done);
+      child.removeListener("error", done);
+      resolve();
+    };
+    const onMessage = message => { if (message.paused) done(); };
+    child.on("message", onMessage);
+    child.once("exit", done);
+    child.once("error", done);
+    child.send({ paused: true });
+  });
+}
+
+function resumeActivity() {
+  paused = false;
+  if (reporter?.connected) reporter.send({ paused: false });
+}
 
 function reportActivity(phase) {
   if (reporter?.connected) reporter.send({ phase });
@@ -28,6 +53,7 @@ function startActivity(args, stream = process.stderr) {
     windowsHide: true,
   });
   reporter = child;
+  if (paused) child.send({ paused: true });
   child.on("error", error => stream.write(`[mcpee] Activity indicator failed: ${error.message}\n`));
   return () => {
     reporter = undefined;
@@ -37,11 +63,16 @@ function startActivity(args, stream = process.stderr) {
 
 if (require.main === module && process.argv[2] === "--activity-worker") {
   let phase = process.argv[3];
+  let paused = false;
   const started = Date.now();
-  const tick = () => process.stderr.write(
+  const tick = () => !paused && process.stderr.write(
     `[mcpee] Working: ${phase}; elapsed ${Math.floor((Date.now() - started) / 1000)}s (no percentage available).\n`,
   );
   process.on("message", message => {
+    if (typeof message?.paused === "boolean") {
+      paused = message.paused;
+      if (paused && process.connected) process.send({ paused: true });
+    }
     if (typeof message?.phase === "string") {
       phase = message.phase;
       tick();
@@ -51,4 +82,4 @@ if (require.main === module && process.argv[2] === "--activity-worker") {
   setInterval(tick, 10_000);
 }
 
-module.exports = { startActivity, reportActivity, reportEmbeddingProgress };
+module.exports = { startActivity, reportActivity, reportEmbeddingProgress, pauseActivity, resumeActivity };

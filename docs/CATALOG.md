@@ -140,11 +140,10 @@ commands without a shell.
 
 ## Runtime requirements for tools
 
-- **Node.js**: a complete tool installation needs the latest patch of the
-  official Node.js LTS. `init` checks the official release index and reports the
-  required update without touching the system Node. If Node is not exactly the
-  latest LTS, Repomix installation is blocked and `init` reports incomplete
-  setup.
+- **Node.js**: the CLI requires Node.js 24+; tools enforce their declared
+  minimum versions. `init` checks the official latest LTS as an advisory,
+  without touching system Node. A newer patch or an unavailable release index
+  does not block compatible installations.
 - **Python**: `init` uses `uv` to install the latest stable Python under
   `.mcpee/tools/` and builds the Graphify and MarkItDown environments from it.
   The global Python is never modified. On first setup, a Python 3.8+

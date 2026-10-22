@@ -8,7 +8,7 @@
   },
   "tools": [
     { "id": "git", "command": "git", "version_args": ["--version"], "optional": true, "url": "https://git-scm.com/", "installation": "detect-only" },
-    { "id": "node", "command": "node", "version_args": ["--version"], "optional": false, "url": "https://nodejs.org/", "installation": "global-runtime; latest LTS required" },
+    { "id": "node", "command": "node", "version_args": ["--version"], "optional": false, "url": "https://nodejs.org/", "installation": "global-runtime; Node.js 24+ required; latest LTS recommended" },
     { "id": "npm", "command": "npm", "version_args": ["--version"], "optional": true, "url": "https://docs.npmjs.com/", "installation": "bundled with Node.js" },
     { "id": "python", "command": "python", "version_args": ["--version"], "optional": true, "url": "https://www.python.org/", "installation": "project-local latest stable runtime managed by uv" },
     { "id": "dotnet", "command": "dotnet", "version_args": ["--version"], "optional": true, "url": "https://dotnet.microsoft.com/", "installation": "detect-only" },

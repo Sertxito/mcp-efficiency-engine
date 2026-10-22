@@ -102,3 +102,14 @@ Repeat indexing after updating, keeping model weights and cache. Correctly
 decoded matching entries are reused; misdecoded entries are recalculated.
 Rebuild a previously completed index made with the affected version before
 trusting its non-ASCII semantic results. Cache-hit counts may differ.
+
+## Skill name errors or a "Convert Prompt to Skills" migration
+
+MCPEE 0.1.26 and earlier rendered skills with `name: "MCPEE <id>"`, which does
+not match the skill folder, and rendered workflows as `.github/prompts/*.prompt.md`,
+which the VS Code Copilot harness does not load. From 0.1.27, every skill uses
+`name: mcpee-<id>` and workflows are skills with `disable-model-invocation: true`
+(invoke them with `/mcpee-<workflow>`). Run `mcpee update` after upgrading: it
+rewrites only MCPEE-marked files, reuses workflows already migrated by VS Code
+and removes MCPEE-owned legacy prompts. Skills without the MCPEE marker are
+user-owned and left unchanged.

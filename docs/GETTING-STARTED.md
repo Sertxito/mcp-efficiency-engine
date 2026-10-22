@@ -19,11 +19,11 @@ existing codebase (brownfield) and for an empty project (greenfield).
 
 | Requirement | Why |
 |---|---|
-| Node.js 24 or newer | Runs the CLI. A complete tool installation also needs the **latest patch of the current Node.js LTS**; `init` checks the official release index and tells you if an update is required. It never modifies the system Node runtime. |
+| Node.js 24 or newer | Runs the CLI. Tools check their minimum compatible Node version. The official latest-LTS check is advisory: a newer patch or an unavailable release index does not block compatible installations. MCPEE never modifies the system Node runtime. |
 | GitHub Copilot with an authenticated session | Needed only for approved model execution (`mcpee run` or Copilot Chat routing). |
 | VS Code with Copilot Chat (recommended) | Chat uses the project MCP server automatically. The host must support MCP elicitation so MCPEE can ask for approvals. |
 | Python 3.8+ with pip (first setup only) | Bootstraps the pinned project-local `uv` executable. `uv` then installs the latest stable Python under `.mcpee/tools/` for Graphify and MarkItDown. The global Python is never modified. |
-| Network access during `init` | Tool packages and optional models are downloaded only during setup, each after your approval. Normal use is local. |
+| Network access during `init` | One confirmation authorizes the displayed project-local tool bundle. Optional model downloads require separate approval when explicitly requested. Normal use is local. |
 
 Python has no official LTS designation
 ([Python release lifecycle](https://devguide.python.org/versions/)), which is
@@ -34,13 +34,13 @@ why MCPEE manages its own isolated Python runtime instead of requiring one.
 Global installation (recommended):
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.26
+npm install --global mcp-efficiency-engine@0.1.27
 ```
 
 Run a pinned version without installing globally:
 
 ```sh
-npx --package=mcp-efficiency-engine@0.1.26 mcpee init --project C:\path\to\project
+npx --package=mcp-efficiency-engine@0.1.27 mcpee init --project C:\path\to\project
 ```
 
 The npm package is `mcp-efficiency-engine`. It installs two equivalent
@@ -50,7 +50,7 @@ If npm reports that the Copilot SDK's native `koffi` dependency has a blocked
 install script, allow only that dependency:
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.26 --allow-scripts=koffi
+npm install --global mcp-efficiency-engine@0.1.27 --allow-scripts=koffi
 ```
 
 This does not enable install scripts globally. A successful `mcpee help`
@@ -82,16 +82,18 @@ never overwrites user-owned files. In one run it:
    `.mcpee/generated/project-capabilities.{json,md}`. Matching technical
    guidance is rendered as file-scoped Copilot instructions under
    `.github/instructions/`.
-4. Discovers catalogued tools and asks for approval before downloading each
-   local tool package into `.mcpee/tools/`: MarkItDown (PDF, Word, PowerPoint
+4. Checks tool requirements and asks **once** to authorize the displayed
+   tool bundle in `.mcpee/tools/`: MarkItDown (PDF, Word, PowerPoint
    and Excel extras), CodeGraph, Graphify and Repomix. Pinned versions are
    installed in isolated directories; your package manifest and `node_modules`
-   are not touched. Declining an optional tool does not block initialization.
+   are not touched. Use Up/Down and Enter to choose Yes or No; no typed
+   approval keywords are needed. Required tools are included, not separate
+   questions. Declining the bundle leaves required tools pending.
    **CodeGraph is required**: setup and routing fail closed without its package
    and index. GitNexus is never installed because its PolyForm Noncommercial
-   license is not suitable for general business use. If the current Node
-   version is not exactly the latest LTS patch, Repomix installation is blocked
-   and `init` reports incomplete setup.
+   license is not suitable for general business use. A newer Node LTS patch
+   is an advisory, not a blocker. Incompatible Node versions or a missing
+   npm CLI are reported before requesting installation approval.
 5. Performs the first local knowledge sync: source index, unified evidence
    graph, CodeGraph index and, when installed, the Graphify AST graph. It also
    writes evidence maps to `docs/generated/`.
@@ -99,9 +101,10 @@ never overwrites user-owned files. In one run it:
 7. Generates validation workflow specs from the checks it can find (see
    [Quality and evaluation](QUALITY-AND-EVALUATION.md#generated-validation-workflows)).
    No check is executed during setup.
-8. Optionally enables local semantic embeddings. Interactive `init` asks:
-   `bge-m3` (recommended, local CPU), `light` (uses an existing local Ollama
-   service) or `none`. Each download still requires its own approval. See
+8. Leaves optional semantic embeddings off by default, without another setup
+   question. Opt in with `--embeddings bge-m3|light` or enable them later using
+   `mcpee knowledge embeddings setup --profile bge-m3|light`.
+   Each model download still requires its own approval. See
    [Knowledge and context](KNOWLEDGE.md#optional-semantic-embeddings).
 9. Registers the `mcpee_run` MCP tool and the CodeGraph MCP server in the
    project `.mcp.json`, so ordinary Copilot Chat requests are routed through
@@ -110,11 +113,16 @@ never overwrites user-owned files. In one run it:
 The summary printed at the end reports the detected stack, provisioned
 capabilities, each tool's status, sync counts, brownfield proposals, generated
 validation checks and graph sizes. Read any warning: it names exactly what is
-incomplete.
+incomplete. Capability configuration is reported separately from harness
+readiness. The last status is `SETUP COMPLETE` or `SETUP INCOMPLETE`; the latter
+returns a nonzero exit code and tells you to resolve blockers and rerun `init`.
+Existing capability selections and user-owned files are preserved on retry.
 
 Long-running steps print an activity heartbeat to stderr every ten seconds with
 the elapsed time. It shows that the command is alive, not a percentage of
-progress, and is disabled for non-terminal output, `--json` and `--chat-json`.
+progress. It pauses while a setup menu awaits your response, names the current
+installation or indexing phase, and is disabled for non-terminal output,
+`--json` and `--chat-json`.
 
 ## How MCPEE chooses brownfield or greenfield
 
@@ -124,7 +132,7 @@ generated and build directories) and decides automatically:
 | Project contains | Mode | What `init` does |
 |---|---|---|
 | Source-code files (for example `.cs`, `.ts`, `.js`, `.py`, `.java`, `.go`, `.vue`) or a `package.json` | **Brownfield** | Selects agents and technical guides for the detected stack, extracts specification proposals from the existing code and tests, and generates validation workflows from the project's checks. |
-| No code files and no `package.json` (for example an empty folder or only documents) | **Greenfield** | Installs a general-purpose team (orchestrator, product, architecture, QA, security, AI and documentation agents), plus matching specialists for any non-code stack files such as SQL, Terraform or pipelines. On the first interactive `init` it lists every agent and lets you accept that default or pick others. Specifications start from the requirements you write. |
+| No code files and no `package.json` (for example an empty folder or only documents) | **Greenfield** | Offers a recommended general-purpose team, Backend + Architecture, Frontend + UX/UI, Full stack, or Customize. Use arrows and Enter for a preset; Customize uses Space to toggle individual capabilities. Matching skills and workflows are included automatically. Non-interactive setup retains the general-purpose default. Specifications start from the requirements you write. |
 
 Supported stack signals include C#/.NET, Python, Node.js, TypeScript, Angular,
 React, Vue, SQL, Cosmos DB, Azure, Bicep, AWS, Terraform and YAML pipelines.
@@ -171,7 +179,8 @@ An empty project has no behavior to reverse-engineer, so MCPEE never invents
 business intent. Requirements come first:
 
 1. **Initialize.** Run `mcpee init --project <path>`. In an interactive
-   terminal, accept the default agents or choose your own.
+   terminal, choose a capability preset or customize with checkboxes, then
+   authorize the displayed tool bundle once.
 2. **Write requirements** in a Markdown file in the project, for example
    `docs/requirements.md`. Include concrete inputs, observable outcomes,
    non-goals and open decisions.
@@ -240,7 +249,7 @@ Non-interactive `init` never guesses and never downloads without approval:
 | Option | Effect |
 |---|---|
 | `--agents <id,...\|all\|none>` | Choose agents explicitly. Without it, a non-interactive greenfield init uses the general-purpose default. |
-| `--embeddings none\|light\|bge-m3` | Choose embeddings explicitly. Non-interactive default: `none`. |
+| `--embeddings none\|light\|bge-m3` | Choose embeddings explicitly. Default in all terminals: `none`. |
 | `--skip-tool-install` | Use already installed tools. Without it, non-interactive tool installation is denied. Mandatory readiness checks (such as CodeGraph) still apply. |
 
 Example:
@@ -275,7 +284,7 @@ refreshes all installed catalog assets. User-owned files are always preserved.
 | `mcpee.config.yml` | Project configuration, including `knowledge.sourceRoots` |
 | `.mcpee/` | Runtime, state, tools, indexes, graphs, reports, telemetry, memory, workflow specs and specification proposals. Its own `.mcpee/.gitignore` excludes the cache, tools, indexes, graphs, specs, reports, telemetry and logs. |
 | `.codegraph/` | Required local CodeGraph symbol index |
-| `.github/agents/`, `.github/skills/`, `.github/prompts/` | Rendered agent profiles, skill procedures and workflow prompts |
+| `.github/agents/`, `.github/skills/` | Rendered agent profiles, skill procedures and workflow skills (`/mcpee-<workflow>`, explicit invocation only; works in the Local and Copilot harnesses) |
 | `.github/instructions/` | Always-on policies and file-scoped technical guidance |
 | `.github/hooks/` | Approval and observability hook registration |
 | `.mcp.json` | Project MCP servers (`mcpee`, `mcpee-codegraph`); existing entries are preserved |

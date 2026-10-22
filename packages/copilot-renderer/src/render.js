@@ -928,7 +928,7 @@ ${(agent.supporting_source_paths ?? []).map((sourcePath) =>
 
 function skillContent(skill) {
   return `---
-name: ${yamlString(`MCPEE ${skill.id}`)}
+name: mcpee-${skill.id}
 description: ${yamlString(skill.description)}
 ---
 ${GENERATED_MARKER}
@@ -957,16 +957,26 @@ ${skill.used_by.map((agentId) => `- ${agentId}`).join("\n")}
 `;
 }
 
-function workflowContent(workflow) {
+// Skill names must match their folder; workflows whose id equals a catalog skill id get a prefix.
+function workflowSkillName(workflowId, skillIds) {
+  return skillIds.has(workflowId) ? `mcpee-workflow-${workflowId}` : `mcpee-${workflowId}`;
+}
+
+function workflowContent(workflow, name) {
   return `---
+name: ${name}
 description: ${yamlString(workflow.description)}
-agent: mcpee-orchestrator
+disable-model-invocation: true
 ---
 ${GENERATED_MARKER}
 
 # ${workflow.id}
 
 ${workflow.description}
+
+Run this workflow only when the user invokes it explicitly (\`/${name}\`).
+Coordinate it as the \`mcpee-orchestrator\` agent: route the request through the
+project-scoped \`mcpee_run\` MCP tool when it is available.
 
 Use agent \`${workflow.agent}\` and skills ${workflow.skills.map((skill) => `\`${skill}\``).join(", ")}.
 Start when: ${workflow.entry_conditions.join("; ")}.
@@ -1110,7 +1120,7 @@ ${Object.entries(assets).map(([kind, ids]) =>
 `;
 }
 
-function renderFiles(catalog, capabilities) {
+function renderFiles(catalog, capabilities, skillIds = new Set(catalog.skills.map((skill) => skill.id))) {
   const files = new Map();
   for (const agent of catalog.agents) {
     files.set(`.github/agents/mcpee-${agent.id}.agent.md`, agentContent(agent, catalog));
@@ -1119,7 +1129,8 @@ function renderFiles(catalog, capabilities) {
     files.set(`.github/skills/mcpee-${skill.id}/SKILL.md`, skillContent(skill));
   }
   for (const workflow of catalog.workflows) {
-    files.set(`.github/prompts/mcpee-${workflow.id}.prompt.md`, workflowContent(workflow));
+    const name = workflowSkillName(workflow.id, skillIds);
+    files.set(`.github/skills/${name}/SKILL.md`, workflowContent(workflow, name));
   }
   files.set(".github/instructions/mcpee-catalog.instructions.md", coreInstructions());
   files.set(".github/instructions/mcpee-policies.instructions.md", policyInstructions(catalog));
@@ -1275,20 +1286,26 @@ function renderCatalog(projectRoot, options = {}) {
   const assets = capabilityDefaults(catalog, defaults, state);
   capabilities.assets = assets;
   const renderableCatalog = selectedCatalog(catalog, assets);
-  const files = renderFiles(renderableCatalog, capabilities);
+  const files = renderFiles(renderableCatalog, capabilities, new Set(catalog.skills.map((skill) => skill.id)));
   const previous = loadManagedFiles(root);
   const nextFiles = new Set(files.keys());
   const counts = { created: 0, updated: 0, unchanged: 0, preserved: 0, removed: 0 };
   for (const [relative, content] of files) {
     counts[writeOwnedFile(root, relative, content)] += 1;
   }
+  const removedDirectories = new Set();
   for (const relative of previous) {
     if (nextFiles.has(relative)) continue;
     const destination = safeProjectPath(root, relative);
     if (isOwnedGeneratedFile(destination)) {
       fs.unlinkSync(destination);
       counts.removed += 1;
+      removedDirectories.add(path.dirname(destination));
     }
+  }
+  // Drop folders left empty by removed output, e.g. legacy .github/prompts or a skill folder.
+  for (const directory of removedDirectories) {
+    if (fs.existsSync(directory) && fs.readdirSync(directory).length === 0) fs.rmdirSync(directory);
   }
   const lockStatus = writeCatalogLock(root, digest);
   if (lockStatus === "preserved") counts.preserved += 1;
