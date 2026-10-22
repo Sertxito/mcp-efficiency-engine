@@ -68,7 +68,8 @@ jobs:
         env:
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
         run: |
-          for attempt in $(seq 1 18); do
+          # npm can take several minutes to expose a fresh version on the registry read path.
+          for attempt in $(seq 1 60); do
             if npm view "mcp-efficiency-engine@$RELEASE_VERSION" version --prefer-online --cache "$RUNNER_TEMP/npm-verify-$attempt" --json > "$RUNNER_TEMP/published-version.json" &&
               node -e 'const fs = require("node:fs"); if (JSON.parse(fs.readFileSync(process.argv[1], "utf8")) !== process.env.RELEASE_VERSION) process.exit(1)' "$RUNNER_TEMP/published-version.json"; then
               exit 0

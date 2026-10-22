@@ -29,8 +29,18 @@ function resumeActivity() {
   if (reporter?.connected) reporter.send({ paused: false });
 }
 
+let step;
+
+function setActivityStep(index, total) {
+  step = Number.isInteger(index) && Number.isInteger(total) ? { index, total } : undefined;
+}
+
+function formatActivityPhase(phase) {
+  return step ? `Step ${step.index}/${step.total}: ${phase}` : phase;
+}
+
 function reportActivity(phase) {
-  if (reporter?.connected) reporter.send({ phase });
+  if (reporter?.connected) reporter.send({ phase: formatActivityPhase(phase) });
 }
 
 function reportEmbeddingProgress(progress, stream = process.stderr) {
@@ -66,7 +76,7 @@ if (require.main === module && process.argv[2] === "--activity-worker") {
   let paused = false;
   const started = Date.now();
   const tick = () => !paused && process.stderr.write(
-    `[mcpee] Working: ${phase}; elapsed ${Math.floor((Date.now() - started) / 1000)}s (no percentage available).\n`,
+    `[mcpee] Working: ${phase}; elapsed ${Math.floor((Date.now() - started) / 1000)}s.\n`,
   );
   process.on("message", message => {
     if (typeof message?.paused === "boolean") {
@@ -82,4 +92,12 @@ if (require.main === module && process.argv[2] === "--activity-worker") {
   setInterval(tick, 10_000);
 }
 
-module.exports = { startActivity, reportActivity, reportEmbeddingProgress, pauseActivity, resumeActivity };
+module.exports = {
+  startActivity,
+  reportActivity,
+  reportEmbeddingProgress,
+  pauseActivity,
+  resumeActivity,
+  setActivityStep,
+  formatActivityPhase,
+};
