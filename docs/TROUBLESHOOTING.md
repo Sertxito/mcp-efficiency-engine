@@ -105,7 +105,7 @@ trusting its non-ASCII semantic results. Cache-hit counts may differ.
 
 ## Skill name errors or a "Convert Prompt to Skills" migration
 
-MCPEE 0.1.26 and earlier rendered skills with `name: "MCPEE <id>"`, which does
+MCPEE 0.1.26 and earlier rendered skills and agents with `name: "MCPEE <id>"`, which does
 not match the skill folder, and rendered workflows as `.github/prompts/*.prompt.md`,
 which the VS Code Copilot harness does not load. From 0.1.27, every skill uses
 `name: mcpee-<id>` and workflows are skills with `disable-model-invocation: true`

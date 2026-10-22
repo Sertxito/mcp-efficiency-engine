@@ -29,6 +29,12 @@ recorded in `.mcpee/generated/project-capabilities.{json,md}`.
   Non-interactive `init` without `--agents` uses the general-purpose default
   and does not guess a stack.
 
+The `orchestrator` agent and its skills and patterns are core: they are always
+installed, even with `--agents none`, because every workflow is coordinated by
+it and `mcpee doctor` requires it. `mcpee capabilities` reports them as `core`
+and does not remove them. Rendered agents and skills use `name: mcpee-<id>`,
+matching their file or folder name.
+
 Re-run `mcpee init` after the stack changes (for example, once a greenfield
 project has its first code) to refresh detected assets. `mcpee explain` shows
 the detected stack and selection. See

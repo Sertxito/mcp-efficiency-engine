@@ -248,7 +248,7 @@ Non-interactive `init` never guesses and never downloads without approval:
 
 | Option | Effect |
 |---|---|
-| `--agents <id,...\|all\|none>` | Choose agents explicitly. Without it, a non-interactive greenfield init uses the general-purpose default. |
+| `--agents <id,...\|all\|none>` | Choose specialist agents explicitly; the core `orchestrator` is always installed. Without it, a non-interactive greenfield init uses the general-purpose default. |
 | `--embeddings none\|light\|bge-m3` | Choose embeddings explicitly. Default in all terminals: `none`. |
 | `--skip-tool-install` | Use already installed tools. Without it, non-interactive tool installation is denied. Mandatory readiness checks (such as CodeGraph) still apply. |
 

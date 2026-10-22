@@ -170,13 +170,13 @@ test("interactive init configures Backend + Architecture with two menus and an u
         assert.equal(code,${ready ? 0 : 1});
         assert.equal(menus,2);
         const state=JSON.parse(fs.readFileSync(path.join(root,'.mcpee/generated/project-capabilities.json'),'utf8'));
-        assert.deepEqual(state.assets.agents,['architecture','backend']);
+        assert.deepEqual(state.assets.agents,['architecture','backend','orchestrator']);
       }).catch(error=>{console.error(error);process.exitCode=1})
         .finally(()=>fs.rmSync(root,{recursive:true,force:true}));
     `;
     const result = spawnSync(process.execPath, ["-e", script], { encoding: "utf8", timeout: 30_000 });
     assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, /Capabilities configured: architecture, backend/);
+    assert.match(result.stdout, /Capabilities configured: architecture, backend, orchestrator/);
     assert.match(result.stdout + result.stderr, ready ? /SETUP COMPLETE/ : /SETUP INCOMPLETE/);
     assert.doesNotMatch(result.stdout, /Agent IDs \(comma|Type "approve"|Optional local semantic embeddings:/);
   }

@@ -1680,7 +1680,7 @@ async function chooseInitAgents(root, args) {
   if (capabilities.has_code_signals) return null;
   const catalogAgents = readCatalog().catalog.agents;
   const defaults = new Set(capabilities.assets.agents);
-  process.stdout.write("[mcpee] No source-code stack detected. Choose capabilities; matching skills and workflows are included automatically.\n");
+  process.stdout.write("[mcpee] No source-code stack detected. Choose capabilities; the orchestrator and matching skills and workflows are included automatically.\n");
   const profile = await selectOptions({
     title: "Initial capabilities (you can change these later)",
     options: [

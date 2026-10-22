@@ -27,6 +27,8 @@ const GUIDANCE_REPLACEMENTS = {
 const EXECUTION_STAGES = [
   "understand", "analyze", "plan", "execute", "validate", "document", "observe", "learn",
 ];
+// The orchestrator coordinates every workflow and is required by `mcpee doctor`.
+const REQUIRED_AGENTS = ["orchestrator"];
 const CAPABILITY_COLLECTIONS = {
   agent: "agents",
   skill: "skills",
@@ -72,8 +74,18 @@ function readCapabilityState(projectRoot) {
   return state;
 }
 
+function requiredCapabilityAssets(catalog) {
+  const agents = catalog.agents.filter((agent) => REQUIRED_AGENTS.includes(agent.id));
+  return {
+    agents: new Set(agents.map((agent) => agent.id)),
+    skills: new Set(agents.flatMap((agent) => agent.skills)),
+    patterns: new Set(agents.flatMap((agent) => agent.patterns || [])),
+  };
+}
+
 function resolveCapabilityAssets(catalog, detectedAssets, state) {
   const overrides = state?.overrides || {};
+  const required = requiredCapabilityAssets(catalog);
   const selected = {};
   for (const [type, collection] of Object.entries(CAPABILITY_COLLECTIONS)) {
     const available = new Set(catalog[collection].map((item) => item.id));
@@ -87,6 +99,7 @@ function resolveCapabilityAssets(catalog, detectedAssets, state) {
       ...(detectedAssets[collection] || []),
       ...(override.added || []),
     ].filter((id) => !(override.removed || []).includes(id)));
+    for (const id of required[collection] || []) selected[collection].add(id);
   }
 
   const addedAgents = new Set(selected.agents);
@@ -120,7 +133,9 @@ function resolveCapabilityAssets(catalog, detectedAssets, state) {
 
   for (const [type, collection] of Object.entries(CAPABILITY_COLLECTIONS)) {
     const excluded = new Set(overrides[type]?.removed || []);
-    for (const id of excluded) selected[collection].delete(id);
+    for (const id of excluded) {
+      if (!required[collection]?.has(id)) selected[collection].delete(id);
+    }
   }
   return Object.fromEntries(Object.entries(selected).map(([collection, ids]) => [
     collection,
@@ -145,14 +160,14 @@ function createInitialCapabilityState(agentIds) {
   }
   const { catalog, digest } = readCatalog();
   const available = new Set(catalog.agents.map((agent) => agent.id));
-  const selected = new Set(agentIds);
-  if (selected.size !== agentIds.length) {
+  if (new Set(agentIds).size !== agentIds.length) {
     throw new Error("Initial agent selection cannot contain duplicate IDs.");
   }
-  const unknown = [...selected].filter((id) => !available.has(id));
+  const unknown = agentIds.filter((id) => !available.has(id));
   if (unknown.length) {
     throw new Error(`Initial agent selection contains unknown IDs: ${unknown.join(", ")}`);
   }
+  const selected = new Set([...REQUIRED_AGENTS, ...agentIds]);
   const workflows = catalog.workflows.filter((workflow) => selected.has(workflow.agent));
   const workflowIds = new Set(workflows.map((workflow) => workflow.id));
   const skills = new Set([
@@ -224,6 +239,7 @@ function capabilityRegistry(projectRoot, catalog = readCatalog().catalog) {
   const state = readCapabilityState(projectRoot);
   const defaults = initialCapabilityAssets(catalog, detected.assets);
   const assets = capabilityDefaults(catalog, defaults, state);
+  const required = requiredCapabilityAssets(catalog);
   const items = [];
   for (const [type, collection] of Object.entries(CAPABILITY_COLLECTIONS)) {
     const installed = new Set(assets[collection]);
@@ -232,7 +248,9 @@ function capabilityRegistry(projectRoot, catalog = readCatalog().catalog) {
         type,
         id: entry.id,
         description: entry.description,
-        status: installed.has(entry.id)
+        status: required[collection]?.has(entry.id)
+          ? "core"
+          : installed.has(entry.id)
           ? (defaults[collection]?.includes(entry.id) ? "detected-installed" : "installed")
           : "available",
         dependencies: type === "agent"
@@ -864,7 +882,7 @@ function agentContent(agent, catalog) {
     .filter((skill) => agent.skills.includes(skill.id))
     .map((skill) => `- ${skill.id}: ${skill.description}`);
   return `---
-name: ${yamlString(`MCPEE ${agent.id}`)}
+name: mcpee-${agent.id}
 description: ${yamlString(agent.description)}
 ---
 ${GENERATED_MARKER}

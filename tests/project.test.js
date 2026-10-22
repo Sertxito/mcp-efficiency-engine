@@ -185,17 +185,42 @@ test("init selects user-chosen agents for projects without code and preserves ca
   const result = initializeProject(root, { initialAgents: ["product"] });
 
   assert.equal(result.catalog.capabilities.has_code_signals, false);
-  assert.deepEqual(result.catalog.capabilities.assets.agents, ["product"]);
+  assert.deepEqual(result.catalog.capabilities.assets.agents, ["orchestrator", "product"]);
   assert.ok(result.catalog.capabilities.assets.skills.length > 0);
   assert.ok(result.catalog.capabilities.assets.workflows.every((workflowId) =>
-    readCatalog().catalog.workflows.find((workflow) => workflow.id === workflowId)?.agent === "product"));
+    ["orchestrator", "product"].includes(
+      readCatalog().catalog.workflows.find((workflow) => workflow.id === workflowId)?.agent)));
   assert.equal(capabilityRegistry(root).items.find((item) =>
     item.type === "agent" && item.id === "qa")?.status, "available");
+  assert.equal(capabilityRegistry(root).items.find((item) =>
+    item.type === "agent" && item.id === "orchestrator")?.status, "core");
+  assert.throws(() => manageCapability(root, "remove", "agent", "orchestrator"), /core agent/);
 
   manageCapability(root, "install", "agent", "qa");
   assert.deepEqual(capabilityRegistry(root).items
-    .filter((item) => item.type === "agent" && item.status !== "available")
+    .filter((item) => item.type === "agent" && !["available", "core"].includes(item.status))
     .map((item) => item.id).sort(), ["product", "qa"]);
+});
+
+test("the orchestrator is restored when an earlier selection excluded it", () => {
+  const root = temporaryProject();
+  initializeProject(root, { initialAgents: ["backend", "architecture"] });
+  const statePath = path.join(root, ".mcpee/state/catalog-capabilities.json");
+  const state = JSON.parse(fs.readFileSync(statePath, "utf8"));
+  state.overrides.agent.added = state.overrides.agent.added.filter((id) => id !== "orchestrator");
+  state.overrides.agent.removed.push("orchestrator");
+  state.overrides.skill.removed.push("knowledge");
+  fs.writeFileSync(statePath, `${JSON.stringify(state, null, 2)}\n`);
+
+  renderCatalog(root);
+
+  const agent = fs.readFileSync(path.join(root, ".github/agents/mcpee-orchestrator.agent.md"), "utf8");
+  assert.match(agent, /^---\nname: mcpee-orchestrator\n/);
+  assert.ok(fs.existsSync(path.join(root, ".github/skills/mcpee-knowledge/SKILL.md")));
+  for (const file of fs.readdirSync(path.join(root, ".github/agents"))) {
+    const id = file.replace(/\.agent\.md$/, "");
+    assert.match(fs.readFileSync(path.join(root, ".github/agents", file), "utf8"), new RegExp(`^---\\nname: ${id}\\n`));
+  }
 });
 
 test("code evidence is detected even when no supported stack manifest exists", () => {
@@ -220,10 +245,11 @@ test("every specialist can route an isolated entry audit without installing anot
   for (const agent of catalog.agents) {
     renderCatalog(root, { capabilityState: createInitialCapabilityState([agent.id]) });
     const installed = readInstalledCatalog(root);
-    assert.deepEqual(installed.agents.map(item => item.id), [agent.id]);
-    assert.ok(installed.workflows.length > 0, `${agent.id} needs a runnable workflow`);
+    assert.deepEqual(installed.agents.map(item => item.id).sort(), [...new Set(["orchestrator", agent.id])].sort());
+    assert.ok(installed.workflows.some(item => item.agent === agent.id), `${agent.id} needs a runnable workflow`);
     const plan = routeTask(root, "Review only sample.txt; do not edit or execute commands.");
-    assert.equal(plan.agent.id, agent.id);
+    // Generic requests without specialist keywords fall back to the always-installed orchestrator.
+    assert.ok([agent.id, "orchestrator"].includes(plan.agent.id));
     assert.ok(installed.workflows.some(item => item.id === plan.workflow.id));
   }
 });
@@ -383,7 +409,8 @@ test("capabilities can be listed, installed, updated, and removed without breaki
     item.type === "agent" && item.id === "backend")?.status, "available");
   assert.notEqual(capabilityRegistry(root).items.find((item) =>
     item.type === "skill" && item.id === "quality")?.status, "available");
-  assert.throws(() => manageCapability(root, "remove", "skill", "quality"), /depend on it/);
+  assert.throws(() => manageCapability(root, "remove", "skill", "quality"), /core skill/);
+  assert.throws(() => manageCapability(root, "remove", "skill", "backend-change"), /depend on it/);
 
   const installed = spawnSync(process.execPath, [
     cli, "capabilities", "install", "backend", "--type", "agent", "--project", root,
