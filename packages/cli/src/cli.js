@@ -6,7 +6,7 @@ const crypto = require("node:crypto");
 const http = require("node:http");
 const { spawnSync } = require("node:child_process");
 const readline = require("node:readline/promises");
-const { reportEmbeddingProgress, reportActivity } = require("./activity");
+const { reportEmbeddingProgress, reportActivity, setActivityStep } = require("./activity");
 const { selectOptions, askQuestion } = require("./terminal-select");
 const { addMemory, listMemory, searchMemory } = require("../../memory-engine/src/memory");
 const { initializeProject, PROJECT_DIRECTORIES, approvalHookInstalled } = require("../../core/src/project");
@@ -2961,13 +2961,19 @@ async function runCommand(args) {
       process.stderr.write("[mcpee] Initialization stopped because the existing hook does not enforce human approval.\n");
       return 1;
     }
+    const totalSteps = embeddingProfile === "none" ? 5 : 6;
+    const startStep = (index, phase) => {
+      setActivityStep(index, totalSteps);
+      reportActivity(phase);
+    };
+    startStep(1, "Configuring project files and capabilities");
     const result = initializeProject(root, {
       refreshRuntime,
       refreshApprovalHook,
       ...(initialAgents ? { initialAgents } : {}),
     });
     process.stdout.write(`[mcpee] Capabilities configured: ${result.catalog.capabilities.assets.agents.join(", ") || "none"}.\n`);
-    reportActivity("Checking tool requirements");
+    startStep(2, "Checking and installing tools");
     const toolInstallation = await installCatalogTools(root, {
       skipInstall: rest.includes("--skip-tool-install"),
       approveInstallBatch,
@@ -2978,19 +2984,19 @@ async function runCommand(args) {
         }
       },
       onProgress: (result) => {
-        reportActivity(`${result.id}: ${result.status}`);
+        reportActivity(`Installing tools - ${result.id}: ${result.status}`);
         process.stdout.write(`[mcpee] ${result.id}: ${result.status}${result.reason ? ` - ${result.reason}` : ""}\n`);
       },
     });
-    reportActivity("Discovering local tools");
+    startStep(3, "Discovering local tools");
     const toolReport = discoverTools(root);
     saveToolReport(root, toolReport);
-    reportActivity("Building CodeGraph index");
+    startStep(4, "Building CodeGraph index");
     const codeGraph = updateCodeGraph(root, {
       available: toolReport.tools.some((tool) => tool.id === "codegraph" && tool.available),
       required: true,
     });
-    reportActivity("Synchronizing local sources and evidence");
+    startStep(5, "Synchronizing local sources, evidence and documentation");
     const sync = syncProject(root);
     const brownfieldProposal = sync.specifications;
     const workflowSpecs = provisionWorkflowSpecs(root, toolReport, result.catalog.capabilities);
@@ -3001,6 +3007,7 @@ async function runCommand(args) {
       embeddingResult = { warning: error.message };
     }
     if (embeddingProfile !== "none") {
+      startStep(6, `Setting up ${embeddingProfile} semantic embeddings`);
       const embeddingExitCode = await runEmbeddingCommand(root, [
         "setup",
         "--profile",
@@ -3015,6 +3022,8 @@ async function runCommand(args) {
     if (embeddingProfile === "none" && process.stdin.isTTY) {
       process.stdout.write("[mcpee] Semantic embeddings are optional and off by default. Add them later with mcpee knowledge embeddings setup --profile bge-m3|light.\n");
     }
+    setActivityStep();
+    reportActivity("Writing setup summary");
     const availableTools = toolReport.tools.filter((tool) => tool.available).length;
     process.stdout.write(`[mcpee] Project files configured at ${root}\n`);
     process.stdout.write(`Created ${result.created.length} paths; updated ${result.updated.length} MCPEE-managed files; preserved ${result.preserved.length} existing files.\n`);

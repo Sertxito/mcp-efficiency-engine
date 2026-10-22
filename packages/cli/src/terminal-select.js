@@ -23,7 +23,8 @@ async function selectOptions({ title, options, multiple = false, initial = [], i
       let cursor = 0;
       let lines = 0;
       const wasRaw = Boolean(input.isRaw);
-      const wasPaused = input.isPaused();
+      // A fresh stdin reports isPaused() === false while not flowing; restoring that would keep the process alive.
+      const wasFlowing = input.readableFlowing === true;
       const render = () => {
         if (lines) output.write(`\x1b[${lines}A\x1b[0J`);
         const start = Math.max(0, Math.min(cursor - 3, options.length - 7));
@@ -45,7 +46,7 @@ async function selectOptions({ title, options, multiple = false, initial = [], i
         input.removeListener("keypress", onKey);
         input.removeListener("end", onEnd);
         input.setRawMode(wasRaw);
-        if (wasPaused) input.pause();
+        if (!wasFlowing) input.pause();
         output.write("\x1b[?25h");
         if (error) reject(error);
         else resolve(value);

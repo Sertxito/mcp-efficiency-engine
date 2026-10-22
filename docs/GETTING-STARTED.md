@@ -34,13 +34,13 @@ why MCPEE manages its own isolated Python runtime instead of requiring one.
 Global installation (recommended):
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.27
+npm install --global mcp-efficiency-engine@0.1.28
 ```
 
 Run a pinned version without installing globally:
 
 ```sh
-npx --package=mcp-efficiency-engine@0.1.27 mcpee init --project C:\path\to\project
+npx --package=mcp-efficiency-engine@0.1.28 mcpee init --project C:\path\to\project
 ```
 
 The npm package is `mcp-efficiency-engine`. It installs two equivalent
@@ -50,7 +50,7 @@ If npm reports that the Copilot SDK's native `koffi` dependency has a blocked
 install script, allow only that dependency:
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.27 --allow-scripts=koffi
+npm install --global mcp-efficiency-engine@0.1.28 --allow-scripts=koffi
 ```
 
 This does not enable install scripts globally. A successful `mcpee help`
@@ -119,10 +119,12 @@ returns a nonzero exit code and tells you to resolve blockers and rerun `init`.
 Existing capability selections and user-owned files are preserved on retry.
 
 Long-running steps print an activity heartbeat to stderr every ten seconds with
-the elapsed time. It shows that the command is alive, not a percentage of
-progress. It pauses while a setup menu awaits your response, names the current
-installation or indexing phase, and is disabled for non-terminal output,
-`--json` and `--chat-json`.
+the elapsed time. During `init` it is prefixed with the setup step, for example
+`Step 4/5: Building CodeGraph index` (`/6` when embeddings are selected). It
+shows that the command is alive, not a percentage of progress. It pauses while
+a setup menu awaits your response, names the current installation or indexing
+phase, and is disabled for non-terminal output, `--json` and `--chat-json`.
+The terminal prompt returns as soon as the final status is printed.
 
 ## How MCPEE chooses brownfield or greenfield
 

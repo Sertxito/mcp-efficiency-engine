@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 const test = require("node:test");
-const { startActivity, reportEmbeddingProgress } = require("../packages/cli/src/activity");
+const { startActivity, reportEmbeddingProgress, setActivityStep, formatActivityPhase } = require("../packages/cli/src/activity");
 
 test("measured embedding progress remains visible in redirected background logs", () => {
   let output = "";
@@ -25,16 +25,27 @@ test("activity is silent for nonterminals, JSON and help", () => {
 test("activity reports during synchronous work and does not write to stdout", () => {
   const modulePath = path.resolve(__dirname, "../packages/cli/src/activity");
   const script = `
-    const {startActivity,reportActivity}=require(${JSON.stringify(modulePath)});
+    const {startActivity,reportActivity,setActivityStep}=require(${JSON.stringify(modulePath)});
     const stop=startActivity(['sync'],{isTTY:true,write:s=>process.stderr.write(s)});
     reportActivity('test phase');
+    setActivityStep(2,5);
+    reportActivity('stepped phase');
     Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,1000);
     stop();
   `;
   const result = spawnSync(process.execPath, ["-e", script], { encoding: "utf8", timeout: 10_000 });
   assert.equal(result.status, 0, result.stderr);
   assert.equal(result.stdout, "");
-  assert.match(result.stderr, /Working: test phase; elapsed \d+s/);
+  assert.match(result.stderr, /Working: test phase; elapsed \d+s\./);
+  assert.match(result.stderr, /Working: Step 2\/5: stepped phase; elapsed \d+s\./);
+  assert.doesNotMatch(result.stderr, /no percentage/);
+});
+
+test("activity step prefix is cleared after the stepped flow", () => {
+  setActivityStep(1, 5);
+  assert.equal(formatActivityPhase("Building"), "Step 1/5: Building");
+  setActivityStep();
+  assert.equal(formatActivityPhase("Summary"), "Summary");
 });
 
 test("activity stays silent while waiting for input and resumes with a real phase", () => {

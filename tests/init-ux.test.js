@@ -35,6 +35,7 @@ test("capabilities are selected with arrows and space, without typing identifier
   io.input.write(" \x1b[B \r");
   assert.deepEqual(await selection, ["backend", "architecture"]);
   assert.equal(io.input.isRaw, false);
+  assert.notEqual(io.input.readableFlowing, true, "stdin must stop flowing so the CLI can exit");
   assert.equal(io.input.listenerCount("keypress"), 0);
   assert.match(io.text(), /\[x\] Architecture/);
 });

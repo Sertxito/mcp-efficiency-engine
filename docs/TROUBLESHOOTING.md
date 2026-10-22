@@ -14,6 +14,13 @@ After changing the installed package, `mcpee update` refreshes project
 integration; it does not download a new npm version. Restart the project's MCP
 server after updating its integration.
 
+Run `doctor` with the same MCPEE version that generated the project. An older
+global install can report removed outputs (for example `.github/prompts` before
+0.1.27) as missing; check `npm ls -g mcp-efficiency-engine`, upgrade, then run
+`mcpee update`. `Required CodeGraph index healthy (not initialized)` means an
+earlier `init` stopped before indexing; rerun `mcpee init`, which keeps your
+capability selections.
+
 ## npm blocks the native SDK dependency
 
 If npm reports a blocked `koffi` install script, repeat the pinned installation
