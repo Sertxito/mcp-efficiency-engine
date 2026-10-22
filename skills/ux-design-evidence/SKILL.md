@@ -19,6 +19,15 @@ description: "Turn approved design sources and implemented UI into traceable UX 
 4. Capture screenshots only from an approved non-sensitive environment; label route, viewport, state, and build/revision.
 5. Compare implementation to approved design intent, document deviations and uncertainty, and update Storybook/component docs only from verified behavior.
 
+## Reviewable handoff
+Map each journey requirement to design revision, component/route, interaction
+state and acceptance check. Include content/validation rules, responsive/theme
+variants, keyboard/focus transitions and unresolved decisions with owners.
+For existing Storybook, add fixtures and interaction evidence using its
+installed version and project conventions; do not invent a running preview.
+Keep screenshots labeled and redacted, distinguish lab/design evidence from
+observed user research, and record capture/browser limitations.
+
 ## Output
 Traceable UX specification, component/state inventory, labeled visual evidence, and prioritized findings or documentation changes.
 

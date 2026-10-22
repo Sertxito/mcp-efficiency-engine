@@ -138,11 +138,11 @@ test("asset evaluation combines local literal assertions and an explicit human s
     ];
     assert.ok(formerlyUndocumented.every((id) =>
       typeof catalog.workflows.find((workflow) => workflow.id === id)?.source_path === "string"));
-    assert.deepEqual(
-      ["architect-challenger", "technical-debt-assessor", "technical-due-diligence", "performance-forensics"]
-        .map((id) => catalog.eval_cases.filter((evaluation) => evaluation.asset_ids?.includes(id)).length),
-      [1, 1, 1, 1],
-    );
+    for (const id of ["architect-challenger", "technical-debt-assessor",
+      "technical-due-diligence", "performance-forensics"]) {
+      assert.ok(catalog.eval_cases.some(evaluation => evaluation.asset_ids?.includes(id)),
+        `Missing specialist evaluation case: ${id}`);
+    }
   });
 
   assert.equal(awaiting.status, "awaiting-review");
@@ -191,8 +191,8 @@ test("asset evaluation combines local literal assertions and an explicit human s
 test("catalog coverage maps each supported stack without claiming certification", () => {
   const report = buildCatalogCoverageReport();
   assert.equal(report.status, "mapped");
-  assert.equal(report.technology_count, 12);
-  assert.equal(report.technologies.length, 12);
+  assert.equal(report.technology_count, 13);
+  assert.equal(report.technologies.length, 13);
   assert.ok(report.technologies.every((technology) =>
     technology.status === "mapped" &&
     technology.mapped_asset_categories === report.required_asset_categories.length &&

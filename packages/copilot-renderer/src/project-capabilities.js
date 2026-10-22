@@ -18,7 +18,7 @@ const COSMOS_PACKAGES = new Set([
 ]);
 const SUPPORTED_TECHNOLOGIES = [
   "angular", "aws", "azure", "bicep", "cosmos-db", "dotnet", "node", "python",
-  "react", "sql", "terraform", "yaml-pipelines",
+  "react", "sql", "terraform", "vue", "yaml-pipelines",
 ];
 
 function walkProjectFiles(projectRoot) {
@@ -91,7 +91,7 @@ function detectProjectCapabilities(projectRoot, catalog) {
     technologies.set(technology, sources);
   };
   const matchingFiles = (pattern) => files.filter((file) => pattern.test(file));
-  const codeEvidenceFiles = matchingFiles(/\.(?:[cm]?[jt]sx?|pyi?|cs|fs|vb|go|rs|java|kt|swift|rb|php|c|cc|cpp|h|hh|hpp|scala|sh)$/i);
+  const codeEvidenceFiles = matchingFiles(/\.(?:[cm]?[jt]sx?|vue|pyi?|cs|fs|vb|go|rs|java|kt|swift|rb|php|c|cc|cpp|h|hh|hpp|scala|sh)$/i);
 
   const dotnetFiles = matchingFiles(/\.(?:csproj|fsproj|vbproj|sln|slnx)$/i);
   for (const file of dotnetFiles) {
@@ -112,15 +112,17 @@ function detectProjectCapabilities(projectRoot, catalog) {
     if (typeof packageManifests.get(file)?.engines?.node === "string") add("node", file);
     if (localDependencies.has("@angular/core")) add("angular", file);
     if (localDependencies.has("react") || localDependencies.has("react-dom")) add("react", file);
+    if (localDependencies.has("vue") || localDependencies.has("nuxt")) add("vue", file);
     if ([...BACKEND_FRAMEWORKS].some((dependency) => localDependencies.has(dependency))) add("node", file);
     if ([...localDependencies].some((dependency) => dependency.startsWith("@azure/"))) add("azure", file);
     if (localDependencies.has("aws-cdk-lib") || localDependencies.has("aws-cdk")) add("aws", file);
   }
-  for (const file of matchingFiles(/\.(?:bicep)$/i)
-    .concat(files.filter((file) => /(?:^|\/)(?:azure\.ya?ml|azure-pipelines\.ya?ml|host\.json)$/i.test(file)))) {
+  for (const file of matchingFiles(/\.vue$/i)) add("vue", file);
+  for (const file of matchingFiles(/\.(?:bicep|bicepparam)$/i)
+    .concat(files.filter((file) => /(?:^|\/)(?:azure\.ya?ml|azure-pipelines[^/]*\.ya?ml|host\.json)$/i.test(file)))) {
     add("azure", file);
   }
-  for (const file of matchingFiles(/\.bicep$/i)) add("bicep", file);
+  for (const file of matchingFiles(/\.(?:bicep|bicepparam)$/i)) add("bicep", file);
   for (const file of files.filter((candidate) =>
     /(?:^|\/)(?:cdk\.json|serverless\.ya?ml|samconfig\.toml|cloudformation\.(?:ya?ml|json))$/i.test(candidate))) {
     add("aws", file);
@@ -131,12 +133,13 @@ function detectProjectCapabilities(projectRoot, catalog) {
       fs.readFileSync(path.join(root, file), "utf8"),
     )) add("aws", file);
   }
-  for (const file of matchingFiles(/\.tf(?:vars)?$/i)) add("terraform", file);
+  for (const file of matchingFiles(/\.tf(?:vars|\.json)?$/i)) add("terraform", file);
   for (const file of matchingFiles(/\.(?:sql|sqlproj)$/i)) add("sql", file);
   for (const file of packageFiles) {
     if ([...COSMOS_PACKAGES].some((dependency) => packageDependencies.get(file).has(dependency))) add("cosmos-db", file);
   }
-  for (const file of files.filter((candidate) => /(?:^|\/)\.github\/workflows\/[^/]+\.ya?ml$/i.test(candidate))) {
+  for (const file of files.filter((candidate) =>
+    /(?:^|\/)(?:\.github\/workflows\/[^/]+|azure-pipelines[^/]*)\.ya?ml$/i.test(candidate))) {
     add("yaml-pipelines", file);
   }
   for (const file of files.filter((candidate) =>
@@ -152,7 +155,7 @@ function detectProjectCapabilities(projectRoot, catalog) {
 
   const detected = [...technologies.keys()].sort();
   const hasBackend = detected.some((technology) => ["dotnet", "python", "node"].includes(technology));
-  const hasFrontend = detected.some((technology) => ["angular", "react"].includes(technology));
+  const hasFrontend = detected.some((technology) => ["angular", "react", "vue"].includes(technology));
   const hasDatabase = detected.some((technology) => ["sql", "cosmos-db"].includes(technology));
   const hasInfrastructure = detected.some((technology) =>
     ["azure", "aws", "terraform", "yaml-pipelines"].includes(technology));
@@ -183,6 +186,7 @@ function detectProjectCapabilities(projectRoot, catalog) {
     node: ["node", "node.js", "express", "fastify", "nestjs"],
     angular: ["angular"],
     react: ["react"],
+    vue: ["vue", "nuxt"],
     azure: ["azure", "bicep", "azure pipelines"],
     bicep: ["bicep"],
     aws: ["aws", "cloudformation", "aws cdk"],
@@ -200,7 +204,7 @@ function detectProjectCapabilities(projectRoot, catalog) {
     agentPatternIds.has(pattern.id) || workflowPatternIds.has(pattern.id) ||
     matchesKeywords(pattern.technology_keywords || []));
   const guidance = catalog.technical_guidance.filter((item) =>
-    matchesKeywords(item.technology_keywords || []));
+    item.technologies.some((technology) => detected.includes(technology)));
   const scorecards = catalog.scorecards.filter((item) =>
     (item.technology_keywords || []).length === 0 || matchesKeywords(item.technology_keywords || []));
   const evalCases = catalog.eval_cases.filter((item) =>

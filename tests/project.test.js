@@ -63,6 +63,8 @@ const {
   readCatalog,
   renderCatalog,
   GENERATED_MARKER,
+  createInitialCapabilityState,
+  readInstalledCatalog,
 } = require("../packages/copilot-renderer/src/render");
 const { evaluateExecution, loadRunSpec } = require("../packages/evaluation-engine/src/evaluate");
 const { decideLearning, listLearning, proposeLearning } = require("../packages/learning-engine/src/learning");
@@ -153,7 +155,7 @@ test("init creates the project structure and preserves existing user files", () 
   assert.match(fs.readFileSync(path.join(root, ".mcpee/generated/catalog-templates.md"), "utf8"), /require\(serverEntry\)\.startMcpServer/);
   assert.doesNotMatch(fs.readFileSync(path.join(root, ".mcpee/generated/catalog-technical-guidance.md"), "utf8"), /https:\/\/learn\.microsoft\.com/);
   assert.equal(capabilityRegistry(root).items.find((item) =>
-    item.type === "technical-guidance" && item.id === "backend-dotnet-python-node")?.status, "available");
+    item.type === "technical-guidance" && item.id === "dotnet-csharp")?.status, "available");
   assert.match(fs.readFileSync(path.join(root, ".mcpee/generated/catalog-quality.md"), "utf8"), /not automatic graders/i);
   assert.doesNotMatch(fs.readFileSync(path.join(root, ".mcpee/generated/catalog-playbooks.md"), "utf8"), /## migration-strategy/);
   assert.equal(capabilityRegistry(root).items.find((item) =>
@@ -205,6 +207,25 @@ test("code evidence is detected even when no supported stack manifest exists", (
 
   assert.equal(capabilities.has_code_signals, true);
   assert.deepEqual(capabilities.code_evidence_files, ["src/app.js"]);
+});
+
+test("every specialist can route an isolated entry audit without installing another role", () => {
+  const root = temporaryProject();
+  initializeProject(root, { initialAgents: ["orchestrator"] });
+  fs.writeFileSync(path.join(root, "sample.txt"), "Synthetic source for a bounded static entry audit.");
+  installFakeCodeGraph(root);
+  syncProject(root);
+  updateCodeGraph(root, { available: true, required: true });
+  const { catalog } = readCatalog();
+  for (const agent of catalog.agents) {
+    renderCatalog(root, { capabilityState: createInitialCapabilityState([agent.id]) });
+    const installed = readInstalledCatalog(root);
+    assert.deepEqual(installed.agents.map(item => item.id), [agent.id]);
+    assert.ok(installed.workflows.length > 0, `${agent.id} needs a runnable workflow`);
+    const plan = routeTask(root, "Review only sample.txt; do not edit or execute commands.");
+    assert.equal(plan.agent.id, agent.id);
+    assert.ok(installed.workflows.some(item => item.id === plan.workflow.id));
+  }
 });
 
 test("Node is detected from an explicit package runtime engine", () => {
@@ -303,11 +324,13 @@ test("init detects a mixed stack and selects the matching project capabilities",
   assert.ok(capabilities.assets.skills.includes("database-migration-safety"));
   assert.ok(capabilities.assets.skills.includes("debugging-and-recovery"));
   assert.ok(capabilities.assets.skills.includes("performance-investigation"));
-  assert.ok(capabilities.assets.technical_guidance.includes("frontend-angular-react"));
+  assert.ok(capabilities.assets.technical_guidance.includes("angular-engineering"));
+  assert.ok(capabilities.assets.technical_guidance.includes("react-engineering"));
   assert.ok(capabilities.assets.technical_guidance.includes("azure-engineering"));
   assert.ok(capabilities.assets.patterns.includes("clean-code-and-naming"));
   assert.ok(capabilities.assets.templates.includes("decision-record-pattern"));
-  assert.ok(fs.existsSync(path.join(root, ".github/instructions/mcpee-stack-frontend-angular-react.instructions.md")));
+  assert.ok(fs.existsSync(path.join(root, ".github/instructions/mcpee-stack-angular-engineering.instructions.md")));
+  assert.ok(fs.existsSync(path.join(root, ".github/instructions/mcpee-stack-react-engineering.instructions.md")));
   assert.ok(fs.existsSync(path.join(root, ".github/instructions/mcpee-stack-azure-engineering.instructions.md")));
   assert.ok(fs.existsSync(path.join(root, ".github/agents/mcpee-backend.agent.md")));
   assert.ok(fs.existsSync(path.join(root, ".github/skills/mcpee-database-migration-safety/SKILL.md")));
@@ -398,7 +421,7 @@ test("workflow validation specs are provisioned from declared npm checks without
   const toolReport = { tools: [{ id: "npm", available: true }] };
   const result = provisionWorkflowSpecs(root, toolReport);
   assert.equal(result.status, "ready");
-  assert.equal(result.created, 26);
+  assert.equal(result.created, readCatalog().catalog.workflows.length - 1);
   assert.equal(result.preserved, 1);
   assert.equal(result.checkCount, 3);
   assert.equal(fs.readFileSync(customPath, "utf8"), customSpec);
@@ -417,7 +440,7 @@ test("workflow validation specs are provisioned from declared npm checks without
 
   const repeated = provisionWorkflowSpecs(root, toolReport);
   assert.equal(repeated.created, 0);
-  assert.equal(repeated.preserved, 27);
+  assert.equal(repeated.preserved, readCatalog().catalog.workflows.length);
 });
 
 test("workflow validation specs are not fabricated when no supported checks are declared", () => {
@@ -490,7 +513,7 @@ test("workflow validation specs include explicitly configured Python and root .N
     ],
   });
   assert.equal(result.status, "ready");
-  assert.equal(result.created, 27);
+  assert.equal(result.created, readCatalog().catalog.workflows.length);
   assert.equal(result.preserved, 0);
   assert.deepEqual(result.checks, [
     { id: "python-pytest", tool: "python", cwd: ".", covers_technologies: ["python"] },
@@ -1459,6 +1482,7 @@ test("Copilot execution requires explicit transfer approval and gates each tool 
   fs.mkdirSync(path.join(root, "src"), { recursive: true });
   fs.writeFileSync(path.join(root, "src/example.js"), "export const value = 1;\n");
   syncProject(root);
+  const policies = readCatalog().catalog.policies;
   const plan = {
     workflow: { id: "resolve-bug" },
     agent: { id: "debugger" },
@@ -1468,7 +1492,8 @@ test("Copilot execution requires explicit transfer approval and gates each tool 
     scorecards: [{ id: "quality", criteria: ["Check evidence."] }],
     eval_cases: [{ id: "grounding", expected_behaviors: ["Cite source evidence."] }],
     prompt_examples: [{ id: "backend-prompt", example: "Investigate project versions before editing." }],
-    policies: ["human-approval"],
+    policies: policies.map(policy => policy.id),
+    policy_controls: policies,
     memory: [{ text: "Keep project data local unless explicitly authorized." }],
     knowledge: [],
     knowledge_graph: [],
@@ -1488,7 +1513,7 @@ test("Copilot execution requires explicit transfer approval and gates each tool 
           this.sdkEventHandler = handler;
         },
         async sendAndWait(message, timeoutMs) {
-          assert.equal(timeoutMs, 600_000);
+          assert.equal(timeoutMs, 1_800_000);
           promptText = message.prompt;
           this.sdkEventHandler({
             id: "sdk-message-event",
@@ -1580,10 +1605,16 @@ test("Copilot execution requires explicit transfer approval and gates each tool 
   assert.equal(result.content, "Copilot completed the task.");
   assert.deepEqual(result.changedPaths, ["src/example.js"]);
   assert.match(promptText, /MCPEE routing plan/);
+  for (const policy of policies) assert.ok(promptText.includes(JSON.stringify(policy.description)));
   assert.match(promptText, /resolve-bug.*understand -> analyze -> plan -> execute -> validate -> document -> observe -> learn/s);
   assert.match(promptText, /Grounded local evidence selected under a context budget/);
   assert.match(promptText, /GROUNDED_SOURCE_EVIDENCE/);
   assert.match(promptText, /Version-aware backend guidance/);
+  assert.match(promptText, /working baseline/);
+  assert.match(promptText, /uncovered, uncertain, version-sensitive or changed behavior/);
+  assert.match(promptText, /disclose unavailable verification/);
+  assert.match(promptText, /finding about the claim, not proof that the underlying capability is absent/);
+  assert.match(promptText, /Clearly stated unverified scope is not such a claim/);
   assert.match(promptText, /Migration strategy controls and cutover/);
   assert.match(promptText, /Cite source evidence/);
   assert.match(promptText, /Investigate project versions before editing/);
@@ -1598,6 +1629,9 @@ test("Copilot execution requires explicit transfer approval and gates each tool 
   assert.equal(permissionReviews.length, 1);
   assert.match(permissionReviews[0].description, /npm install/);
   const copilotEvents = readEvents(root);
+  const successfulCompletion = copilotEvents.find(event =>
+    event.event_name === "copilot.execution.completed" && event.attributes.outcome === "success");
+  assert.deepEqual(successfulCompletion.attributes.changed_paths, result.changedPaths);
   const serializedEvents = JSON.stringify(copilotEvents);
   assert.match(serializedEvents, /localCapture/);
   assert.doesNotMatch(serializedEvents, /API_TOKEN=placeholder/);
@@ -1654,7 +1688,7 @@ test("Copilot execution aborts timed-out work and preserves timeout and cleanup 
   const plan = { workflow: { id: "resolve-bug" }, agent: { id: "debugger" } };
   for (const abortFails of [false, true]) {
     const calls = [];
-    const timeoutError = new Error("Timeout after 600000ms waiting for session.idle");
+    const timeoutError = new Error("Timeout after 1800000ms waiting for session.idle");
     const abortError = new Error("abort unavailable");
     const client = {
       async start() {},
@@ -1663,7 +1697,7 @@ test("Copilot execution aborts timed-out work and preserves timeout and cleanup 
           sessionId: `timeout-${abortFails}`,
           async sendAndWait(message, timeoutMs) {
             assert.equal(typeof message.prompt, "string");
-            assert.equal(timeoutMs, 600_000);
+            assert.equal(timeoutMs, 1_800_000);
             throw timeoutError;
           },
           async abort() {
@@ -1693,7 +1727,7 @@ test("Copilot execution aborts timed-out work and preserves timeout and cleanup 
       event.event_name === "copilot.execution.completed" &&
       event.session_id === `timeout-${abortFails}`);
     assert.equal(completion.attributes.outcome, "failure");
-    assert.match(completion.attributes.error, /Timeout after 600000ms/);
+    assert.match(completion.attributes.error, /Timeout after 1800000ms/);
     if (abortFails) assert.match(completion.attributes.error, /abort unavailable/);
   }
 });
@@ -2126,6 +2160,7 @@ test("source processor catalog drives complete categories and classifies common 
   }
 
   const examples = {
+    "src/Widget.vue": ["source-code", "source-code"],
     "docs/guide.txt": ["documentation", "markdown"],
     "Dockerfile": ["infrastructure", "infrastructure"],
     "var/log/service.log": ["logs", "logs"],
@@ -2322,6 +2357,13 @@ test("BGE-M3 chunking preserves Markdown table headers, removes export noise, ov
   assert.ok(code[1].overlap_lines > 0);
   assert.ok(code.some((chunk) => /value_79/.test(chunk.text)));
   assert.ok(code.some((chunk) => /class SettlementService/.test(chunk.text)));
+  const vuePath = "knowledge/normalized/Widget.vue";
+  fs.writeFileSync(path.join(root, vuePath),
+    "<script setup>const label = 'Save';</script>\n<template><button>{{ label }}</button></template>");
+  const vue = chunkDocument(root, document("src/Widget.vue", vuePath), { profile: "bge-m3" });
+  assert.ok(vue.length > 0);
+  assert.ok(vue.every(chunk => chunk.chunk_kind === "code"));
+  assert.ok(vue.some(chunk => chunk.text.includes("<template>")));
 });
 
 test("sync refuses to ingest sources outside the project and preserves colliding generated files", () => {
@@ -2479,7 +2521,7 @@ test("documentation generation preserves custom output and routes requests from 
   assert.ok(backendPlan.patterns.some((pattern) => pattern.id === "vertical-slice" && /end-to-end/i.test(pattern.guidance)));
   assert.ok(backendPlan.patterns.some((pattern) => pattern.id === "validation-plan"));
   assert.ok(backendPlan.patterns.some((pattern) => pattern.id === "clean-code-and-naming" && /repository's existing conventions/i.test(pattern.guidance)));
-  assert.ok(backendPlan.technical_guidance.some((item) => item.id === "backend-dotnet-python-node" && /https:\/\/learn\.microsoft\.com/.test(item.guidance)));
+  assert.ok(backendPlan.technical_guidance.some((item) => item.id === "dotnet-csharp" && /https:\/\/learn\.microsoft\.com/.test(item.guidance)));
   assert.ok(backendPlan.scorecards.some((item) => item.id === "engineering-response-quality"));
   assert.ok(backendPlan.scorecards.some((item) => item.id === "software-change-quality"));
   assert.ok(backendPlan.eval_cases.some((item) => item.id === "evidence-grounding"));
@@ -2490,6 +2532,10 @@ test("documentation generation preserves custom output and routes requests from 
   const dotnetPlan = routeTask(root, "Refactor this C# .NET service and review naming conventions.");
   assert.equal(dotnetPlan.workflow.id, "refactor-code");
   assert.equal(dotnetPlan.agent.id, "backend");
+  const dotnetGuidance = dotnetPlan.technical_guidance.find(item => item.id === "dotnet-csharp");
+  assert.match(dotnetGuidance.guidance, /DbContext is a short-lived unit of work/);
+  assert.match(dotnetGuidance.guidance, /throw;/);
+  assert.match(dotnetGuidance.guidance, /Linq deferred execution/i);
   assert.ok(dotnetPlan.patterns.some((pattern) =>
     pattern.id === "dotnet-csharp-quality" && /Directory.Build.props/.test(pattern.guidance)));
   const angularPlan = routeTask(root, "Review the Angular signals architecture and refactor derived component state.");
@@ -2498,13 +2544,26 @@ test("documentation generation preserves custom output and routes requests from 
     pattern.id === "angular-signals-architecture" &&
     /computed\(\)/.test(pattern.guidance) &&
     /Do not use effects to copy or propagate application/.test(pattern.guidance)));
-  assert.ok(angularPlan.technical_guidance.some((item) => item.id === "frontend-angular-react"));
+  assert.ok(angularPlan.technical_guidance.some((item) => item.id === "angular-engineering"));
+  assert.ok(angularPlan.technical_guidance.some((item) => item.id === "typescript-engineering"));
   assert.ok(angularPlan.scorecards.some((item) => item.id === "frontend-quality"));
   assert.ok(angularPlan.eval_cases.some((item) => item.id === "frontend-framework-fit"));
   assert.ok(angularPlan.prompt_examples.some((item) => item.id === "frontend-change-example"));
   assert.ok(!angularPlan.technical_guidance.some((item) => item.id === "aws-engineering"));
   assert.ok(!angularPlan.scorecards.some((item) => item.id === "cloud-iac-quality"));
   assert.deepEqual(angularPlan.playbooks, []);
+  const sqlPathPlan = routeTask(root, "Review db/schema.sql and its constraints.");
+  assert.deepEqual(sqlPathPlan.technical_guidance.map(item => item.id), ["sql-engineering"]);
+  assert.ok(sqlPathPlan.technical_guidance[0].apply_to.includes("**/*.sql"));
+  const noLanguagePlan = routeTask(root, "Investigate the slow request and its bottleneck.");
+  assert.ok(noLanguagePlan.technical_guidance.some(item => item.id === "dotnet-csharp"));
+  assert.ok(noLanguagePlan.technical_guidance.some(item => item.id === "node-engineering"));
+  assert.deepEqual(noLanguagePlan.policy_controls, readCatalog().catalog.policies);
+  const noFalseSqlPlan = routeTask(root, "Review NoSQL document behavior and Angular rendering.");
+  assert.ok(!noFalseSqlPlan.technical_guidance.some(item => item.id === "sql-engineering"));
+  const nodePlan = routeTask(root, "Profile Node event-loop latency in the backend.");
+  assert.ok(nodePlan.technical_guidance.some(item => item.id === "node-engineering"));
+  assert.ok(nodePlan.technical_guidance.some(item => item.id === "typescript-engineering"));
   manageCapability(root, "install", "playbook", "migration-strategy");
   const migrationPlan = routeTask(root, "Plan a legacy cloud migration with a staged cutover and rollback.");
   assert.equal(migrationPlan.workflow.id, "modernize-legacy");
@@ -2572,6 +2631,24 @@ test("documentation generation preserves custom output and routes requests from 
   const performancePlan = routeTask(root, "Investigate this performance regression with a comparable baseline.");
   assert.equal(performancePlan.workflow.id, "performance-forensics");
   assert.equal(performancePlan.agent.id, "performance-forensics");
+  const sqlDiagnosisPlan = routeTask(root, "Investigate a slow SQL query and query tuning for db/schema.sql.");
+  assert.equal(sqlDiagnosisPlan.workflow.id, "performance-forensics");
+  const sqlDiagnosis = sqlDiagnosisPlan.skills.find(skill => skill.id === "sql-performance-diagnosis");
+  assert.match(sqlDiagnosis.guidance, /sys\.dm_os_wait_stats/);
+  assert.match(sqlDiagnosis.guidance, /golden-file/);
+  assert.ok(sqlDiagnosisPlan.eval_cases.some(item => item.id === "sql-diagnosis-evidence"));
+  const recoveryPlan = routeTask(root, "Plan a failover rehearsal with RTO/RPO targets.");
+  assert.equal(recoveryPlan.workflow.id, "diagnose-operation");
+  assert.equal(recoveryPlan.agent.id, "observability");
+  const recovery = recoveryPlan.skills.find(skill => skill.id === "recovery-rehearsal");
+  assert.match(recovery.guidance, /known recovery marker/);
+  assert.match(recovery.guidance, /cleanup.*failback|failback.*cleanup/);
+  assert.ok(recoveryPlan.eval_cases.some(item => item.id === "recovery-rehearsal-evidence"));
+  const spanishSql = routeTask(root, "Analiza el cuello de botella de SQL y una consulta lenta.");
+  assert.equal(spanishSql.workflow.id, "performance-forensics");
+  assert.ok(spanishSql.skills.some(skill => skill.id === "sql-performance-diagnosis"));
+  const nuxtPlan = routeTask(root, "Review Nuxt rendering and component styling.");
+  assert.equal(nuxtPlan.agent.id, "frontend");
   const cloudOperationsPlan = routeTask(root, "Show Azure resource health and query CloudWatch for an outage.");
   assert.equal(cloudOperationsPlan.workflow.id, "diagnose-operation");
   assert.ok(cloudOperationsPlan.skills.some((skill) => skill.id === "cloud-resource-diagnostics"));
@@ -2598,6 +2675,23 @@ test("routing fails closed when the required CodeGraph index is missing", () => 
   initializeProject(root);
   syncProject(root);
   assert.throws(() => routeTask(root, "Understand the project"), /CodeGraph is required.*not ready/);
+});
+
+test("database-only recovery uses installed database controls without requiring a cloud agent", () => {
+  const root = temporaryProject();
+  fs.mkdirSync(path.join(root, "db"), { recursive: true });
+  fs.writeFileSync(path.join(root, "db/schema.sql"), "CREATE TABLE Example (Id int);\n");
+  initializeProject(root);
+  installFakeCodeGraph(root);
+  syncProject(root);
+  updateCodeGraph(root, { available: true, required: true });
+  const plan = routeTask(root, "Plan a backup restore rehearsal with numeric RTO/RPO targets.");
+  assert.equal(plan.workflow.id, "database-change-with-baseline");
+  assert.equal(plan.agent.id, "database");
+  assert.ok(plan.skills.some(skill => skill.id === "recovery-rehearsal" &&
+    /observed data gap/.test(skill.guidance)));
+  assert.ok(plan.eval_cases.some(item => item.id === "recovery-rehearsal-evidence"));
+  assert.match(plan.execution, /plan-only/);
 });
 
 test("routing prioritizes explicitly named indexed files over lexical noise without accepting path substrings", () => {
@@ -3767,6 +3861,7 @@ function installFakeCodeGraph(root) {
     'const path = require("node:path");',
     'const [command] = process.argv.slice(2);',
     'const directory = process.env.CODEGRAPH_DIR;',
+    'if (directory !== ".codegraph") throw new Error("CodeGraph requires a plain relative directory name");',
     'const stateFile = path.join(directory, "index.json");',
     'if (command === "status") {',
     '  const initialized = fs.existsSync(stateFile);',
@@ -3883,6 +3978,187 @@ test("CodeGraph accepts equivalent host-resolved stdio paths without replacing h
   assert.equal(configureProjectMcp(root, { available: true }).status, "conflict");
 });
 
+test("one init extracts brownfield implementation and assertions across arbitrary project roots without manual discovery", () => {
+  const root = temporaryProject();
+  const files = {
+    "package.json": JSON.stringify({ name: "brownfield-onboarding", scripts: { test: "node --test" } }),
+    "custom/backend/Infrastructure/AccountService.cs": [
+      "public class AccountService {",
+      "  public bool Accept(int value) {",
+      "    if (value < 8) return false;",
+      "    return true;",
+      "  }",
+      "}",
+    ].join("\n"),
+    "custom/frontend/modules/accounts/account.ts": [
+      "export function accept(value) {",
+      "  if (value < 8) throw new Error('too short');",
+      "  return true;",
+      "}",
+    ].join("\n"),
+    "custom/frontend/modules/accounts/account.spec.ts": [
+      "import { accept } from './account';",
+      "  it('accepts a valid account', () => {",
+      "    expect(accept(8)).toBe(true);",
+      "  });",
+    ].join("\n"),
+    "custom/python/account.py": "def accept(value):\n    return value >= 8\n",
+    "custom/python/test_account.py": "def test_accept():\n    assert accept(8)\n",
+    "custom/node/account.js": "exports.accept = function accept(value) {\n return value > 0;\n};\n",
+    "custom/react/Account.tsx": "export function Account() {\n return <button onClick={() => save()}>Save</button>;\n}\n",
+    "custom/angular/account.component.html": '<form [formGroup]="account" (ngSubmit)="save()"><input formControlName="name" required></form>\n',
+    "custom/data/account.sql": "CREATE TABLE Account (id int PRIMARY KEY);\nINSERT INTO Account VALUES (1);\n",
+    "custom/scripts/account.ps1": "function Save-Account {\n param([string]$Name)\n Set-Content -Path result.txt -Value $Name\n}\n",
+    "custom/scripts/account.Tests.ps1": "It 'accepts the account' {\n Get-Account | Should -Be 8\n}\n",
+    "custom/backend/AccountTests.cs": "[Fact]\npublic void Accepts() {\n Assert.Equal(8, Accept(8));\n}\n",
+    "custom/infra/main.bicep": "param enabled bool\nresource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = if (enabled) {\n name: 'example'\n}\n",
+    "custom/infra/local.bicepparam": "using './main.bicep'\nparam enabled = true\n",
+    ".github/workflows/check.yml": "jobs:\n  test:\n    steps:\n      - run: echo check\n",
+  };
+  for (const [relative, content] of Object.entries(files)) {
+    const filename = path.join(root, relative);
+    fs.mkdirSync(path.dirname(filename), { recursive: true });
+    fs.writeFileSync(filename, content);
+  }
+  installFakeCodeGraph(root);
+  const args = [cli, "init", "--project", root, "--skip-tool-install", "--embeddings", "none"];
+  const output = execFileSync(process.execPath, args, { encoding: "utf8" });
+  assert.match(output, /Automatic brownfield extraction:/);
+  assert.match(output, /No extra discovery command is needed/);
+  const latestPath = path.join(root, ".mcpee/specs/latest.json");
+  const latest = JSON.parse(fs.readFileSync(latestPath, "utf8"));
+  assert.ok(fs.existsSync(path.join(root, latest.index_path)));
+  assert.ok(latest.coverage.implementation_recognition.supported.includes("custom/python/account.py"));
+  assert.equal(latest.coverage.associated_assertions, 4);
+  assert.equal(latest.coverage.source_relationships.status, "available");
+  assert.ok(latest.coverage.source_relationships.relationships > 0);
+  assert.deepEqual(latest.coverage.language_capabilities.map((item) => item.family).sort(), [
+    "angular-template", "bicep", "csharp", "javascript", "pipeline-yaml",
+    "powershell", "python", "react", "sql", "typescript",
+  ]);
+  const evidence = latest.proposals.map((item) =>
+    JSON.parse(fs.readFileSync(path.join(root, item.path.replace(/\.md$/, ".evidence.json")), "utf8")));
+  const sources = evidence.flatMap((item) => item.sources);
+  for (const relative of Object.keys(files)) assert.ok(sources.some((item) => item.path === relative), relative);
+  for (const relative of Object.keys(files).filter((item) => item !== "package.json")) {
+    assert.ok(sources.find((item) => item.path === relative).facts.some((fact) => fact.kind === "implementation-observation"), relative);
+  }
+  const backend = sources.find((item) => item.path.endsWith("AccountService.cs"));
+  const testSource = sources.find((item) => item.path.endsWith("account.spec.ts"));
+  assert.ok(testSource.facts.some((fact) => fact.kind === "source-relationship" &&
+    fact.relationship === "tests_source" && fact.target.endsWith("/account.ts")));
+  assert.equal(backend.category, "infrastructure");
+  assert.ok(backend.facts.some((fact) => fact.observations?.includes("return")));
+  assert.ok(evidence.flatMap((item) => item.test_cases).some((item) =>
+    item.kind === "implementation-candidate" && item.source.endsWith("AccountService.cs")));
+  const editedPath = path.join(root, latest.proposals[0].path);
+  fs.appendFileSync(editedPath, "\nOwner review in progress.\n");
+  const edited = fs.readFileSync(editedPath, "utf8");
+  const repeat = execFileSync(process.execPath, args, { encoding: "utf8" });
+  assert.match(repeat, /Automatic brownfield extraction:/);
+  assert.equal(fs.readFileSync(editedPath, "utf8"), edited);
+  const second = JSON.parse(fs.readFileSync(latestPath, "utf8"));
+  assert.deepEqual(second.proposals, latest.proposals);
+  assert.equal(second.index_path, latest.index_path);
+  const newSource = path.join(root, "custom/frontend/modules/accounts/changed.ts");
+  fs.writeFileSync(newSource, "export function changed(value) {\n  if (!value) return false;\n  return true;\n}\n");
+  const syncOutput = execFileSync(process.execPath, [cli, "sync", "--project", root], { encoding: "utf8" });
+  assert.match(syncOutput, /specification proposals created/);
+  const updated = JSON.parse(fs.readFileSync(latestPath, "utf8"));
+  assert.notEqual(updated.index_path, second.index_path);
+  assert.equal(fs.readFileSync(editedPath, "utf8"), edited);
+  assert.ok(updated.proposals.some((item) => {
+    const evidence = JSON.parse(fs.readFileSync(path.join(root, item.path.replace(/\.md$/, ".evidence.json")), "utf8"));
+    return evidence.sources.some((source) => source.path.endsWith("/changed.ts"));
+  }));
+  assert.equal(fs.existsSync(path.join(root, "specs/approved")), false);
+});
+
+test("greenfield init through reviewed requirements, implementation, real tests and drift is reproducible locally", () => {
+  const { listBrownfieldSpecs, prepareApprovedSpecContext, checkSpecDrift } = require("../packages/spec-engine/src/brownfield");
+  const root = temporaryProject();
+  installFakeCodeGraph(root);
+  const invoke = (...args) => execFileSync(process.execPath, [cli, ...args, "--project", root], { encoding: "utf8" });
+  const init = invoke("init", "--skip-tool-install", "--embeddings", "none");
+  assert.match(init, /Initialized project/);
+  const initial = listBrownfieldSpecs(root);
+  assert.ok(initial.every((item) => item.status !== "approved"));
+  const requirementPath = path.join(root, "requirements.md");
+  fs.writeFileSync(requirementPath, "# Invoice requirement\n\nReturn the sum of nonnegative invoice lines. Reject negative values without side effects.\n");
+  invoke("sync");
+  const latestPath = path.join(root, ".mcpee/specs/latest.json");
+  const latest = JSON.parse(fs.readFileSync(latestPath, "utf8"));
+  const proposal = latest.proposals.find((item) => {
+    const evidence = JSON.parse(fs.readFileSync(path.join(root, item.path.replace(/\.md$/, ".evidence.json")), "utf8"));
+    return evidence.sources.some((source) => source.path === "requirements.md");
+  });
+  assert.ok(proposal);
+  const filename = path.join(root, proposal.path);
+  const reviewed = fs.readFileSync(filename, "utf8")
+    .replace("<!-- Replace this prompt with behavior confirmed by the accountable owner. -->",
+      "Sum nonnegative invoice lines. Reject negative values without side effects. Source: requirements.md.")
+    .replace("<!-- Add observable, testable criteria and link each criterion to evidence. -->",
+      "Given [2, 3], return 5. Given [-1], throw RangeError. Source: requirements.md.");
+  fs.writeFileSync(filename, reviewed);
+  const digest = crypto.createHash("sha256").update(reviewed).digest("hex");
+  invoke("specs", "ratify", "--slug", proposal.slug, "--reviewer", "Local acceptance fixture owner", "--confirm-sha256", digest);
+  const approved = listBrownfieldSpecs(root).find((item) => item.status === "approved");
+  assert.ok(approved);
+  const approvedPath = path.join(root, approved.path);
+  const contract = fs.readFileSync(approvedPath, "utf8");
+  const plan = routeTask(root, "Implement invoice totals");
+  assert.ok(plan.approved_specs.some((item) => item.path === approved.path));
+  const context = prepareApprovedSpecContext(root, plan);
+  assert.match(context.content, /Given \[2, 3\], return 5/);
+  fs.writeFileSync(path.join(root, "invoice.js"), [
+    "exports.total = (lines) => {",
+    '  if (lines.some((value) => value < 0)) throw new RangeError("negative invoice");',
+    "  return lines.reduce((sum, value) => sum + value, 0);",
+    "};",
+  ].join("\n"));
+  fs.writeFileSync(path.join(root, "invoice.test.js"), [
+    'const { test } = require("node:test");',
+    'const assert = require("node:assert/strict");',
+    'const { total } = require("./invoice");',
+    'test("sums nonnegative lines", () => assert.equal(total([2, 3]), 5));',
+    'test("rejects negative lines without mutating input", () => {',
+    "  const lines = [-1];",
+    "  assert.throws(() => total(lines), RangeError);",
+    "  assert.deepEqual(lines, [-1]);",
+    "});",
+  ].join("\n"));
+  const testEnvironment = { ...process.env };
+  delete testEnvironment.NODE_TEST_CONTEXT;
+  const tests = execFileSync(process.execPath, ["--test", path.join(root, "invoice.test.js")], {
+    encoding: "utf8", env: testEnvironment,
+  });
+  assert.match(tests, /(?:pass 2|# pass 2)/);
+  invoke("sync");
+  assert.equal(fs.readFileSync(approvedPath, "utf8"), contract);
+  assert.equal(checkSpecDrift(root).specifications.find((item) => item.specPath === approved.path).drift_status, "current");
+  fs.appendFileSync(requirementPath, "\nA future change proposes rounding; approval is pending.\n");
+  invoke("sync");
+  assert.equal(fs.readFileSync(approvedPath, "utf8"), contract);
+  assert.equal(checkSpecDrift(root).specifications.find((item) => item.specPath === approved.path).drift_status, "drifted");
+});
+
+test("business and architecture Office sources retain their domain category and require document extraction", () => {
+  const root = temporaryProject();
+  initializeProject(root);
+  for (const category of ["business", "architecture"]) {
+    fs.writeFileSync(path.join(root, `knowledge/sources/${category}/requirements.docx`), Buffer.from([0x50, 0x4b, 0, 0, 1]));
+  }
+  const result = syncProject(root, { tools: [], graphify: { installed: false } });
+  const documents = result.sources.filter((source) => source.path.endsWith("requirements.docx"));
+  assert.equal(documents.length, 2);
+  for (const source of documents) {
+    assert.ok(["business", "architecture"].includes(source.category));
+    assert.equal(source.processor, "office-documents");
+    assert.equal(source.status, "requires-tool");
+    assert.equal(source.required_tool, "markitdown");
+  }
+});
+
 test("CLI supports init, doctor, tools, captured traces, memory, observe, knowledge search, and sync", () => {
   const root = temporaryProject();
   fs.writeFileSync(path.join(root, "README.md"), "# Temporary project\n\nThis local source should be indexed during initialization.\n");
@@ -3931,7 +4207,8 @@ test("CLI supports init, doctor, tools, captured traces, memory, observe, knowle
   const routePlan = JSON.parse(route);
   assert.equal(routePlan.workflow.id, "resolve-bug");
   assert.equal(routePlan.knowledge_graph[0].symbol, "handleRequest");
-  assert.ok(routePlan.technical_guidance.some((item) => item.id === "backend-dotnet-python-node"));
+  assert.ok(routePlan.technical_guidance.some((item) => item.id === "node-engineering"));
+  assert.ok(!routePlan.technical_guidance.some((item) => item.id === "dotnet-csharp"));
   assert.ok(routePlan.scorecards.some((item) => item.id === "engineering-response-quality"));
   const explanation = execFileSync(process.execPath, [
     cli, "explain", "--project", root, "--json",

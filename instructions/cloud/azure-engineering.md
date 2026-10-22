@@ -27,6 +27,25 @@ cite the source used.
 - Run the repository's declared Bicep/Terraform, YAML, build, and test checks;
   report unavailable checks rather than implying enforcement.
 
+## Reliability and operational baseline
+- Set timeouts, bounded retries with backoff and idempotency at explicit
+  boundaries. Account for SDK retries and avoid retry storms across layers.
+  Queue handlers must handle duplicate delivery, poison messages and replay
+  without assuming exactly-once external effects.
+- Design from the workload's SLO, RTO/RPO, failure domains and consistency needs.
+  Zones, regions, backups and replication solve different failures; a configured
+  backup is not evidence of an application-consistent tested restore.
+- Separate management-plane access from data-plane authorization. Review DNS,
+  private/public endpoints, outbound access and secret rotation together; a
+  private endpoint or managed identity alone does not prove access is restricted.
+- Bound concurrency and autoscaling against downstream capacity, quotas and cost.
+  Monitor service saturation, throttling and user-visible failures, not only
+  resource existence. Add actionable alerts and trace correlation without
+  recording credentials or sensitive payloads.
+- Promote a verified artifact through controlled environments. Define health,
+  stop and rollback/forward-recovery signals before deployment; IaC success
+  does not prove service readiness, data integrity or recovery.
+
 Official references:
 - Azure Well-Architected Framework: https://learn.microsoft.com/azure/well-architected/
 - Azure Functions .NET isolated worker: https://learn.microsoft.com/azure/azure-functions/dotnet-isolated-process-guide

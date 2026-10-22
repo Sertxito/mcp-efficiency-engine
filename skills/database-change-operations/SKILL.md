@@ -13,6 +13,20 @@ description: "Assess operational risk for database changes, query tuning, and da
 5. Define monitoring signals, backup/restore checks, rollback feasibility, and owner.
 6. Obtain specific approval before any production query or state-changing operation.
 
+## Query and index change gates
+Use the SQL performance diagnosis procedure when tuning SQL: read authoritative
+source, capture parameter/workload and plan evidence, test a root-cause
+hypothesis, then compare correctness and latency/CPU/reads. A missing-index
+suggestion is not an approved index DDL statement.
+Compare result schemas, row identities/order where guaranteed, duplicates,
+nulls, precision and transaction effects on synthetic representative fixtures.
+Review golden-file differences explicitly; never regenerate expected results
+just to make the candidate pass.
+Separate baseline capture, candidate recommendation, functional regression and
+staged rollout. Each executable collector must actually exist, support the
+engine/version and have a reviewed command/target before use. Original boost
+helper names do not imply those scripts ship with MCPEE.
+
 ## Output
 Dependency map, baseline, proposed change, test evidence, rollout and monitoring
 plan, recovery limitations, approval point, and residual risk. Never claim

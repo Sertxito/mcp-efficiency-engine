@@ -5,7 +5,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const crypto = require("node:crypto");
-const { execFileSync } = require("node:child_process");
+const { execFileSync, spawnSync } = require("node:child_process");
 
 const packageRoot = path.resolve(__dirname, "..");
 const catalogRoot = path.join(packageRoot, "catalog");
@@ -72,6 +72,7 @@ try {
     filePath.startsWith(".codegraph/") ||
     filePath.startsWith("knowledge/") ||
     filePath.startsWith("docs/generated/") ||
+    /^templates\/specialist-acceptance\/.*\/(?:bin|obj)\//.test(filePath) ||
     /(?:^|\/)\.env(?:\.|$)/.test(filePath));
   assert.deepEqual(unexpected, [], `Unexpected files in npm package:\n${unexpected.join("\n")}`);
   const metadata = require(path.join(packageRoot, "package.json"));
@@ -79,6 +80,16 @@ try {
   assert.equal(dryRun.version, metadata.version);
   assert.equal(metadata.bin.mcpee, metadata.bin["mcp-efficiency-engine"]);
   assert.ok(packagedFiles.has("LICENSE"));
+  for (const required of [
+    "catalog/specialist-acceptance.json",
+    "docs/SPECIALIST-ACCEPTANCE.md",
+    "templates/specialist-acceptance/node-bounded-operation/worker.cjs",
+    "templates/specialist-acceptance/node-bounded-operation/checks.cjs",
+    "templates/specialist-acceptance/audit-fixtures.json",
+    "templates/specialist-acceptance/audit-controls.json",
+  ]) {
+    assert.ok(packagedFiles.has(required), `Missing specialist acceptance asset: ${required}`);
+  }
 
   const archiveRoot = path.join(tempRoot, "archive");
   const consumerRoot = path.join(tempRoot, "consumer");
@@ -123,6 +134,14 @@ try {
     "bin",
     "mcpee.js",
   );
+  const acceptance = spawnSync(process.execPath, [
+    installedCli, "evaluate", "--suite", "specialist-core", "--project", consumerRoot, "--json",
+  ], { cwd: consumerRoot, encoding: "utf8", timeout: 30_000 });
+  assert.equal(acceptance.status, 2, acceptance.stderr);
+  const acceptanceReport = JSON.parse(acceptance.stdout);
+  assert.equal(acceptanceReport.status, "incomplete");
+  assert.equal(acceptanceReport.summary.passed, 0);
+  assert.equal(new Set(acceptanceReport.scenarios.map(scenario => scenario.agent)).size, catalog.agents.length);
   for (const command of ["mcpee", "mcp-efficiency-engine"]) {
     assert.match(runNpm(["exec", "--offline", "--", command, "help"], consumerRoot), /MCPEE/);
   }
@@ -172,6 +191,14 @@ try {
     timeout: 30_000,
   });
   assert.doesNotThrow(() => JSON.parse(coverageOutput));
+  const auditInspection = spawnSync(process.execPath, [
+    installedCli, "evaluate", "--suite", "specialist-audit", "--json",
+  ], { cwd: consumerRoot, encoding: "utf8", timeout: 30_000 });
+  assert.equal(auditInspection.status, 2, auditInspection.stderr);
+  const auditReport = JSON.parse(auditInspection.stdout);
+  assert.equal(auditReport.summary.required_trials, 42);
+  assert.equal(auditReport.summary.not_run, 42);
+  assert.equal(auditReport.summary.control_alarm_rate, null);
   const initOutput = execFileSync(process.execPath, [
     installedCli,
     "init",
@@ -208,7 +235,7 @@ try {
   assert.ok(otlp.resourceSpans[0].scopeSpans[0].spans.length > 0);
   assert.equal(otlp.resourceSpans[0].resource.attributes[0].value.stringValue, "mcpee");
 
-  process.stdout.write(`Verified ${references.length} catalog source references in ${dryRun.files.length} packaged files; installed CLI coverage, init, refresh preserving user instructions, and real OpenTelemetry export passed. CodeGraph uses a local contract fixture, not a real indexing test.\n`);
+  process.stdout.write(`Verified ${references.length} catalog source references in ${dryRun.files.length} packaged files; installed CLI coverage, specialist acceptance inspection, init, refresh preserving user instructions, and real OpenTelemetry export passed. CodeGraph uses a local contract fixture, not a real indexing test.\n`);
 } finally {
   fs.rmSync(tempRoot, { recursive: true, force: true });
 }

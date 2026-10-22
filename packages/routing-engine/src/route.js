@@ -11,6 +11,7 @@ const { analyzeImpacts, searchUnifiedGraph, GRAPH_PATH } = require("../../knowle
 const { readGraphifyState, searchGraphify } = require("../../knowledge-engine/src/graphify");
 const { recordEvent, observeLayer } = require("../../core/src/telemetry");
 const { readInstalledCatalog, sourceBody } = require("../../copilot-renderer/src/render");
+const { listBrownfieldSpecs } = require("../../spec-engine/src/brownfield");
 
 const RULES_PATH = path.resolve(__dirname, "../../../catalog/routing/routing-rules.json");
 const rules = JSON.parse(fs.readFileSync(RULES_PATH, "utf8"));
@@ -41,7 +42,10 @@ function scoreKeywords(text, keywords) {
   const matches = [];
   for (const keyword of keywords) {
     const normalized = normalize(keyword);
-    if (text.includes(normalized)) {
+    const keywordMatches = /^[a-z]{1,2}$/.test(normalized)
+      ? new RegExp(`(^|[^a-z0-9_])${normalized}(?=$|[^a-z0-9_])`).test(text)
+      : text.includes(normalized);
+    if (keywordMatches) {
       score += normalized.includes(" ") ? 3 : 1;
       matches.push(keyword);
     }
@@ -138,14 +142,6 @@ function routeTask(projectRoot, task, options = {}) {
       workflows: item.workflows,
       guidance: sourceBody(item.path, `playbooks/${item.id}`),
     }));
-  const technicalGuidance = catalog.technical_guidance
-    .filter((item) => matchesTechnology(item.technology_keywords))
-    .map((item) => ({
-      id: item.id,
-      description: item.description,
-      source_path: item.source_path,
-      guidance: sourceBody(item.source_path, `technical_guidance/${item.id}`),
-    }));
   const scorecards = catalog.scorecards
     .filter((item) => item.id === "engineering-response-quality" ||
       matchesTechnology(item.technology_keywords))
@@ -195,6 +191,23 @@ function routeTask(projectRoot, task, options = {}) {
     recordEvent(projectRoot, { event_name: "context.layer.completed",
       attributes: { layer: "knowledge.lexical", consulted: false, outcome: "unavailable", reason: "Local knowledge index is missing." } });
   }
+  const explicitSources = knowledge.filter(item => item.selection === "explicit-task-path");
+  const matchingGuidance = catalog.technical_guidance.filter(item =>
+    item.technology_keywords.some(keyword => {
+      const escaped = normalize(keyword).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const prefix = keyword.startsWith(".") ? "" : "(^|[^a-z0-9_])";
+      return new RegExp(`${prefix}${escaped}(?=$|[^a-z0-9_])`).test(normalizedTask);
+    }) || explicitSources.some(source =>
+      item.apply_to.some(glob => path.posix.matchesGlob(source.source_path.replace(/\\/g, "/"), glob))));
+  const technicalGuidance = (matchingGuidance.length ? matchingGuidance : catalog.technical_guidance)
+    .map(item => ({
+      id: item.id,
+      description: item.description,
+      technologies: item.technologies,
+      apply_to: item.apply_to,
+      source_path: item.source_path,
+      guidance: sourceBody(item.source_path, `technical_guidance/${item.id}`),
+    }));
   const unifiedGraphPath = path.join(projectRoot, GRAPH_PATH);
   const unifiedGraphStatus = fs.existsSync(unifiedGraphPath) ? "ready" : "not-synchronized";
   const unifiedMatches = fs.existsSync(unifiedGraphPath)
@@ -271,7 +284,8 @@ function routeTask(projectRoot, task, options = {}) {
     eval_cases: evalCases,
     prompt_examples: promptExamples,
     policies: catalog.policies.map((policy) => policy.id),
-    policy_controls: catalog.policies.map(({ id, enforcement, evidence }) => ({ id, enforcement, evidence })),
+    policy_controls: catalog.policies.map(({ id, description, enforcement, evidence }) =>
+      ({ id, description, enforcement, evidence })),
     memory: memories.map((entry) => ({
       id: entry.id,
       kind: entry.kind,
@@ -282,6 +296,9 @@ function routeTask(projectRoot, task, options = {}) {
     })),
     knowledge,
     knowledge_graph: knowledgeGraph,
+    approved_specs: listBrownfieldSpecs(projectRoot)
+      .filter((spec) => spec.status === "approved")
+      .map(({ slug, path: specPath, sha256 }) => ({ slug, path: specPath, sha256 })),
     knowledge_graph_status: {
       unified: unifiedGraphStatus,
       codegraph: codeGraphState.status,

@@ -12,6 +12,13 @@ description: "Produce evidence-backed engineering findings with confidence and e
 4. Record confidence and distinguish root cause from correlation or speculation.
 5. Describe business impact, technical impact, severity/priority, and affected boundary.
 6. State checks actually run, results, coverage limits, unknowns, and next verification.
+7. Consolidate symptoms with the same root cause. Do not infer missing authorization,
+   retry limits or caller error handling from an out-of-scope fragment; request
+   that evidence or state a conditional risk instead of a confirmed defect.
+8. Distinguish missing operational evidence from an explicit unsupported claim
+   that verification succeeded. Correct the claim when the supplied evidence
+   contradicts it; do not infer the underlying recovery or security capability
+   is absent. An honestly stated unverified scope is not the same defect.
 
 ## Finding format
 - **Finding:** concise, actionable statement.

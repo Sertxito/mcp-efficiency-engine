@@ -19,6 +19,20 @@ description: "Instrument frontend user journeys and assess Core Web Vitals with 
 4. Compare like-for-like baseline and candidate runs; segment only where sample size and privacy policy allow.
 5. Report measurement variability, thresholds, regressions, and a focused fix/verification proposal.
 
+## Browser performance gates
+Record LCP, INP and CLS when relevant, including route, build mode, device,
+network, viewport, sample window and percentile basis. Separate laboratory
+proxies from field interaction evidence; do not equate an obsolete metric or
+one Lighthouse score with all Core Web Vitals.
+Agree bundle/route and user-visible budgets before optimization. Inspect
+resource waterfalls, render-blocking work, hydration, long tasks, image/font
+loading, cache behavior and third-party scripts to test the dominant cause.
+Avoid blind memoization, lazy-loading critical above-the-fold content or
+over-splitting requests into a slower waterfall.
+Compare equivalent runs with repeated samples and the shared performance
+contract. Check accessibility, SEO and UX tradeoffs, then propose a configured
+CI budget or monitoring alert with owner; do not claim it is active until tested.
+
 ## Output
 Signal specification, privacy constraints, reproducible measurement setup, baseline/comparison evidence, and remaining coverage gaps.
 

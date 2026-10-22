@@ -21,11 +21,15 @@
 
 MCPEE se instala sobre un **proyecto**, no sobre el concepto de repositorio Git. El proyecto puede contener una o varias aplicaciones o repositorios, ser un monorepo, contener solo documentación, no tener código todavía o no utilizar Git.
 
+En proyectos brownfield, la sincronización inicial produce propuestas separadas por dominios candidatos y un índice Markdown de revisión. La agrupación usa directorios y familias de nombres, no semántica de negocio confirmada. Cada propuesta limita su mapa a 20 fuentes, muestra declaraciones estáticas con líneas y ofrece casos positivos, negativos y de frontera en catálogos Markdown paginados; distingue las pruebas declaradas de los casos propuestos y de los resultados realmente ejecutados. Los manifiestos JSON conservan hashes y procedencia, pero no son la interfaz de lectura. La especificación solo se vuelve normativa tras completar comportamiento y criterios verificables y ratificar explícitamente el hash revisado con una persona responsable; fuentes modificadas generan drift y nunca reescriben documentos aprobados. Su contenido se incorpora antes de aprobar la transferencia a Copilot en todos los modos de contexto; el ejecutor rechaza hashes obsoletos y evita el truncado silencioso. El formato es neutral respecto a Spec Kit/OpenSpec. Ver [descubrimiento de especificaciones brownfield](BROWNFIELD-SPECS.md).
+
+El grafo unificado se construye antes del descubrimiento de especificaciones. Las propuestas reutilizan referencias locales explícitas entre fuentes incluidas, con enlaces al origen y al destino y hashes de ambos. Los destinos referenciados participan en el drift aunque estén en otro dominio o parte de la propuesta; un import desde un test no acredita cobertura. El descubrimiento independiente sin grafo declara la ausencia de relaciones y un grafo obsoleto exige sincronización.
+
 **Estado de esta especificación:** combina arquitectura objetivo y comportamiento actual; no implica que cada capacidad objetivo ya esté implementada. Las secciones marcadas como flujo objetivo no son una promesa de runtime. El alcance disponible y sus limitaciones se mantienen en `README.md` y en la ayuda de `mcpee`.
 
-**Contrato de aceptación:** los límites de certificación están en [Release acceptance boundaries](../README.md#release-acceptance-boundaries). Una prueba controlada del harness no certifica la aplicación, la calidad de especialistas ni toda esta arquitectura. El registro MCP vigente usa `.mcp.json` en la raíz del proyecto; `.vscode/mcp.json` solo aparece como origen de migración para proyectos antiguos. Las normalizaciones equivalentes del host se conservan sin sobrescribir su configuración.
+**Contrato de aceptación:** los límites de certificación están en [Release acceptance boundaries](DEVELOPMENT.md#release-acceptance-boundaries). Una prueba controlada del harness no certifica la aplicación, la calidad de especialistas ni toda esta arquitectura. El registro MCP vigente usa `.mcp.json` en la raíz del proyecto; `.vscode/mcp.json` solo aparece como origen de migración para proyectos antiguos. Las normalizaciones equivalentes del host se conservan sin sobrescribir su configuración.
 
-**Distribución 0.1.25:** se publica en el repositorio `Sertxito/mcp-efficiency-engine` y en el paquete npm `mcp-efficiency-engine`, conservando los comandos `mcpee` y `mcp-efficiency-engine`. Requiere Node.js 24 o superior. La instalación npm no ejecuta `init` ni instala herramientas del proyecto. La [migración](MIGRATION.md) desde el legacy no es automática y la [publicación](RELEASING.md) usa la versión confirmada en los manifiestos, sin incrementarla de forma oculta en CI.
+**Distribución 0.1.26:** se publica en el repositorio `Sertxito/mcp-efficiency-engine` y en el paquete npm `mcp-efficiency-engine`, con los comandos `mcpee` y `mcp-efficiency-engine`. Requiere Node.js 24 o superior. La instalación npm no ejecuta `init` ni instala herramientas del proyecto: se inicializa el workspace de forma explícita, sin migración previa. La [resolución de problemas](TROUBLESHOOTING.md) cubre errores de instalación e indexación, y la [publicación](RELEASING.md) usa la versión confirmada en los manifiestos, sin incrementarla de forma oculta en CI.
 
 El protocolo Node/Python utiliza UTF-8 estricto, también con pipes en Windows, independientemente de la página de códigos de la consola. La caché conserva los vectores cuyo contenido y metadatos coinciden; las entradas mal decodificadas por versiones anteriores no coinciden con los chunks corregidos y se recalculan sin borrar los pesos del modelo.
 
@@ -314,6 +318,39 @@ legacy
 
 Cada agente declara responsabilidad, límites, skills, conocimiento preferente, herramientas, policies, evidencias y colaboración con otros agentes.
 
+Las policies tienen una única fuente en `catalog/catalog.json`: se renderizan
+como instrucciones globales y los perfiles de agentes enlazan ese contrato,
+sin mantener copias independientes. El contexto SDK recibe las mismas
+descripciones, modos de enforcement y requisitos de evidencia. Los hooks y las
+aprobaciones del runtime siguen imponiendo sus límites; el Markdown no sustituye
+esos controles.
+
+Las instrucciones técnicas se separan por C#/.NET, Python, Node.js, JavaScript/TypeScript,
+Angular, React, Vue, SQL, Cosmos DB, Bicep, Terraform y pipelines YAML, además de las
+guías cloud. Cada entrada declara `technologies` y globs `apply_to` explícitos.
+Un proyecto mixto recibe guías separadas, no una guía cuyo nombre decida qué
+lenguaje prevalece. Los globs amplios de frameworks no sustituyen comprobar el
+componente concreto en un monorepo. Los overrides de guías combinadas anteriores
+se expanden a los nuevos IDs al refrescar las capacidades.
+
+El routing selecciona guías instaladas por términos técnicos y rutas explícitas
+del índice; si no identifica una guía, incluye las del stack instalado con sus
+metadatos de aplicación para no perder el contexto técnico. La skill de
+rendimiento exige objetivo numérico, baseline reproducible, muestras repetidas,
+variación, comparación equivalente y comprobaciones de corrección y recursos.
+El resultado es pass/fail/inconclusive; la ausencia de datos o permisos no se
+presenta como una optimización validada. Los tests y rúbricas comprueban el
+contrato, no certifican que todo resultado de un modelo vaya a ser correcto.
+
+La [matriz de recuperación de boosts](BOOST-CAPABILITY-COVERAGE.md) enlaza las
+capacidades originales con sus destinos y exclusiones. La recuperación amplía
+las skills existentes y añade diagnóstico SQL y ensayo de recuperación, no una
+copia de cada agente, conector o script antiguo. El diagnóstico exige código,
+planes/esperas y regresión funcional; la recuperación exige RTO/RPO medidos,
+integridad de la aplicación y aprobación por acción en un entorno aislado.
+El detector reconoce Vue/Nuxt o fuentes `.vue`, selecciona el rol frontend y
+sus guías explícitas. Los originales y los proyectos privados no se modifican.
+
 ### Skills
 
 ```text
@@ -553,7 +590,7 @@ Estado implementado adicional: si no se detecta código, el `init` interactivo p
 `init` también aprovisiona los specs post-cambio de cada workflow del catálogo cuando detecta checks locales soportados y la herramienta correspondiente está disponible: scripts convencionales (`test:ci`, `test`, `lint`, `typecheck`, `check` o `build`) en `package.json` raíz; pytest con configuración explícita (`pytest.ini`, `[tool.pytest]` en `pyproject.toml` o pytest en un entorno `testenv` de `tox.ini`); y soluciones o proyectos .NET. No ejecuta checks durante la inicialización, marca cada paso para aprobación y preserva los specs existentes. La detección recorre paquetes de monorepo, omite árboles de dependencias/build, conserva el directorio de trabajo relativo de cada paquete y limita la cantidad de pasos generados. No inventa comandos específicos de otros ecosistemas.
 
 ```bash
-npx --package=mcp-efficiency-engine@0.1.25 mcpee init
+npx --package=mcp-efficiency-engine@0.1.26 mcpee init
 ```
 
 ```mermaid
@@ -957,7 +994,7 @@ La CLI implementa los comandos siguientes. `update` refresca artefactos del
 proyecto desde el paquete MCPEE ya instalado; no actualiza ese paquete.
 
 ```bash
-npx --package=mcp-efficiency-engine@0.1.25 mcpee init
+npx --package=mcp-efficiency-engine@0.1.26 mcpee init
 mcpee sync
 mcpee doctor
 mcpee status

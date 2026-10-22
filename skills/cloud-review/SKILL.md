@@ -15,6 +15,24 @@ description: "Review a declared cloud environment for identity, networking, reli
    approved; distinguish validation from deployment approval.
 5. Record unknowns, owner decisions, mitigations, and safe verification steps.
 
+## Reliability and resource evidence
+- Verify failure domains and real service configuration: zonal/regional
+  isolation, dependency health checks, routing/DNS failover, backup retention
+  and supported PITR window. Configured redundancy is not a tested recovery.
+- For messaging, inspect retry budgets/backoff, poison messages, dead-letter
+  queues, acknowledgement/visibility semantics, duplicate handling and bounded
+  replay with an owner. Never redrive a queue or change retention implicitly.
+- Check concurrency/throttling limits, noisy-neighbor isolation, quotas and
+  saturation against workload growth and numeric objectives. For AWS serverless
+  workloads, reserved concurrency may be relevant, but is not a universal fix.
+- Review private/public endpoints, least-privilege identities, TLS/encryption,
+  key/secret rotation and logging/cost ownership using approved metadata.
+  Verify provider-specific security controls against the actual deployed service,
+  not a copied cross-provider checklist.
+- Use recovery-rehearsal for an approved isolated restore/failover exercise.
+  Backup success and infrastructure declarations are insufficient evidence of
+  achieved RTO/RPO.
+
 ## Output
 Provider-specific findings with sources, impact, assumptions, checks, and
 recovery constraints. Do not assume a cloud, region, or availability target.

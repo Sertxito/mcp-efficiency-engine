@@ -5,6 +5,10 @@ This kit standardizes the **source assets** for the project-agent blueprint in
 catalog, does not activate assets, and does not change `../../catalog/catalog.json`.
 The catalog owner decides which reviewed assets and relationships to adopt.
 
+For organization/project conventions rather than new catalog capabilities, use
+the [project conventions kit](../project-conventions/README.md). It includes
+team-owned instruction templates and a scoped C# dependency-injection example.
+
 ## Blueprints
 
 - `agent.template.md`: role boundary, authority, evidence, and handoff.

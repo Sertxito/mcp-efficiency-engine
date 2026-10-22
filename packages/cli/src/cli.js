@@ -3,6 +3,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
+const http = require("node:http");
 const { spawnSync } = require("node:child_process");
 const readline = require("node:readline/promises");
 const { reportEmbeddingProgress } = require("./activity");
@@ -56,10 +57,21 @@ const {
 } = require("../../tool-manager/src/tools");
 const { evaluateExecution, MAX_CHECKS } = require("../../evaluation-engine/src/evaluate");
 const { evaluateAssetResponse } = require("../../evaluation-engine/src/asset-evaluation");
+const {
+  buildSpecialistAcceptance, loadSpecialistSuite, specialistTask,
+} = require("../../evaluation-engine/src/specialist-acceptance");
+const { loadAuditSuite, auditTask, buildAuditAcceptance } = require("../../evaluation-engine/src/audit-acceptance");
 const { runWorkflow } = require("../../workflow-engine/src/workflow");
 const { auditHarness } = require("../../asset-audit/src/audit");
 const { buildSkillHealth } = require("../../asset-audit/src/skill-health");
 const { createPlan, listPlans } = require("../../planning-engine/src/planning");
+const {
+  checkSpecDrift,
+  discoverBrownfieldSpec,
+  listBrownfieldSpecs,
+  ratifyBrownfieldSpec,
+  prepareApprovedSpecContext,
+} = require("../../spec-engine/src/brownfield");
 const { generateProjectDocumentation } = require("../../documentation-engine/src/generate");
 const { decideLearning, listLearning, proposeLearning } = require("../../learning-engine/src/learning");
 const { routeTask } = require("../../routing-engine/src/route");
@@ -108,7 +120,7 @@ const PROJECT_VALIDATION_SCRIPTS = [
   ["build", "build"],
 ];
 const TELEMETRY_COMMANDS = new Set([
-  "evaluate", "workflow", "sync", "rebuild", "update", "learn", "tasks", "memory",
+  "evaluate", "workflow", "sync", "rebuild", "update", "learn", "tasks", "memory", "specs",
 ]);
 
 function optionValue(args, name, fallback = "") {
@@ -399,18 +411,40 @@ async function requestApprovalFromHost(kind, details, environment = null) {
     throw new Error("The VS Code approval broker must use its authenticated loopback endpoint.");
   }
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${token}`,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({ kind, details }),
-    signal: AbortSignal.timeout(10 * 60 * 1000),
+  // Human approval may take longer than fetch's independent headers timeout.
+  const response = await new Promise((resolve, reject) => {
+    const request = http.request(url, {
+      method: "POST",
+      agent: false,
+      headers: {
+        authorization: `Bearer ${token}`,
+        "content-type": "application/json",
+      },
+      signal: AbortSignal.timeout(10 * 60 * 1000),
+    }, incoming => {
+      const chunks = [];
+      let bytes = 0;
+      incoming.on("data", chunk => {
+        bytes += chunk.length;
+        if (bytes > 64 * 1024) {
+          request.destroy(new Error("The VS Code approval broker response exceeds 65536 bytes."));
+          return;
+        }
+        chunks.push(chunk);
+      });
+      incoming.on("error", reject);
+      incoming.on("end", () => resolve({
+        ok: incoming.statusCode >= 200 && incoming.statusCode < 300,
+        status: incoming.statusCode,
+        json: () => JSON.parse(Buffer.concat(chunks).toString("utf8")),
+      }));
+    });
+    request.on("error", reject);
+    request.end(JSON.stringify({ kind, details }));
   });
   if (!response.ok) throw new Error(`The VS Code approval broker returned HTTP ${response.status}.`);
   const result = await response.json();
-  if (typeof result.approved !== "boolean") {
+  if (!result || typeof result.approved !== "boolean") {
     throw new Error("The VS Code approval broker returned an invalid decision.");
   }
   return result.approved;
@@ -482,6 +516,7 @@ function printHelp() {
     "  quality    Report configured and observed validation gates for this project",
     "  skills     Report observed workflow evaluation outcomes for catalog skills",
     "  plan       Create or list durable project specifications and delivery plans",
+    "  specs      Discover, review, ratify, and check drift in brownfield specifications",
     "  evaluate   Execute local checks or evaluate an agent-asset response",
     "  workflow   Run a declared, project-local sequence of allowlisted checks",
     "  learn      Propose, inspect, and explicitly approve evaluated learning",
@@ -508,6 +543,8 @@ function printHelp() {
     "  knowledge context --query <text> [--max-tokens <n>] [--json]",
     "  knowledge embeddings status|setup|index [--profile light|bge-m3]",
     "  impact --path <project-relative-path> [--json]",
+    "  specs discover | list [--all] | drift [--json]",
+    "  specs ratify --slug <id> --reviewer <name> --confirm-sha256 <digest>",
     "  drift [--json]",
     "  tools list | tools validate [--tool <id> ...]",
     "  cloud inventory --provider azure|aws [--json]",
@@ -515,6 +552,8 @@ function printHelp() {
     "  capabilities install|update|remove <id> [--type <type>]",
     "  capabilities update [--type <type>]  Refresh all installed catalog assets",
     "  evaluate --run <project-relative-json> | --case <id> --asset <id> --response <file> [--ratings <json> --reviewer <name>]",
+    "  evaluate --suite specialist-core [--scenario <id> --variant normal|failure|boundary | --results <project-relative-json>] [--json]",
+    "  evaluate --suite specialist-audit [--scenario <id> --variant positive|negative|insufficient | --results <project-relative-json>] [--json]",
     "  workflow run --spec <project-relative-json>",
     "  learn propose --evaluation <id> --kind <pattern|insight> --text <text>",
     "  learn approve|reject <proposal-id> | learn list",
@@ -817,6 +856,7 @@ async function runSync(root) {
     return 1;
   }
   const result = syncProject(root);
+  const specDrift = checkSpecDrift(root);
   let embeddingResult;
   try {
     embeddingResult = await refreshConfiguredEmbeddings(root);
@@ -832,6 +872,12 @@ async function runSync(root) {
   process.stdout.write(`  Copilot catalog created=${result.catalog.counts.created} updated=${result.catalog.counts.updated} preserved=${result.catalog.counts.preserved}\n`);
   process.stdout.write(`  generated documentation written=${result.documentation.counts.written} preserved=${result.documentation.counts.preserved}\n`);
   process.stdout.write(`  unified evidence graph nodes=${result.unifiedGraph.node_count} edges=${result.unifiedGraph.edge_count}\n`);
+  if (result.specifications.status !== "empty") {
+    process.stdout.write(`  specification proposals ${result.specifications.status}: ${result.specifications.indexPath}; approved contracts and previous drafts preserved\n`);
+  }
+  if (specDrift.specifications.length) {
+    process.stdout.write(`  specification drift: current=${specDrift.current} drifted=${specDrift.drifted}; run mcpee specs drift for details\n`);
+  }
   if (embeddingResult?.chunkCount !== undefined) {
     process.stdout.write(`  local embedding index refreshed: chunks=${embeddingResult.chunkCount} model=${embeddingResult.model}\n`);
   } else if (embeddingResult?.warning) {
@@ -853,6 +899,58 @@ async function runSync(root) {
     process.stderr.write(`[mcpee] CodeGraph sync failed: ${codeGraph.error}\n`);
   }
   return result.counts.failed > 0 || codeGraph.status !== "ready" || result.graphify.status === "failed" ? 1 : 0;
+}
+
+function runSpecs(root, args) {
+  const [action = "list"] = args;
+  const json = args.includes("--json");
+  let result;
+  if (action === "discover") {
+    result = discoverBrownfieldSpec(root);
+    if (json) {
+      process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    } else if (result.status === "empty") {
+      process.stdout.write("[mcpee] No eligible source evidence was found; no proposal was created.\n");
+    } else {
+      process.stdout.write(`[mcpee] Brownfield proposals ${result.status}: ${result.domainCount} candidate domains; ${result.proposals.length} documents; ${result.sourceCount} sources.\n`);
+      process.stdout.write(`  Start reading: ${result.indexPath}\n`);
+      process.stdout.write("  This is evidence for review, not an approved functional specification.\n");
+    }
+    return 0;
+  }
+  if (action === "list") {
+    result = listBrownfieldSpecs(root, { includeArchived: args.includes("--all") });
+    if (json) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else if (!result.length) process.stdout.write("[mcpee] No brownfield specification proposals or approvals found.\n");
+    else for (const spec of result) {
+      process.stdout.write(`  ${spec.status}: ${spec.slug} — ${spec.path} — SHA-256 ${spec.sha256}\n`);
+    }
+    return 0;
+  }
+  if (action === "drift") {
+    result = checkSpecDrift(root);
+    if (json) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else if (!result.specifications.length) process.stdout.write("[mcpee] No managed specifications to check for drift.\n");
+    else {
+      process.stdout.write(`[mcpee] Specification drift: current=${result.current}; drifted=${result.drifted}.\n`);
+      for (const spec of result.specifications) {
+        process.stdout.write(`  ${spec.drift_status}: ${spec.specification_status} ${spec.slug}; changed=${spec.changed.length}; missing=${spec.missing.length}\n`);
+        for (const source of [...spec.changed, ...spec.missing]) process.stdout.write(`    ${source}\n`);
+      }
+    }
+    return result.drifted ? 1 : 0;
+  }
+  if (action === "ratify") {
+    result = ratifyBrownfieldSpec(root, {
+      slug: optionValue(args, "--slug"),
+      reviewer: optionValue(args, "--reviewer"),
+      confirmSha256: optionValue(args, "--confirm-sha256"),
+    });
+    process.stdout.write(`[mcpee] Specification ratified by ${result.reviewer}: ${result.specPath}\n`);
+    process.stdout.write(`  reviewed proposal SHA-256=${result.proposalSha256}\n`);
+    return 0;
+  }
+  throw new Error("Use mcpee specs discover|list|drift, or specs ratify --slug <id> --reviewer <name> --confirm-sha256 <digest>.");
 }
 
 async function approveMaintenance(action, description) {
@@ -1013,6 +1111,7 @@ async function runRebuild(root) {
   }
   if (!await approveMaintenance("rebuild", "Reprocess every supported local source and regenerate derived indexes, catalog files, documentation, and local CodeGraph/Graphify indexes when available. Source files and persistent memory are not deleted.")) return 1;
   const result = syncProject(root, { force: true });
+  const specDrift = checkSpecDrift(root);
   let embeddingResult;
   try {
     embeddingResult = await refreshConfiguredEmbeddings(root);
@@ -1024,6 +1123,9 @@ async function runRebuild(root) {
     required: true,
   });
   process.stdout.write(`[mcpee] Rebuild completed: sources=${result.discoveredFiles}; processed=${result.counts.processed}; failed=${result.counts.failed}; docs written=${result.documentation.counts.written}.\n`);
+  if (specDrift.specifications.length) {
+    process.stdout.write(`[mcpee] Specification drift: current=${specDrift.current}; drifted=${specDrift.drifted}. Use mcpee specs discover to create a new proposal from the updated snapshot.\n`);
+  }
   if (embeddingResult?.chunkCount !== undefined) {
     process.stdout.write(`[mcpee] Local embedding index refreshed: ${embeddingResult.chunkCount} chunk(s).\n`);
   } else if (embeddingResult?.warning) {
@@ -1644,6 +1746,46 @@ async function approveRuntimeRefresh({ refreshRuntime, refreshApprovalHook }) {
 }
 
 async function runEvaluation(root, args) {
+  const suiteId = optionValue(args, "--suite");
+  if (suiteId) {
+    if (!["specialist-core", "specialist-audit"].includes(suiteId) || args.includes("--run") || args.includes("--case")) {
+      throw new Error("Use --suite specialist-core or specialist-audit separately from --run and --case.");
+    }
+    const scenarioId = optionValue(args, "--scenario");
+    const variant = optionValue(args, "--variant");
+    const results = optionValue(args, "--results");
+    if (scenarioId || variant) {
+      if (!scenarioId || !variant || results) {
+        throw new Error("Task export requires --scenario and --variant, without --results.");
+      }
+      const suite = suiteId === "specialist-audit" ? loadAuditSuite() : loadSpecialistSuite().suite;
+      const scenario = suite.scenarios.find(item => item.id === scenarioId);
+      if (!scenario) throw new Error(`Unknown specialist scenario '${scenarioId}'.`);
+      const task = suiteId === "specialist-audit" ? auditTask(scenario, variant).task : specialistTask(scenario, variant);
+      process.stdout.write(args.includes("--json")
+        ? `${JSON.stringify({ scenario_id: scenarioId, variant, agent: scenario.agent, task }, null, 2)}\n`
+        : `${task}\n`);
+      return 0;
+    }
+    const report = suiteId === "specialist-audit"
+      ? buildAuditAcceptance(root, results) : buildSpecialistAcceptance(root, results);
+    if (args.includes("--json")) {
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    } else {
+      process.stdout.write(`[mcpee] Specialist acceptance: ${report.status}; ${report.summary.passed}/${report.summary.required_trials} trials passed; ${report.summary.failed} failed; ${report.summary.not_run} not run.\n`);
+      for (const scenario of report.scenarios) {
+        process.stdout.write(`  ${scenario.id} (${scenario.agent}): ${scenario.trials.map(item => `${item.variant}=${item.status}`).join(", ")}\n`);
+      }
+      if (suiteId === "specialist-audit") {
+        const summary = report.summary;
+        process.stdout.write(`  Seeded defects: ${summary.detected_defects}/${summary.expected_defects_reviewed} detected in reviewed positive trials; ${summary.missed_defects} missed.\n`);
+        process.stdout.write(`  Unsupported findings: ${summary.unsupported_findings}/${summary.findings}; duplicates: ${summary.duplicate_findings}.\n`);
+        process.stdout.write(`  Reviewed controls: ${summary.control_trials_reviewed}; alarm rate: ${summary.control_alarm_rate === null ? "not measured" : summary.control_alarm_rate}; evidence gaps: ${summary.acknowledged_unknowns}/${summary.required_unknowns_reviewed} acknowledged.\n`);
+      }
+      process.stdout.write("This is evidence for declared scenarios, not general specialist certification. No model or check was executed by this command.\n");
+    }
+    return report.status === "passed" ? 0 : report.status === "failed" ? 1 : 2;
+  }
   if (!fs.existsSync(path.join(root, ".mcpee/state/project.json"))) {
     process.stderr.write("[mcpee] Project is not initialized. Run mcpee init first.\n");
     return 1;
@@ -2058,8 +2200,11 @@ async function approveCopilotDataTransfer(projectRoot, plan, contextPackage = nu
     }
     const terminal = readline.createInterface({ input: process.stdin, output: process.stdout });
     try {
+      const contextLabel = contextPackage?.kind === "specifications"
+        ? "Approved specifications"
+        : "Repomix package";
       const answer = await terminal.question(
-        `[mcpee] Send the task, ${conversationContext.length} recent chat turn(s), and selected local context to GitHub Copilot? It may read project files through approved tools. Workflow=${plan.workflow.id}; agent=${plan.agent.id}; memories=${plan.memory.length}; knowledge sources=${plan.knowledge.length}; CodeGraph matches=${plan.knowledge_graph.length}.${contextPackage ? ` ${contextPackage.kind === "grounded" ? `Grounded ${contextPackage.retrieval} context=${contextPackage.byteLength} bytes; estimated tokens=${contextPackage.estimatedTokens};` : `Repomix package=${contextPackage.byteLength} bytes;`} selected files (${contextPackage.files.length}):\n${contextPackage.files.map((file) => `  - ${file}`).join("\n")}.` : ""} Type "send" to continue [deny]: `,
+        `[mcpee] Send the task, ${conversationContext.length} recent chat turn(s), and selected local context to GitHub Copilot? It may read project files through approved tools. Workflow=${plan.workflow.id}; agent=${plan.agent.id}; memories=${plan.memory.length}; knowledge sources=${plan.knowledge.length}; CodeGraph matches=${plan.knowledge_graph.length}.${contextPackage ? ` ${contextPackage.kind === "grounded" ? `Grounded ${contextPackage.retrieval} context=${contextPackage.byteLength} bytes; estimated tokens=${contextPackage.estimatedTokens};` : `${contextLabel}=${contextPackage.byteLength} bytes;`} selected files (${contextPackage.files.length}):\n${contextPackage.files.map((file) => `  - ${file}`).join("\n")}.` : ""} Type "send" to continue [deny]: `,
       );
       const approved = answer.trim().toLowerCase() === "send";
       recordDecision(approved ? "approved" : "denied");
@@ -2152,6 +2297,10 @@ async function synchronizeAfterCopilotChanges(root, changedPaths, workflowId, op
     return 1;
   }
   const result = (options.syncProject || syncProject)(root, { generateDocumentation: false });
+  const specDrift = checkSpecDrift(root);
+  if (specDrift.drifted) {
+    process.stderr.write(`[mcpee] Approved/proposed specifications have source drift: ${specDrift.drifted} item(s). Review with mcpee specs drift; no specification was rewritten.\n`);
+  }
   try {
     const embeddings = await refreshConfiguredEmbeddings(root);
     if (embeddings?.chunkCount !== undefined) {
@@ -2377,6 +2526,12 @@ async function runCopilotCommandInternal(root, args) {
   } else {
     recordEvent(root, { event_name: "context.layer.completed",
       attributes: { layer: "knowledge.grounding", consulted: false, outcome: "skipped", reason: "Additional grounded retrieval disabled for this execution; routing evidence remains in the prompt." } });
+  }
+  try {
+    contextPackage = prepareApprovedSpecContext(root, plan, contextPackage);
+  } catch (error) {
+    process.stderr.write(`[mcpee] Could not prepare approved specification context: ${error.message}\n`);
+    return 1;
   }
   if (!await approveCopilotDataTransfer(root, plan, contextPackage, conversationContext)) {
     process.stderr.write("[mcpee] Copilot data transfer was not approved.\n");
@@ -2834,7 +2989,12 @@ async function runCommand(args) {
     });
     const toolReport = discoverTools(root);
     saveToolReport(root, toolReport);
+    const codeGraph = updateCodeGraph(root, {
+      available: toolReport.tools.some((tool) => tool.id === "codegraph" && tool.available),
+      required: true,
+    });
     const sync = syncProject(root);
+    const brownfieldProposal = sync.specifications;
     const workflowSpecs = provisionWorkflowSpecs(root, toolReport, result.catalog.capabilities);
     let embeddingResult;
     try {
@@ -2854,10 +3014,6 @@ async function runCommand(args) {
     } else if (!rest.includes("--embeddings") && !process.stdin.isTTY) {
       process.stdout.write("[mcpee] Optional semantic embeddings skipped in non-interactive init; choose a profile with --embeddings light|bge-m3 or run mcpee knowledge embeddings setup later.\n");
     }
-    const codeGraph = updateCodeGraph(root, {
-      available: toolReport.tools.some((tool) => tool.id === "codegraph" && tool.available),
-      required: true,
-    });
     const availableTools = toolReport.tools.filter((tool) => tool.available).length;
     process.stdout.write(`[mcpee] Initialized project at ${root}\n`);
     process.stdout.write(`Created ${result.created.length} paths; updated ${result.updated.length} MCPEE-managed files; preserved ${result.preserved.length} existing files.\n`);
@@ -2878,6 +3034,13 @@ async function runCommand(args) {
       process.stderr.write(`[mcpee] Node.js LTS check failed: ${toolInstallation.nodeLtsError}\n`);
     }
     process.stdout.write(`[mcpee] Initial local sync: ${sync.discoveredFiles} source(s); processed=${sync.counts.processed}, requires-tool=${sync.counts["requires-tool"]}, failed=${sync.counts.failed}.\n`);
+    if (brownfieldProposal.status === "created" || brownfieldProposal.status === "preserved") {
+      process.stdout.write(`[mcpee] Brownfield proposals ${brownfieldProposal.status}: ${brownfieldProposal.domainCount} candidate domains; ${brownfieldProposal.proposals.length} documents; sources=${brownfieldProposal.sourceCount}. Start reading: ${brownfieldProposal.indexPath}. None are approved.\n`);
+      const coverage = brownfieldProposal.coverage;
+      process.stdout.write(`[mcpee] Automatic brownfield extraction: observations=${coverage.observations}, declared-tests=${coverage.declared_tests}, associated-assertions=${coverage.associated_assertions}; excluded-sources=${coverage.excluded_sources.length}, unsupported-implementation-files=${coverage.implementation_recognition.unsupported.length}. Coverage and gaps are recorded in ${brownfieldProposal.indexPath} and .mcpee/specs/latest.json. No extra discovery command is needed.\n`);
+    } else {
+      process.stdout.write("[mcpee] Brownfield specification discovery skipped: no eligible source evidence was indexed.\n");
+    }
     if (workflowSpecs.status === "ready") {
       const checks = workflowSpecs.checks.map((check) => `${check.tool}:${check.id}`).join(", ");
       process.stdout.write(`[mcpee] Workflow validation: generated=${workflowSpecs.created}, preserved=${workflowSpecs.preserved}, checks=${checks}. Checks run only after explicit approval.\n`);
@@ -2921,6 +3084,7 @@ async function runCommand(args) {
   if (command === "knowledge") return runKnowledge(root, rest);
   if (command === "impact") return runImpact(root, rest);
   if (command === "drift") return runDrift(root, rest);
+  if (command === "specs") return runSpecs(root, rest);
   if (command === "tools") return runTools(root, rest);
   if (command === "cloud") return runCloud(root, rest);
   if (command === "telemetry") return runTelemetry(root, rest);

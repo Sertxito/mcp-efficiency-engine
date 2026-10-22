@@ -9,6 +9,7 @@ const { renderCatalog } = require("../../copilot-renderer/src/render");
 const { generateProjectDocumentation } = require("../../documentation-engine/src/generate");
 const { buildUnifiedGraph } = require("../../knowledge-engine/src/unified");
 const { updateGraphifyGraph } = require("../../knowledge-engine/src/graphify");
+const { discoverBrownfieldSpec } = require("../../spec-engine/src/brownfield");
 
 const PROCESSOR_CATALOG_PATH = path.join(__dirname, "../../../catalog/source-processors/processors.json");
 const DEFAULT_IGNORES = new Set([
@@ -23,12 +24,12 @@ const DEFAULT_IGNORES = new Set([
 const MAX_SOURCE_BYTES = 2 * 1024 * 1024;
 const TEXT_EXTENSIONS = new Set([
   ".md", ".mdx", ".txt", ".rst", ".adoc", ".js", ".jsx", ".mjs", ".cjs",
-  ".ts", ".tsx", ".mts", ".cts", ".py", ".pyi", ".go", ".rs", ".java",
+  ".ts", ".tsx", ".mts", ".cts", ".vue", ".py", ".pyi", ".go", ".rs", ".java",
   ".kt", ".kts", ".cs", ".fs", ".vb", ".c", ".h", ".cc", ".cpp", ".hpp",
   ".html", ".htm", ".css", ".scss", ".less", ".json", ".jsonc", ".json5",
   ".yaml", ".yml", ".toml", ".ini", ".cfg", ".conf", ".xml", ".sql",
   ".graphql", ".gql", ".proto", ".sh", ".bash", ".zsh", ".ps1", ".psm1",
-  ".dockerfile", ".tf", ".tfvars", ".bicep", ".ipynb", ".csv", ".tsv",
+  ".dockerfile", ".tf", ".tfvars", ".bicep", ".bicepparam", ".ipynb", ".csv", ".tsv",
   ".sln", ".slnx", ".csproj", ".fsproj", ".vbproj", ".props", ".targets",
   ".log", ".properties", ".gradle", ".make", ".mk", ".gitignore", ".editorconfig",
 ]);
@@ -146,8 +147,9 @@ function classifySource(relative) {
   if (/(^|\/)(logs?|telemetry)(\/|$)|\.(log|jsonl|ndjson)$/.test(normalized)) return "logs";
   if (/openapi|swagger|\.proto$|\.graphql$|\.gql$/.test(normalized)) return "api-contracts";
   if (/(^|\/)(\.github\/workflows|\.gitlab-ci|\.circleci|azure-pipelines|jenkinsfile)/.test(normalized)) return "pipelines";
-  if (/(^|\/)(test|tests|spec|specs)(\/|$)|\.(test|spec)\.[^.]+$/.test(normalized)) return "tests";
-  if (/\.(tf|tfvars|bicep|dockerfile)$/.test(name) || name === "dockerfile" ||
+  if (/(^|\/)(test|tests|spec|specs)(\/|$)|\.(test|spec)\.[^.]+$|\.tests\.ps1$/.test(normalized) ||
+      /^test_.+\.py$|^.+_test\.py$|^.+tests?\.cs$/.test(name)) return "tests";
+  if (/\.(tf|tfvars|bicep|bicepparam|dockerfile)$/.test(name) || name === "dockerfile" ||
       /(^|\/)(terraform|infra|infrastructure|k8s|kubernetes)(\/|$)/.test(normalized)) return "infrastructure";
   if (/\.(sql|prisma|dbml)$/.test(name) || /(^|\/)(migrations|schema|schemas)(\/|$)/.test(normalized)) return "database";
   if (/\.(md|mdx|txt|rst|adoc)$/.test(extension) || ["license", "readme", "changelog", "makefile"].includes(name)) return "documentation";
@@ -476,7 +478,8 @@ function collectSources(projectRoot, config) {
         sources.set(relative, {
           path: relative,
           category,
-          processor: processorFor(category),
+          processor: DOCUMENT_EXTENSIONS.has(path.extname(entry.name).toLowerCase())
+            ? processorFor("office-documents") : processorFor(category),
           size_bytes: stat.size,
           modified_at: stat.mtime.toISOString(),
         });
@@ -729,6 +732,7 @@ function syncProject(projectRoot, options = {}) {
   atomicProjectWrite(root, ".mcpee/indexes/knowledge-index.json", `${JSON.stringify(lexicalIndex, null, 2)}\n`);
   atomicProjectWrite(root, ".mcpee/state/project.json", `${JSON.stringify(state, null, 2)}\n`);
   const unifiedGraph = buildUnifiedGraph(root);
+  const specifications = discoverBrownfieldSpec(root);
   const graphifyOptions = options.graphify ||
     (Array.isArray(options.tools)
       ? { installed: options.tools.some((tool) => tool.id === "graphify" && tool.invokable) }
@@ -757,6 +761,8 @@ function syncProject(projectRoot, options = {}) {
       catalog_preserved: catalog.counts.preserved,
       documentation_written: documentation.counts.written,
       documentation_preserved: documentation.counts.preserved,
+      specification_status: specifications.status,
+      specification_sources: specifications.sourceCount,
     },
   });
   return {
@@ -769,6 +775,7 @@ function syncProject(projectRoot, options = {}) {
     documentation,
     unifiedGraph,
     graphify,
+    specifications,
   };
 }
 

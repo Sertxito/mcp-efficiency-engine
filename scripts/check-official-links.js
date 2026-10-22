@@ -10,12 +10,14 @@ const officialHosts = [
   "docs.python.org",
   "packaging.python.org",
   "nodejs.org",
+  "www.typescriptlang.org",
   "docs.aws.amazon.com",
   "developer.hashicorp.com",
   "docs.github.com",
   "kubernetes.io",
   "angular.dev",
   "react.dev",
+  "vuejs.org",
   "www.w3.org",
 ];
 const urls = new Set();

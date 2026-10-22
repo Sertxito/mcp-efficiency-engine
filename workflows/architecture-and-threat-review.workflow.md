@@ -17,6 +17,14 @@ sensitive data, or introduces a platform/model integration.
 6. Obtain decisions from authorized product/security/platform owners; a review
    does not authorize implementation or deployment.
 
+## Operational failure review
+Trace dependency isolation, timeouts/retry budgets, duplicate delivery,
+poison-message/dead-letter replay, noisy-neighbor capacity and regional/zone
+failure domains when relevant. Demand observed restore/failover evidence for
+RTO/RPO claims, not just diagrams. Use the forensic evidence register to flag
+public exposure, manual drift, absent logs/cost ownership and untested recovery;
+label candidate smells separately from confirmed risk.
+
 ## Outputs
 Impact assessment, ADR proposal, threat model, acceptance/verification criteria,
 and unresolved risks. A draft is not an approved architecture decision.
