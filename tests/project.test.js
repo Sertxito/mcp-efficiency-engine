@@ -165,7 +165,7 @@ test("init creates the project structure and preserves existing user files", () 
   assert.match(fs.readFileSync(path.join(root, ".github/agents/mcpee-product.agent.md"), "utf8"), /Specialist role guidance\n\n# Product owner/);
   assert.match(fs.readFileSync(path.join(root, ".github/agents/mcpee-product.agent.md"), "utf8"), /Reusable patterns/);
   assert.match(fs.readFileSync(path.join(root, ".github/agents/mcpee-orchestrator.agent.md"), "utf8"), /Supporting role guidance: scrum-master/);
-  assert.equal(fs.existsSync(path.join(root, ".github/prompts/mcpee-deliver-feature.prompt.md")), false);
+  assert.equal(fs.existsSync(path.join(root, ".github/skills/mcpee-deliver-feature/SKILL.md")), false);
   assert.match(fs.readFileSync(path.join(root, ".mcpee/generated/catalog-policy.md"), "utf8"), /\*\*Enforcement:\*\*/);
   assert.equal(second.catalog.counts.created, 0);
   assert.equal(second.catalog.counts.updated, 0);
@@ -185,17 +185,42 @@ test("init selects user-chosen agents for projects without code and preserves ca
   const result = initializeProject(root, { initialAgents: ["product"] });
 
   assert.equal(result.catalog.capabilities.has_code_signals, false);
-  assert.deepEqual(result.catalog.capabilities.assets.agents, ["product"]);
+  assert.deepEqual(result.catalog.capabilities.assets.agents, ["orchestrator", "product"]);
   assert.ok(result.catalog.capabilities.assets.skills.length > 0);
   assert.ok(result.catalog.capabilities.assets.workflows.every((workflowId) =>
-    readCatalog().catalog.workflows.find((workflow) => workflow.id === workflowId)?.agent === "product"));
+    ["orchestrator", "product"].includes(
+      readCatalog().catalog.workflows.find((workflow) => workflow.id === workflowId)?.agent)));
   assert.equal(capabilityRegistry(root).items.find((item) =>
     item.type === "agent" && item.id === "qa")?.status, "available");
+  assert.equal(capabilityRegistry(root).items.find((item) =>
+    item.type === "agent" && item.id === "orchestrator")?.status, "core");
+  assert.throws(() => manageCapability(root, "remove", "agent", "orchestrator"), /core agent/);
 
   manageCapability(root, "install", "agent", "qa");
   assert.deepEqual(capabilityRegistry(root).items
-    .filter((item) => item.type === "agent" && item.status !== "available")
+    .filter((item) => item.type === "agent" && !["available", "core"].includes(item.status))
     .map((item) => item.id).sort(), ["product", "qa"]);
+});
+
+test("the orchestrator is restored when an earlier selection excluded it", () => {
+  const root = temporaryProject();
+  initializeProject(root, { initialAgents: ["backend", "architecture"] });
+  const statePath = path.join(root, ".mcpee/state/catalog-capabilities.json");
+  const state = JSON.parse(fs.readFileSync(statePath, "utf8"));
+  state.overrides.agent.added = state.overrides.agent.added.filter((id) => id !== "orchestrator");
+  state.overrides.agent.removed.push("orchestrator");
+  state.overrides.skill.removed.push("knowledge");
+  fs.writeFileSync(statePath, `${JSON.stringify(state, null, 2)}\n`);
+
+  renderCatalog(root);
+
+  const agent = fs.readFileSync(path.join(root, ".github/agents/mcpee-orchestrator.agent.md"), "utf8");
+  assert.match(agent, /^---\nname: mcpee-orchestrator\n/);
+  assert.ok(fs.existsSync(path.join(root, ".github/skills/mcpee-knowledge/SKILL.md")));
+  for (const file of fs.readdirSync(path.join(root, ".github/agents"))) {
+    const id = file.replace(/\.agent\.md$/, "");
+    assert.match(fs.readFileSync(path.join(root, ".github/agents", file), "utf8"), new RegExp(`^---\\nname: ${id}\\n`));
+  }
 });
 
 test("code evidence is detected even when no supported stack manifest exists", () => {
@@ -220,10 +245,11 @@ test("every specialist can route an isolated entry audit without installing anot
   for (const agent of catalog.agents) {
     renderCatalog(root, { capabilityState: createInitialCapabilityState([agent.id]) });
     const installed = readInstalledCatalog(root);
-    assert.deepEqual(installed.agents.map(item => item.id), [agent.id]);
-    assert.ok(installed.workflows.length > 0, `${agent.id} needs a runnable workflow`);
+    assert.deepEqual(installed.agents.map(item => item.id).sort(), [...new Set(["orchestrator", agent.id])].sort());
+    assert.ok(installed.workflows.some(item => item.agent === agent.id), `${agent.id} needs a runnable workflow`);
     const plan = routeTask(root, "Review only sample.txt; do not edit or execute commands.");
-    assert.equal(plan.agent.id, agent.id);
+    // Generic requests without specialist keywords fall back to the always-installed orchestrator.
+    assert.ok([agent.id, "orchestrator"].includes(plan.agent.id));
     assert.ok(installed.workflows.some(item => item.id === plan.workflow.id));
   }
 });
@@ -336,7 +362,8 @@ test("init detects a mixed stack and selects the matching project capabilities",
   assert.ok(fs.existsSync(path.join(root, ".github/skills/mcpee-database-migration-safety/SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".github/skills/mcpee-debugging-and-recovery/SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".github/skills/mcpee-performance-investigation/SKILL.md")));
-  assert.ok(fs.existsSync(path.join(root, ".github/prompts/mcpee-deliver-feature.prompt.md")));
+  assert.ok(fs.existsSync(path.join(root, ".github/skills/mcpee-deliver-feature/SKILL.md")));
+  assert.equal(fs.existsSync(path.join(root, ".github/prompts")), false);
   const report = JSON.parse(fs.readFileSync(path.join(root, ".mcpee/generated/project-capabilities.json"), "utf8"));
   assert.deepEqual(report, capabilities);
   assert.ok(!capabilities.evidence_files.some((file) => file.includes("node_modules")));
@@ -382,7 +409,8 @@ test("capabilities can be listed, installed, updated, and removed without breaki
     item.type === "agent" && item.id === "backend")?.status, "available");
   assert.notEqual(capabilityRegistry(root).items.find((item) =>
     item.type === "skill" && item.id === "quality")?.status, "available");
-  assert.throws(() => manageCapability(root, "remove", "skill", "quality"), /depend on it/);
+  assert.throws(() => manageCapability(root, "remove", "skill", "quality"), /core skill/);
+  assert.throws(() => manageCapability(root, "remove", "skill", "backend-change"), /depend on it/);
 
   const installed = spawnSync(process.execPath, [
     cli, "capabilities", "install", "backend", "--type", "agent", "--project", root,
@@ -683,6 +711,7 @@ test("catalog renderer preserves user files and removes only obsolete MCPEE-owne
   const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
   const staleRelative = ".github/prompts/mcpee-obsolete.prompt.md";
   const stalePath = path.join(root, staleRelative);
+  fs.mkdirSync(path.dirname(stalePath), { recursive: true });
   fs.writeFileSync(stalePath, `${GENERATED_MARKER}\n# Old generated prompt\n`);
   manifest.files.push(staleRelative);
   fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
@@ -693,6 +722,54 @@ test("catalog renderer preserves user files and removes only obsolete MCPEE-owne
   assert.ok(result.counts.unchanged > 0);
   assert.equal(fs.readFileSync(userAgent, "utf8"), "# My customized backend agent\n");
   assert.equal(fs.existsSync(stalePath), false);
+  assert.equal(fs.existsSync(path.dirname(stalePath)), false);
+});
+
+test("workflows render as Copilot skills and replace legacy or VS Code-migrated prompt output", () => {
+  const root = temporaryProject();
+  initializeProject(root);
+  manageCapability(root, "install", "workflow", "deliver-feature");
+  manageCapability(root, "install", "workflow", "architecture-challenge");
+  const skillPath = path.join(root, ".github/skills/mcpee-deliver-feature/SKILL.md");
+  const content = fs.readFileSync(skillPath, "utf8");
+  assert.match(content, /^---\nname: mcpee-deliver-feature\ndescription: .+\ndisable-model-invocation: true\n---\n/);
+  assert.doesNotMatch(content, /^agent:/m);
+  assert.match(content, /mcpee-orchestrator/);
+  assert.match(content, /mcpee_run/);
+  assert.match(
+    fs.readFileSync(path.join(root, ".github/skills/mcpee-workflow-architecture-challenge/SKILL.md"), "utf8"),
+    /^---\nname: mcpee-workflow-architecture-challenge\n/,
+  );
+  for (const directory of fs.readdirSync(path.join(root, ".github/skills"))) {
+    const skill = fs.readFileSync(path.join(root, ".github/skills", directory, "SKILL.md"), "utf8");
+    assert.match(skill, new RegExp(`^---\\nname: ${directory}\\n`));
+    assert.match(directory, /^[a-z0-9-]{1,64}$/);
+  }
+
+  // Simulate VS Code's prompt-to-skill migration and an older MCPEE manifest listing the prompt.
+  fs.writeFileSync(skillPath, `---\nname: mcpee-deliver-feature\ndescription: "x"\ndisable-model-invocation: true\n---\n${GENERATED_MARKER}\n`);
+  const legacyRelative = ".github/prompts/mcpee-deliver-feature.prompt.md";
+  const legacyPath = path.join(root, legacyRelative);
+  fs.mkdirSync(path.dirname(legacyPath), { recursive: true });
+  fs.writeFileSync(legacyPath, `---\nagent: mcpee-orchestrator\n---\n${GENERATED_MARKER}\n`);
+  const manifestPath = path.join(root, ".mcpee/generated/catalog-manifest.json");
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  manifest.files.push(legacyRelative);
+  fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+
+  const result = renderCatalog(root);
+  assert.equal(result.counts.removed, 1);
+  assert.equal(fs.existsSync(legacyPath), false);
+  assert.equal(fs.readFileSync(skillPath, "utf8"), content);
+
+  const userSkill = "---\nname: mcpee-deliver-feature\ndescription: mine\n---\n# My workflow\n";
+  fs.writeFileSync(skillPath, userSkill);
+  renderCatalog(root);
+  assert.equal(fs.readFileSync(skillPath, "utf8"), userSkill);
+
+  fs.writeFileSync(skillPath, content);
+  manageCapability(root, "remove", "workflow", "deliver-feature");
+  assert.equal(fs.existsSync(path.dirname(skillPath)), false);
 });
 
 test("project init upgrades only explicitly authorized runtime and hook registration", () => {
@@ -3644,7 +3721,7 @@ test("observe aggregates execution, authorization, and validation outcomes", () 
   assert.equal(exportedReport.event_count, report.event_count);
 });
 
-test("tool installation uses isolated pinned environments and blocks stale Node runtimes", async () => {
+test("tool installation uses isolated pinned environments and accepts compatible Node runtimes", async () => {
   const root = temporaryProject();
   initializeProject(root);
   const calls = [];
@@ -3752,9 +3829,11 @@ test("tool installation uses isolated pinned environments and blocks stale Node 
     onlyTools: ["repomix"],
     latestLts: "v99.0.0",
     approveInstall: async () => true,
+    npmCli: path.join(nodeRoot, "fixture-npm.js"),
+    runProcess: () => ({ status: 1, stderr: "Fixture package install failure" }),
   });
-  assert.equal(nodeInstall.results[0].status, "blocked");
-  assert.match(nodeInstall.results[0].reason, /Update global Node\.js to the latest LTS/);
+  assert.equal(nodeInstall.results[0].status, "failed");
+  assert.match(nodeInstall.results[0].reason, /Fixture package install failure/);
 });
 
 test("npm CLI tools install and execute inside MCPEE's isolated tool prefix", async () => {
@@ -4080,7 +4159,7 @@ test("greenfield init through reviewed requirements, implementation, real tests 
   installFakeCodeGraph(root);
   const invoke = (...args) => execFileSync(process.execPath, [cli, ...args, "--project", root], { encoding: "utf8" });
   const init = invoke("init", "--skip-tool-install", "--embeddings", "none");
-  assert.match(init, /Initialized project/);
+  assert.match(init, /Project files configured/);
   const initial = listBrownfieldSpecs(root);
   assert.ok(initial.every((item) => item.status !== "approved"));
   const requirementPath = path.join(root, "requirements.md");

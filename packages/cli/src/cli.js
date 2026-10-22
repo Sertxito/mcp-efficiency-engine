@@ -6,7 +6,8 @@ const crypto = require("node:crypto");
 const http = require("node:http");
 const { spawnSync } = require("node:child_process");
 const readline = require("node:readline/promises");
-const { reportEmbeddingProgress } = require("./activity");
+const { reportEmbeddingProgress, reportActivity } = require("./activity");
+const { selectOptions, askQuestion } = require("./terminal-select");
 const { addMemory, listMemory, searchMemory } = require("../../memory-engine/src/memory");
 const { initializeProject, PROJECT_DIRECTORIES, approvalHookInstalled } = require("../../core/src/project");
 const {
@@ -961,7 +962,7 @@ async function approveMaintenance(action, description) {
     return false;
   }
   const terminal = readline.createInterface({ input: process.stdin, output: process.stdout });
-  return terminal.question(
+  return askQuestion(terminal,
     `[mcpee] ${description}\nType "${action}" to authorize this operation [deny]: `,
   ).then((answer) => answer.trim().toLowerCase() === action).finally(() => terminal.close());
 }
@@ -1619,7 +1620,7 @@ async function approveStep(check) {
   }
   const terminal = readline.createInterface({ input: process.stdin, output: process.stdout });
   try {
-    const answer = await terminal.question(
+    const answer = await askQuestion(terminal,
       `[mcpee] Approve ${check.action} "${check.label}"? Tool: ${check.tool} ${formatApprovalArguments(check.args).join(" ")}. Reason: ${check.reason}\nType "approve" to authorize this invocation only [deny]: `,
     );
     return answer.trim().toLowerCase() === "approve";
@@ -1628,20 +1629,25 @@ async function approveStep(check) {
   }
 }
 
-async function approveInstall(install) {
+async function approveInstallBatch(installs) {
+  process.stdout.write("[mcpee] Project-local tool bundle (npm/PyPI downloads; your project dependencies are not changed):\n");
+  for (const install of installs) {
+    process.stdout.write(`  ${install.id}${install.required ? " (required)" : ""}: ${install.package}@${install.version} -> ${install.target}\n`);
+  }
+  if (installs.some(install => install.runtimeTarget)) {
+    process.stdout.write("  Includes pinned uv and a private Python runtime under .mcpee/tools/; system Python is not modified.\n");
+  }
   if (!process.stdin.isTTY || !process.stdout.isTTY) {
-    process.stderr.write(`[mcpee] Approval required to install ${install.package || install.id}@${install.version || "latest"} into ${install.target}; non-interactive installation is denied.\n`);
+    process.stderr.write("[mcpee] Approval required for tool bundle downloads; non-interactive installation is denied.\n");
     return false;
   }
-  const terminal = readline.createInterface({ input: process.stdin, output: process.stdout });
-  try {
-    const answer = await terminal.question(
-      `[mcpee] Approve downloading/installing ${install.package || install.id}@${install.version || "latest"} (${install.installer}) into ${install.target}${install.runtimeTarget ? ` and preparing ${install.runtimeTarget}` : ""}? This may contact package registries. Type "approve" [deny]: `,
-    );
-    return answer.trim().toLowerCase() === "approve";
-  } finally {
-    terminal.close();
-  }
+  return selectOptions({
+    title: "Authorize this tool bundle? Required tools are included automatically.",
+    options: [
+      { value: false, label: "No - leave tool installation pending" },
+      { value: true, label: "Yes - download and install the listed tools" },
+    ],
+  });
 }
 
 async function chooseInitEmbeddingProfile(args) {
@@ -1650,21 +1656,7 @@ async function chooseInitEmbeddingProfile(args) {
     if (["none", "light", "bge-m3"].includes(requested)) return requested;
     throw new Error("--embeddings must be one of: none, light, bge-m3.");
   }
-  if (!process.stdin.isTTY || !process.stdout.isTTY) return "none";
-
-  const terminal = readline.createInterface({ input: process.stdin, output: process.stdout });
-  try {
-    while (true) {
-      const answer = (await terminal.question(
-        "[mcpee] Optional local semantic embeddings: bge-m3 (recommended, CPU), light (local Ollama), or none [none]: ",
-      )).trim().toLowerCase();
-      if (!answer) return "none";
-      if (["none", "light", "bge-m3"].includes(answer)) return answer;
-      process.stderr.write("Choose none, light, or bge-m3.\n");
-    }
-  } finally {
-    terminal.close();
-  }
+  return "none";
 }
 
 async function chooseInitAgents(root, args) {
@@ -1688,34 +1680,24 @@ async function chooseInitAgents(root, args) {
   if (capabilities.has_code_signals) return null;
   const catalogAgents = readCatalog().catalog.agents;
   const defaults = new Set(capabilities.assets.agents);
-  process.stdout.write("[mcpee] No source-code or stack signals found. Select initial agents; their skills, workflows, and patterns are included automatically.\n");
-  process.stdout.write(`Available agents: ${catalogAgents.map((agent) => agent.id).join(", ")}\n`);
-  process.stdout.write(`Default: ${[...defaults].join(", ")}\n`);
-  const terminal = readline.createInterface({ input: process.stdin, output: process.stdout });
-  try {
-    while (true) {
-      const answer = (await terminal.question(
-        "[mcpee] Agent IDs (comma-separated), 'all', or 'none' [default]: ",
-      )).trim().toLowerCase();
-      if (!answer) return [...defaults];
-      if (answer === "all") return catalogAgents.map((agent) => agent.id);
-      if (answer === "none") return [];
-      const selected = answer.split(",").map((id) => id.trim()).filter(Boolean);
-      const available = new Set(catalogAgents.map((agent) => agent.id));
-      const unknown = [...new Set(selected)].filter((id) => !available.has(id));
-      if (unknown.length) {
-        process.stderr.write(`Unknown agent ID(s): ${unknown.join(", ")}. Choose from the listed agents.\n`);
-        continue;
-      }
-      if (new Set(selected).size !== selected.length) {
-        process.stderr.write("Agent IDs must not be repeated.\n");
-        continue;
-      }
-      return selected;
-    }
-  } finally {
-    terminal.close();
-  }
+  process.stdout.write("[mcpee] No source-code stack detected. Choose capabilities; the orchestrator and matching skills and workflows are included automatically.\n");
+  const profile = await selectOptions({
+    title: "Initial capabilities (you can change these later)",
+    options: [
+      { value: [...defaults], label: "Recommended - general-purpose project team" },
+      { value: ["backend", "architecture"], label: "Backend + Architecture - APIs, services and system design" },
+      { value: ["frontend", "ux-ui"], label: "Frontend + UX/UI - interfaces and user experience" },
+      { value: ["frontend", "backend", "architecture"], label: "Full stack - frontend, backend and architecture" },
+      { value: "custom", label: "Customize - select individual capabilities" },
+    ],
+  });
+  if (profile !== "custom") return profile;
+  return selectOptions({
+    title: "Capabilities - Space to select, Enter to confirm (empty = none)",
+    multiple: true,
+    initial: [...defaults],
+    options: catalogAgents.map(agent => ({ value: agent.id, label: `${agent.id} - ${agent.description}` })),
+  });
 }
 
 function requiredToolInstallationFailures(results, tools) {
@@ -1731,18 +1713,19 @@ async function approveRuntimeRefresh({ refreshRuntime, refreshApprovalHook }) {
     process.stderr.write("[mcpee] The installed Copilot hook is outdated and does not enforce tool approval; non-interactive runtime replacement is denied.\n");
     return false;
   }
-  const terminal = readline.createInterface({ input: process.stdin, output: process.stdout });
-  try {
-    const answer = await terminal.question(
-      `[mcpee] Authorize ${[
+  process.stdout.write(
+      `[mcpee] Refresh requires ${[
         ...(refreshRuntime ? [".mcpee/runtime/copilot-hook.cjs and approval-policy.cjs replacement"] : []),
         ...(refreshApprovalHook ? ["adding the MCPEE preToolUse hook to .github/hooks/mcpee-observability.json (existing hooks are preserved)"] : []),
-      ].join(" and ")}? Back up any local runtime customizations first. Type "replace" [deny]: `,
-    );
-    return answer.trim().toLowerCase() === "replace";
-  } finally {
-    terminal.close();
-  }
+      ].join(" and ")}. Back up any local runtime customizations first.\n`,
+  );
+  return selectOptions({
+    title: "Replace the outdated approval integration?",
+    options: [
+      { value: false, label: "No - stop setup" },
+      { value: true, label: "Yes - refresh the listed MCPEE integration files" },
+    ],
+  });
 }
 
 async function runEvaluation(root, args) {
@@ -2203,7 +2186,7 @@ async function approveCopilotDataTransfer(projectRoot, plan, contextPackage = nu
       const contextLabel = contextPackage?.kind === "specifications"
         ? "Approved specifications"
         : "Repomix package";
-      const answer = await terminal.question(
+      const answer = await askQuestion(terminal,
         `[mcpee] Send the task, ${conversationContext.length} recent chat turn(s), and selected local context to GitHub Copilot? It may read project files through approved tools. Workflow=${plan.workflow.id}; agent=${plan.agent.id}; memories=${plan.memory.length}; knowledge sources=${plan.knowledge.length}; CodeGraph matches=${plan.knowledge_graph.length}.${contextPackage ? ` ${contextPackage.kind === "grounded" ? `Grounded ${contextPackage.retrieval} context=${contextPackage.byteLength} bytes; estimated tokens=${contextPackage.estimatedTokens};` : `${contextLabel}=${contextPackage.byteLength} bytes;`} selected files (${contextPackage.files.length}):\n${contextPackage.files.map((file) => `  - ${file}`).join("\n")}.` : ""} Type "send" to continue [deny]: `,
       );
       const approved = answer.trim().toLowerCase() === "send";
@@ -2230,7 +2213,7 @@ async function approveCopilotPermission(request, description) {
     : description;
   const terminal = readline.createInterface({ input: process.stdin, output: process.stdout });
   try {
-    const answer = await terminal.question(
+    const answer = await askQuestion(terminal,
       `[mcpee] Copilot requests runtime permission (${request.kind}):\n${preview}\nType "approve" to authorize this action once [deny]: `,
     );
     return answer.trim().toLowerCase() === "approve";
@@ -2271,7 +2254,7 @@ async function approveCopilotTool(input, reason, impactPreflight = { targets: []
   ]).join("\n") || "  No indexed impact evidence.";
   const terminal = readline.createInterface({ input: process.stdin, output: process.stdout });
   try {
-    const answer = await terminal.question(
+    const answer = await askQuestion(terminal,
       `[mcpee] Copilot requests tool "${input.toolName}".\nArguments:\n${preview}\nImpact preflight:\n${impactSummary}\nReason: ${reason}\nType "approve" to authorize this exact call once [deny]: `,
     );
     return answer.trim().toLowerCase() === "approve";
@@ -2983,16 +2966,31 @@ async function runCommand(args) {
       refreshApprovalHook,
       ...(initialAgents ? { initialAgents } : {}),
     });
+    process.stdout.write(`[mcpee] Capabilities configured: ${result.catalog.capabilities.assets.agents.join(", ") || "none"}.\n`);
+    reportActivity("Checking tool requirements");
     const toolInstallation = await installCatalogTools(root, {
       skipInstall: rest.includes("--skip-tool-install"),
-      approveInstall,
+      approveInstallBatch,
+      onNodeCheck: ({ current, latest, error }) => {
+        if (error) process.stderr.write(`[mcpee] Node.js update check unavailable: ${error}. Compatible tool installation can continue.\n`);
+        else if (latest && current !== latest) {
+          process.stdout.write(`[mcpee] Node.js ${current}; latest LTS ${latest} (advisory only; compatible versions are accepted).\n`);
+        }
+      },
+      onProgress: (result) => {
+        reportActivity(`${result.id}: ${result.status}`);
+        process.stdout.write(`[mcpee] ${result.id}: ${result.status}${result.reason ? ` - ${result.reason}` : ""}\n`);
+      },
     });
+    reportActivity("Discovering local tools");
     const toolReport = discoverTools(root);
     saveToolReport(root, toolReport);
+    reportActivity("Building CodeGraph index");
     const codeGraph = updateCodeGraph(root, {
       available: toolReport.tools.some((tool) => tool.id === "codegraph" && tool.available),
       required: true,
     });
+    reportActivity("Synchronizing local sources and evidence");
     const sync = syncProject(root);
     const brownfieldProposal = sync.specifications;
     const workflowSpecs = provisionWorkflowSpecs(root, toolReport, result.catalog.capabilities);
@@ -3014,8 +3012,11 @@ async function runCommand(args) {
     } else if (!rest.includes("--embeddings") && !process.stdin.isTTY) {
       process.stdout.write("[mcpee] Optional semantic embeddings skipped in non-interactive init; choose a profile with --embeddings light|bge-m3 or run mcpee knowledge embeddings setup later.\n");
     }
+    if (embeddingProfile === "none" && process.stdin.isTTY) {
+      process.stdout.write("[mcpee] Semantic embeddings are optional and off by default. Add them later with mcpee knowledge embeddings setup --profile bge-m3|light.\n");
+    }
     const availableTools = toolReport.tools.filter((tool) => tool.available).length;
-    process.stdout.write(`[mcpee] Initialized project at ${root}\n`);
+    process.stdout.write(`[mcpee] Project files configured at ${root}\n`);
     process.stdout.write(`Created ${result.created.length} paths; updated ${result.updated.length} MCPEE-managed files; preserved ${result.preserved.length} existing files.\n`);
     process.stdout.write(`[mcpee] Copilot catalog: ${result.catalog.counts.created} created, ${result.catalog.counts.updated} updated, ${result.catalog.counts.preserved} preserved.\n`);
     const technologies = result.catalog.capabilities.detected_technologies.map(({ id }) => id);
@@ -3075,9 +3076,12 @@ async function runCommand(args) {
     if (workflowSpecs.status === "failed" ||
         sync.counts.failed > 0 || sync.graphify.status === "failed" ||
         toolFailures.length > 0 || codeGraph.status !== "ready") {
-      process.stderr.write("[mcpee] Initialization completed with incomplete tool installation or source processing; review the messages above and rerun mcpee init after resolving them.\n");
+      process.stderr.write("[mcpee] SETUP INCOMPLETE - capabilities are configured, but the harness is not fully ready.\n");
+      for (const failure of toolFailures) process.stderr.write(`[mcpee] Required tool pending: ${failure.id} - ${failure.reason || failure.status}\n`);
+      process.stderr.write("[mcpee] Resolve the reported blockers, then rerun mcpee init; existing capability selections and user files are preserved.\n");
       return 1;
     }
+    process.stdout.write("[mcpee] SETUP COMPLETE - required tools and indexes are ready.\n");
     return 0;
   }
   if (command === "trace") return runTrace(root, rest);

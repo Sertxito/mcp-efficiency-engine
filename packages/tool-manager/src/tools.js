@@ -594,31 +594,69 @@ async function installCatalogTools(projectRoot, options = {}) {
   let pythonRuntime;
   let latestLts;
   let ltsCheckError;
-  if (!options.skipNodeTools) {
+  const tools = catalog.tools.filter((item) =>
+    item.auto_install && (!options.onlyTools || options.onlyTools.includes(item.id)));
+  if (!options.skipInstall && !options.skipNodeTools) {
     try {
       latestLts = options.latestLts || await readLatestLtsVersion(options);
     } catch (error) {
       ltsCheckError = error.message;
     }
   }
-  for (const tool of catalog.tools.filter((item) =>
-    item.auto_install && (!options.onlyTools || options.onlyTools.includes(item.id)))) {
+  options.onNodeCheck?.({ current: process.version, latest: latestLts || null, error: ltsCheckError || null });
+  const nodeBlocker = (tool) => {
+    if (tool.installer.type !== "npm-prefix" || options.skipNodeTools) return null;
+    const minimum = tool.installer.node_minimum;
+    if (!isVersionAtLeast(process.versions.node, minimum)) {
+      return `Node.js ${minimum}+ is required; current runtime is ${process.version}.`;
+    }
+    if (!options.npmCli && !npmCliPath()) {
+      return "npm's JavaScript CLI was not found beside the active Node runtime.";
+    }
+    return null;
+  };
+  const installDetails = tool => ({
+    id: tool.id,
+    package: tool.installer.package,
+    version: tool.installer.version,
+    installer: tool.installer.type,
+    required: !tool.optional,
+    target: tool.installer.type === "npm-prefix"
+      ? `${NPM_TOOL_ROOT}/`
+      : `${PYTHON_TOOL_ROOT}/${tool.id}/<python-version>/`,
+    runtimeTarget: tool.installer.type === "python-venv"
+      ? `${PYTHON_TOOL_ROOT}/runtime/ (latest stable Python, if not already installed)`
+      : null,
+  });
+  const blockers = new Map(tools.map(tool => [tool.id, nodeBlocker(tool)]));
+  const blockedTools = tools.filter(tool => blockers.get(tool.id));
+  for (const tool of options.skipInstall ? [] : blockedTools) options.onProgress?.({
+    id: tool.id, status: "blocked", reason: blockers.get(tool.id),
+  });
+  const eligible = tools.filter(tool => !blockers.get(tool.id) &&
+    !(options.skipNodeTools && tool.installer.type === "npm-prefix"));
+  const batchApproved = !options.skipInstall && eligible.length && options.approveInstallBatch
+    ? await options.approveInstallBatch(eligible.map(installDetails))
+    : undefined;
+  for (const tool of tools) {
     if (options.skipInstall) {
       results.push({ id: tool.id, status: "skipped", reason: "Tool installation was disabled by --skip-tool-install." });
       continue;
     }
-    const approved = await options.approveInstall?.({
-      id: tool.id,
-      package: tool.installer.package,
-      version: tool.installer.version,
-      installer: tool.installer.type,
-      target: tool.installer.type === "npm-prefix"
-        ? `${NPM_TOOL_ROOT}/`
-        : `${PYTHON_TOOL_ROOT}/${tool.id}/<python-version>/`,
-      runtimeTarget: tool.installer.type === "python-venv"
-        ? `${PYTHON_TOOL_ROOT}/runtime/ (latest stable Python, if not already installed)`
-        : null,
-    });
+    const blocker = blockers.get(tool.id);
+    if (blocker || (options.skipNodeTools && tool.installer.type === "npm-prefix")) {
+      results.push({ id: tool.id, status: blocker ? "blocked" : "skipped",
+        reason: blocker || "Node tool installation was disabled by --skip-tool-install." });
+      recordEvent(root, {
+        event_name: "action.blocked",
+        tool_name: tool.id,
+        attributes: { action: "tool installation", reason: blocker || "Node tool installation disabled" },
+      });
+      continue;
+    }
+    const approved = options.approveInstallBatch
+      ? batchApproved
+      : await options.approveInstall?.(installDetails(tool));
     if (!approved) {
       const result = { id: tool.id, status: "blocked", reason: "Human approval was not granted for package installation." };
       results.push(result);
@@ -629,18 +667,11 @@ async function installCatalogTools(projectRoot, options = {}) {
       });
       continue;
     }
+    options.onProgress?.({ id: tool.id, status: "installing" });
     ensureManagedToolsDirectory(root);
     let result;
     if (tool.installer.type === "npm-prefix") {
-      if (options.skipNodeTools) {
-        result = { id: tool.id, status: "skipped", reason: "Node tool installation was disabled by --skip-tool-install." };
-      } else if (ltsCheckError) {
-        result = { id: tool.id, status: "blocked", reason: `Could not verify latest Node.js LTS; refusing Node tool installation: ${ltsCheckError}` };
-      } else if (process.version !== latestLts) {
-        result = { id: tool.id, status: "blocked", reason: `Update global Node.js to the latest LTS ${latestLts} (current: ${process.version}), then rerun mcpee init.` };
-      } else {
-        result = installNpmTool(root, tool, state, options);
-      }
+      result = installNpmTool(root, tool, state, options);
     } else if (tool.installer.type === "python-venv") {
       try {
         pythonRuntime ||= ensureLatestPython(root, state, options);
@@ -654,6 +685,7 @@ async function installCatalogTools(projectRoot, options = {}) {
       throw new Error(`Unsupported installer type '${tool.installer.type}' for tool '${tool.id}'`);
     }
     results.push(result);
+    options.onProgress?.(result);
     recordEvent(root, {
       event_name: "tool.installation.completed",
       tool_name: tool.id,

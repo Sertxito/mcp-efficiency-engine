@@ -69,8 +69,8 @@ mcpee workflow run --spec .mcpee/workflows/verify-node.json
   evidence. State-changing steps are blocked unless all evidence is indexed and
   the preflight is ready.
 - A checksummed report is written under `.mcpee/reports/workflows/`.
-- `workflow run` does not invoke Copilot; use the generated
-  `.github/prompts/` workflows in Copilot for that.
+- `workflow run` does not invoke Copilot; use the generated workflow skills
+  (`/mcpee-<workflow>` from `.github/skills/`) in Copilot for that.
 
 The spec is executable configuration. Review its tools, arguments and working
 directories: allowlisting a CLI does not make its arguments side-effect free.

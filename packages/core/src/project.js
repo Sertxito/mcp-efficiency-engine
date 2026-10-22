@@ -8,7 +8,6 @@ const { createInitialCapabilityState, renderCatalog } = require("../../copilot-r
 const PROJECT_DIRECTORIES = [
   ".github/agents",
   ".github/instructions",
-  ".github/prompts",
   ".github/skills",
   ".mcpee/generated",
   ".mcpee/state",

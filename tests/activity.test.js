@@ -37,6 +37,26 @@ test("activity reports during synchronous work and does not write to stdout", ()
   assert.match(result.stderr, /Working: test phase; elapsed \d+s/);
 });
 
+test("activity stays silent while waiting for input and resumes with a real phase", () => {
+  const modulePath = path.resolve(__dirname, "../packages/cli/src/activity");
+  const script = `
+    const {startActivity,reportActivity,pauseActivity,resumeActivity}=require(${JSON.stringify(modulePath)});
+    const stop=startActivity(['init'],{isTTY:true,write:s=>process.stderr.write(s)});
+    (async()=>{
+      await pauseActivity();
+      reportActivity('question must stay visible');
+      await new Promise(resolve=>setTimeout(resolve,10100));
+      resumeActivity();
+      reportActivity('installing codegraph');
+      await new Promise(resolve=>setTimeout(resolve,100));
+    })().finally(stop);
+  `;
+  const result = spawnSync(process.execPath, ["-e", script], { encoding: "utf8", timeout: 20_000 });
+  assert.equal(result.status, 0, result.stderr);
+  assert.doesNotMatch(result.stderr, /question must stay visible/);
+  assert.match(result.stderr, /Working: installing codegraph/);
+});
+
 test("CLI logs embedding progress when redirected but suppresses it for machine-output flags", () => {
   const engine = path.resolve(__dirname, "../packages/source-engine/src/embeddings");
   const cli = path.resolve(__dirname, "../packages/cli/src/cli");

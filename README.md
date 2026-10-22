@@ -13,12 +13,12 @@ action, automatic validation after changes and a full local audit trail.
   first. Existing user files are never overwritten.
 
 npm package: **`mcp-efficiency-engine`** · commands: `mcpee` (or
-`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.26)
+`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.27)
 
 ## Requirements
 
-- **Node.js 24 or newer.** A complete tool install also needs the latest
-  Node.js LTS patch; `init` tells you if an update is required.
+- **Node.js 24 or newer.** The latest LTS is recommended, not required.
+  `init` checks tool compatibility; a newer patch does not block setup.
 - **GitHub Copilot** with an authenticated session.
 - **VS Code with Copilot Chat** (recommended).
 - **Python 3.8+ with pip**, only on first setup, to bootstrap MCPEE's private
@@ -31,12 +31,12 @@ Full details: [Getting started → Requirements](docs/GETTING-STARTED.md#require
 **1. Install**
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.26
+npm install --global mcp-efficiency-engine@0.1.27
 ```
 
 If npm blocks the native `koffi` dependency, add `--allow-scripts=koffi`
 (only that dependency is allowed). Prefer no global install? Use
-`npx --package=mcp-efficiency-engine@0.1.26 mcpee init --project <path>`.
+`npx --package=mcp-efficiency-engine@0.1.27 mcpee init --project <path>`.
 
 **2. Initialize your project**
 

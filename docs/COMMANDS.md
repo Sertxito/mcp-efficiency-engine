@@ -8,7 +8,7 @@ guides.
 
 | Command | Purpose |
 |---|---|
-| `mcpee init [--agents <id,...\|all\|none>] [--skip-tool-install] [--embeddings none\|light\|bge-m3]` | Initialize the project, install approved tools, sync knowledge and detect brownfield/greenfield. See [Getting started](GETTING-STARTED.md). |
+| `mcpee init [--agents <id,...\|all\|none>] [--skip-tool-install] [--embeddings none\|light\|bge-m3]` | Choose a capability preset or checkboxes in a new empty project, authorize the tool bundle once, sync knowledge and detect brownfield/greenfield. Embeddings default to off. Ends with an explicit complete/incomplete status. See [Getting started](GETTING-STARTED.md). |
 | `mcpee status` | Show installation, source and telemetry state. |
 | `mcpee doctor` | Validate required local artifacts and indexes. |
 | `mcpee explain [--task <request>]` | Explain the installed catalog, tools, knowledge state, hooks and, with `--task`, the selected plan. |

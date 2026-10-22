@@ -27,6 +27,8 @@ const GUIDANCE_REPLACEMENTS = {
 const EXECUTION_STAGES = [
   "understand", "analyze", "plan", "execute", "validate", "document", "observe", "learn",
 ];
+// The orchestrator coordinates every workflow and is required by `mcpee doctor`.
+const REQUIRED_AGENTS = ["orchestrator"];
 const CAPABILITY_COLLECTIONS = {
   agent: "agents",
   skill: "skills",
@@ -72,8 +74,18 @@ function readCapabilityState(projectRoot) {
   return state;
 }
 
+function requiredCapabilityAssets(catalog) {
+  const agents = catalog.agents.filter((agent) => REQUIRED_AGENTS.includes(agent.id));
+  return {
+    agents: new Set(agents.map((agent) => agent.id)),
+    skills: new Set(agents.flatMap((agent) => agent.skills)),
+    patterns: new Set(agents.flatMap((agent) => agent.patterns || [])),
+  };
+}
+
 function resolveCapabilityAssets(catalog, detectedAssets, state) {
   const overrides = state?.overrides || {};
+  const required = requiredCapabilityAssets(catalog);
   const selected = {};
   for (const [type, collection] of Object.entries(CAPABILITY_COLLECTIONS)) {
     const available = new Set(catalog[collection].map((item) => item.id));
@@ -87,6 +99,7 @@ function resolveCapabilityAssets(catalog, detectedAssets, state) {
       ...(detectedAssets[collection] || []),
       ...(override.added || []),
     ].filter((id) => !(override.removed || []).includes(id)));
+    for (const id of required[collection] || []) selected[collection].add(id);
   }
 
   const addedAgents = new Set(selected.agents);
@@ -120,7 +133,9 @@ function resolveCapabilityAssets(catalog, detectedAssets, state) {
 
   for (const [type, collection] of Object.entries(CAPABILITY_COLLECTIONS)) {
     const excluded = new Set(overrides[type]?.removed || []);
-    for (const id of excluded) selected[collection].delete(id);
+    for (const id of excluded) {
+      if (!required[collection]?.has(id)) selected[collection].delete(id);
+    }
   }
   return Object.fromEntries(Object.entries(selected).map(([collection, ids]) => [
     collection,
@@ -145,14 +160,14 @@ function createInitialCapabilityState(agentIds) {
   }
   const { catalog, digest } = readCatalog();
   const available = new Set(catalog.agents.map((agent) => agent.id));
-  const selected = new Set(agentIds);
-  if (selected.size !== agentIds.length) {
+  if (new Set(agentIds).size !== agentIds.length) {
     throw new Error("Initial agent selection cannot contain duplicate IDs.");
   }
-  const unknown = [...selected].filter((id) => !available.has(id));
+  const unknown = agentIds.filter((id) => !available.has(id));
   if (unknown.length) {
     throw new Error(`Initial agent selection contains unknown IDs: ${unknown.join(", ")}`);
   }
+  const selected = new Set([...REQUIRED_AGENTS, ...agentIds]);
   const workflows = catalog.workflows.filter((workflow) => selected.has(workflow.agent));
   const workflowIds = new Set(workflows.map((workflow) => workflow.id));
   const skills = new Set([
@@ -224,6 +239,7 @@ function capabilityRegistry(projectRoot, catalog = readCatalog().catalog) {
   const state = readCapabilityState(projectRoot);
   const defaults = initialCapabilityAssets(catalog, detected.assets);
   const assets = capabilityDefaults(catalog, defaults, state);
+  const required = requiredCapabilityAssets(catalog);
   const items = [];
   for (const [type, collection] of Object.entries(CAPABILITY_COLLECTIONS)) {
     const installed = new Set(assets[collection]);
@@ -232,7 +248,9 @@ function capabilityRegistry(projectRoot, catalog = readCatalog().catalog) {
         type,
         id: entry.id,
         description: entry.description,
-        status: installed.has(entry.id)
+        status: required[collection]?.has(entry.id)
+          ? "core"
+          : installed.has(entry.id)
           ? (defaults[collection]?.includes(entry.id) ? "detected-installed" : "installed")
           : "available",
         dependencies: type === "agent"
@@ -864,7 +882,7 @@ function agentContent(agent, catalog) {
     .filter((skill) => agent.skills.includes(skill.id))
     .map((skill) => `- ${skill.id}: ${skill.description}`);
   return `---
-name: ${yamlString(`MCPEE ${agent.id}`)}
+name: mcpee-${agent.id}
 description: ${yamlString(agent.description)}
 ---
 ${GENERATED_MARKER}
@@ -928,7 +946,7 @@ ${(agent.supporting_source_paths ?? []).map((sourcePath) =>
 
 function skillContent(skill) {
   return `---
-name: ${yamlString(`MCPEE ${skill.id}`)}
+name: mcpee-${skill.id}
 description: ${yamlString(skill.description)}
 ---
 ${GENERATED_MARKER}
@@ -957,16 +975,26 @@ ${skill.used_by.map((agentId) => `- ${agentId}`).join("\n")}
 `;
 }
 
-function workflowContent(workflow) {
+// Skill names must match their folder; workflows whose id equals a catalog skill id get a prefix.
+function workflowSkillName(workflowId, skillIds) {
+  return skillIds.has(workflowId) ? `mcpee-workflow-${workflowId}` : `mcpee-${workflowId}`;
+}
+
+function workflowContent(workflow, name) {
   return `---
+name: ${name}
 description: ${yamlString(workflow.description)}
-agent: mcpee-orchestrator
+disable-model-invocation: true
 ---
 ${GENERATED_MARKER}
 
 # ${workflow.id}
 
 ${workflow.description}
+
+Run this workflow only when the user invokes it explicitly (\`/${name}\`).
+Coordinate it as the \`mcpee-orchestrator\` agent: route the request through the
+project-scoped \`mcpee_run\` MCP tool when it is available.
 
 Use agent \`${workflow.agent}\` and skills ${workflow.skills.map((skill) => `\`${skill}\``).join(", ")}.
 Start when: ${workflow.entry_conditions.join("; ")}.
@@ -1110,7 +1138,7 @@ ${Object.entries(assets).map(([kind, ids]) =>
 `;
 }
 
-function renderFiles(catalog, capabilities) {
+function renderFiles(catalog, capabilities, skillIds = new Set(catalog.skills.map((skill) => skill.id))) {
   const files = new Map();
   for (const agent of catalog.agents) {
     files.set(`.github/agents/mcpee-${agent.id}.agent.md`, agentContent(agent, catalog));
@@ -1119,7 +1147,8 @@ function renderFiles(catalog, capabilities) {
     files.set(`.github/skills/mcpee-${skill.id}/SKILL.md`, skillContent(skill));
   }
   for (const workflow of catalog.workflows) {
-    files.set(`.github/prompts/mcpee-${workflow.id}.prompt.md`, workflowContent(workflow));
+    const name = workflowSkillName(workflow.id, skillIds);
+    files.set(`.github/skills/${name}/SKILL.md`, workflowContent(workflow, name));
   }
   files.set(".github/instructions/mcpee-catalog.instructions.md", coreInstructions());
   files.set(".github/instructions/mcpee-policies.instructions.md", policyInstructions(catalog));
@@ -1275,20 +1304,26 @@ function renderCatalog(projectRoot, options = {}) {
   const assets = capabilityDefaults(catalog, defaults, state);
   capabilities.assets = assets;
   const renderableCatalog = selectedCatalog(catalog, assets);
-  const files = renderFiles(renderableCatalog, capabilities);
+  const files = renderFiles(renderableCatalog, capabilities, new Set(catalog.skills.map((skill) => skill.id)));
   const previous = loadManagedFiles(root);
   const nextFiles = new Set(files.keys());
   const counts = { created: 0, updated: 0, unchanged: 0, preserved: 0, removed: 0 };
   for (const [relative, content] of files) {
     counts[writeOwnedFile(root, relative, content)] += 1;
   }
+  const removedDirectories = new Set();
   for (const relative of previous) {
     if (nextFiles.has(relative)) continue;
     const destination = safeProjectPath(root, relative);
     if (isOwnedGeneratedFile(destination)) {
       fs.unlinkSync(destination);
       counts.removed += 1;
+      removedDirectories.add(path.dirname(destination));
     }
+  }
+  // Drop folders left empty by removed output, e.g. legacy .github/prompts or a skill folder.
+  for (const directory of removedDirectories) {
+    if (fs.existsSync(directory) && fs.readdirSync(directory).length === 0) fs.rmdirSync(directory);
   }
   const lockStatus = writeCatalogLock(root, digest);
   if (lockStatus === "preserved") counts.preserved += 1;
