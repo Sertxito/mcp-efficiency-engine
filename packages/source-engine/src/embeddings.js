@@ -111,10 +111,12 @@ function isNoiseLine(line) {
 function chunkStructuredDocument(projectRoot, document, lines) {
   const chunks = [];
   const extension = path.extname(document.source_path).toLowerCase();
-  const code = new Set([".py", ".pyi", ".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".mts", ".cts", ".go", ".rs", ".java", ".cs"]);
-  const signature = extension === ".py"
-    ? /^\s*(?:async\s+)?(?:def|class)\s+\w+/
-    : /^\s*(?:(?:export|default|async|static|public|private|protected)\s+)*(?:function|class)\s+\w+/;
+  const code = new Set([".py", ".pyi", ".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".mts", ".cts", ".vue", ".go", ".rs", ".java", ".cs"]);
+  const signature = extension === ".vue"
+    ? /^\s*<(?:script|template|style)(?:\s|>)/
+    : extension === ".py"
+      ? /^\s*(?:async\s+)?(?:def|class)\s+\w+/
+      : /^\s*(?:(?:export|default|async|static|public|private|protected)\s+)*(?:function|class)\s+\w+/;
 
   const addCodeChunk = (chunk) => {
     if (!chunk) return;

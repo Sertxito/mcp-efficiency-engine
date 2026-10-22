@@ -1,0 +1,244 @@
+{
+  "schema_version": 1,
+  "description": "Reviewer-only counterexamples paired with audit-fixtures.json. Never tell the specialist a case is safe, negative or insufficient. Context is an explicit fixture contract, not proof about a real project.",
+  "cases": [
+    {
+      "id": "dotnet-entry",
+      "negative": {
+        "context": "ASP.NET Core/EF Core on .NET 10. Fragment from a compiled application. ReportService is resolved within a request scope; the caller awaits LoadAsync and handles cancellation/errors. Imports, host and AppDbContext are outside scope.",
+        "source": "services.AddDbContext<AppDbContext>();\nservices.AddScoped<ReportService>();\npublic sealed class ReportService(AppDbContext db) {\n  public async Task LoadAsync(CancellationToken ct) {\n    await db.Orders.ToListAsync(ct);\n    await db.Customers.ToListAsync(ct);\n  }\n}\n",
+        "do_not_report": ["Scoped service capturing scoped DbContext is not a captive dependency.", "Two awaited queries are sequential, not overlapping operations."]
+      },
+      "insufficient": {
+        "context": ".NET 10 compiled service fragment. Only this method is available; registration, ownership and the implementation of LoadAsync are outside scope.",
+        "source": "public Task HandleAsync(CancellationToken ct) => reports.LoadAsync(ct);\n",
+        "required_unknowns": [
+          { "id": "context-ownership", "reason": "Need registrations/ownership before alleging captive DbContext lifetime." },
+          { "id": "query-concurrency", "reason": "Need LoadAsync implementation before alleging parallel context use." }
+        ],
+        "do_not_report": ["A method call does not prove singleton lifetime.", "A returned task does not prove concurrent database queries."]
+      }
+    },
+    {
+      "id": "python-entry",
+      "negative": {
+        "context": "Python 3.14 async handler helper. History is per call; the caller owns response serialization and handles errors. The one-second asynchronous delay is an intentional requirement.",
+        "source": "import asyncio\nasync def handle(value):\n    history = []\n    await asyncio.sleep(1)\n    history.append(value)\n    return history\n",
+        "do_not_report": ["A local list is not a shared mutable default.", "await asyncio.sleep yields rather than blocking the event-loop thread."]
+      },
+      "insufficient": {
+        "context": "Python 3.14 asynchronous handler fragment. build_history and load are application helpers whose implementations, state ownership and scheduling contracts are not supplied.",
+        "source": "async def handle(value):\n    history = build_history()\n    return await load(value, history)\n",
+        "required_unknowns": [
+          { "id": "history-ownership", "reason": "Need build_history ownership to establish shared state or leakage." },
+          { "id": "blocking-helper", "reason": "Need load implementation to establish blocking work inside async execution." }
+        ],
+        "do_not_report": ["A factory name does not prove shared history.", "An awaited helper alone does not establish event-loop blocking."]
+      }
+    },
+    {
+      "id": "node-entry",
+      "negative": {
+        "context": "Node 24. loadStartupConfig runs once before the server accepts requests. runPair receives a validated array of at most two jobs. remoteWrite is idempotent; caller reconciles partial failures and handles rejection. fs input is a trusted local config path.",
+        "source": "const fs = require('node:fs');\nfunction loadStartupConfig(file) {\n  return fs.readFileSync(file, 'utf8');\n}\nasync function runPair(jobs) {\n  return await Promise.all(jobs.map(job => remoteWrite(job)));\n}\n",
+        "do_not_report": ["Startup-only synchronous I/O is not a demonstrated request-loop defect.", "Promise.all over a validated maximum of two is bounded; do not mandate a queue."]
+      },
+      "insufficient": {
+        "context": "Node 24 request fragment. processJobs is not supplied; its concurrency, cancellation, retry and admission contracts are unknown. Request schema validation occurs before this method.",
+        "source": "async function handle(jobs) {\n  return await processJobs(jobs);\n}\n",
+        "required_unknowns": [
+          { "id": "scheduler-capacity", "reason": "Need processJobs concurrency/admission implementation to judge fanout." },
+          { "id": "failure-contract", "reason": "Need downstream side-effect and retry contract before alleging unsafe replay." }
+        ],
+        "do_not_report": ["An awaited bulk helper does not prove unbounded fanout.", "Missing helper code is not evidence of missing idempotency."]
+      }
+    },
+    {
+      "id": "typescript-entry",
+      "negative": {
+        "context": "Strict TypeScript compiled function. count must be a finite number including zero, name must be a string. Invalid payloads must throw; caller maps errors to the external API contract.",
+        "source": "export function parse(raw: string): string {\n  const input: unknown = JSON.parse(raw);\n  if (typeof input !== 'object' || input === null ||\n      !('count' in input) || typeof input.count !== 'number' || !Number.isFinite(input.count) ||\n      !('name' in input) || typeof input.name !== 'string') {\n    throw new TypeError('Invalid input');\n  }\n  return input.name.toUpperCase() + ':' + input.count;\n}\n",
+        "do_not_report": ["External JSON is checked at runtime, not merely asserted.", "Direct use preserves zero; a default is not required."]
+      },
+      "insufficient": {
+        "context": "Strict TypeScript compiled application. Input is imported and parseInput is an external helper; its body, schema and count semantics are not supplied.",
+        "source": "export function parse(raw: string): Input {\n  return parseInput(raw);\n}\n",
+        "required_unknowns": [
+          { "id": "runtime-schema", "reason": "Need parseInput validation behavior before alleging unchecked JSON." },
+          { "id": "zero-semantics", "reason": "Need schema/default semantics before alleging valid zero is discarded." }
+        ],
+        "do_not_report": ["A typed return is not proof of missing runtime validation in the helper.", "No truthiness fallback is shown."]
+      }
+    },
+    {
+      "id": "angular-entry",
+      "negative": {
+        "context": "Angular 19 compiled standalone browser component fragment. Imports/decorators omitted. api.search returns an Observable; errors update the displayed error signal. onCleanup runs before replacement and on destruction; active guards obsolete callbacks.",
+        "source": "query = signal('');\nrows = signal<Row[]>([]);\nerror = signal<unknown>(null);\nconstructor() {\n  effect(onCleanup => {\n    let active = true;\n    const sub = this.api.search(this.query()).subscribe({\n      next: rows => { if (active) { this.rows.set(rows); this.error.set(null); } },\n      error: error => { if (active) this.error.set(error); }\n    });\n    onCleanup(() => { active = false; sub.unsubscribe(); });\n  });\n}\n",
+        "do_not_report": ["The subscription has both replacement and destruction cleanup.", "Obsolete callbacks are guarded; do not invent a stale-result race."]
+      },
+      "insufficient": {
+        "context": "Angular 19 component fragment. bindSearch is a project helper. Its implementation, teardown ownership and observable contract are not provided; declarations/imports omitted.",
+        "source": "constructor() {\n  this.bindSearch(this.query, this.rows);\n}\n",
+        "required_unknowns": [
+          { "id": "teardown-owner", "reason": "Need helper lifecycle implementation before alleging subscription leakage." },
+          { "id": "stale-guard", "reason": "Need helper replacement/order behavior before alleging stale overwrites." }
+        ],
+        "do_not_report": ["No subscribe call without cleanup is visible.", "The helper may implement switching; absence of its body is not a race."]
+      }
+    },
+    {
+      "id": "react-entry",
+      "negative": {
+        "context": "React 19 compiled component. List renders Row[]; rows and query are props, names are strings. This is synchronous local filtering with no network or effect requirement.",
+        "source": "function Search({ query, rows }) {\n  const selected = rows.filter(row => row.name.includes(query));\n  const sorted = selected.sort((a, b) => a.name.localeCompare(b.name));\n  return <List rows={sorted} />;\n}\n",
+        "do_not_report": ["filter creates an owned array; sorting it does not mutate parent props.", "No effect or memoization is required for correct synchronous derivation."]
+      },
+      "insufficient": {
+        "context": "React 19 compiled component fragment. useSearch is a project hook; List owns its rendering/error presentation. Hook implementation and lifecycle contract are unavailable.",
+        "source": "function Search({ query }) {\n  const result = useSearch(query);\n  return <List result={result} />;\n}\n",
+        "required_unknowns": [
+          { "id": "hook-dependencies", "reason": "Need useSearch implementation to assess query dependencies." },
+          { "id": "request-cleanup", "reason": "Need request ownership/cleanup implementation before alleging stale work." }
+        ],
+        "do_not_report": ["No empty dependency array is visible.", "A custom hook call does not prove missing cancellation."]
+      }
+    },
+    {
+      "id": "vue-entry",
+      "negative": {
+        "context": "Vue 3.5 compiled component. Imports are supplied; template auto-unwraps refs. An external event changes state.count. Numeric ascending order without mutating source rows is required.",
+        "source": "<script setup>\nimport { reactive, toRef, computed } from 'vue';\nconst state = reactive({ count: 0, rows: [3, 1, 2] });\nconst count = toRef(state, 'count');\nconst sorted = computed(() => [...state.rows].sort((a, b) => a - b));\n</script>\n<template><p>{{ count }}</p><p>{{ sorted }}</p></template>\n",
+        "do_not_report": ["toRef preserves access to the reactive property.", "Sorting a spread copy inside computed is not source mutation."]
+      },
+      "insufficient": {
+        "context": "Vue 3.5 compiled component fragment. useRows is a project composable; its implementation and returned ref/computed contracts are not supplied.",
+        "source": "<script setup>\nconst { count, sorted } = useRows();\n</script>\n<template><p>{{ count }}</p><p>{{ sorted }}</p></template>\n",
+        "required_unknowns": [
+          { "id": "composable-refs", "reason": "Need useRows return types/ownership before alleging lost reactivity." },
+          { "id": "derived-purity", "reason": "Need sorting implementation before alleging computed mutation." }
+        ],
+        "do_not_report": ["Destructuring refs returned by a composable need not lose reactivity.", "No mutating sort is visible."]
+      }
+    },
+    {
+      "id": "sql-entry",
+      "negative": {
+        "context": "SQL Server 2022. Customers.Id is a unique non-null primary key. DisabledCustomers.CustomerId has an enforced NOT NULL constraint. The required first page is ordered by Customers.Id. No pagination across mutable snapshots is requested.",
+        "source": "SELECT TOP (20) c.Id, c.Name\nFROM Customers AS c\nWHERE c.Id NOT IN (SELECT d.CustomerId FROM DisabledCustomers AS d)\nORDER BY c.Id;\n",
+        "do_not_report": ["NOT IN is not NULL-poisoned when the subquery column is enforced NOT NULL.", "Ordering by the unique key defines a deterministic first page."]
+      },
+      "insufficient": {
+        "context": "SQL Server 2022. Only a stored procedure invocation is supplied; its definition, schema constraints and ordering requirements are unavailable. The application has execute permission.",
+        "source": "EXEC dbo.ListActiveCustomers @PageSize = 20;\n",
+        "required_unknowns": [
+          { "id": "nullability-query", "reason": "Need procedure body/schema to assess nullable anti-join behavior." },
+          { "id": "ordering-contract", "reason": "Need query and required ordering before declaring unstable pagination." }
+        ],
+        "do_not_report": ["No NOT IN subquery is visible.", "Stored procedure invocation does not prove absent ORDER BY."]
+      }
+    },
+    {
+      "id": "cosmos-entry",
+      "negative": {
+        "context": "Cosmos NoSQL .NET SDK 3 compiled async method fragment. /tenantId is the partition key; a and b both belong to tenant-a. Authorized internal job owns this tenant. Caller owns/disposes the returned response and checks batch/per-operation statuses. SDK retry budget is finite; there are no application retries.",
+        "source": "var batch = container.CreateTransactionalBatch(new PartitionKey(\"tenant-a\"));\nbatch.CreateItem(a).CreateItem(b);\nreturn await batch.ExecuteAsync(ct);\n",
+        "do_not_report": ["Both items share the batch partition; this is not a cross-partition transaction.", "Returning the response is not silent success when the caller explicitly checks it."]
+      },
+      "insufficient": {
+        "context": "Cosmos NoSQL .NET SDK 3 compiled fragment. SaveAsync is not supplied; partitioning, retry configuration, caller authorization and response handling are outside the provided evidence.",
+        "source": "return await repository.SaveAsync(a, b, ct);\n",
+        "required_unknowns": [
+          { "id": "partition-contract", "reason": "Need item partition values and SaveAsync transaction scope." },
+          { "id": "retry-status-contract", "reason": "Need retry/status handling before alleging infinite retries or silent success." }
+        ],
+        "do_not_report": ["Two arguments do not prove a cross-partition batch.", "A helper name cannot establish unbounded retry or unauthorized access."]
+      }
+    },
+    {
+      "id": "bicep-entry",
+      "negative": {
+        "context": "Bicep fragment referencing an existing storage account. existingName is the exact deployed immutable name from approved configuration. No secret parameters or credentials exist in this module; resource IDs are permitted outputs.",
+        "source": "param existingName string\nresource store 'Microsoft.Storage/storageAccounts@2023-05-01' existing = {\n  name: existingName\n}\noutput storageId string = store.id\n",
+        "do_not_report": ["An existing resource reference does not recreate storage or rename data.", "A resource ID is not a password or access key."]
+      },
+      "insufficient": {
+        "context": "Bicep fragment from a valid deployment. Child module source, parameter definitions, deployment history and output sensitivity are not supplied.",
+        "source": "module store './storage.bicep' = {\n  name: 'storage'\n  params: settings\n}\n",
+        "required_unknowns": [
+          { "id": "resource-identity", "reason": "Need child resource naming and deployment history to establish identity churn." },
+          { "id": "secret-path", "reason": "Need child parameters/outputs to establish secret exposure." }
+        ],
+        "do_not_report": ["Module deployment name is not evidence of storage-account replacement.", "No secret output is shown."]
+      }
+    },
+    {
+      "id": "terraform-entry",
+      "negative": {
+        "context": "Pinned Terraform/AWS provider. customers is a validated map keyed by immutable customer ID; addresses already use these exact keys, so no count-to-for_each migration is occurring. Zone/size are approved existing values. Only Name tag is managed by an approved external controller. No secret values are present.",
+        "source": "resource \"aws_ebs_volume\" \"customer\" {\n  for_each = var.customers\n  availability_zone = each.value.zone\n  size = each.value.size\n  tags = { Customer = each.key, Name = each.value.name }\n  lifecycle { ignore_changes = [tags[\"Name\"]] }\n}\n",
+        "do_not_report": ["Stable pre-existing for_each keys do not require a new moved block.", "Narrow externally owned tag drift is not ignore_changes = all."]
+      },
+      "insufficient": {
+        "context": "Pinned Terraform application. The local child module is not supplied. Its state addresses, lifecycle rules, variable sensitivity and outputs are unavailable; a code review has no cloud/state access.",
+        "source": "module \"customers\" {\n  source = \"./customers\"\n  customers = var.customers\n}\n",
+        "required_unknowns": [
+          { "id": "state-identities", "reason": "Need child resources and current addresses to assess replacement/migration risk." },
+          { "id": "secret-output", "reason": "Need output/variable definitions before claiming password exposure." }
+        ],
+        "do_not_report": ["A module input named customers does not prove count indexing.", "Missing output definitions are not evidence of secret leakage."]
+      }
+    },
+    {
+      "id": "pipeline-entry",
+      "negative": {
+        "context": "GitHub Actions on fresh GitHub-hosted disposable runners. Fork PR validation uses a read-only token, no secrets, environments, cloud identity or write-capable shared caches. npm scripts are intentionally untrusted tests. Organization policy currently permits v4 tag references; pinning policy is outside this probe.",
+        "source": "on: pull_request\npermissions:\n  contents: read\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n        with:\n          persist-credentials: false\n      - run: npm ci && npm test\n",
+        "do_not_report": ["Running fork tests in this read-only disposable context is not pull_request_target privilege escalation.", "No write-all permission or credential persistence is present."]
+      },
+      "insufficient": {
+        "context": "GitHub Actions compiled reusable workflow invocation. Both caller and trusted callee revisions are pinned by organization policy; callee source, effective permissions, secret passing and runner isolation are not supplied here.",
+        "source": "on: pull_request\njobs:\n  test:\n    uses: ./.github/workflows/validate.yml\n",
+        "required_unknowns": [
+          { "id": "effective-authority", "reason": "Need effective permissions/secrets before claiming privileged untrusted execution." },
+          { "id": "callee-execution", "reason": "Need called workflow checkout/runner/steps to assess the trust boundary." }
+        ],
+        "do_not_report": ["No pull_request_target or write-all declaration exists in this fragment.", "A reusable workflow call alone does not establish secret exposure."]
+      }
+    },
+    {
+      "id": "azure-entry",
+      "negative": {
+        "context": "Synthetic Azure queue application contract, not live configuration. The implementation has independently tested atomic deduplication and charge reconciliation by immutable message ID, bounded retries/dead-lettering and no swallowed failures. Restore evidence records a successful scoped exercise, not a promise for every outage.",
+        "source": "{\n  \"delivery\": \"at-least-once\",\n  \"idempotency\": \"atomic-message-id-ledger-and-provider-key\",\n  \"acknowledge\": \"after-durable-result\",\n  \"maxAttempts\": 5,\n  \"deadLetter\": true,\n  \"recoveryClaim\": \"scoped-restore-exercise-only\",\n  \"restoreEvidence\": \"dated-integrity-and-timing-report\"\n}\n",
+        "do_not_report": ["At-least-once delivery is not a duplicate charge defect with the explicit deduplication contract.", "A scoped restore report is not an unsupported universal RTO claim."]
+      },
+      "insufficient": {
+        "context": "Synthetic Azure inventory fragment, not a complete service configuration. Queue consumer code, retry/idempotency configuration, recovery objectives and restore evidence are not supplied.",
+        "source": "{ \"provider\": \"Azure\", \"component\": \"payments\", \"queue\": \"orders\" }\n",
+        "required_unknowns": [
+          { "id": "charge-idempotency", "reason": "Need consumer/effect/acknowledgement contract to establish duplicate charging." },
+          { "id": "recovery-evidence", "reason": "Need stated objectives and measured recovery evidence before judging recovery claims." }
+        ],
+        "do_not_report": ["The presence of a payment queue is not proof of non-idempotent charging.", "Absent inventory fields do not prove backups or recovery tests are absent."]
+      }
+    },
+    {
+      "id": "aws-entry",
+      "negative": {
+        "context": "Synthetic AWS review contract. This role trusts the exact intended producer role in its account. Effective identity permission is restricted to SendMessage on one queue, with no wildcard or administrator grants. Multi-AZ is claimed only as zonal availability; region/data-loss recovery is explicitly unverified.",
+        "source": "{\n  \"trust\": { \"Principal\": { \"AWS\": \"arn:aws:iam::111122223333:role/producer\" }, \"Action\": \"sts:AssumeRole\", \"Effect\": \"Allow\" },\n  \"permissions\": { \"Action\": \"sqs:SendMessage\", \"Resource\": \"arn:aws:sqs:eu-west-1:111122223333:jobs\", \"Effect\": \"Allow\" },\n  \"multiAZ\": true,\n  \"claim\": \"zonal-availability-only\",\n  \"regionalRecovery\": \"unverified\"\n}\n",
+        "do_not_report": ["Trusting a specific approved principal is not AWS:* administrator trust.", "Explicitly unverified regional recovery is not a claim that Multi-AZ covers regional outages."]
+      },
+      "insufficient": {
+        "context": "Synthetic AWS inventory fragment only. Trust/permission policies, organization boundaries, regional topology, recovery objectives and test records are not supplied.",
+        "source": "{ \"provider\": \"AWS\", \"roleName\": \"worker\", \"databaseName\": \"orders\" }\n",
+        "required_unknowns": [
+          { "id": "effective-trust", "reason": "Need trust and effective permission policies before alleging public administrator access." },
+          { "id": "recovery-scope", "reason": "Need topology, claimed objectives and test evidence before judging recovery." }
+        ],
+        "do_not_report": ["A role name does not establish wildcard trust or administrator permissions.", "A database inventory entry does not prove unsupported recovery claims."]
+      }
+    }
+  ]
+}

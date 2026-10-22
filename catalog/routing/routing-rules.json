@@ -3,6 +3,30 @@
   "fallback_workflow": "understand-project",
   "routes": [
     {
+      "workflow": "analyze-business-rules",
+      "keywords": ["business rule", "business process", "domain rule", "business analysis"],
+      "agent": "business",
+      "skills": ["business", "analysis", "requirements-discovery"]
+    },
+    {
+      "workflow": "deliver-frontend-change",
+      "keywords": ["frontend change", "frontend audit", "angular entry", "react entry", "vue entry"],
+      "agent": "frontend",
+      "skills": ["analysis", "frontend-change-review", "test-strategy"]
+    },
+    {
+      "workflow": "deliver-data-pipeline",
+      "keywords": ["data pipeline", "data quality", "etl review", "pipeline replay"],
+      "agent": "data",
+      "skills": ["analysis", "data-pipeline-quality", "observability-design"]
+    },
+    {
+      "workflow": "evaluate-ai-feature",
+      "keywords": ["ai feature", "ai platform audit", "model-backed feature", "grounding evaluation"],
+      "agent": "ai",
+      "skills": ["analysis", "ai-feature-evaluation", "ai-platform-audit"]
+    },
+    {
       "workflow": "architecture-challenge",
       "keywords": ["challenge architecture", "challenge the architecture", "architecture challenge", "challenge the design", "should we rewrite", "rewrite decision", "microservices decision", "platform adoption"],
       "agent": "architect-challenger",
@@ -22,9 +46,9 @@
     },
     {
       "workflow": "performance-forensics",
-      "keywords": ["performance forensics", "performance regression", "performance bottleneck", "latency regression", "profile performance"],
+      "keywords": ["performance forensics", "performance regression", "performance bottleneck", "latency regression", "profile performance", "slow query", "slow sql", "query tuning", "query optimization", "sql bottleneck", "index recommendation", "sql deadlock", "cuello de botella", "consulta lenta", "optimizar consulta"],
       "agent": "performance-forensics",
-      "skills": ["analysis", "performance-investigation", "dependency-analysis", "evidence-and-findings"]
+      "skills": ["analysis", "performance-investigation", "dependency-analysis", "evidence-and-findings", "sql-performance-diagnosis"]
     },
     {
       "workflow": "review-security",
@@ -40,9 +64,9 @@
     },
     {
       "workflow": "diagnose-operation",
-      "keywords": ["latency", "runtime", "crash", "diagnose", "observability", "service health", "slow", "azure resource health", "aws resource health", "cloud resource query", "resource inventory", "cloudwatch", "application insights", "core web vitals", "frontend telemetry"],
+      "keywords": ["latency", "runtime", "crash", "diagnose", "observability", "service health", "slow", "azure resource health", "aws resource health", "cloud resource query", "resource inventory", "cloudwatch", "application insights", "core web vitals", "frontend telemetry", "recovery rehearsal", "restore rehearsal", "failover rehearsal", "disaster recovery test", "pitr validation", "backup restore", "ensayo de recuperacion", "prueba de restauracion"],
       "agent": "observability",
-      "skills": ["operations", "analysis", "cloud-resource-diagnostics", "application-insights-instrumentation", "frontend-observability-performance"]
+      "skills": ["operations", "analysis", "cloud-resource-diagnostics", "application-insights-instrumentation", "frontend-observability-performance", "recovery-rehearsal"]
     },
     {
       "workflow": "change-architecture",
@@ -88,7 +112,7 @@
     },
     {
       "workflow": "database-change-with-baseline",
-      "keywords": ["database change", "database migration", "schema migration", "database baseline", "migration baseline", "database test data", "synthetic database data", "sql anonymization", "database jobs", "database high availability", "database monitoring baseline", "stored procedure migration", "database platform migration"],
+      "keywords": ["database change", "database migration", "schema migration", "database baseline", "migration baseline", "database test data", "synthetic database data", "sql anonymization", "database jobs", "database high availability", "database monitoring baseline", "stored procedure migration", "database platform migration", "recovery rehearsal", "restore rehearsal", "failover rehearsal", "disaster recovery test", "pitr validation", "backup restore", "ensayo de recuperacion", "prueba de restauracion"],
       "agent": "database",
       "skills": ["analysis", "database-change-operations", "database-migration-safety", "database-test-data-protection", "database-operations-reliability", "database-platform-migration", "test-strategy"]
     },
@@ -124,7 +148,7 @@
     },
     {
       "workflow": "forensic-assessment",
-      "keywords": ["forensic assessment", "forensic", "system map", "trace architecture", "reconstruct architecture"],
+      "keywords": ["forensic assessment", "forensic", "system map", "trace architecture", "reconstruct architecture", "project takeover", "takeover assessment", "reverse engineering"],
       "agent": "architecture",
       "skills": ["knowledge", "system-forensics", "evidence-and-findings"]
     },
@@ -175,7 +199,7 @@
     { "agent": "security", "keywords": ["security", "application security", "security architect", "vulnerability", "secret", "credential", "threat"] },
     { "agent": "database", "keywords": ["database", "sql", "schema", "migration", "query"] },
     { "agent": "infrastructure", "keywords": ["infrastructure", "platform engineer", "terraform", "bicep", "kubernetes", "network", "cloud resource health", "azure resource", "aws resource", "cloud pricing", "quota check"] },
-    { "agent": "frontend", "keywords": ["frontend", "front-end", "ui", "browser", "react", "vue", "angular", "microfrontend", "core web vitals", "frontend modernization", "angular production review", "react production review"] },
+    { "agent": "frontend", "keywords": ["frontend", "front-end", "ui", "browser", "react", "vue", "nuxt", "angular", "microfrontend", "core web vitals", "frontend modernization", "angular production review", "react production review"] },
     { "agent": "ux-ui", "keywords": ["ux", "accessibility", "usability", "user experience", "figma", "storybook", "component inventory", "screenshot evidence"] },
     { "agent": "data", "keywords": ["data", "pipeline", "dataset", "etl", "analytics"] },
     { "agent": "ai", "keywords": ["ai", "llm", "model", "prompt", "agent"] },

@@ -11,6 +11,10 @@ state-changing actions remain explicitly approval-gated.
 | Lifecycle | Workflow | Lead roles | Candidate skills |
 | --- | --- | --- | --- |
 | Discovery and planning | `discover-and-plan` | Product owner, team lead, Scrum master | requirements discovery, backlog refinement |
+| Business rules | `analyze-business-rules` | Business analyst | business, requirements discovery |
+| Frontend review/change | `deliver-frontend-change` | Frontend engineer | frontend change, accessibility, test strategy |
+| Data review/change | `deliver-data-pipeline` | Data engineer | data pipeline quality, observability |
+| AI review/change | `evaluate-ai-feature` | AI engineer | AI evaluation, platform audit, threat modeling |
 | Current-state evidence | `forensic-assessment` | Forensic architect | system forensics, evidence and findings |
 | Tracker | `create-or-update-work-items` | Project delivery manager | GitHub/ADO work items, backlog refinement |
 | Design | `architecture-and-threat-review` | Principal architect, security architect | ADR, API contract, threat modeling |

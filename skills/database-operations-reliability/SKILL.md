@@ -19,6 +19,27 @@ description: "Assess database jobs, high availability, recovery, and monitoring 
 4. Define a baseline for availability, latency, errors, locks, capacity, replication lag, and job outcomes where measurements exist.
 5. Propose bounded checks, alert ownership, stop conditions, and recovery exercises; distinguish configured controls from tested controls.
 
+## Job and maintenance contract
+For each scheduled job record owner, timezone/DST behavior, dependencies,
+expected duration, overlap lock, timeout, bounded retries/backoff and missed-run
+handling. Verify idempotency, checkpoint/restart, dry-run support, concurrency
+limits, failure alerts and safe disable/replay. A scheduler's success status
+does not establish that downstream data is correct.
+Plan maintenance from observed statistics, fragmentation/workload and available
+windows, not blanket rebuilds or cache clearing. Bound log growth, temp space,
+blocking and replication effects; define abort/escalation ownership.
+
+## Capacity and recovery evidence
+Record workload growth, storage/log utilization, CPU/IO saturation, concurrency,
+replication/send/redo lag and leading indicators with time window and units.
+State forecast assumptions, headroom and threshold rationale; extrapolation is
+not a demonstrated capacity limit.
+Use recovery-rehearsal for an isolated restore or authorized failover exercise:
+measure elapsed recovery and observed data loss against RTO/RPO, validate
+application/consumer integrity and record dated artifacts and repeat ownership.
+Never infer recoverability from backup job success, replica count or configured
+retention alone.
+
 ## Output
 Evidence-backed operational findings, job inventory, HA/recovery gaps, baseline signals, and a safe validation proposal.
 

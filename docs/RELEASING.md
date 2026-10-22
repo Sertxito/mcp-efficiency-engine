@@ -5,7 +5,7 @@
 - Repository: <https://github.com/Sertxito/mcp-efficiency-engine>
 - npm package: `mcp-efficiency-engine`
 - Commands: `mcpee` and `mcp-efficiency-engine`
-- Current candidate: **0.1.25**, following published **0.1.24**
+- Current candidate: **0.1.26**, following published **0.1.25**
 - Runtime: Node.js **>=24**
 
 Keep the normal pre-1.0 version sequence until stable acceptance is complete.
@@ -16,7 +16,7 @@ based only on passing automated tests.
 
 1. Update the committed version with `npm version patch --no-git-tag-version`
    (or choose the intended version explicitly). Commit both manifests.
-2. Align the README installation examples and migration notes with the
+2. Align the README installation examples and troubleshooting guidance with the
    release. Document incompatible changes and the supported Node version.
 3. Run:
 
@@ -63,8 +63,8 @@ After deployment, verify:
 
 ```sh
 npm view mcp-efficiency-engine version
-npm view mcp-efficiency-engine@0.1.25 bin engines dist.integrity --json
-npx --package=mcp-efficiency-engine@0.1.25 mcpee help
+npm view mcp-efficiency-engine@0.1.26 bin engines dist.integrity --json
+npx --package=mcp-efficiency-engine@0.1.26 mcpee help
 ```
 
 Also check the release workflow and GitHub Pages deployment. A failed
@@ -83,6 +83,5 @@ vector-model profiles or the complete target architecture. Final Chat UI
 acceptance and human specialist reviews remain separate. Historical trace
 warnings are not erased by newer successful runs.
 
-Delete a local legacy checkout only after verifying the new deployment and
-preserving any uncommitted work it contains. Never include its `.env`,
-dependencies or locally captured telemetry in a release.
+Never include project `.env` files, installed dependencies or locally captured
+telemetry in a release.

@@ -182,6 +182,7 @@ function evaluateAssetResponse(projectRoot, options) {
 
 module.exports = {
   evaluateAssetResponse,
+  readProjectFile,
   MAX_RATING_BYTES,
   MAX_RESPONSE_BYTES,
   REPORT_DIRECTORY,

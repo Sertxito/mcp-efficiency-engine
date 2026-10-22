@@ -21,6 +21,17 @@ description: "Inspect Azure or AWS resources, service health, operational eviden
 4. Build a topology only from returned identifiers and explicit references. Mark missing edges and inaccessible resources.
 5. Report exact queries/tools, evidence timestamps, errors, and the limits of the inspected scope.
 
+## Operational hypotheses
+Correlate time-windowed latency/error/saturation signals with dependency health,
+deployment changes, limits/throttling, queue depth/age/dead-letter counts and
+replication lag where supported. Capture sample/reset boundaries; resource
+inventory alone cannot identify a bottleneck.
+Record workload/capacity headroom, growth assumptions and alert thresholds with
+units. Prefer aggregates/redacted metadata to payloads. A capacity forecast is
+an assumption-backed estimate, not an executed load test.
+Identify backup/PITR and routing/failover evidence gaps; use recovery-rehearsal
+only after a bounded exercise is authorized, never as an implicit remediation.
+
 ## Output
 Resource inventory, health summary, evidence-linked findings, and a topology or relationship list when supported by the available data.
 

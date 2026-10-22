@@ -30,7 +30,7 @@ function assertNoSymlink(root, relativePath) {
 function codeGraphEnvironment(root) {
   return {
     ...CODEGRAPH_ENV,
-    CODEGRAPH_DIR: path.join(root, GRAPH_DIRECTORY),
+    CODEGRAPH_DIR: GRAPH_DIRECTORY,
   };
 }
 

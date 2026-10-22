@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "description": "Synthetic entry-audit probes. Expected findings are reviewer material, not specialist prompt input. Passing these small probes is not full technology acceptance.",
+  "cases": [
+    {
+      "id": "dotnet-entry", "guide": "dotnet-csharp", "agent": "backend", "file": "sample.cs",
+      "context": "ASP.NET Core and EF Core on .NET 10. Both classes are registered as shown; a real request can resolve ReportService.",
+      "source": "services.AddDbContext<AppDbContext>();\nservices.AddSingleton<ReportService>();\npublic sealed class ReportService(AppDbContext db) {\n  public Task LoadAsync() => Task.WhenAll(db.Orders.ToListAsync(), db.Customers.ToListAsync());\n}\n",
+      "expected": [
+        { "id": "captive-context", "lines": [1, 2, 3], "reason": "Singleton captures scoped DbContext." },
+        { "id": "parallel-context", "lines": [4], "reason": "Concurrent operations share one non-thread-safe DbContext." }
+      ]
+    },
+    {
+      "id": "python-entry", "guide": "python-engineering", "agent": "backend", "file": "sample.py",
+      "context": "Python 3.14, asynchronous web handler; no wrapper replaces time.sleep or manages the default list.",
+      "source": "import time\nasync def handle(value, history=[]):\n    time.sleep(1)\n    history.append(value)\n    return history\n",
+      "expected": [
+        { "id": "mutable-default", "lines": [2, 4], "reason": "Mutable default leaks history across calls/users." },
+        { "id": "blocked-loop", "lines": [3], "reason": "Blocking sleep stalls the asynchronous request event loop." }
+      ]
+    },
+    {
+      "id": "node-entry", "guide": "node-engineering", "agent": "backend", "file": "sample.cjs",
+      "context": "Node 24 HTTP server, user-provided file paths are already constrained to an allowed directory. jobs can contain 100,000 entries.",
+      "source": "const fs = require('node:fs');\nasync function handle(file, jobs) {\n  const body = fs.readFileSync(file, 'utf8');\n  await Promise.all(jobs.map(job => remoteWrite(job)));\n  return body;\n}\n",
+      "expected": [
+        { "id": "blocking-io", "lines": [3], "reason": "Synchronous filesystem access blocks the request loop." },
+        { "id": "unbounded-fanout", "lines": [4], "reason": "Promise.all starts unbounded remote writes without capacity control." }
+      ]
+    },
+    {
+      "id": "typescript-entry", "guide": "typescript-engineering", "agent": "backend", "file": "sample.ts",
+      "context": "Strict TypeScript project. JSON is supplied by an external client and count=0 is valid.",
+      "source": "type Input = { count: number; name: string };\nexport function parse(raw: string): string {\n  const input = JSON.parse(raw) as Input;\n  const count = input.count || 10;\n  return input.name.toUpperCase() + ':' + count;\n}\n",
+      "expected": [
+        { "id": "unvalidated-cast", "lines": [3, 5], "reason": "Assertion does not validate external JSON shape." },
+        { "id": "zero-fallback", "lines": [4], "reason": "Truthy fallback discards valid zero." }
+      ]
+    },
+    {
+      "id": "angular-entry", "guide": "angular-engineering", "agent": "frontend", "file": "sample.ts",
+      "context": "Angular 19 standalone browser component. Imports/decorators omitted, component is destroyed on navigation, api.search returns an Observable.",
+      "source": "query = signal('');\nrows = signal<Row[]>([]);\nconstructor() {\n  effect(() => {\n    this.api.search(this.query()).subscribe(rows => this.rows.set(rows));\n  });\n}\n",
+      "expected": [
+        { "id": "subscription-cleanup", "lines": [4, 5], "reason": "Effect-created subscriptions have no per-run/destroy cleanup." },
+        { "id": "stale-search", "lines": [5], "reason": "Old requests may overwrite new query results without cancellation or request identity." }
+      ]
+    },
+    {
+      "id": "react-entry", "guide": "react-engineering", "agent": "frontend", "file": "sample.tsx",
+      "context": "React 19. rows is a prop owned by the parent; query changes while the component remains mounted.",
+      "source": "function Search({ query, rows }) {\n  const [data, setData] = useState([]);\n  rows.sort((a, b) => a.name.localeCompare(b.name));\n  useEffect(() => {\n    fetch('/search?q=' + encodeURIComponent(query)).then(r => r.json()).then(setData);\n  }, []);\n  return <List rows={data} />;\n}\n",
+      "expected": [
+        { "id": "prop-mutation", "lines": [3], "reason": "Sorting mutates parent-owned props during render." },
+        { "id": "stale-effect", "lines": [4, 5, 6], "reason": "Query is omitted from dependencies and stale work has no cleanup." }
+      ]
+    },
+    {
+      "id": "vue-entry", "guide": "vue-engineering", "agent": "frontend", "file": "sample.vue",
+      "context": "Vue 3.5 component. reactive/computed are imported; state.count changes from an event handler.",
+      "source": "<script setup>\nconst state = reactive({ count: 0, rows: [3, 1, 2] });\nconst count = state.count;\nconst sorted = computed(() => state.rows.sort());\n</script>\n<template><p>{{ count }}</p><p>{{ sorted }}</p></template>\n",
+      "expected": [
+        { "id": "lost-reactivity", "lines": [3, 6], "reason": "Primitive snapshot is not reactive access to state.count." },
+        { "id": "impure-computed", "lines": [4], "reason": "Computed getter sorts and mutates its source array." }
+      ]
+    },
+    {
+      "id": "sql-entry", "guide": "sql-engineering", "agent": "database", "file": "sample.sql",
+      "context": "SQL Server 2022. DisabledCustomers.CustomerId is nullable and may contain NULL; caller expects a stable first page.",
+      "source": "SELECT TOP (20) Id, Name\nFROM Customers\nWHERE Id NOT IN (SELECT CustomerId FROM DisabledCustomers);\n",
+      "expected": [
+        { "id": "nullable-antijoin", "lines": [3], "reason": "NULL in NOT IN subquery can eliminate expected rows." },
+        { "id": "nondeterministic-page", "lines": [1, 2, 3], "reason": "TOP without ordering does not define a stable page." }
+      ]
+    },
+    {
+      "id": "cosmos-entry", "guide": "cosmos-engineering", "agent": "database", "file": "sample.cs",
+      "context": "Azure Cosmos DB NoSQL API, .NET SDK 3. Partition key is /tenantId; document a belongs to tenant-a, b belongs to tenant-b. No wrapper supplies different partition behavior. SaveAgainForever retries every CosmosException indefinitely, without cancellation or an attempt/time budget.",
+      "source": "var batch = container.CreateTransactionalBatch(new PartitionKey(\"tenant-a\"));\nbatch.CreateItem(a).CreateItem(b);\ntry { return await batch.ExecuteAsync(); }\ncatch (CosmosException) { return await SaveAgainForever(a, b); }\n",
+      "expected": [
+        { "id": "cross-partition-batch", "lines": [1, 2], "reason": "Transactional batch cannot atomically write documents in different logical partitions." },
+        { "id": "unbounded-retry", "lines": [4], "reason": "Unbounded generic retry ignores permanent errors, retry budget and idempotency." }
+      ]
+    },
+    {
+      "id": "bicep-entry", "guide": "bicep-engineering", "agent": "infrastructure", "file": "sample.bicep",
+      "context": "Existing Azure storage account. Its deployed name used the same prefix without utcNow(); each deployment now supplies the default timestamp.",
+      "source": "param deploymentStamp string = utcNow()\n@secure()\nparam password string\nresource store 'Microsoft.Storage/storageAccounts@2023-05-01' = {\n  name: 'store${uniqueString(resourceGroup().id, deploymentStamp)}'\n  location: resourceGroup().location\n  sku: { name: 'Standard_LRS' }\n  kind: 'StorageV2'\n}\noutput exposedPassword string = password\n",
+      "expected": [
+        { "id": "unstable-resource-name", "lines": [1, 5], "reason": "Timestamp changes identity across deployments and may leave/create different stateful resources." },
+        { "id": "secret-output", "lines": [10], "reason": "Secure input is exposed through a plain output." }
+      ]
+    },
+    {
+      "id": "terraform-entry", "guide": "terraform-engineering", "agent": "infrastructure", "file": "sample.tf",
+      "context": "Pinned Terraform/AWS provider. Existing count-indexed volumes map to ordered customer identities; a new customer is inserted at the start of var.customers. database_password is a real credential supplied as a plain string variable, not marked sensitive; no other sensitivity mechanism or output wrapper applies.",
+      "source": "resource \"aws_ebs_volume\" \"customer\" {\n  count = length(var.customers)\n  availability_zone = var.zone\n  tags = { Customer = var.customers[count.index] }\n  lifecycle { ignore_changes = all }\n}\noutput \"database_password\" {\n  value = var.database_password\n}\n",
+      "expected": [
+        { "id": "index-identity-drift", "lines": [2, 4, 5], "reason": "Index-based customer identity shifts and ignore_changes hides the ownership mismatch." },
+        { "id": "sensitive-output", "lines": [7, 8], "reason": "Secret output is not marked sensitive and can be exposed; state remains sensitive regardless." }
+      ]
+    },
+    {
+      "id": "pipeline-entry", "guide": "yaml-pipelines-engineering", "agent": "devops", "file": "sample.yml",
+      "context": "GitHub Actions workflow receives external fork PRs. The checkout explicitly selects the PR head and npm scripts are controlled by that head.",
+      "source": "on: pull_request_target\npermissions: write-all\njobs:\n  check:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n        with:\n          ref: ${{ github.event.pull_request.head.sha }}\n      - run: npm install && npm test\n",
+      "expected": [
+        { "id": "privileged-untrusted-code", "lines": [1, 9, 10], "reason": "PR-controlled code executes in privileged pull_request_target context." },
+        { "id": "excess-token-permission", "lines": [2], "reason": "write-all gives unnecessary broad token permission." }
+      ]
+    },
+    {
+      "id": "azure-entry", "guide": "azure-engineering", "agent": "infrastructure", "file": "sample.json",
+      "context": "Synthetic Azure workload configuration and operator claim. Queue delivers at least once; charge request is not idempotent.",
+      "source": "{\n  \"retryAttempts\": \"unlimited\",\n  \"queueHandler\": \"charge customer then acknowledge\",\n  \"idempotencyKey\": null,\n  \"backupConfigured\": true,\n  \"lastRestoreTest\": null,\n  \"claimedRecovery\": \"RTO 5 minutes, verified\"\n}\n",
+      "expected": [
+        { "id": "duplicate-charge", "lines": [2, 3, 4], "reason": "Unlimited retries and non-idempotent at-least-once handler can duplicate charges." },
+        { "id": "unproven-recovery", "lines": [5, 6, 7], "reason": "Configured backup alone cannot verify the claimed RTO." }
+      ]
+    },
+    {
+      "id": "aws-entry", "guide": "aws-engineering", "agent": "infrastructure", "file": "sample.json",
+      "context": "Synthetic AWS workload evidence. This is the only trust-policy condition; the workload has not exercised a restore.",
+      "source": "{\n  \"trustPolicy\": { \"Effect\": \"Allow\", \"Principal\": { \"AWS\": \"*\" }, \"Action\": \"sts:AssumeRole\" },\n  \"attachedPermissions\": \"AdministratorAccess\",\n  \"multiAZ\": true,\n  \"restoreTest\": null,\n  \"claimedRecovery\": \"all data loss and regional outages covered\"\n}\n",
+      "expected": [
+        { "id": "broad-assume-role", "lines": [2, 3], "reason": "Unconstrained cross-account principal and administrator permissions expand access; verify any effective external guardrails." },
+        { "id": "false-recovery-guarantee", "lines": [4, 5, 6], "reason": "Multi-AZ without restore evidence does not cover all data loss or regional outages." }
+      ]
+    }
+  ]
+}

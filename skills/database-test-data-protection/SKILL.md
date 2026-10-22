@@ -19,6 +19,18 @@ description: "Create privacy-safe database test fixtures through synthetic data 
 4. Limit samples and access; ensure logs, snapshots, exports, and fixtures do not retain raw values.
 5. Validate the dataset against schema constraints and representative test cases, then record the method and residual risks.
 
+## Fixture lifecycle
+Record the dataset owner, purpose, location, authorized access, retention and
+verified deletion plan for copies, exports, backups and CI artifacts. Keep an
+access/change audit without storing raw sensitive records.
+Generate representative empty, skewed, duplicate, Unicode, boundary-size and
+referential cases using non-sensitive seeds; preserve keys/distributions only
+where the tests require them. Hashing real identifiers without an approved
+threat model is pseudonymization, not irreversible anonymization.
+For authorized transformations, protect mapping keys separately and verify
+cross-table integrity, uniqueness and indirect re-identification risk. Never
+automatically copy production data into local/CI test fixtures.
+
 ## Output
 Data-generation or anonymization specification, integrity checks, privacy limitations, and approval/evidence record.
 

@@ -11,7 +11,7 @@
     {
       "id": "source-code",
       "categories": ["source-code"],
-      "formats": [".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".mts", ".cts", ".py", ".pyi", ".go", ".rs", ".java", ".kt", ".kts", ".cs", ".fs", ".vb", ".c", ".h", ".cc", ".cpp", ".hpp", ".html", ".htm", ".css", ".scss", ".less", ".sh", ".bash", ".zsh", ".ps1", ".psm1", ".ipynb", ".sln", ".slnx", ".csproj", ".fsproj", ".vbproj", ".props", ".targets", ".gradle", ".make", ".mk", ".gitignore"],
+      "formats": [".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".mts", ".cts", ".vue", ".py", ".pyi", ".go", ".rs", ".java", ".kt", ".kts", ".cs", ".fs", ".vb", ".c", ".h", ".cc", ".cpp", ".hpp", ".html", ".htm", ".css", ".scss", ".less", ".sh", ".bash", ".zsh", ".ps1", ".psm1", ".ipynb", ".sln", ".slnx", ".csproj", ".fsproj", ".vbproj", ".props", ".targets", ".gradle", ".make", ".mk", ".gitignore"],
       "mode": "local",
       "outputs": ["normalized", "symbols", "traceability"]
     },

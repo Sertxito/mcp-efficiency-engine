@@ -4,6 +4,7 @@ const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
 const { recordEvent, readEvents } = require("../../core/src/telemetry");
+const { maskCode } = require("../../core/src/syntax");
 
 const GRAPH_PATH = ".mcpee/graphs/unified/graph.json";
 const MAX_RESULTS = 100;
@@ -114,12 +115,14 @@ function markdownLinks(text) {
 
 function localModuleReferences(text) {
   const references = [];
+  const codeLines = maskCode(text).split(/\r?\n/);
   const pattern = /\b(?:import|export)\s+(?:[^"'`]*?\s+from\s*)?["'](\.{1,2}\/[^"']+)["']|\brequire\s*\(\s*["'](\.{1,2}\/[^"']+)["']\s*\)/g;
   for (const [lineIndex, line] of text.split(/\r?\n/).entries()) {
     if (/^\s*(?:\/\/|\/\*|\*|#)/.test(line)) continue;
     const namedImport = line.match(/\bimport\s+(?:type\s+)?\{([^}]+)\}\s+from\s*["'](\.{1,2}\/[^"']+)["']/);
     const destructuredRequire = line.match(/\b(?:const|let|var)\s*\{([^}]+)\}\s*=\s*require\s*\(\s*["'](\.{1,2}\/[^"']+)["']\s*\)/);
-    const binding = namedImport || destructuredRequire;
+    const binding = [namedImport, destructuredRequire].find((match) =>
+      match && /\b(?:import|const|let|var)\b/.test(codeLines[lineIndex].slice(match.index, match.index + 12)));
     const importedSymbols = binding
       ? binding[1].split(",").flatMap((specifier) => {
         const match = specifier.trim().match(/^(?:type\s+)?([A-Za-z_$][\w$]*)(?:\s+as\s+[A-Za-z_$][\w$]*)?$/);
@@ -127,6 +130,7 @@ function localModuleReferences(text) {
       })
       : [];
     for (const match of line.matchAll(pattern)) {
+      if (!/^(?:import|export|require)\b/.test(codeLines[lineIndex].slice(match.index))) continue;
       const targetPath = match[1] || match[2];
       if (targetPath) references.push({
         targetPath,

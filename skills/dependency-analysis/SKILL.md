@@ -15,6 +15,13 @@ description: "Trace direct and transitive dependencies, coupling, lifecycle risk
 4. Separate confirmed issues from stale metadata, scanner findings, and unknowns.
 5. Prioritize changes with compatibility tests and a recovery plan.
 
+Check package license/notice obligations, source/provenance and supported
+runtime/platform artifacts as well as version numbers. Distinguish a manifest
+constraint from the resolved lockfile and the deployed artifact/SBOM.
+Verify transitive impact, abandoned ownership, native wheel/image availability
+and supply-chain exceptions with dates and owners; do not infer vulnerability
+or compatibility solely from age or a scanner score.
+
 ## Safety
 Do not update or remove dependencies without approval and compatibility
 validation. Do not upload manifests or code to unapproved services.
