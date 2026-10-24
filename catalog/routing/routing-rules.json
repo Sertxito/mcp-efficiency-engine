@@ -10,9 +10,9 @@
     },
     {
       "workflow": "deliver-frontend-change",
-      "keywords": ["frontend change", "frontend audit", "angular entry", "react entry", "vue entry"],
+      "keywords": ["frontend change", "frontend audit", "angular entry", "react entry", "vue entry", "next.js", "nextjs", "app router", "server component", "server action"],
       "agent": "frontend",
-      "skills": ["analysis", "frontend-change-review", "test-strategy"]
+      "skills": ["analysis", "frontend-change-review", "test-strategy", "nextjs-app-router-development"]
     },
     {
       "workflow": "deliver-data-pipeline",

@@ -2629,6 +2629,13 @@ test("documentation generation preserves custom output and routes requests from 
   assert.ok(!angularPlan.technical_guidance.some((item) => item.id === "aws-engineering"));
   assert.ok(!angularPlan.scorecards.some((item) => item.id === "cloud-iac-quality"));
   assert.deepEqual(angularPlan.playbooks, []);
+  const nextPlan = routeTask(root, "Implement a Next.js App Router Server Component and verify its runtime behavior.");
+  assert.equal(nextPlan.workflow.id, "deliver-frontend-change");
+  assert.equal(nextPlan.agent.id, "frontend");
+  assert.ok(nextPlan.skills.some((skill) =>
+    skill.id === "nextjs-app-router-development" &&
+    /server\/client boundaries/i.test(skill.guidance) &&
+    /official guidance for those versions/i.test(skill.guidance)));
   const sqlPathPlan = routeTask(root, "Review db/schema.sql and its constraints.");
   assert.deepEqual(sqlPathPlan.technical_guidance.map(item => item.id), ["sql-engineering"]);
   assert.ok(sqlPathPlan.technical_guidance[0].apply_to.includes("**/*.sql"));

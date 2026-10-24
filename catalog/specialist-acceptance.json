@@ -110,6 +110,16 @@
       "check": "Run hooks/type/build checks and interaction tests under Strict Mode, including draft preservation, cancellation and hydration."
     },
     {
+      "id": "nextjs-app-router-boundaries", "agent": "frontend", "guides": ["react-engineering", "typescript-engineering"],
+      "skills": ["nextjs-app-router-development", "frontend-accessibility-review", "test-strategy"],
+      "setup": "A version-pinned Next.js App Router project has a server-rendered listing, a client-side filter, a protected mutation and explicit revalidation requirements.",
+      "task": "Implement a focused listing change without leaking server-only data or changing the route's freshness contract.",
+      "outcomes": ["Preserve the smallest required server/client boundary.", "Validate and authorize mutations on the server.", "Keep route caching and invalidation consistent with the pinned Next.js version.", "Verify loading, error, navigation and hydration behavior."],
+      "failure": "The mutation succeeds but a stale route remains visible and a browser request fails during navigation.",
+      "boundary": "A proposed cache API or default differs in the installed Next.js version, and optional browser inspection tools are unavailable.",
+      "check": "Verify installed framework versions, inspect official versioned guidance, run focused tests and production build, and report actual runtime/browser checks and any unavailable evidence."
+    },
+    {
       "id": "vue-reactivity-ssr", "agent": "frontend", "guides": ["vue-engineering", "typescript-engineering"],
       "skills": ["frontend-change-review", "frontend-accessibility-review"],
       "setup": "A pinned Vue/Nuxt component has props, a composable, a computed list and scoped token-based styles.",

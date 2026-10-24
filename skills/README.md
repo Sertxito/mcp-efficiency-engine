@@ -17,6 +17,7 @@ proposal, never an unverified claim.
 - `cloud-architecture-planning`: compare cloud options, capacity, cost, and migration.
 - `api-contract-review`: examine consumers, compatibility, errors, auth, and versioning.
 - `frontend-change-review`: review UI behavior, state coverage, risk, and regressions.
+- `nextjs-app-router-development`: build and verify version-aware Next.js App Router changes with runtime evidence.
 - `design-system-governance`: preserve tokens, component reuse, and design consistency.
 - `frontend-accessibility-review`: combine automated and manual accessibility evidence.
 - `backend-change`: implement a focused service change with regression coverage.

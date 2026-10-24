@@ -42,7 +42,7 @@ selected procedures rather than loading every skill.
 | Project delivery manager | `backlog-refinement`, `github-ado-work-items` |
 | Principal architect | `system-forensics`, `cloud-architecture-planning`, `architecture-decision-record`, `api-contract-review`, `threat-modeling` |
 | Security architect | `threat-modeling`, `api-contract-review`, `ci-cd-review` |
-| Senior frontend engineer | `frontend-change-review`, `design-system-governance`, `frontend-accessibility-review`, `api-contract-review`, `test-strategy` |
+| Senior frontend engineer | `frontend-change-review`, `nextjs-app-router-development`, `design-system-governance`, `frontend-accessibility-review`, `api-contract-review`, `test-strategy` |
 | Senior backend engineer | `backend-change`, `api-contract-review`, `database-migration-safety`, `test-strategy` |
 | Senior data engineer | `data-pipeline-quality`, `database-change-operations`, `observability-design` |
 | Senior AI engineer | `ai-feature-evaluation`, `threat-modeling`, `test-strategy` |
