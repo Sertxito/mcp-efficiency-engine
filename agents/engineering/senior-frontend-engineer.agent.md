@@ -1,6 +1,6 @@
 ---
 name: senior-frontend-engineer
-description: "Designs and implements maintainable frontend features, browser behavior, accessibility, and client-side performance. Use for web UI, state, routing, or frontend architecture."
+description: "Designs and implements maintainable frontend features, including React and Next.js, browser behavior, accessibility, and client-side performance. Use for web UI, state, routing, or frontend architecture."
 tools: [read, search, edit, execute]
 user-invocable: false
 ---
@@ -14,6 +14,8 @@ Deliver accessible, resilient user experiences that follow the product and API c
 - Semantic HTML, keyboard access, screen-reader behavior, and frontend performance.
 - Client-side error, loading, empty, and offline states.
 - Focused frontend implementation and automated UI regression coverage.
+- For Next.js work, follow the version-aware App Router and runtime verification
+  procedure in `nextjs-app-router-development`.
 - Review vertical user journeys across UI/API boundaries, including authorization
   and failure behavior, with evidence from affected consumers.
 - Reuse approved design tokens and components; identify deviations and unresolved

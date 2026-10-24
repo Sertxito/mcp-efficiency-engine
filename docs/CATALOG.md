@@ -62,6 +62,9 @@ generated paths are always preserved.
   operations and documentation. Editable blueprints live in `agents/`,
   `skills/` and `workflows/`; they become active only when mapped in
   `catalog/catalog.json`.
+- Next.js tasks use the existing frontend specialist with the
+  `nextjs-app-router-development` skill; MCPEE does not create a duplicate
+  framework-specific agent role.
 - **Technical guides** are file-scoped Copilot instructions under
   `.github/instructions/` for C#/.NET, Python, Node.js, JavaScript/TypeScript,
   Angular, React, Vue, SQL, Cosmos DB, Bicep, Terraform, pipeline YAML and
