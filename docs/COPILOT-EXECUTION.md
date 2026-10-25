@@ -124,7 +124,8 @@ retrieved.
 | Sending task and context to Copilot | Required, once per transfer |
 | Ordinary task-scoped project-local file creation and edits | Authorized by the task; no per-file approval |
 | Other state-changing tool calls | Required, per call, with a fresh impact check |
-| Runtime permissions requested by the SDK | Required |
+| SDK tool-hook permission | Delegated to MCPEE's `PreToolUse` policy; no duplicate prompt |
+| Other runtime permissions requested by the SDK | Required |
 | Post-change sync of indexes and graphs | Required |
 | Non-read-only validation steps | Required, per step |
 | Built-in `view`, `glob`, `grep` and `rg` | Not required (read-only) |
@@ -143,7 +144,9 @@ Local harness input and emits both decision formats. Besides the read-only
 search tools, the exact PowerShell listing forms `Get-ChildItem`, optionally
 with `-Force` and `| Select-Object Name,Mode` (optionally `,Length`), are
 treated as read-only; arbitrary paths, expressions, redirection and additional
-commands are not.
+commands are not. The SDK's matching `hook` permission is approved by policy
+only to let this same `PreToolUse` hook make the action decision; it does not
+authorize the requested tool call or replace any required human approval.
 
 In VS Code, the hook applies only when the Local harness, a trusted workspace
 and hooks are enabled; VS Code documents hooks as Preview. Tool names vary by
