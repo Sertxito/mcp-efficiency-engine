@@ -10,7 +10,7 @@
     },
     {
       "workflow": "deliver-frontend-change",
-      "keywords": ["frontend change", "frontend audit", "angular entry", "react entry", "vue entry", "next.js", "nextjs", "app router", "server component", "server action"],
+      "keywords": ["frontend change", "frontend audit", "angular entry", "react entry", "vue entry", "next.js", "nextjs", "app router", "server component", "server action", "portfolio", "portafolio", "personal portfolio", "portfolio website", "create a website", "build a website", "web app", "sitio web", "crear un portfolio", "crear un portafolio", "crear una web", "crear pagina web", "crear página web", "pagina web desde cero", "página web desde cero", "sitio web desde cero", "web desde cero", "montar una web", "montar portfolio", "greenfield website"],
       "agent": "frontend",
       "skills": ["analysis", "frontend-change-review", "test-strategy", "nextjs-app-router-development"]
     },
@@ -199,7 +199,7 @@
     { "agent": "security", "keywords": ["security", "application security", "security architect", "vulnerability", "secret", "credential", "threat"] },
     { "agent": "database", "keywords": ["database", "sql", "schema", "migration", "query"] },
     { "agent": "infrastructure", "keywords": ["infrastructure", "platform engineer", "terraform", "bicep", "kubernetes", "network", "cloud resource health", "azure resource", "aws resource", "cloud pricing", "quota check"] },
-    { "agent": "frontend", "keywords": ["frontend", "front-end", "ui", "browser", "react", "vue", "nuxt", "angular", "microfrontend", "core web vitals", "frontend modernization", "angular production review", "react production review"] },
+    { "agent": "frontend", "keywords": ["frontend", "front-end", "ui", "browser", "react", "vue", "nuxt", "angular", "microfrontend", "core web vitals", "frontend modernization", "angular production review", "react production review", "portfolio", "portafolio", "website", "web app", "sitio web", "pagina web"] },
     { "agent": "ux-ui", "keywords": ["ux", "accessibility", "usability", "user experience", "figma", "storybook", "component inventory", "screenshot evidence"] },
     { "agent": "data", "keywords": ["data", "pipeline", "dataset", "etl", "analytics"] },
     { "agent": "ai", "keywords": ["ai", "llm", "model", "prompt", "agent"] },

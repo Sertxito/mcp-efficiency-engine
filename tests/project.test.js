@@ -2636,6 +2636,10 @@ test("documentation generation preserves custom output and routes requests from 
     skill.id === "nextjs-app-router-development" &&
     /server\/client boundaries/i.test(skill.guidance) &&
     /official guidance for those versions/i.test(skill.guidance)));
+  const portfolioPlan = routeTask(root, "Crea un portfolio personal con Next.js desde cero.");
+  assert.equal(portfolioPlan.workflow.id, "deliver-frontend-change");
+  assert.equal(portfolioPlan.agent.id, "frontend");
+  assert.ok(portfolioPlan.skills.some((skill) => skill.id === "nextjs-app-router-development"));
   const sqlPathPlan = routeTask(root, "Review db/schema.sql and its constraints.");
   assert.deepEqual(sqlPathPlan.technical_guidance.map(item => item.id), ["sql-engineering"]);
   assert.ok(sqlPathPlan.technical_guidance[0].apply_to.includes("**/*.sql"));

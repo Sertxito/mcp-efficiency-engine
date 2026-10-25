@@ -385,7 +385,7 @@ function createRunToolHandler(options) {
               text: JSON.stringify({
                 status: cancel ? "cancelling" : "running",
                 run_id: runId,
-                next_action: "Call mcpee_run again with this run_id (no task). Keep retrieving this same run until its final result. Do not restart the task, report completion, or ask the user to poll.",
+                next_action: "Call mcpee_run_status with this run_id. Keep retrieving this same run until its final result. Do not restart the task, report completion, or ask the user to poll.",
               }),
             }],
           }), 20_000);
@@ -414,13 +414,19 @@ function createMcpServer(options) {
     name: "mcpee",
     version: packageJson.version,
   });
+  const runHandler = createRunToolHandler({
+    projectRoot: options.projectRoot,
+    packageRoot: options.packageRoot,
+    mcpServer: server,
+    spawnProcess: options.spawnProcess,
+  });
   server.registerTool("mcpee_run", {
     title: "Run a project task with MCPEE",
     description: [
       "Use this tool for every engineering request about the current project, without asking the user to invoke a special chat participant.",
       "MCPEE performs local routing and grounding, then executes the task through the authenticated GitHub Copilot CLI agent runtime.",
       "The tool requests explicit approval before sending selected project context to Copilot and before each state-changing action.",
-      "Start once with task. If the result is running, call this same tool with run_id and no task until it returns the final result; do not ask the user to poll. To cancel, pass run_id and cancel:true.",
+      "Start once with task. If the result is running, call mcpee_run_status with its run_id until the final result; do not start another task or ask the user to poll. To cancel, pass run_id and cancel:true. Passing run_id without cancel is supported for compatibility; use mcpee_run_status for polling.",
       "Return the tool's result to the user; do not make the same project changes again in this chat turn.",
     ].join(" "),
     inputSchema: {
@@ -433,12 +439,19 @@ function createMcpServer(options) {
       destructiveHint: false,
       openWorldHint: true,
     },
-  }, createRunToolHandler({
-    projectRoot: options.projectRoot,
-    packageRoot: options.packageRoot,
-    mcpServer: server,
-    spawnProcess: options.spawnProcess,
-  }));
+  }, runHandler);
+  server.registerTool("mcpee_run_status", {
+    title: "Check MCPEE run status",
+    description: "Retrieve the current result of an existing MCPEE run by run_id. This only checks local run state; it does not start, cancel, or modify the run.",
+    inputSchema: {
+      run_id: z.string().uuid().describe("Existing MCPEE run identifier returned by mcpee_run."),
+    },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      openWorldHint: false,
+    },
+  }, ({ run_id: runId }, extra = {}) => runHandler({ run_id: runId }, extra));
   return server;
 }
 
