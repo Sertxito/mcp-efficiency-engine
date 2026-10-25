@@ -29,7 +29,7 @@ El grafo unificado se construye antes del descubrimiento de especificaciones. La
 
 **Contrato de aceptación:** los límites de certificación están en [Release acceptance boundaries](DEVELOPMENT.md#release-acceptance-boundaries). Una prueba controlada del harness no certifica la aplicación, la calidad de especialistas ni toda esta arquitectura. El registro MCP vigente usa `.mcp.json` en la raíz del proyecto; `.vscode/mcp.json` solo aparece como origen de migración para proyectos antiguos. Las normalizaciones equivalentes del host se conservan sin sobrescribir su configuración.
 
-**Distribución 0.1.28:** se publica en el repositorio `Sertxito/mcp-efficiency-engine` y en el paquete npm `mcp-efficiency-engine`, con los comandos `mcpee` y `mcp-efficiency-engine`. Requiere Node.js 24 o superior. La instalación npm no ejecuta `init` ni instala herramientas del proyecto: se inicializa el workspace de forma explícita, sin migración previa. La [resolución de problemas](TROUBLESHOOTING.md) cubre errores de instalación e indexación, y la [publicación](RELEASING.md) usa la versión confirmada en los manifiestos, sin incrementarla de forma oculta en CI.
+**Distribución 0.1.31:** se publica en el repositorio `Sertxito/mcp-efficiency-engine` y en el paquete npm `mcp-efficiency-engine`, con los comandos `mcpee` y `mcp-efficiency-engine`. Requiere Node.js 24 o superior. La instalación npm no ejecuta `init` ni instala herramientas del proyecto: se inicializa el workspace de forma explícita, sin migración previa. La [resolución de problemas](TROUBLESHOOTING.md) cubre errores de instalación e indexación, y la [publicación](RELEASING.md) usa la versión confirmada en los manifiestos, sin incrementarla de forma oculta en CI.
 
 El protocolo Node/Python utiliza UTF-8 estricto, también con pipes en Windows, independientemente de la página de códigos de la consola. La caché conserva los vectores cuyo contenido y metadatos coinciden; las entradas mal decodificadas por versiones anteriores no coinciden con los chunks corregidos y se recalculan sin borrar los pesos del modelo.
 
@@ -590,7 +590,7 @@ Estado implementado adicional: si no se detecta código, el `init` interactivo p
 `init` también aprovisiona los specs post-cambio de cada workflow del catálogo cuando detecta checks locales soportados y la herramienta correspondiente está disponible: scripts convencionales (`test:ci`, `test`, `lint`, `typecheck`, `check` o `build`) en `package.json` raíz; pytest con configuración explícita (`pytest.ini`, `[tool.pytest]` en `pyproject.toml` o pytest en un entorno `testenv` de `tox.ini`); y soluciones o proyectos .NET. No ejecuta checks durante la inicialización, marca cada paso para aprobación y preserva los specs existentes. La detección recorre paquetes de monorepo, omite árboles de dependencias/build, conserva el directorio de trabajo relativo de cada paquete y limita la cantidad de pasos generados. No inventa comandos específicos de otros ecosistemas.
 
 ```bash
-npx --package=mcp-efficiency-engine@0.1.28 mcpee init
+npx --package=mcp-efficiency-engine@0.1.31 mcpee init
 ```
 
 ```mermaid
@@ -997,7 +997,7 @@ La CLI implementa los comandos siguientes. `update` refresca artefactos del
 proyecto desde el paquete MCPEE ya instalado; no actualiza ese paquete.
 
 ```bash
-npx --package=mcp-efficiency-engine@0.1.28 mcpee init
+npx --package=mcp-efficiency-engine@0.1.31 mcpee init
 mcpee sync
 mcpee doctor
 mcpee status

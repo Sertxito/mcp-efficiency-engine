@@ -173,11 +173,12 @@ sync and validation before reporting the run as failed.
 - Each approval request expires after ten minutes. Denial or expiry never
   authorizes an action.
 - MCP calls wait at most 20 seconds before returning `status: "running"` and a
-  `run_id`. The chat agent retrieves the same run with
-  `mcpee_run({run_id: "..."})` until the final response arrives, instead of
-  starting the task again. `cancel: true` with `run_id` cancels the run and
-  pending approvals. Runs are held by the local MCP server; after a restart an
-  unknown ID is reported, not replayed.
+  `run_id`. The chat agent retrieves the same run with the read-only
+  `mcpee_run_status({run_id: "..."})` tool until the final response arrives,
+  instead of starting the task again or repeatedly approving a mutating tool.
+  `mcpee_run({run_id: "...", cancel: true})` cancels the run and pending
+  approvals. Runs are held by the local MCP server; after a restart an unknown
+  ID is reported, not replayed.
 
 See [Troubleshooting](TROUBLESHOOTING.md#approval-waits-fail-before-a-decision-is-returned)
 for approval wait failures.
