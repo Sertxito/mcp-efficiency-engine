@@ -122,7 +122,8 @@ retrieved.
 | Action | Approval |
 |---|---|
 | Sending task and context to Copilot | Required, once per transfer |
-| File edits and other state-changing tool calls | Required, per call, with a fresh checksum |
+| Ordinary task-scoped project-local file creation and edits | Authorized by the task; no per-file approval |
+| Other state-changing tool calls | Required, per call, with a fresh impact check |
 | Runtime permissions requested by the SDK | Required |
 | Post-change sync of indexes and graphs | Required |
 | Non-read-only validation steps | Required, per step |
@@ -185,10 +186,10 @@ sync and validation before reporting the run as failed.
 - MCP calls wait at most 20 seconds before returning `status: "running"` and a
   `run_id`. The chat agent retrieves the same run with the read-only
   `mcpee_run_status({run_id: "..."})` tool until the final response arrives,
-  instead of starting the task again or repeatedly approving a mutating tool.
-  `mcpee_run({run_id: "...", cancel: true})` cancels the run and pending
-  approvals. Runs are held by the local MCP server; after a restart an unknown
-  ID is reported, not replayed.
+  instead of starting the task again or repeatedly invoking a mutating tool.
+  Polling is not accepted by `mcpee_run`; cancellation uses the separate
+  `mcpee_run_cancel({run_id: "..."})` tool. Runs are held by the local MCP
+  server; after a restart an unknown ID is reported, not replayed.
 - Each routing plan includes the project stack detected from manifests and
   source files, plus code languages without a matching catalog guide. The
   executor performs one focused discovery pass, uses an installed specialist

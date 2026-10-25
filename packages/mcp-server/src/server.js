@@ -425,21 +425,19 @@ function createMcpServer(options) {
     description: [
       "Use this tool for every engineering request about the current project, without asking the user to invoke a special chat participant.",
       "MCPEE performs local routing and grounding, then executes the task through the authenticated GitHub Copilot CLI agent runtime.",
-      "The tool requests explicit approval before sending selected project context to Copilot and before each state-changing action.",
-      "Start once with task. If the result is running, call mcpee_run_status with its run_id until the final result; do not start another task or ask the user to poll. To cancel, pass run_id and cancel:true. Passing run_id without cancel is supported for compatibility; use mcpee_run_status for polling.",
+      "The tool requests explicit approval before sending selected project context to Copilot and for actions outside the task-scoped local-write allowance.",
+      "This tool only starts a task. If the result is running, call the read-only mcpee_run_status tool with its run_id until the final result; do not start another task or ask the user to poll. Use mcpee_run_cancel to cancel a run.",
       "Return the tool's result to the user; do not make the same project changes again in this chat turn.",
     ].join(" "),
     inputSchema: {
-      task: z.string().trim().min(1).max(8000).optional().describe("Start a new task, preserving necessary constraints. Omit when retrieving an existing run."),
-      run_id: z.string().uuid().optional().describe("Retrieve the existing run returned by this tool without executing the task again."),
-      cancel: z.boolean().optional().describe("Cancel an existing run; requires run_id."),
+      task: z.string().trim().min(1).max(8000).describe("Start a new task, preserving necessary constraints."),
     },
     annotations: {
       readOnlyHint: false,
       destructiveHint: false,
       openWorldHint: true,
     },
-  }, runHandler);
+  }, ({ task }, extra = {}) => runHandler({ task }, extra));
   server.registerTool("mcpee_run_status", {
     title: "Check MCPEE run status",
     description: "Retrieve the current result of an existing MCPEE run by run_id. This only checks local run state; it does not start, cancel, or modify the run.",
@@ -452,6 +450,18 @@ function createMcpServer(options) {
       openWorldHint: false,
     },
   }, ({ run_id: runId }, extra = {}) => runHandler({ run_id: runId }, extra));
+  server.registerTool("mcpee_run_cancel", {
+    title: "Cancel an MCPEE run",
+    description: "Cancel an existing MCPEE run and its pending approvals. This stops work; it does not restart or modify the project.",
+    inputSchema: {
+      run_id: z.string().uuid().describe("Existing MCPEE run identifier returned by mcpee_run."),
+    },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: false,
+    },
+  }, ({ run_id: runId }, extra = {}) => runHandler({ run_id: runId, cancel: true }, extra));
   return server;
 }
 

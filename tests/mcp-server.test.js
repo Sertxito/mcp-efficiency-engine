@@ -193,11 +193,18 @@ test("MCP server advertises the task tool to ordinary host clients", async (t) =
   });
   await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
   const tools = await client.listTools();
-  assert.ok(tools.tools.some((tool) => tool.name === "mcpee_run"));
+  const runTool = tools.tools.find((tool) => tool.name === "mcpee_run");
+  assert.ok(runTool);
+  assert.deepEqual(Object.keys(runTool.inputSchema.properties), ["task"]);
+  assert.deepEqual(runTool.inputSchema.required, ["task"]);
   const statusTool = tools.tools.find((tool) => tool.name === "mcpee_run_status");
   assert.ok(statusTool);
   assert.equal(statusTool.annotations.readOnlyHint, true);
   assert.equal(statusTool.annotations.openWorldHint, false);
+  const cancelTool = tools.tools.find((tool) => tool.name === "mcpee_run_cancel");
+  assert.ok(cancelTool);
+  assert.equal(cancelTool.annotations.readOnlyHint, false);
+  assert.equal(cancelTool.annotations.openWorldHint, false);
 });
 
   test("MCP retrieves long-running work across bounded calls without restarting it", async (t) => {
@@ -237,6 +244,10 @@ test("MCP server advertises the task tool to ordinary host clients", async (t) =
     assert.equal(pending.status, "running");
     assert.match(pending.run_id, /^[a-f0-9-]{36}$/);
     assert.equal(pending.next_action.startsWith("Call mcpee_run_status"), true);
+    const invalidPoll = await client.callTool({
+      name: "mcpee_run", arguments: { run_id: pending.run_id },
+    });
+    assert.equal(invalidPoll.isError, true);
     const duplicate = await client.callTool({ name: "mcpee_run", arguments: { task: "Inspect again" } });
     assert.equal(duplicate.isError, true);
     assert.match(duplicate.content[0].text, new RegExp(pending.run_id));
