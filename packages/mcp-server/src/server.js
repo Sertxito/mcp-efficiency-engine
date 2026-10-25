@@ -77,7 +77,8 @@ async function requestApprovalFromMcp(client, kind, details, signal) {
       required: ["decision"],
     },
   }, { timeout: 600_000, signal });
-  return result.action === "accept" && result.content?.decision === "approve";
+  if (result.action !== "accept") return false;
+  return result.content?.decision === undefined || result.content.decision === "approve";
 }
 
 function createApprovalBroker(approve) {

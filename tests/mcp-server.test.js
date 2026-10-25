@@ -48,6 +48,10 @@ test("MCP elicitation gates transfer and per-action approval, failing closed whe
   assert.match(requests[0].message, /src\/service\.js/);
   assert.deepEqual(requests[0].requestedSchema.properties.decision.enum, ["approve", "deny"]);
 
+  client.server.elicitInput = async () => ({ action: "accept" });
+  assert.equal(await requestApprovalFromMcp(client, "project-data-transfer", {}), true);
+  client.server.elicitInput = async () => ({ action: "accept", content: { decision: "deny" } });
+  assert.equal(await requestApprovalFromMcp(client, "project-data-transfer", {}), false);
   client.server.elicitInput = async () => ({ action: "decline" });
   assert.equal(await requestApprovalFromMcp(client, "copilot-tool", {}), false);
   client.server.getClientCapabilities = () => ({});
