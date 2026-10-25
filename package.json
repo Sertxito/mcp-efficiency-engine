@@ -1,6 +1,6 @@
 {
   "name": "mcp-efficiency-engine",
-  "version": "0.1.32",
+  "version": "0.1.33",
   "description": "Local-first engineering harness platform for GitHub Copilot projects",
   "license": "MIT",
   "type": "commonjs",

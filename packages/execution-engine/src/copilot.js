@@ -179,15 +179,20 @@ function createCopilotHooks(projectRoot, options = {}) {
         payload: { input },
         attributes: {},
       });
-      const assessment = assessCopilotToolCall(input, { nonInteractive: !interactive });
-      const impactReady = options.impactPreflight?.status === "ready";
-      const fileMutation = assessment.decision === "ask" && isFileMutationCall(input);
+      const assessment = assessCopilotToolCall(input, {
+        nonInteractive: !interactive,
+        taskScopedWrites: true,
+        projectRoot,
+        task: options.task,
+      });
+      const taskScopedWrite = assessment.taskScopedWrite === true;
+      const fileMutation = isFileMutationCall(input);
       let actionImpact = options.impactPreflight || null;
-      let blockedByImpact = assessment.decision === "ask" && !impactReady;
+      let blockedByImpact = false;
       if (fileMutation) {
         const paths = requestedWritePaths(projectRoot, input);
         if (!paths.length) {
-          blockedByImpact = true;
+          blockedByImpact = assessment.decision === "ask";
           actionImpact = {
             status: "unavailable",
             reason: "The file-changing tool did not identify a verifiable project-relative target path.",
@@ -196,10 +201,17 @@ function createCopilotHooks(projectRoot, options = {}) {
           };
         } else {
           try {
-            actionImpact = analyzeImpacts(projectRoot, paths);
-            blockedByImpact = actionImpact.status !== "ready";
+            const existingPaths = paths.filter((sourcePath) =>
+              fs.existsSync(path.join(projectRoot, sourcePath)));
+            actionImpact = existingPaths.length
+              ? analyzeImpacts(projectRoot, existingPaths)
+              : {
+                status: "not-required",
+                reason: "New project-local files do not change existing indexed components.",
+                targets: [],
+                unindexed: [],
+              };
           } catch (error) {
-            blockedByImpact = true;
             actionImpact = {
               status: "unavailable",
               reason: `Impact verification failed: ${error.message}`,
@@ -227,11 +239,15 @@ function createCopilotHooks(projectRoot, options = {}) {
         attributes: {
           decision,
           authorization_duration_ms: Math.max(0, Date.now() - requestedAt),
-          impact_preflight: assessment.decision === "ask" ? actionImpact?.status || "unavailable" : null,
-          approval: assessment.decision === "ask"
+          impact_preflight: fileMutation ? actionImpact?.status || "unavailable" : null,
+          approval: taskScopedWrite
+            ? "task-scoped-local-write"
+            : assessment.decision === "ask"
             ? humanApproved ? "human-approved-once" : "human-denied-or-unavailable"
             : "policy",
-          reason: decision === "deny" && assessment.decision === "ask"
+          reason: taskScopedWrite
+            ? assessment.reason
+            : decision === "deny" && assessment.decision === "ask"
             ? blockedByImpact
               ? `Impact preflight is not ready. ${actionImpact?.reason || "Run mcpee sync and route the task again."}`
               : `${assessment.reason} Human approval was not granted.`
@@ -240,7 +256,9 @@ function createCopilotHooks(projectRoot, options = {}) {
       });
       return {
         permissionDecision: decision,
-        permissionDecisionReason: decision === "deny" && assessment.decision === "ask"
+        permissionDecisionReason: taskScopedWrite
+          ? assessment.reason
+          : decision === "deny" && assessment.decision === "ask"
           ? blockedByImpact
             ? `Impact preflight is not ready. ${actionImpact?.reason || "Run mcpee sync and route the task again."}`
             : `${assessment.reason} Human approval was not granted.`
@@ -406,7 +424,7 @@ function createPrompt(task, plan, contextPackage = null, conversationContext = [
     "Use the applicable bundled technical guide and verified local code as the working baseline. Consult official documentation for uncovered, uncertain, version-sensitive or changed behavior; do not browse routinely to rediscover covered practices or treat a dated local guide as proof of current API support. Keep any lookup narrow, cite the source and disclose unavailable verification.",
     "Identify the actual languages, frameworks, runtimes and package versions from the supplied project_stack and relevant manifests before implementation. The routing keywords are not the complete technology inventory. If a detected technology is listed as unmapped or no matching skill/guide exists, consult its current official documentation for only the missing behavior; if external documentation is unavailable, state the exact gap and ask one focused question instead of guessing.",
     "Keep discovery bounded: inspect project manifests/configuration and the relevant entry points once, then implement or report a concrete blocker. Do not repeat broad file listings, reread the same sources, or restart discovery without new evidence. If two consecutive read-only inspections produce no new evidence, stop exploring and either proceed with the best-supported change or clearly explain what is missing.",
-    "Follow the project instructions and MCPEE approval policy. Review the impact preflight before acting; if an intended change target is not covered, do not change it. Before any action that changes files or state, affects permissions, deploys, publishes, deletes data, or sends project data externally, obtain explicit approval for that exact action. Do not treat this plan as approval.",
+    "Follow the project instructions and MCPEE approval policy. The user's task authorizes ordinary, task-scoped local file creation and edits; do not ask for approval separately for each requested document or code file. Keep changes limited to the requested outcome. Use impact evidence when available, but a missing index is not itself a risk or a reason to block new files. Require explicit approval for destructive actions, dependency changes, sensitive or operational configuration, broad architectural rewrites/migrations, permission changes, deployment, publication, or external data transfer. Do not use shell commands to bypass these boundaries.",
   ];
   if (contextPackage) {
     sections.push([
@@ -487,6 +505,7 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
         enableSessionTelemetry: false,
         hooks: createCopilotHooks(root, {
           ...approvalOptions,
+          task,
           changedPaths,
           getExecutionEventId: () => executionStartedEvent?.event_id || null,
         }),
@@ -498,7 +517,7 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
             "Project instructions requiring mcpee_run apply to the outer chat, not to this internal execution session. Do not call mcpee_run again or require it to be available; use the available built-in tools to inspect the project and carry out the supplied task within its constraints.",
             "For local inspection use glob to list files, view to read them, and grep or rg to search content. Do not use a shell just to list, read, or search files when those built-in tools suffice. A read-only inspection does not authorize tests, installations, maintenance, or changes.",
             "Identify the project stack from MCPEE's supplied project_stack and manifests. Do one focused discovery pass; do not loop over broad listings or reread unchanged files. For unmapped technologies, consult current official documentation if available; otherwise stop and report the precise missing guidance or user decision.",
-            "MCPEE enforces human approval before state-changing or externally visible actions. Its pre-tool hook is authoritative for this session; do not bypass it or infer approval from the task or plan. The initial context approval does not authorize additional transfers or actions.",
+            "The user's task authorizes ordinary, task-scoped local file creation and edits; do not ask for approval separately for each requested file. Ask for approval before destructive actions, dependency changes, sensitive or operational configuration, broad architectural rewrites/migrations, permission changes, deployment, publication, or external data transfer. The pre-tool hook enforces these boundaries. The initial context approval does not authorize additional transfers or high-impact actions.",
           ].join("\n\n"),
         },
       });
