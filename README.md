@@ -9,11 +9,12 @@ action, automatic validation after changes and a full local audit trail.
   detects which one it is and configures itself. There is no mode to choose.
 - **Local-first.** Indexes, graphs, memory and telemetry stay in your project.
   Context is sent to Copilot only after you approve it.
-- **Nothing silent.** Every download, transfer and state-changing action asks
-  first. Existing user files are never overwritten.
+- **Approvals where they matter.** Context transfer and risky actions require
+  approval; ordinary task-scoped project edits do not prompt per file.
+  Existing user files are never overwritten.
 
 npm package: **`mcp-efficiency-engine`** · commands: `mcpee` (or
-`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.33)
+`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.34)
 
 ## Requirements
 
@@ -31,12 +32,12 @@ Full details: [Getting started → Requirements](docs/GETTING-STARTED.md#require
 **1. Install**
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.33
+npm install --global mcp-efficiency-engine@0.1.34
 ```
 
 If npm blocks the native `koffi` dependency, add `--allow-scripts=koffi`
 (only that dependency is allowed). Prefer no global install? Use
-`npx --package=mcp-efficiency-engine@0.1.33 mcpee init --project <path>`.
+`npx --package=mcp-efficiency-engine@0.1.34 mcpee init --project <path>`.
 
 **2. Initialize your project**
 
