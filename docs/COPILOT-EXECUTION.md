@@ -23,8 +23,10 @@ and may ask once to trust the workspace or start the server.
 
 The server uses MCP elicitation for explicit approval before context transfer
 and before each state-changing action. It fails closed when the host cannot
-show that approval UI. Workspace trust and normal Copilot tool confirmations
-remain in effect.
+show that approval UI. An explicit host acceptance authorizes the requested
+action even if the host omits the redundant form value; decline and cancel
+remain denials. Workspace trust and normal Copilot tool confirmations remain
+in effect.
 
 MCPEE adds its own stdio server and the CodeGraph server to the portable
 workspace `.mcp.json` read directly by Copilot harness sessions, without
