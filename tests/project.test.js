@@ -17,6 +17,10 @@ const {
 } = require("../packages/cli/src/cli");
 const { RUN_STAGES, writeRunReport } = require("../packages/execution-engine/src/run-report");
 const {
+  createCopilotHooks,
+  createPermissionRequestHandler,
+} = require("../packages/execution-engine/src/copilot");
+const {
   assessCopilotToolCall,
   assessToolInvocation,
   formatApprovalArguments,
@@ -2028,6 +2032,67 @@ test("Copilot allows task-scoped local edits when impact evidence is unavailable
     event.event_name === "copilot.tool.authorization" &&
     event.attributes.approval === "task-scoped-local-write" &&
     event.attributes.impact_preflight === "not-required"), true);
+});
+
+test("SDK hook permission delegates to PreToolUse without a duplicate user prompt", async () => {
+  const root = temporaryProject();
+  initializeProject(root);
+  let permissionPrompts = 0;
+  let toolPrompts = 0;
+  const hooks = createCopilotHooks(root, {
+    interactive: true,
+    projectRoot: root,
+    task: "Build the requested project",
+    approveTool: async () => {
+      toolPrompts++;
+      return true;
+    },
+  });
+  const permissionHandler = createPermissionRequestHandler(root, {
+    interactive: true,
+    approvePermission: async () => {
+      permissionPrompts++;
+      return true;
+    },
+  });
+  const request = {
+    kind: "hook",
+    toolName: "powershell",
+    toolArgs: { command: "npm test" },
+    hookMessage: "Shell commands require approval.",
+  };
+
+  assert.deepEqual(await permissionHandler(request, { sessionId: "hook-permission-test" }), {
+    kind: "approved",
+  });
+  const decision = await hooks.onPreToolUse({
+    ...request,
+    toolCallId: "hook-permission-tool-call",
+  }, { sessionId: "hook-permission-test" });
+
+  assert.equal(decision.permissionDecision, "allow");
+  assert.equal(permissionPrompts, 0);
+  assert.equal(toolPrompts, 1);
+  assert.equal(readEvents(root).some((event) =>
+    event.event_name === "copilot.permission.decision" &&
+    event.attributes.decision === "policy-approved"), true);
+
+  const nonInteractiveHooks = createCopilotHooks(root, {
+    interactive: false,
+    projectRoot: root,
+    task: "Build the requested project",
+  });
+  const nonInteractivePermissions = createPermissionRequestHandler(root, {
+    interactive: false,
+  });
+  assert.deepEqual(await nonInteractivePermissions(request, {
+    sessionId: "noninteractive-hook-permission-test",
+  }), { kind: "approved" });
+  const deniedDecision = await nonInteractiveHooks.onPreToolUse({
+    ...request,
+    toolCallId: "noninteractive-hook-tool-call",
+  }, { sessionId: "noninteractive-hook-permission-test" });
+  assert.equal(deniedDecision.permissionDecision, "deny");
 });
 
 test("Copilot reports impact evidence without blocking scoped edits to existing files", async () => {

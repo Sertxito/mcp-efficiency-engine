@@ -366,7 +366,9 @@ function describePermissionRequest(request) {
 function createPermissionRequestHandler(projectRoot, options = {}) {
   const interactive = options.interactive === true;
   return async (request, invocation) => {
-    const approved = interactive &&
+    const policyManagedHook = request.kind === "hook" &&
+      typeof request.toolName === "string";
+    const approved = policyManagedHook || interactive &&
       typeof options.approvePermission === "function" &&
       await options.approvePermission(request, describePermissionRequest(request));
     recordEvent(projectRoot, {
@@ -374,7 +376,9 @@ function createPermissionRequestHandler(projectRoot, options = {}) {
       session_id: invocation.sessionId,
       attributes: {
         kind: request.kind,
-        decision: approved ? "approved-once" : interactive ? "rejected" : "no-interactive-review",
+        decision: policyManagedHook
+          ? "policy-approved"
+          : approved ? "approved-once" : interactive ? "rejected" : "no-interactive-review",
       },
     });
     return approved
