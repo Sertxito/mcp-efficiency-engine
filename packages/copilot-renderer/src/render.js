@@ -1046,14 +1046,17 @@ ${GENERATED_MARKER}
 
 ${catalog.policies.map((policy) => `- **${policy.id}** (${policy.enforcement}; evidence: ${policy.evidence}): ${policy.description}`).join("\n")}
 
-These policies apply to agents and workflows rendered by MCPEE. Respect project
-authorization. Ask for explicit approval before any file write, state change,
-deletion, permission change, deployment, publication, or external data transfer;
-only verified read-only checks may proceed without approval. Approval is for one
-specific action and does not authorize later or different actions. Supported
-Copilot CLI/cloud hooks enforce this policy for tool calls. VS Code hooks also
-enforce it when the Local harness is selected, hooks are enabled, and the
-workspace is trusted; keep the host's native permission controls enabled.
+These policies apply to agents and workflows rendered by MCPEE. A user's task
+authorizes ordinary, task-scoped local file creation and edits; do not ask for
+approval separately for every requested document or code file. Keep changes
+limited to the requested outcome. Ask for explicit approval before destructive
+actions, dependency changes, sensitive or operational configuration, broad
+architectural rewrites or migrations, permission changes, deployment,
+publication, or external data transfer. Missing impact-index evidence alone is
+not a risk and must not block creation of new project-local files. Supported
+Copilot CLI/cloud hooks enforce these boundaries for tool calls. VS Code hooks
+also enforce them when the Local harness is selected, hooks are enabled, and
+the workspace is trusted; keep the host's native permission controls enabled.
 `;
 }
 

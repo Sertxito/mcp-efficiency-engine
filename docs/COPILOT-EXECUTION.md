@@ -1,5 +1,15 @@
 # Copilot execution and approvals
 
+Ordinary project-local file creation and edits that directly implement the
+user's task are authorized by that task; the executor must not request approval
+for each generated document or code file. New files do not require indexed
+impact evidence. Impact analysis informs changes to existing project files but
+an unavailable or partial index is not, by itself, a risk finding or a reason
+to block work. Explicit approval remains required for destructive actions,
+dependency changes, sensitive or operational configuration, broad architectural
+rewrites or migrations, permission changes, deployment, publication, and
+external data transfer.
+
 How MCPEE routes a request, what it sends to GitHub Copilot, which actions
 require your approval, and what happens after a change. Start with the
 [README](../README.md) if MCPEE is not installed yet.

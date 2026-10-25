@@ -801,6 +801,7 @@ test("project init upgrades only explicitly authorized runtime and hook registra
   assert.ok(refreshed.updated.includes(".mcpee/runtime/copilot-hook.cjs"));
   assert.ok(refreshed.updated.includes(".github/hooks/mcpee-observability.json (preToolUse approval hook added)"));
   assert.match(fs.readFileSync(hookPath, "utf8"), /assessCopilotToolCall/);
+  assert.match(fs.readFileSync(hookPath, "utf8"), /newFilesOnly: true/);
   assert.equal(approvalHookInstalled(root), true);
   const updatedConfig = JSON.parse(fs.readFileSync(configPath, "utf8"));
   assert.ok(updatedConfig.hooks.postToolUse);
@@ -837,6 +838,17 @@ test("installed Copilot hook records real sanitized input and enforces preToolUs
   });
   assert.equal(denied.status, 0);
   assert.equal(JSON.parse(denied.stdout).permissionDecision, "deny");
+  const taskScopedFile = spawnSync(process.execPath, [hook, "preToolUse"], {
+    cwd: root,
+    input: JSON.stringify({
+      toolName: "edit_file",
+      toolArgs: { fileName: "autodocs/personal-site/README.md", content: "# Sources\n" },
+    }),
+    encoding: "utf8",
+    env: { ...process.env, MCPEE_NON_INTERACTIVE: "1" },
+  });
+  assert.equal(taskScopedFile.status, 0);
+  assert.equal(JSON.parse(taskScopedFile.stdout).permissionDecision, "allow");
   const allowed = spawnSync(process.execPath, [hook, "preToolUse"], {
     cwd: root,
     input: JSON.stringify({ toolName: "shell", toolArgs: { command: "git status --short" } }),
@@ -1458,6 +1470,65 @@ test("approval policy allows only verified read-only invocations and blocks unce
   ).decision, "deny");
 });
 
+test("approval policy allows scoped local file creation but gates high-impact targets", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "mcpee-task-scope-"));
+  try {
+    fs.mkdirSync(path.join(root, "autodocs/personal-site"), { recursive: true });
+    fs.writeFileSync(path.join(root, "autodocs/personal-site/README.md"), "# Existing\n");
+    fs.mkdirSync(path.join(root, "src"), { recursive: true });
+    fs.writeFileSync(path.join(root, "src/config.js"), "export default {};\n");
+    const scopedOptions = {
+      taskScopedWrites: true,
+      projectRoot: root,
+      task: "Create the requested project planning documents",
+      nonInteractive: true,
+    };
+    assert.equal(assessCopilotToolCall({
+      toolName: "apply_patch",
+      toolArgs: "*** Begin Patch\n*** Add File: autodocs/personal-site/README.md\n+# Sources\n*** End Patch\n",
+    }, scopedOptions).decision, "allow");
+    assert.equal(assessCopilotToolCall({
+      toolName: "edit_file",
+      toolArgs: { fileName: "autodocs/personal-site/content-model.schema.json" },
+    }, scopedOptions).decision, "allow");
+    assert.equal(assessCopilotToolCall({
+      toolName: "edit_file",
+      toolArgs: { fileName: "autodocs/personal-site/web-spec.md" },
+    }, { ...scopedOptions, task: "Crea los documentos del proyecto" }).decision, "allow");
+    assert.equal(assessCopilotToolCall({
+      toolName: "write_file",
+      toolArgs: { fileName: "autodocs/personal-site/README.md" },
+    }, { ...scopedOptions, newFilesOnly: true }).decision, "allow");
+    assert.equal(assessCopilotToolCall({
+      toolName: "edit_file",
+      toolArgs: { fileName: "autodocs/personal-site/README.md" },
+    }, { ...scopedOptions, newFilesOnly: true }).decision, "allow");
+    for (const [toolName, toolArgs] of [
+      ["delete_file", { fileName: "autodocs/personal-site/README.md" }],
+      ["edit_file", { fileName: "package.json" }],
+      ["edit_file", { fileName: ".github/workflows/release.yml" }],
+      ["edit_file", { fileName: ".env" }],
+      ["edit_file", { fileName: "../outside.md" }],
+      ["write_file", { fileName: "src/config.js" }],
+    ]) {
+      assert.equal(assessCopilotToolCall({
+        toolName,
+        toolArgs,
+      }, scopedOptions).decision, "deny", `${toolName} ${JSON.stringify(toolArgs)}`);
+    }
+    assert.equal(assessCopilotToolCall({
+      toolName: "edit_file",
+      toolArgs: { fileName: "src/app.js" },
+    }, { ...scopedOptions, task: "Re-architect the application" }).decision, "deny");
+    assert.equal(assessCopilotToolCall({
+      toolName: "edit_file",
+      toolArgs: { fileName: "src/app.js" },
+    }, { ...scopedOptions, task: "Review only; do not edit project files" }).decision, "deny");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("workflow steps that are not verified read-only stay blocked until explicitly approved", async () => {
   const root = temporaryProject();
   initializeProject(root);
@@ -1553,7 +1624,7 @@ test("failed checks become approval-gated tasks and close only with matching pas
   assert.equal(completeTask(root, task.task_id, resolved.id).status, "completed");
 });
 
-test("Copilot execution requires explicit transfer approval and gates each tool call", async () => {
+test("Copilot execution requires transfer approval without per-file prompts", async () => {
   const root = temporaryProject();
   initializeProject(root);
   fs.mkdirSync(path.join(root, "src"), { recursive: true });
@@ -1712,7 +1783,7 @@ test("Copilot execution requires explicit transfer approval and gates each tool 
   assert.match(clientConfig.systemMessage.content, /mcpee_run apply to the outer chat/);
   assert.match(clientConfig.systemMessage.content, /Do not call mcpee_run again/);
   assert.match(clientConfig.systemMessage.content, /Do one focused discovery pass/);
-  assert.match(clientConfig.systemMessage.content, /does not authorize additional transfers or actions/);
+  assert.match(clientConfig.systemMessage.content, /does not authorize additional transfers or high-impact actions/);
   assert.equal(clientConfig.enableSessionTelemetry, false);
   assert.equal(permissionReviews.length, 1);
   assert.match(permissionReviews[0].description, /npm install/);
@@ -1760,7 +1831,7 @@ test("Copilot execution requires explicit transfer approval and gates each tool 
   assert.ok(Number.isFinite(sdkToolComplete.attributes.duration_ms));
   assert.equal(copilotEvents.some((event) =>
     event.event_name === "copilot.tool.authorization" &&
-    event.attributes.approval === "human-approved-once"), true);
+    event.attributes.approval === "task-scoped-local-write"), true);
   const toolEvent = copilotEvents.find((event) => event.event_name === "copilot.tool.requested");
   assert.equal(toolEvent.tool_call_id, "read-call-1");
   const executionTraceId = copilotEvents.find((event) =>
@@ -1909,7 +1980,7 @@ test("Copilot failure telemetry preserves file mutations for post-change recover
   assert.deepEqual(completion.attributes.changed_paths, ["src/app.js"]);
 });
 
-test("Copilot blocks state-changing tool calls when impact preflight is unavailable", async () => {
+test("Copilot allows task-scoped local edits when impact evidence is unavailable", async () => {
   const root = temporaryProject();
   initializeProject(root);
   let decision;
@@ -1950,15 +2021,16 @@ test("Copilot blocks state-changing tool calls when impact preflight is unavaila
     },
     clientFactory: () => client,
   });
-  assert.equal(decision.permissionDecision, "deny");
-  assert.match(decision.permissionDecisionReason, /Impact preflight is not ready/);
+  assert.equal(decision.permissionDecision, "allow");
+  assert.match(decision.permissionDecisionReason, /per-file approval is not required/);
   assert.equal(approvalRequested, false);
   assert.equal(readEvents(root).some((event) =>
     event.event_name === "copilot.tool.authorization" &&
-    event.attributes.impact_preflight === "unavailable"), true);
+    event.attributes.approval === "task-scoped-local-write" &&
+    event.attributes.impact_preflight === "not-required"), true);
 });
 
-test("Copilot requires fresh impact evidence for the exact file mutation target", async () => {
+test("Copilot reports impact evidence without blocking scoped edits to existing files", async () => {
   const root = temporaryProject();
   initializeProject(root);
   fs.mkdirSync(path.join(root, "src"), { recursive: true });
@@ -1967,7 +2039,6 @@ test("Copilot requires fresh impact evidence for the exact file mutation target"
   syncProject(root);
   const preflight = analyzeImpacts(root, ["src/indexed.js"]);
   let approvalRequested = false;
-  const approvedTargets = [];
   const decisions = [];
   const client = {
     async start() {},
@@ -2007,18 +2078,16 @@ test("Copilot requires fresh impact evidence for the exact file mutation target"
     approved: true,
     interactive: true,
     impactPreflight: preflight,
-    approveTool: async (_input, _reason, impact) => {
+    approveTool: async () => {
       approvalRequested = true;
-      approvedTargets.push(impact.targets.map((target) => target.target));
-      return impact.status === "ready";
+      return false;
     },
     clientFactory: () => client,
   });
-  assert.deepEqual(decisions.map((decision) => decision.permissionDecision), ["allow", "allow", "deny", "deny"]);
-  assert.equal(approvalRequested, true);
-  assert.deepEqual(approvedTargets, [["src/indexed.js"], ["src/unindexed.js"]]);
+  assert.deepEqual(decisions.map((decision) => decision.permissionDecision), ["allow", "allow", "deny", "allow"]);
+  assert.equal(approvalRequested, false);
   assert.match(decisions[2].permissionDecisionReason, /did not identify a verifiable/);
-  assert.match(decisions[3].permissionDecisionReason, /changed after sync/);
+  assert.match(decisions[3].permissionDecisionReason, /per-file approval is not required/);
 });
 
 test("Repomix packs only selected safe routing sources through stdin", () => {

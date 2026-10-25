@@ -110,6 +110,9 @@ async function main() {
     ? assessCopilotToolCall(input, {
       nonInteractive: process.env.MCPEE_NON_INTERACTIVE === "1" ||
         process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true",
+      taskScopedWrites: true,
+      newFilesOnly: true,
+      projectRoot: process.env.MCPEE_PROJECT_ROOT || process.cwd(),
     })
     : null;
   if (decision) {
