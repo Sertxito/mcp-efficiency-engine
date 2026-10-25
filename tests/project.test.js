@@ -1563,6 +1563,11 @@ test("Copilot execution requires explicit transfer approval and gates each tool 
   const plan = {
     workflow: { id: "resolve-bug" },
     agent: { id: "debugger" },
+    project_stack: {
+      detected_technologies: [{ id: "node", evidence: ["package.json"] }],
+      unmapped_technologies: [{ id: "go", evidence: ["services/api/main.go"] }],
+      technology_coverage: "partial",
+    },
     skills: [{ id: "analysis" }],
     playbooks: [{ id: "migration-strategy", guidance: "Migration strategy controls and cutover." }],
     technical_guidance: [{ id: "backend-guidance", guidance: "Version-aware backend guidance." }],
@@ -1690,6 +1695,11 @@ test("Copilot execution requires explicit transfer approval and gates each tool 
   assert.match(promptText, /working baseline/);
   assert.match(promptText, /uncovered, uncertain, version-sensitive or changed behavior/);
   assert.match(promptText, /disclose unavailable verification/);
+  assert.match(promptText, /Identify the actual languages, frameworks, runtimes and package versions/);
+  assert.match(promptText, /services\/api\/main.go/);
+  assert.match(promptText, /one focused question instead of guessing/);
+  assert.match(promptText, /Keep discovery bounded/);
+  assert.match(promptText, /two consecutive read-only inspections/);
   assert.match(promptText, /finding about the claim, not proof that the underlying capability is absent/);
   assert.match(promptText, /Clearly stated unverified scope is not such a claim/);
   assert.match(promptText, /Migration strategy controls and cutover/);
@@ -1701,6 +1711,7 @@ test("Copilot execution requires explicit transfer approval and gates each tool 
   assert.match(clientConfig.systemMessage.content, /internal MCPEE executor/);
   assert.match(clientConfig.systemMessage.content, /mcpee_run apply to the outer chat/);
   assert.match(clientConfig.systemMessage.content, /Do not call mcpee_run again/);
+  assert.match(clientConfig.systemMessage.content, /Do one focused discovery pass/);
   assert.match(clientConfig.systemMessage.content, /does not authorize additional transfers or actions/);
   assert.equal(clientConfig.enableSessionTelemetry, false);
   assert.equal(permissionReviews.length, 1);
@@ -2550,6 +2561,8 @@ test("documentation generation preserves custom output and routes requests from 
   fs.mkdirSync(path.join(root, "src"), { recursive: true });
   fs.mkdirSync(path.join(root, "db"), { recursive: true });
   fs.mkdirSync(path.join(root, "infra"), { recursive: true });
+  fs.writeFileSync(path.join(root, "src/main.go"), "package main\n");
+  fs.writeFileSync(path.join(root, "src/app.tsx"), "export const App = () => null;\n");
   fs.writeFileSync(path.join(root, "infra/main.tf"), "terraform {}\n");
   fs.writeFileSync(path.join(root, "src/api.csproj"), "<Project></Project>\n");
   fs.writeFileSync(path.join(root, "db/schema.sql"), "CREATE TABLE Example (Id int);\n");
@@ -2578,6 +2591,12 @@ test("documentation generation preserves custom output and routes requests from 
   const plan = routeTask(root, "Review architecture and database migration safety and verify the schema change.");
   assert.equal(plan.workflow.id, "database-change-with-baseline");
   assert.equal(plan.agent.id, "database");
+  assert.equal(plan.project_stack.technology_coverage, "partial");
+  assert.ok(plan.project_stack.detected_technologies.some((item) => item.id === "angular"));
+  assert.ok(plan.project_stack.detected_languages.some((item) =>
+    item.id === "typescript" && item.evidence.includes("src/app.tsx")));
+  assert.ok(plan.project_stack.unmapped_technologies.some((item) =>
+    item.id === "go" && item.evidence.includes("src/main.go")));
   assert.ok(plan.agent.skills.includes("architecture"));
   assert.ok(plan.agent.preferred_knowledge.includes("database"));
   assert.ok(plan.agent.tools.includes("dotnet"));
@@ -2605,6 +2624,10 @@ test("documentation generation preserves custom output and routes requests from 
   assert.ok(backendPlan.prompt_examples.some((item) => item.id === "backend-change-example" && /Implement/.test(item.example)));
   assert.ok(backendPlan.policy_controls.some((policy) => policy.id === "human-in-the-loop" && policy.enforcement === "runtime"));
   assert.match(backendPlan.workflow.guidance, /independently reviewable vertical slices/);
+  const genericFeaturePlan = routeTask(root, "Crear una herramienta para esta aplicación.");
+  assert.equal(genericFeaturePlan.workflow.id, "deliver-feature");
+  assert.equal(genericFeaturePlan.agent.id, "frontend");
+  assert.ok(genericFeaturePlan.project_stack.detected_technologies.some((item) => item.id === "angular"));
   manageCapability(root, "install", "pattern", "dotnet-csharp-quality");
   const dotnetPlan = routeTask(root, "Refactor this C# .NET service and review naming conventions.");
   assert.equal(dotnetPlan.workflow.id, "refactor-code");

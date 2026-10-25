@@ -224,14 +224,28 @@ function selectedCatalog(catalog, assets) {
 
 function readInstalledCatalog(projectRoot) {
   const { catalog } = readCatalog();
-  const state = readCapabilityState(projectRoot);
-  if (!state) return catalog;
   const detected = detectProjectCapabilities(projectRoot, catalog);
-  return selectedCatalog(catalog, capabilityDefaults(
-    catalog,
-    initialCapabilityAssets(catalog, detected.assets),
-    state,
-  ));
+  const state = readCapabilityState(projectRoot);
+  const installed = state
+    ? selectedCatalog(catalog, capabilityDefaults(
+      catalog,
+      initialCapabilityAssets(catalog, detected.assets),
+      state,
+    ))
+    : catalog;
+  return {
+    ...installed,
+    project_stack: {
+      status: detected.status,
+      has_code_signals: detected.has_code_signals,
+      detected_technologies: detected.detected_technologies,
+      detected_languages: detected.detected_languages,
+      unmapped_technologies: detected.unmapped_technologies,
+      technology_coverage: detected.technology_coverage,
+      code_evidence_files: detected.code_evidence_files,
+      assets: detected.assets,
+    },
+  };
 }
 
 function capabilityRegistry(projectRoot, catalog = readCatalog().catalog) {
