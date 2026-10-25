@@ -166,7 +166,7 @@
     },
     {
       "workflow": "deliver-feature",
-      "keywords": ["feature", "implement", "implementation", "add", "create", "instrument application insights", "add application insights", "build mcp server", "build an mcp server", "create mcp server", "publish python package", "containerize asp.net framework", "dotnet timezone"],
+      "keywords": ["feature", "implement", "implementation", "add", "create", "build", "develop", "scaffold", "crear", "implementar", "desarrollar", "construir", "montar", "añadir", "agregar", "instrument application insights", "add application insights", "build mcp server", "build an mcp server", "create mcp server", "publish python package", "containerize asp.net framework", "dotnet timezone"],
       "agent": "backend",
       "skills": ["analysis", "implementation", "test-strategy", "evidence-and-findings", "application-insights-instrumentation", "backend-mcp-package-authoring", "dotnet-legacy-runtime"]
     },

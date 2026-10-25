@@ -371,6 +371,7 @@ function createPrompt(task, plan, contextPackage = null, conversationContext = [
   const context = {
     workflow: plan.workflow,
     agent: plan.agent,
+    project_stack: plan.project_stack || null,
     skills: plan.skills,
     patterns: plan.patterns || [],
     playbooks: plan.playbooks || [],
@@ -403,6 +404,8 @@ function createPrompt(task, plan, contextPackage = null, conversationContext = [
     "In audits, consolidate duplicate root causes and distinguish a supported defect from a conditional risk or missing evidence. Do not infer absent authorization, caller error handling or retry limits from a fragment alone.",
     "An explicit verified-behavior claim contradicted by supplied evidence can be a finding about the claim, not proof that the underlying capability is absent. Clearly stated unverified scope is not such a claim.",
     "Use the applicable bundled technical guide and verified local code as the working baseline. Consult official documentation for uncovered, uncertain, version-sensitive or changed behavior; do not browse routinely to rediscover covered practices or treat a dated local guide as proof of current API support. Keep any lookup narrow, cite the source and disclose unavailable verification.",
+    "Identify the actual languages, frameworks, runtimes and package versions from the supplied project_stack and relevant manifests before implementation. The routing keywords are not the complete technology inventory. If a detected technology is listed as unmapped or no matching skill/guide exists, consult its current official documentation for only the missing behavior; if external documentation is unavailable, state the exact gap and ask one focused question instead of guessing.",
+    "Keep discovery bounded: inspect project manifests/configuration and the relevant entry points once, then implement or report a concrete blocker. Do not repeat broad file listings, reread the same sources, or restart discovery without new evidence. If two consecutive read-only inspections produce no new evidence, stop exploring and either proceed with the best-supported change or clearly explain what is missing.",
     "Follow the project instructions and MCPEE approval policy. Review the impact preflight before acting; if an intended change target is not covered, do not change it. Before any action that changes files or state, affects permissions, deploys, publishes, deletes data, or sends project data externally, obtain explicit approval for that exact action. Do not treat this plan as approval.",
   ];
   if (contextPackage) {
@@ -494,6 +497,7 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
             "You are the internal MCPEE executor, already invoked through mcpee_run or mcpee run. Routing and project-context transfer approval have already completed for the supplied plan.",
             "Project instructions requiring mcpee_run apply to the outer chat, not to this internal execution session. Do not call mcpee_run again or require it to be available; use the available built-in tools to inspect the project and carry out the supplied task within its constraints.",
             "For local inspection use glob to list files, view to read them, and grep or rg to search content. Do not use a shell just to list, read, or search files when those built-in tools suffice. A read-only inspection does not authorize tests, installations, maintenance, or changes.",
+            "Identify the project stack from MCPEE's supplied project_stack and manifests. Do one focused discovery pass; do not loop over broad listings or reread unchanged files. For unmapped technologies, consult current official documentation if available; otherwise stop and report the precise missing guidance or user decision.",
             "MCPEE enforces human approval before state-changing or externally visible actions. Its pre-tool hook is authoritative for this session; do not bypass it or infer approval from the task or plan. The initial context approval does not authorize additional transfers or actions.",
           ].join("\n\n"),
         },

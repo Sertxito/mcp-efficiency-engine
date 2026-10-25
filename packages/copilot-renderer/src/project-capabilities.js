@@ -20,6 +20,24 @@ const SUPPORTED_TECHNOLOGIES = [
   "angular", "aws", "azure", "bicep", "cosmos-db", "dotnet", "node", "python",
   "react", "sql", "terraform", "vue", "yaml-pipelines",
 ];
+const GENERAL_CODE_EXTENSIONS = new Map([
+  [".go", "go"], [".rs", "rust"], [".java", "java"], [".kt", "kotlin"],
+  [".kts", "kotlin"], [".swift", "swift"], [".rb", "ruby"], [".php", "php"],
+  [".c", "c"], [".h", "c"], [".cc", "c++"], [".cpp", "c++"],
+  [".hh", "c++"], [".hpp", "c++"], [".scala", "scala"], [".dart", "dart"],
+  [".ex", "elixir"], [".exs", "elixir"], [".erl", "erlang"], [".hrl", "erlang"],
+  [".lua", "lua"], [".pl", "perl"], [".pm", "perl"], [".r", "r"],
+  [".hs", "haskell"], [".clj", "clojure"], [".cljs", "clojure"],
+  [".cljc", "clojure"], [".ml", "ocaml"], [".mli", "ocaml"],
+  [".fs", "fsharp"], [".fsi", "fsharp"], [".fsx", "fsharp"],
+]);
+const CODE_FILE_LANGUAGES = new Map([
+  [".js", "javascript"], [".jsx", "javascript"], [".mjs", "javascript"], [".cjs", "javascript"],
+  [".ts", "typescript"], [".tsx", "typescript"], [".mts", "typescript"], [".cts", "typescript"],
+  [".py", "python"], [".pyi", "python"], [".cs", "csharp"], [".vb", "visual-basic"],
+  [".vue", "vue"], [".sh", "shell"], [".m", "objective-c"], [".mm", "objective-c++"],
+  ...GENERAL_CODE_EXTENSIONS,
+]);
 
 function walkProjectFiles(projectRoot) {
   const root = path.resolve(projectRoot);
@@ -91,7 +109,7 @@ function detectProjectCapabilities(projectRoot, catalog) {
     technologies.set(technology, sources);
   };
   const matchingFiles = (pattern) => files.filter((file) => pattern.test(file));
-  const codeEvidenceFiles = matchingFiles(/\.(?:[cm]?[jt]sx?|vue|pyi?|cs|fs|vb|go|rs|java|kt|swift|rb|php|c|cc|cpp|h|hh|hpp|scala|sh)$/i);
+  const codeEvidenceFiles = matchingFiles(/\.(?:[cm]?[jt]sx?|vue|pyi?|cs|fs|vb|go|rs|java|kt|kts|swift|rb|php|c|cc|cpp|h|hh|hpp|scala|dart|ex|exs|erl|hrl|lua|pl|pm|r|hs|clj|cljs|cljc|ml|mli|fsi|fsx|sh|mm)$/i);
 
   const dotnetFiles = matchingFiles(/\.(?:csproj|fsproj|vbproj|sln|slnx)$/i);
   for (const file of dotnetFiles) {
@@ -154,7 +172,27 @@ function detectProjectCapabilities(projectRoot, catalog) {
   }
 
   const detected = [...technologies.keys()].sort();
-  const hasBackend = detected.some((technology) => ["dotnet", "python", "node"].includes(technology));
+  const detectedLanguages = new Map();
+  for (const file of codeEvidenceFiles) {
+    const language = CODE_FILE_LANGUAGES.get(path.extname(file).toLowerCase());
+    if (!language) continue;
+    const evidence = detectedLanguages.get(language) || new Set();
+    evidence.add(file);
+    detectedLanguages.set(language, evidence);
+  }
+  const generalCodeLanguages = new Map();
+  for (const file of codeEvidenceFiles) {
+    const language = GENERAL_CODE_EXTENSIONS.get(path.extname(file).toLowerCase());
+    if (!language) continue;
+    const evidence = generalCodeLanguages.get(language) || new Set();
+    evidence.add(file);
+    generalCodeLanguages.set(language, evidence);
+  }
+  const unmappedTechnologies = [...generalCodeLanguages.entries()]
+    .map(([id, evidence]) => ({ id, evidence: [...evidence].sort() }))
+    .sort((left, right) => left.id.localeCompare(right.id));
+  const hasBackend = detected.some((technology) =>
+    ["dotnet", "node", "python"].includes(technology)) || codeEvidenceFiles.length > 0;
   const hasFrontend = detected.some((technology) => ["angular", "react", "vue"].includes(technology));
   const hasDatabase = detected.some((technology) => ["sql", "cosmos-db"].includes(technology));
   const hasInfrastructure = detected.some((technology) =>
@@ -227,6 +265,11 @@ function detectProjectCapabilities(projectRoot, catalog) {
       id: technology,
       evidence: [...technologies.get(technology)].sort(),
     })),
+    detected_languages: [...detectedLanguages.entries()]
+      .map(([id, evidence]) => ({ id, evidence: [...evidence].sort() }))
+      .sort((left, right) => left.id.localeCompare(right.id)),
+    unmapped_technologies: unmappedTechnologies,
+    technology_coverage: unmappedTechnologies.length ? "partial" : detected.length ? "mapped" : "unknown",
     assets: {
       agents: agents.map((agent) => agent.id),
       skills,

@@ -89,11 +89,23 @@ function routeTask(projectRoot, task, options = {}) {
     order: index,
   })).filter((specialist) => catalog.agents.some((agent) => agent.id === specialist.agent))
     .sort((left, right) => right.score - left.score || left.order - right.order);
+  const detectedTechnologyIds = new Set(
+    (catalog.project_stack?.detected_technologies || []).map(({ id }) => id),
+  );
+  const projectAgentId = detectedTechnologyIds.has("angular") ||
+    detectedTechnologyIds.has("react") || detectedTechnologyIds.has("vue")
+    ? "frontend"
+    : catalog.project_stack?.has_code_signals ? "backend" : null;
+  const preferredProjectAgent = selected.workflow === "deliver-feature" &&
+    catalog.agents.some((agent) => agent.id === projectAgentId)
+    ? projectAgentId
+    : null;
   const agentId = specialistScores[0]?.score > 0
     ? specialistScores[0].agent
-    : catalog.agents.some((agent) => agent.id === selected.agent)
-      ? selected.agent
-      : catalog.agents[0]?.id;
+    : preferredProjectAgent ||
+      (catalog.agents.some((agent) => agent.id === selected.agent)
+        ? selected.agent
+        : catalog.agents[0]?.id);
   const agent = catalog.agents.find((item) => item.id === agentId);
   const workflow = catalog.workflows.find((item) => item.id === selected.workflow);
   if (!agent || !workflow) throw new Error(`Catalog is missing route target '${agentId}' or '${selected.workflow}'`);
@@ -262,6 +274,7 @@ function routeTask(projectRoot, task, options = {}) {
       matched_keywords: selected.matches || [],
       execution_stages: EXECUTION_STAGES,
     },
+    project_stack: catalog.project_stack,
     agent: {
       id: agent.id,
       description: agent.description,

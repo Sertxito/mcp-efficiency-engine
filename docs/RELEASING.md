@@ -5,7 +5,7 @@
 - Repository: <https://github.com/Sertxito/mcp-efficiency-engine>
 - npm package: `mcp-efficiency-engine`
 - Commands: `mcpee` and `mcp-efficiency-engine`
-- Current candidate: **0.1.31**, following published **0.1.30**
+- Current candidate: **0.1.32**, following published **0.1.31**
 - Runtime: Node.js **>=24**
 
 Keep the normal pre-1.0 version sequence until stable acceptance is complete.
@@ -63,8 +63,8 @@ After deployment, verify:
 
 ```sh
 npm view mcp-efficiency-engine version
-npm view mcp-efficiency-engine@0.1.31 bin engines dist.integrity --json
-npx --package=mcp-efficiency-engine@0.1.31 mcpee help
+npm view mcp-efficiency-engine@0.1.32 bin engines dist.integrity --json
+npx --package=mcp-efficiency-engine@0.1.32 mcpee help
 ```
 
 Also check the release workflow and GitHub Pages deployment. A failed

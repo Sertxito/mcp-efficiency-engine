@@ -179,6 +179,12 @@ sync and validation before reporting the run as failed.
   `mcpee_run({run_id: "...", cancel: true})` cancels the run and pending
   approvals. Runs are held by the local MCP server; after a restart an unknown
   ID is reported, not replayed.
+- Each routing plan includes the project stack detected from manifests and
+  source files, plus code languages without a matching catalog guide. The
+  executor performs one focused discovery pass, uses an installed specialist
+  where available, and consults current official documentation for uncovered
+  technology. If that lookup is unavailable, it must name the exact guidance
+  gap and ask a focused question instead of guessing or repeating exploration.
 
 See [Troubleshooting](TROUBLESHOOTING.md#approval-waits-fail-before-a-decision-is-returned)
 for approval wait failures.
