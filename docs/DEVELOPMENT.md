@@ -9,15 +9,31 @@ Requires the latest Node.js LTS release for a complete tool installation. From
 the repository root:
 
 ```sh
+npm run build:runtime             # bundle the pinned SDK JavaScript before direct CLI/tests
 npm test                          # node --test
+npm run audit:dependencies        # fail on any currently reported dependency advisory
 npm run pack:check                # verify the packed npm tarball end to end
 npm run docs:check-links          # local Markdown links, anchors and guide metadata
 npm run docs:check-official-links # network reachability of official guide URLs
 npm run init                      # initialize this repository with MCPEE
 ```
 
-- `pack:check` installs the packed tarball in a temporary offline consumer and
-  seeds its dependency lock from the exact project lockfile. It runs the
+- `build:runtime` bundles the pinned Copilot SDK's JavaScript and JSON-RPC code
+  with esbuild. The SDK is a development dependency, with patched Zod selected
+  by an override; published consumers do not install its vulnerable dependency
+  tree. MCPEE's direct Zod remains pinned to the patched version. Native SDK
+  platform packages and Koffi remain normal version-pinned npm dependencies,
+  not binaries embedded from the build machine. The build checks these versions,
+  restricts bundled packages, records a SHA-256 digest and preserves MIT notices.
+  `npm test` and `npm pack` build automatically; direct `node` commands need
+  `npm run build:runtime` first. Generated runtime files are not committed.
+- `pack:check` installs the packed tarball in a fresh temporary consumer, without
+  copying MCPEE's lock or overrides. It prefers cached downloads but may query
+  registry metadata for installation,
+  then queries npm's advisory service and fails on any reported vulnerability.
+  It checks the bundled exports and digest, patched Zod, absence of the upstream
+  SDK dependency tree, and loads the actual platform-native library in a child
+  process without starting a model session. It runs the
   installed CLI and initialization against a deterministic local CodeGraph
   fixture, checks that user-owned instructions survive refresh, and tests local
   OTLP export from the installed package.

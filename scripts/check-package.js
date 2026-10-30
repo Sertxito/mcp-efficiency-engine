@@ -4,6 +4,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
+const { createRequire } = require("node:module");
 const crypto = require("node:crypto");
 const { execFileSync, spawnSync } = require("node:child_process");
 
@@ -80,6 +81,9 @@ try {
   assert.equal(dryRun.version, metadata.version);
   assert.equal(metadata.bin.mcpee, metadata.bin["mcp-efficiency-engine"]);
   assert.ok(packagedFiles.has("LICENSE"));
+  for (const asset of ["copilot-sdk.cjs", "build.json", "THIRD-PARTY-NOTICES.txt"]) {
+    assert.ok(packagedFiles.has(`packages/execution-engine/runtime/${asset}`), `Missing SDK runtime asset: ${asset}`);
+  }
   for (const required of [
     "catalog/specialist-acceptance.json",
     "docs/SPECIALIST-ACCEPTANCE.md",
@@ -100,24 +104,10 @@ try {
   const tarballReference = `file:../archive/${actualPack.filename}`;
   const consumer = { name: "mcpee-package-consumer", version: "1.0.0", private: true,
     dependencies: { [metadata.name]: tarballReference } };
-  const consumerLock = JSON.parse(fs.readFileSync(path.join(packageRoot, "package-lock.json"), "utf8"));
-  consumerLock.name = consumer.name;
-  consumerLock.version = consumer.version;
-  consumerLock.packages[""] = consumer;
-  consumerLock.packages[`node_modules/${metadata.name}`] = {
-    version: metadata.version,
-    resolved: tarballReference,
-    integrity: `sha512-${crypto.createHash("sha512").update(fs.readFileSync(tarball)).digest("base64")}`,
-    dependencies: metadata.dependencies,
-    bin: metadata.bin,
-    license: metadata.license,
-    engines: metadata.engines,
-  };
   fs.writeFileSync(path.join(consumerRoot, "package.json"), JSON.stringify(consumer));
-  fs.writeFileSync(path.join(consumerRoot, "package-lock.json"), JSON.stringify(consumerLock));
   runNpm([
-    "ci",
-    "--offline",
+    "install",
+    "--prefer-offline",
     "--ignore-scripts",
     "--no-audit",
     "--no-fund",
@@ -134,6 +124,38 @@ try {
     "bin",
     "mcpee.js",
   );
+  const installedRequire = createRequire(path.join(consumerRoot, "node_modules", metadata.name, "package.json"));
+  assert.throws(() => installedRequire.resolve("@github/copilot-sdk"), { code: "MODULE_NOT_FOUND" },
+    "Consumers must not install the SDK's vulnerable transitive dependency tree");
+  assert.equal(installedRequire("zod/package.json").version, metadata.dependencies.zod);
+  const runtimeRoot = path.join(consumerRoot, "node_modules", metadata.name, "packages", "execution-engine", "runtime");
+  const upstream = require("@github/copilot-sdk");
+  const runtimeBuild = require(path.join(runtimeRoot, "build.json"));
+  assert.equal(runtimeBuild.sdk.version, metadata.devDependencies["@github/copilot-sdk"]);
+  assert.equal(runtimeBuild.zod.version, metadata.dependencies.zod);
+  assert.equal(crypto.createHash("sha256").update(fs.readFileSync(path.join(runtimeRoot, "copilot-sdk.cjs"))).digest("hex"),
+    runtimeBuild.sha256);
+  runNpm(["audit", "--omit=dev", "--audit-level=low"], consumerRoot);
+  const platform = process.platform === "linux" && !process.report.getReport().header.glibcVersionRuntime
+    ? `linuxmusl-${process.arch}` : `${process.platform}-${process.arch}`;
+  const nativePackage = `@github/copilot-sdk-${platform}`;
+  const nativeManifest = installedRequire.resolve(`${nativePackage}/package.json`);
+  const nativeLibrary = path.join(path.dirname(nativeManifest), "prebuilds", platform, "runtime.node");
+  assert.ok(fs.statSync(nativeLibrary).size > 0);
+  assert.equal(require(nativeManifest).version, runtimeBuild.sdk.version);
+  execFileSync(process.execPath, ["-e", `
+    const assert = require("node:assert/strict");
+    const { createRequire } = require("node:module");
+    const installedRequire = createRequire(process.argv[1]);
+    const runtime = require(process.argv[2]);
+    assert.deepEqual(Object.keys(runtime).sort(), JSON.parse(process.argv[4]));
+    const library = installedRequire("koffi").load(process.argv[3]);
+    assert.equal(typeof library.func("copilot_runtime_host_shutdown", "bool", ["uint32"]), "function");
+    library.unload();
+  `, path.join(consumerRoot, "node_modules", metadata.name, "package.json"),
+  path.join(runtimeRoot, "copilot-sdk.cjs"), nativeLibrary, JSON.stringify(Object.keys(upstream).sort())], {
+    cwd: consumerRoot, encoding: "utf8", timeout: 30_000,
+  });
   const acceptance = spawnSync(process.execPath, [
     installedCli, "evaluate", "--suite", "specialist-core", "--project", consumerRoot, "--json",
   ], { cwd: consumerRoot, encoding: "utf8", timeout: 30_000 });

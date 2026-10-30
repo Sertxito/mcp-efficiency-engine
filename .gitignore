@@ -12,6 +12,7 @@ __pycache__/
 coverage/
 build/
 dist/
+packages/execution-engine/runtime/
 knowledge/normalized/
 knowledge/extracted/
 knowledge/traceability/

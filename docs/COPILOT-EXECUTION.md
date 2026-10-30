@@ -69,7 +69,11 @@ mcpee run --task "Add validation to the invoice endpoint" --project C:\path\to\p
 ```
 
 `mcpee run` executes a routed request through the official
-`@github/copilot-sdk` runtime for the Copilot CLI agent. Direct terminal runs
+`@github/copilot-sdk` runtime for the Copilot CLI agent. The published package
+bundles the pinned upstream JavaScript with its required JSON-RPC code, includes
+third-party notices and build provenance, and avoids installing the SDK's
+vulnerable Zod dependency. Native runtime assets remain npm-selected for the
+consumer's operating system and architecture. Direct terminal runs
 use an interactive terminal prompt for approvals. Options:
 
 | Option | Effect |

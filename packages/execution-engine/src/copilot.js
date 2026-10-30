@@ -503,7 +503,7 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
   const startedAt = Date.now();
   const traceId = options.traceId || process.env.MCPEE_TRACE_ID || crypto.randomUUID();
   return withTelemetryContext({ trace_id: traceId }, async () => {
-    const { CopilotClient } = require("@github/copilot-sdk");
+    const { CopilotClient } = require("../runtime/copilot-sdk.cjs");
     const client = options.clientFactory
       ? options.clientFactory({ workingDirectory: root })
       : new CopilotClient({ workingDirectory: root });
