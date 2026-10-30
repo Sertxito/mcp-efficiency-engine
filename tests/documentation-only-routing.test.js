@@ -12,6 +12,7 @@ const { routeTask } = require("../packages/routing-engine/src/route");
 const { updateCodeGraph } = require("../packages/knowledge-engine/src/codegraph");
 const { runCopilotTask } = require("../packages/execution-engine/src/copilot");
 const { readEvents } = require("../packages/core/src/telemetry");
+const { renderCatalog } = require("../packages/copilot-renderer/src/render");
 
 const cli = path.join(__dirname, "../packages/cli/bin/mcpee.js");
 function fixture(t) {
@@ -93,4 +94,19 @@ test("documentation provenance still blocks routing when actual requirements dri
   fs.appendFileSync(path.join(root, "knowledge/sources/business/catalog.md"), "\nNew search requirement.\n");
   assert.throws(() => routeTask(root, "Review architecture knowledge/sources/business/catalog.md"),
     /Source changed after sync/);
+});
+
+test("upgrades deliver the no-Git contract while preserving existing project instructions", (t) => {
+  const root = fixture(t);
+  const instructions = path.join(root, ".github/copilot-instructions.md");
+  const existing = "# Owner instructions\n\nPreserve the business terminology.\n";
+  fs.writeFileSync(instructions, existing);
+  const contract = path.join(root, ".github/instructions/mcpee-catalog.instructions.md");
+  fs.writeFileSync(contract, fs.readFileSync(contract, "utf8").replace(
+    /Git is optional[\s\S]*?Keep source provenance, phase approvals and validation intact\.\n/, ""));
+  initializeProject(root, { refreshRuntime: true });
+  renderCatalog(root);
+  assert.equal(fs.readFileSync(instructions, "utf8"), existing);
+  assert.match(fs.readFileSync(contract, "utf8"), /Git is optional/);
+  assert.match(fs.readFileSync(contract, "utf8"), /do not require CodeGraph health/);
 });
