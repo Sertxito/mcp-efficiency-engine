@@ -14,6 +14,14 @@ After changing the installed package, `mcpee update` refreshes project
 integration; it does not download a new npm version. Restart the project's MCP
 server after updating its integration.
 
+A server that responds when launched directly but immediately returns to
+"disabled" in VS Code can have a separate harness enablement setting. Open
+**Chat: Open Customizations**, select the active Copilot harness and inspect
+**MCP Servers**. Check global disablement and enable the server for the intended
+project; starting a server from its configuration file does not clear a global
+disablement. Do not edit VS Code's live internal storage or remove other
+projects' preferences to repair this.
+
 Run `doctor` with the same MCPEE version that generated the project. An older
 global install can report removed outputs (for example `.github/prompts` before
 0.1.27) as missing; check `npm ls -g mcp-efficiency-engine`, upgrade, then run
@@ -29,6 +37,13 @@ globally. Successful `mcpee help` output does not verify native SDK execution
 or Copilot authentication.
 
 ## Approval waits fail before a decision is returned
+
+Loading a skill (`skill`) and discovering tools (`tool_search_tool`) are local
+read-only operations. The MCPEE hook allows them without its own approval prompt;
+this does not authorize any tool discovered or any actions suggested by a skill.
+If a Greenfield request stalls at "Search tools" with an MCPEE read-only allowlist
+prompt, update the package and run `mcpee update` in the project to refresh the
+generated approval policy. Cancel the waiting turn and start a new one.
 
 The CLI's authenticated loopback approval request allows up to ten minutes for
 the host decision. It uses direct HTTP so a separate fetch headers timeout does
@@ -80,6 +95,24 @@ mcpee knowledge embeddings setup --profile bge-m3 --project C:\path\to\project
 Authorize with `download` when prompted. Setup repairs the pinned environment,
 reuses an existing owned model and indexes sources. Do not edit installed
 library code or delete model weights to repair dependency versions.
+
+## Windows Python runtime installation is locked
+
+MarkItDown and Graphify share a project-local Python runtime. If a Windows file
+scanner briefly prevents uv from renaming its staged runtime (`os error 5`, `32`
+or `33`), MCPEE retries that runtime operation up to three times. Other failures
+are not retried. A persistent shared-runtime failure is reported for both tools
+without downloading the same runtime again for the second tool.
+
+An exhausted retry remains a failed installation, not permission to use a global
+runtime as a successful local install. Close processes holding files under
+`.mcpee/tools/python/runtime` before retrying `mcpee init`. Do not delete the
+runtime or disable security software to resolve a lock.
+
+Packaged CLI validation allows 30 seconds for cold starts of MarkItDown,
+Graphify, CodeGraph and Repomix. A three-second validation timeout after a
+successful package install does not prove the tool is broken. Validation still
+reports timeouts and nonzero exit codes as failures.
 
 ## Indexing is slow or interrupted
 

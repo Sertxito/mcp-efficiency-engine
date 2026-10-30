@@ -5,12 +5,19 @@
 - Repository: <https://github.com/Sertxito/mcp-efficiency-engine>
 - npm package: `mcp-efficiency-engine`
 - Commands: `mcpee` and `mcp-efficiency-engine`
-- Current candidate: **0.1.35**, following published **0.1.34**
+- Current candidate: **0.1.36**, following published **0.1.35**
 - Runtime: Node.js **>=24**
 
 Keep the normal pre-1.0 version sequence until stable acceptance is complete.
 Do not label the target architecture fully implemented or promote to 1.0.0
 based only on passing automated tests.
+
+The 0.1.36 patch removes redundant approval prompts for skill loading and tool
+discovery, retries transient Windows Python runtime rename locks, shares
+runtime failures between Python tool installers, and gives packaged CLIs
+realistic cold-start validation deadlines. Existing projects must run
+`mcpee update` after upgrading to refresh their generated approval policy.
+VS Code's separate server enablement remains a user-controlled preference.
 
 ## Before merging
 
@@ -63,8 +70,8 @@ After deployment, verify:
 
 ```sh
 npm view mcp-efficiency-engine version
-npm view mcp-efficiency-engine@0.1.35 bin engines dist.integrity --json
-npx --package=mcp-efficiency-engine@0.1.35 mcpee help
+npm view mcp-efficiency-engine@0.1.36 bin engines dist.integrity --json
+npx --package=mcp-efficiency-engine@0.1.36 mcpee help
 ```
 
 Also check the release workflow and GitHub Pages deployment. A failed

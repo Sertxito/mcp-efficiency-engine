@@ -4,6 +4,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const READ_ONLY_TOOL_CALLS = new Set([
+  "skill",
+  "tool_search_tool",
   "view",
   "glob",
   "grep",

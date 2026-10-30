@@ -34,13 +34,13 @@ why MCPEE manages its own isolated Python runtime instead of requiring one.
 Global installation (recommended):
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.35
+npm install --global mcp-efficiency-engine@0.1.36
 ```
 
 Run a pinned version without installing globally:
 
 ```sh
-npx --package=mcp-efficiency-engine@0.1.35 mcpee init --project C:\path\to\project
+npx --package=mcp-efficiency-engine@0.1.36 mcpee init --project C:\path\to\project
 ```
 
 The npm package is `mcp-efficiency-engine`. It installs two equivalent
@@ -50,7 +50,7 @@ If npm reports that the Copilot SDK's native `koffi` dependency has a blocked
 install script, allow only that dependency:
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.35 --allow-scripts=koffi
+npm install --global mcp-efficiency-engine@0.1.36 --allow-scripts=koffi
 ```
 
 This does not enable install scripts globally. A successful `mcpee help`
