@@ -40,7 +40,12 @@ function pythonInstaller(t, runtimeResult = () => ({ status: 0, stdout: "", stde
         fs.writeFileSync(environmentPython, "fixture");
         return { status: 0, stdout: "", stderr: "" };
       }
-      if (command === uv && args[0] === "pip") return { status: 0, stdout: "", stderr: "" };
+      if (command === uv && args[0] === "pip") {
+        const name = args.at(-1).startsWith("graphifyy") ? "graphify" : "markitdown";
+        const executable = path.join(path.dirname(args[3]), `${name}${process.platform === "win32" ? ".exe" : ""}`);
+        fs.writeFileSync(executable, "fixture console entry point");
+        return { status: 0, stdout: "", stderr: "" };
+      }
       if (args[0] === "-c") {
         return { status: 0, stdout: args[2] === "graphifyy" ? "0.9.80\n" : "0.1.8\n", stderr: "" };
       }
@@ -153,5 +158,6 @@ test("packaged CLI validation allows cold imports without changing runtime probe
     });
     assert.equal(invocations, 1);
     assert.equal(result.validation, "passed");
+    if (id !== "node") assert.ok(result.executable.startsWith(`${fixture.root}${path.sep}`));
   }
 });
