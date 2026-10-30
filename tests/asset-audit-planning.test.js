@@ -265,7 +265,7 @@ test("planning scaffolds linked draft artifacts and refuses overwrite", (t) => {
   const specification = fs.readFileSync(path.join(root, created.files[0]), "utf8");
   const deliveryPlan = fs.readFileSync(path.join(root, created.files[1]), "utf8");
   assert.match(specification, /acceptance criteria/i);
-  assert.match(specification, /\[the delivery plan\]\(\.\/delivery-plan\.md\)/);
+  assert.match(specification, /\[the delivery plan\]\(\.\/plan\.md\)/);
   assert.match(deliveryPlan, /\[spec\.md\]\(\.\/spec\.md\)/);
   assert.match(deliveryPlan, /Depends on/);
   assert.deepEqual(listPlans(root), [{

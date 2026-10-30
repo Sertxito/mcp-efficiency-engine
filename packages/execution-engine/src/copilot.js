@@ -416,6 +416,7 @@ function createPrompt(task, plan, contextPackage = null, conversationContext = [
     knowledge: plan.knowledge,
     knowledge_graph: plan.knowledge_graph,
     approved_specs: plan.approved_specs || [],
+    specification_workspace: plan.specification_workspace || null,
     impact_preflight: plan.impact_preflight,
     local_tools: plan.local_tools,
   };
@@ -432,6 +433,7 @@ function createPrompt(task, plan, contextPackage = null, conversationContext = [
     `Execute the selected workflow "${plan.workflow.id}" through these ordered stages: ${(plan.workflow.execution_stages || ["understand", "analyze", "plan", "execute", "validate", "document", "observe", "learn"]).join(" -> ")}. Apply only relevant stages, but explicitly report any stage that could not be completed and the evidence for completed stages.`,
     "Use selected technical guidance only when relevant, and defer to the repository's actual versions, configuration, and conventions. Treat scorecards as review rubrics and evaluation cases as behavioral specifications; they are not proof that an automated response grader ran.",
     "Approved specifications listed in the routing plan are the normative source of intended project behavior. Read the specifications relevant to the task before changing code, preserve their requirements, and never rewrite them to match observed implementation. If the requested change conflicts with an approved specification or source drift is suspected, disclose the conflict and request owner review rather than silently changing the contract.",
+    "When a canonical specification workspace is active, use specs/<feature>/spec.md and UC-###.md for behavior, decisions.md for owner decisions, plan.md for technical design and tasks.md for dependency-ordered checkable work items linked to UC IDs and the plan. Do not create a second specification under docs/ or .mcpee/planning. Stop at the requested phase, preserve review records, and never approve your own output. Installed specialists are available guidance, not evidence that separate agents executed. Ready-for-implementation does not mean implemented or verified.",
     "In audits, consolidate duplicate root causes and distinguish a supported defect from a conditional risk or missing evidence. Do not infer absent authorization, caller error handling or retry limits from a fragment alone.",
     "An explicit verified-behavior claim contradicted by supplied evidence can be a finding about the claim, not proof that the underlying capability is absent. Clearly stated unverified scope is not such a claim.",
     "Use the applicable bundled technical guide and verified local code as the working baseline. Consult official documentation for uncovered, uncertain, version-sensitive or changed behavior; do not browse routinely to rediscover covered practices or treat a dated local guide as proof of current API support. Keep any lookup narrow, cite the source and disclose unavailable verification.",
@@ -465,6 +467,23 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
   }
 
   const root = path.resolve(projectRoot);
+  const workspace = plan.specification_workspace;
+  const requiredStage = { plan: "specification", tasks: "plan", implementation: "tasks" }[workspace?.requested_stage];
+  if (requiredStage && workspace.requires_feature_selection) {
+    throw new Error("Name the active specification feature before planning, creating tasks or implementing; multiple features exist.");
+  }
+  if (requiredStage) {
+    const { featureStatus } = require("../../spec-engine/src/lifecycle");
+    for (const feature of workspace.features || []) {
+      if (feature.status === "unvalidated-manual-draft") {
+        throw new Error(`Specification phase blocked: ${feature.id} is an unvalidated manual draft; author and review source-bound use cases before ${workspace.requested_stage}. No paid SDK session was started.`);
+      }
+      const current = featureStatus(root, feature.id);
+      if (current.drift.length || !current.reviews[requiredStage].approved) {
+        throw new Error(`Specification phase blocked: ${feature.id} needs current owner approval of ${requiredStage} before ${workspace.requested_stage}. No paid SDK session was started.`);
+      }
+    }
+  }
   const contextPackage = options.contextPackage || null;
   if (plan.approved_specs?.length) {
     const fresh = prepareApprovedSpecContext(root, plan);
@@ -733,6 +752,10 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
       if (specification) {
         changedPaths.add(specification.path);
         changedPaths.add(specification.manifestPath);
+        changedPaths.add(specification.workspacePath);
+        changedPaths.add(`${path.posix.dirname(specification.path)}/decisions.json`);
+        changedPaths.add(`${path.posix.dirname(specification.path)}/decisions.md`);
+        changedPaths.add(`${path.posix.dirname(specification.path)}/lifecycle.json`);
         for (const casePath of specification.casePaths) changedPaths.add(casePath);
         for (const review of specification.reviews) {
           if (review.status === "draft-filled-for-review") changedPaths.add(review.path);
@@ -768,6 +791,7 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
           deferredSections: specification.deferredSections, status: "draft-structurally-validated",
           reviews: specification.reviews,
           casePaths: specification.casePaths, manifestPath: specification.manifestPath,
+          workspacePath: specification.workspacePath,
           unresolvedDecisions: specification.unresolvedDecisions,
         } } : {}),
       };

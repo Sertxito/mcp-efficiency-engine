@@ -16,18 +16,23 @@ policies and local tools, and how to manage them.
 
 ## How capabilities are selected
 
-During `init`, MCPEE detects stack signals from project/configuration files and
-dependency manifests and, separately, code-file signals. VCS, dependency,
-generated and build directories are skipped. Evidence and selected assets are
-recorded in `.mcpee/generated/project-capabilities.{json,md}`.
+New projects install the **full catalog locally by default**, in both interactive
+and non-interactive `init`: agents, skills, workflows, patterns, playbooks,
+technical guidance, scorecards, evaluation cases, prompt examples and templates.
+This is availability, not execution or permission to act. Task routing selects
+the relevant specialist, workflow and supporting assets; it does not put every
+installed skill's body in every prompt. Workflow skills remain explicit-invocation
+only, and technical instructions retain their file-scoped globs.
 
-- **Existing code (brownfield)**: supported code and stack evidence selects
-  matching agents, skills, workflows, patterns, playbooks, technical guidance,
-  scorecards, evaluation cases, prompt examples and templates automatically.
-- **No code (greenfield)**: the first interactive `init` asks which agents to
-  install. Their skills, workflows and patterns come along as dependencies.
-  Non-interactive `init` without `--agents` uses the general-purpose default
-  and does not guess a stack.
+`--agents <id,...|all|none>` explicitly limits the agent selection and includes
+matching skills, workflows and patterns. `--agents all` means all agents and
+their dependencies, not every independent catalog asset.
+
+MCPEE still detects stack signals from project/configuration files, dependency
+manifests and code files, skipping VCS, dependency, generated and build
+directories. Detection informs task context and brownfield discovery, not the
+default local catalog size. Evidence and installed assets are recorded in
+`.mcpee/generated/project-capabilities.{json,md}`.
 
 The `orchestrator` agent and its skills and patterns are core: they are always
 installed, even with `--agents none`, because every workflow is coordinated by
@@ -36,7 +41,8 @@ and does not remove them. Rendered agents and skills use `name: mcpee-<id>`,
 matching their file or folder name.
 
 Re-run `mcpee init` after the stack changes (for example, once a greenfield
-project has its first code) to refresh detected assets. `mcpee explain` shows
+project has its first code) to refresh detection. Existing selections and
+removals are preserved; older projects are not silently expanded. `mcpee explain` shows
 the detected stack and selection. See
 [Getting started](GETTING-STARTED.md#how-mcpee-chooses-brownfield-or-greenfield).
 
@@ -46,6 +52,7 @@ the detected stack and selection. See
 |---|---|
 | `mcpee capabilities list [--type <type>] [--json]` | Shows detected/installed, available and non-removable core entries. |
 | `mcpee capabilities install <id> [--type <type>]` | Installs an asset and restores its agent/workflow/playbook dependencies. |
+| `mcpee capabilities install all [--type <type>]` | After maintenance approval, installs all catalog assets, or all assets of one type, plus dependencies. Restores earlier removals in that scope. |
 | `mcpee capabilities remove <id> [--type <type>]` | Removes an asset. It refuses to break another installed capability and keeps shared dependencies. |
 | `mcpee capabilities update [<id>] [--type <type>]` | Refreshes one or all installed assets from the package's current catalog. |
 
@@ -53,6 +60,17 @@ Types: agents, skills, workflows, patterns, templates, playbooks, technical
 guides, scorecards, evaluation cases and prompt examples. The selection is
 stored in `.mcpee/state/catalog-capabilities.json`. User-owned files at
 generated paths are always preserved.
+
+For an existing project, run `mcpee capabilities install all --project <path>`
+to opt into the full local catalog. With `--type skills`, for example, only
+skills are added; with `--type agents`, associated workflows, skills and patterns
+are also restored. Unrelated selections/removals are retained. Policies and tool
+capabilities are core, not separately installable types. Approval uses the
+existing maintenance broker or an interactive `install` confirmation;
+unapproved non-interactive calls fail closed. Output reports the selected entry
+count, newly installed entries including dependencies, and generated-file
+created/updated/removed/preserved counts. Repeating the operation is safe.
+It downloads nothing, runs no agent/workflow/model, and installs no local tools.
 
 ## Roles and technical guidance
 

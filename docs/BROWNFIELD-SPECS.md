@@ -1,4 +1,45 @@
-# Brownfield specification discovery
+# Specification workspace and evidence discovery
+
+## Start here: one product workspace
+
+Open `specs/README.md` in an initialized project. It links current features,
+their review status and next action, source documents, automatic project maps
+and historical material. You should not need to navigate internal JSON or
+snapshot directories to find your functional specifications.
+If that entry already has owner edits, it is preserved and navigation is
+written to `specs/MCPEE.md`; the CLI prints the actual entry-point path.
+
+New functional deliverables live in `specs/<feature>/`: `spec.md`, independent
+`UC-###.md` files, `decisions.md` (readable) and `decisions.json` (owner-decision
+records), `manifest.json` (source/case provenance) and `lifecycle.json` (reviews).
+Technical `plan.md` and checkable `tasks.md` are authored in the same directory,
+not parallel document trees. A generated template is explicitly unreviewed.
+
+`mcpee specs status [--slug <feature>]` reports the next phase and exact review
+digests. Resolve questions with `specs decide`, then explicitly approve
+`specification`, `plan` and `tasks` in that order using `specs approve`.
+Planning/execution requests routed to a canonical feature recheck the required
+approval before creating an SDK session. With multiple canonical features,
+name the feature. Ordinary review/status commands do not call a model.
+
+Reviews bind the actual case documents and decisions, not only an index link.
+Editing upstream artifacts invalidates downstream approvals. Source drift
+blocks new approval/execution but does not erase the normative approved contract.
+Ready-for-implementation never means implemented, tested or accepted by users;
+run actual project checks and review their evidence separately.
+
+Run `mcpee specs migrate` once for older projects: supported atomic bundles are
+copied with rebased links and no transferred approval. Manual/monolithic drafts
+are copied as explicitly unvalidated drafts. Originals, old approved contracts
+and internal discovery history remain untouched and linked for provenance.
+An edited atomic case is not silently reconciled against an old manifest.
+
+This adopts staged specification-driven work, not Spec Kit installation,
+command compatibility or automatic execution of all its stages. The authoring
+run still stops at the requested phase; semantic review and approval remain
+human responsibilities.
+
+## Static evidence discovery
 
 MCPEE creates reviewable proposals by candidate domain from an existing
 project's indexed sources. Discovery is deterministic and local: it records
@@ -21,8 +62,8 @@ draft. MCPEE validates non-empty actors, use cases, main flows, alternatives,
 postconditions, rules, Given/When/Then criteria and exact source-line quotes.
 Each supplied top-level source section must be mapped to use cases or explicitly
 deferred/excluded with a reason. The checked draft is rendered as readable
-Markdown as an index under `docs/specifications/<descriptive-slug>.md`, with
-one self-contained `docs/specifications/<descriptive-slug>/UC-001.md` file per
+Markdown as an index under `specs/<descriptive-slug>/spec.md`, with
+one self-contained `specs/<descriptive-slug>/UC-001.md` file per
 case and a machine-readable `manifest.json`. The index links to all cases.
 Each case has one explicit actor goal, local decisions still open, and
 prerequisite case references; missing, self-referencing or cyclic dependencies
@@ -150,7 +191,7 @@ MCPEE as its only dependency does not change that. Start with written requiremen
    observable outcomes, non-goals and unresolved decisions.
 3. Run `mcpee sync --project <path>`, then request a functional draft in Copilot
    using the requirements document's exact path. Review the readable document
-   in `docs/specifications/`, not just the static inventory. Review the
+   in `specs/<feature>/`, not just the static inventory. Review the
    automatically filled matching proposals and their returned digests.
 4. Ratify the exact reviewed digest using the normal explicit reviewer command.
    Routing includes the approved contract in subsequent execution context.
@@ -339,7 +380,11 @@ format 8; format 9 removes generic cases and identifies inventories explicitly.
 Historical format-4/5/6/7/8
 catalogs remain verifiable without being rewritten or upgraded in place.
 
-## Review and approval lifecycle
+## Legacy static-proposal ratification
+
+This compatibility path preserves existing brownfield evidence approvals.
+For new functional bundles, use `specs status` and `specs approve` in the
+canonical workspace instead of duplicating owner review here.
 
 1. Open the index printed by discovery and choose a domain/part.
    Run `mcpee specs list` to find its current SHA-256.
@@ -378,6 +423,10 @@ The specification itself grants no permission to make a change.
 
 ```text
 mcpee specs discover
+mcpee specs status [--slug <feature>] [--json]
+mcpee specs migrate [--json]
+mcpee specs decide --slug <feature> --id Q-001 --answer <decision> --reviewer <owner>
+mcpee specs approve --slug <feature> --stage specification|plan|tasks --reviewer <owner> --confirm-sha256 <digest>
 mcpee specs list [--all] [--json]
 mcpee specs drift [--json]
 mcpee specs ratify --slug <id> --reviewer <name> --confirm-sha256 <digest>

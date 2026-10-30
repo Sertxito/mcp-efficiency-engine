@@ -314,6 +314,59 @@ function setCapabilityOverride(state, type, id, installed) {
   state.overrides[type] = overrides;
 }
 
+function installCapabilitySelection(state, catalog, type, id, visited = new Set(), includeAgentWorkflows = true) {
+  const key = `${type}/${id}/${includeAgentWorkflows}`;
+  if (visited.has(key)) return;
+  visited.add(key);
+  setCapabilityOverride(state, type, id, true);
+  const entry = catalog[CAPABILITY_COLLECTIONS[type]].find((item) => item.id === id);
+  if (type === "agent" || type === "workflow") {
+    for (const skill of entry.skills) installCapabilitySelection(state, catalog, "skill", skill, visited);
+    for (const pattern of entry.patterns || []) installCapabilitySelection(state, catalog, "pattern", pattern, visited);
+  }
+  if (type === "agent" && includeAgentWorkflows) {
+    for (const workflow of catalog.workflows.filter((item) => item.agent === id)) {
+      installCapabilitySelection(state, catalog, "workflow", workflow.id, visited);
+    }
+  } else if (type === "workflow") {
+    installCapabilitySelection(state, catalog, "agent", entry.agent, visited, false);
+  } else if (type === "playbook") {
+    for (const workflow of entry.workflows) installCapabilitySelection(state, catalog, "workflow", workflow, visited);
+  }
+}
+
+function installAllCapabilities(projectRoot, type = null) {
+  if (type && !Object.hasOwn(CAPABILITY_COLLECTIONS, type)) {
+    throw new Error(`Unknown installable capability type '${type}'.`);
+  }
+  const { catalog } = readCatalog();
+  const registry = capabilityRegistry(projectRoot, catalog);
+  const state = registry.state;
+  const visited = new Set();
+  let selected = 0;
+  for (const [entryType, collection] of Object.entries(CAPABILITY_COLLECTIONS)) {
+    if (type && type !== entryType) continue;
+    for (const entry of catalog[collection]) {
+      selected += 1;
+      installCapabilitySelection(state, catalog, entryType, entry.id, visited);
+    }
+  }
+  state.updated_at = new Date().toISOString();
+  const result = renderCatalog(projectRoot, { capabilityState: state });
+  const installed = capabilityRegistry(projectRoot).items;
+  const newlyInstalled = registry.items.filter((item) => item.status === "available" &&
+    installed.some((next) => next.type === item.type && next.id === item.id && next.status !== "available")).length;
+  return {
+    action: "install",
+    type: type || "all",
+    id: "all",
+    selected,
+    newly_installed: newlyInstalled,
+    changes: result.counts,
+    assets: result.capabilities.assets,
+  };
+}
+
 function manageCapability(projectRoot, action, type, id) {
   const root = path.resolve(projectRoot);
   const { catalog } = readCatalog();
@@ -336,22 +389,7 @@ function manageCapability(projectRoot, action, type, id) {
   const statePath = CAPABILITY_STATE_PATH;
   state.overrides ||= {};
   if (action === "install") {
-    setCapabilityOverride(state, type, id, true);
-    if (type === "agent") {
-      for (const workflow of catalog.workflows.filter((entry) => entry.agent === id)) {
-        setCapabilityOverride(state, "workflow", workflow.id, true);
-      }
-    } else if (type === "workflow") {
-      const workflow = catalog.workflows.find((entry) => entry.id === id);
-      setCapabilityOverride(state, "agent", workflow.agent, true);
-    } else if (type === "playbook") {
-      const playbook = catalog.playbooks.find((entry) => entry.id === id);
-      for (const workflowId of playbook.workflows) {
-        setCapabilityOverride(state, "workflow", workflowId, true);
-        const workflow = catalog.workflows.find((entry) => entry.id === workflowId);
-        setCapabilityOverride(state, "agent", workflow.agent, true);
-      }
-    }
+    installCapabilitySelection(state, catalog, type, id);
   }
   if (action === "remove") {
     const dependents = registry.items.filter((candidate) =>
@@ -1075,7 +1113,10 @@ MCPEE returns. If \`mcpee_run\` is unavailable, explain that the MCPEE execution
 path is unavailable instead of silently bypassing its routing and approvals.
 
 Use project-local evidence and memory before reasoning. Provide only the minimum
-relevant context. Prefer local tools, inspect impact before changes, validate
+relevant context. Installed catalog assets are available on demand, not a request
+to execute every specialist. Load only task-relevant specialist, workflow and
+supporting skill bodies; never expand the entire installed catalog into a prompt.
+Prefer local tools, inspect impact before changes, validate
 results, document validated changes, and state failures or uncertainty
 explicitly. Telemetry remains local; never claim an event, tool result, or check
 exists unless it was actually observed.
@@ -1315,7 +1356,12 @@ function renderCatalog(projectRoot, options = {}) {
   const state = options.capabilityState || readCapabilityState(root) || {
     schema_version: 1,
     generated_by: "mcpee",
-    overrides: {},
+    // Older projects without capability state retain their detected selection.
+    overrides: fs.existsSync(safeProjectPath(root, MANIFEST_PATH)) ||
+      fs.existsSync(safeProjectPath(root, ".mcpee/catalog-lock.json")) ? {} :
+      Object.fromEntries(Object.entries(CAPABILITY_COLLECTIONS).map(([type, collection]) => [
+        type, { added: catalog[collection].map((item) => item.id).sort(), removed: [] },
+      ])),
   };
   const defaults = initialCapabilityAssets(catalog, capabilities.assets);
   const assets = capabilityDefaults(catalog, defaults, state);
@@ -1382,6 +1428,7 @@ module.exports = {
   detectProjectCapabilities,
   capabilityRegistry,
   manageCapability,
+  installAllCapabilities,
   CAPABILITY_COLLECTIONS,
   createInitialCapabilityState,
   readInstalledCatalog,

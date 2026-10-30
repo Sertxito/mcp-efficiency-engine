@@ -26,6 +26,10 @@ guides.
 | `mcpee plan init --slug <id> --title <title>` / `plan list [--json]` | Create or list delivery plans. |
 | `mcpee specs discover \| list [--all] \| drift [--json]` | Review specification proposals and drift. See [Specification discovery](BROWNFIELD-SPECS.md). |
 | `mcpee specs ratify --slug <id> --reviewer <name> --confirm-sha256 <digest>` | Approve a proposal into `specs/approved/`. |
+| `mcpee specs status [--slug <feature>] [--json]` | Open `specs/README.md`; inspect the active phase, pending decisions, source drift and review hashes. |
+| `mcpee specs decide --slug <feature> --id Q-001 --answer <decision> --reviewer <owner>` | Record an explicit owner answer without rewriting the question. |
+| `mcpee specs approve --slug <feature> --stage specification\|plan\|tasks --reviewer <owner> --confirm-sha256 <digest>` | Approve the exact reviewed artifacts in order; never marks implementation verified. |
+| `mcpee specs migrate [--json]` | Safely copy old functional drafts into `specs/<feature>/`; preserve originals and do not transfer approval. |
 
 ## Knowledge
 

@@ -34,13 +34,13 @@ why MCPEE manages its own isolated Python runtime instead of requiring one.
 Global installation (recommended):
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.38
+npm install --global mcp-efficiency-engine@0.1.39
 ```
 
 Run a pinned version without installing globally:
 
 ```sh
-npx --package=mcp-efficiency-engine@0.1.38 mcpee init --project C:\path\to\project
+npx --package=mcp-efficiency-engine@0.1.39 mcpee init --project C:\path\to\project
 ```
 
 The npm package is `mcp-efficiency-engine`. It installs two equivalent
@@ -50,7 +50,7 @@ If npm reports that the Copilot SDK's native `koffi` dependency has a blocked
 install script, allow only that dependency:
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.38 --allow-scripts=koffi
+npm install --global mcp-efficiency-engine@0.1.39 --allow-scripts=koffi
 ```
 
 This does not enable install scripts globally. A successful `mcpee help`
@@ -76,12 +76,15 @@ never overwrites user-owned files. In one run it:
    hooks are preserved.
 2. Detects the project's stack and decides between **brownfield** and
    **greenfield** (see the next section).
-3. Renders the selected catalog assets: agents, skills, workflows, patterns,
+3. Installs the full catalog locally by default for new projects: agents, skills, workflows, patterns,
    playbooks, technical guidance, scorecards, evaluation cases, prompt examples
    and templates. The selection and its evidence are recorded in
    `.mcpee/generated/project-capabilities.{json,md}`. Matching technical
    guidance is rendered as file-scoped Copilot instructions under
-   `.github/instructions/`.
+   `.github/instructions/`. Installation does not execute specialists or inject
+   every skill into each prompt; routing selects relevant assets per task.
+   Explicit `--agents` selections and existing project selections/removals
+   are preserved.
 4. Checks tool requirements and asks **once** to authorize the displayed
    tool bundle in `.mcpee/tools/`: MarkItDown (PDF, Word, PowerPoint
    and Excel extras), CodeGraph, Graphify and Repomix. Pinned versions are
@@ -133,13 +136,13 @@ generated and build directories) and decides automatically:
 
 | Project contains | Mode | What `init` does |
 |---|---|---|
-| Source-code files (for example `.cs`, `.ts`, `.js`, `.py`, `.java`, `.go`, `.vue`) or a `package.json` | **Brownfield** | Selects agents and technical guides for the detected stack, extracts specification proposals from the existing code and tests, and generates validation workflows from the project's checks. |
-| No code files and no `package.json` (for example an empty folder or only documents) | **Greenfield** | Offers a recommended general-purpose team, Backend + Architecture, Frontend + UX/UI, Full stack, or Customize. Use arrows and Enter for a preset; Customize uses Space to toggle individual capabilities. Matching skills and workflows are included automatically. Non-interactive setup retains the general-purpose default. Specifications start from the requirements you write. |
+| Source-code files (for example `.cs`, `.ts`, `.js`, `.py`, `.java`, `.go`, `.vue`) or a `package.json` | **Brownfield** | Installs the full local catalog for new projects, detects the stack for task context, extracts specification proposals from the existing code and tests, and generates validation workflows from the project's checks. |
+| No code files and no `package.json` (for example an empty folder or only documents) | **Greenfield** | Installs the full local catalog for new projects, without a capability preset menu or an invented stack. Use `--agents` to limit agents explicitly. Specifications start from the requirements you write. |
 
 Supported stack signals include C#/.NET, Python, Node.js, TypeScript, Angular,
 React, Vue, SQL, Cosmos DB, Azure, Bicep, AWS, Terraform and YAML pipelines.
-Code in another language still counts as code (brownfield) and receives the
-general-purpose assets.
+Code in another language still counts as code (brownfield); it does not limit
+which catalog assets are available locally.
 
 The decision is not permanent. When a greenfield project gains code, run
 `mcpee init` again to detect the new stack, or add assets with
@@ -180,9 +183,9 @@ selected capabilities at any time.
 An empty project has no behavior to reverse-engineer, so MCPEE never invents
 business intent. Requirements come first:
 
-1. **Initialize.** Run `mcpee init --project <path>`. In an interactive
-   terminal, choose a capability preset or customize with checkboxes, then
-   authorize the displayed tool bundle once.
+1. **Initialize.** Run `mcpee init --project <path>`. The full catalog is
+   available locally; in an interactive terminal, authorize the displayed tool
+   bundle once. Use `--agents <id,...|all|none>` for a narrower agent selection.
 2. **Provide requirements** as project documents, for example Markdown files
    under `knowledge/sources/business/`, or Office/PDF sources supported by the
    configured local converter. No project-specific names or templates are
@@ -193,7 +196,8 @@ business intent. Requirements come first:
    flows, alternatives, rules, acceptance criteria and open decisions.
    MCPEE validates structure, source quotes and declared section coverage,
    then saves a human-readable product index and one independent specification
-   per use case under `docs/specifications/`. Each case includes one goal,
+   per use case under `specs/<feature>/`. Open `specs/README.md` as the single
+   entry point. Each case includes one goal,
    actor, trigger, preconditions, main flow, alternatives, postconditions,
    rules, Given/When/Then criteria, source references, prerequisite cases and
    its unresolved decisions.
@@ -203,18 +207,21 @@ business intent. Requirements come first:
    Retrieval does not silently stop at five files; unprocessed documents or
    limits (100 documents / 2 MiB source text) block before paid execution.
    A documentation-only run does not require querying an application code graph.
-4. **Review and ratify.** Review the draft for business correctness and
-   completeness, including deferred source sections. Matching source-bound
-   discovery proposals have their empty behavior/acceptance prompts filled
-   automatically; existing reviewed text is preserved. Review the returned
-   proposal paths and digests, then use `mcpee specs ratify` (as in brownfield
-   step 4). Cross-domain cases without a matching source-bound proposal need
-   explicit review rather than silently widening a proposal's evidence.
-   Draft creation never approves requirements. Approved content is then
-   routed into every request.
-5. **Plan the delivery** (optional): `mcpee plan init --slug <id> --title <title>`
-   creates a specification and delivery-plan draft under
-   `.mcpee/planning/<id>/`.
+4. **Clarify and approve.** `mcpee specs status --slug <feature>` shows pending
+   decisions, drift and the review digest. Record owner decisions with
+   `mcpee specs decide --slug <feature> --id Q-001 --answer "<decision>" --reviewer "<owner>"`.
+   Review the specification and every case, then use
+   `mcpee specs approve --slug <feature> --stage specification --reviewer "<owner>" --confirm-sha256 <digest>`.
+   Open decisions and deferred requirements block approval; explicit
+   out-of-scope sections remain visible. Draft creation never approves requirements.
+5. **Plan and decompose.** Author `specs/<feature>/plan.md` against the approved
+   specification and case IDs; `mcpee plan init --slug <feature> --title "<title>"`
+   can create an explicitly unreviewed template without replacing the spec.
+   Review it using `specs approve --stage plan`, then author dependency-ordered,
+   checkable `tasks.md` linked to `spec.md`, `plan.md` and case IDs, and review
+   using `--stage tasks`. These are explicit, persistent phases; not an
+   assertion that independent specialist agents ran. Routed requests recheck
+   the prerequisite approval before spending model quota.
 6. **Implement the first slice and its tests** through Copilot Chat, approving
    each change.
 7. **Add validation.** As soon as the project has a test, lint or build script,
@@ -286,9 +293,11 @@ a loaded skill, a connected MCP transport and a "Thinking" indicator are not
 proof that the task completed.
 
 The generated `.mcpee/generated/project-capabilities.json` lists exactly which
-agents, skills and workflows were provisioned. The general-purpose team is not
-every catalog specialist: stack-specific assets are selected from detected
-technology evidence or explicit capability choices.
+agents, skills and workflows were provisioned. New projects get the full local
+catalog unless agents were explicitly limited. Existing installations retain
+their selections; use `mcpee capabilities install all --project <path>` to
+expand one after maintenance approval. Installed availability is not task
+execution: each task selects its specialist and relevant supporting assets.
 
 ## Scripted and CI setup
 
@@ -296,7 +305,7 @@ Non-interactive `init` never guesses and never downloads without approval:
 
 | Option | Effect |
 |---|---|
-| `--agents <id,...\|all\|none>` | Choose specialist agents explicitly; the core `orchestrator` is always installed. Without it, a non-interactive greenfield init uses the general-purpose default. |
+| `--agents <id,...\|all\|none>` | Choose specialist agents and their dependencies explicitly; the core `orchestrator` is always installed. Omit this option for the full local catalog in new projects. `all` selects all agents, not independent catalog assets. |
 | `--embeddings none\|light\|bge-m3` | Choose embeddings explicitly. Default in all terminals: `none`. |
 | `--skip-tool-install` | Use already installed tools. Without it, non-interactive tool installation is denied. Mandatory readiness checks (such as CodeGraph) still apply. |
 
@@ -324,6 +333,11 @@ as dependencies.
 Run `mcpee init` again instead when you want to retry failed tool
 installations or re-detect a changed stack. `mcpee capabilities update`
 refreshes all installed catalog assets. User-owned files are always preserved.
+Neither operation silently expands existing selections. To install the full
+catalog locally, run `mcpee capabilities install all --project <path>` and
+approve the maintenance request. An optional `--type agents|skills|workflows`
+limits the requested type (dependencies are included); see [Catalog](CATALOG.md#manage-capabilities).
+No agents, workflows, tool downloads or model calls are executed by this command.
 
 ## What MCPEE writes in your project
 
@@ -338,8 +352,12 @@ refreshes all installed catalog assets. User-owned files are always preserved.
 | `.mcp.json` | Project MCP servers (`mcpee`, `mcpee-codegraph`); existing entries are preserved |
 | `knowledge/` | Optional extra source folders by category plus normalized, extracted and traceability artifacts |
 | `docs/generated/` | Source-linked evidence maps refreshed by `sync` |
-| `specs/approved/` | Specifications you ratified; commit them with the code |
+| `specs/README.md` | Single human entry point: features, status, next step and links to sources/maps/history |
+| `specs/<feature>/` | Functional `spec.md`, `UC-###.md`, decisions and reviews; technical `plan.md` and `tasks.md` in the same workspace |
+| `docs/specifications/`, `specs/approved/`, `.mcpee/planning/` | Historical drafts/approvals/plans, preserved for compatibility; `specs migrate` safely copies supported drafts without approving them |
 
 Existing user files at generated paths are never overwritten. Stale generated
 files are removed only when MCPEE's manifest and ownership marker prove that it
 created them.
+If `specs/README.md` already has owner content, navigation uses `specs/MCPEE.md`
+and the CLI prints that path instead.

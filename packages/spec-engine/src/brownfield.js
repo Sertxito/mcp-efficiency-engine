@@ -155,6 +155,9 @@ function declaredTestCases(sourcePath, category, text, facts) {
 
 function isScaffolding(root, sourcePath) {
   if (typeof sourcePath !== "string") return false;
+  const feature = sourcePath.match(/^specs\/([a-z0-9-]+)\//)?.[1];
+  if (feature && feature !== "approved" && fs.existsSync(projectPath(root, `specs/${feature}/manifest.json`))) return true;
+  if (["specs/README.md", "specs/MCPEE.md"].includes(sourcePath) || /^specs\/[^/]+\/(?:spec\.md|UC-\d{3}\.md|manifest\.json|migration\.json|lifecycle\.json|decisions\.(?:md|json)|plan\.md|tasks\.md)$/.test(sourcePath)) return true;
   if (/^(?:\.mcpee\/|\.codegraph\/|docs\/generated\/|\.github\/(?:agents|skills)\/mcpee-|\.github\/hooks\/mcpee)/.test(sourcePath) ||
       [".mcp.json", "mcpee.config.yml"].includes(sourcePath)) return true;
   if (sourcePath === ".github/copilot-instructions.md") {
@@ -744,7 +747,14 @@ function listBrownfieldSpecs(root, { includeArchived = false } = {}) {
         sha256: digest(fs.readFileSync(projectPath(root, specPath), "utf8")),
       };
     });
-  return [...proposals, ...approvals].sort((left, right) =>
+  const canonical = require("./lifecycle").listFeatures(root)
+    .filter((feature) => feature.reviews.specification.approved)
+    .map((feature) => ({
+      status: "approved", slug: feature.id, path: feature.path, kind: "canonical-functional",
+      sha256: digest(fs.readFileSync(projectPath(root, feature.path))),
+      bundle_sha256: feature.reviews.specification.sha256,
+    }));
+  return [...proposals, ...approvals, ...canonical].sort((left, right) =>
     left.slug.localeCompare(right.slug) || left.status.localeCompare(right.status));
 }
 
@@ -788,6 +798,13 @@ function checkSpecDrift(root) {
       missing: drift.missing,
     });
   }
+  for (const feature of require("./lifecycle").listFeatures(root).filter((item) => item.status !== "unvalidated-manual-draft")) {
+    entries.push({
+      slug: feature.id, specification_status: feature.reviews.specification.approved ? "approved" : "draft",
+      specPath: feature.path, drift_status: feature.drift.length ? "drifted" : "current",
+      changed: feature.drift, missing: [],
+    });
+  }
   return {
     generated_at: new Date().toISOString(),
     current: entries.filter((entry) => entry.drift_status === "current").length,
@@ -803,7 +820,7 @@ function prepareApprovedSpecContext(root, plan, contextPackage = null) {
   const files = [];
   let bytes = 0;
   for (const spec of specs) {
-    if (typeof spec.path !== "string" || !/^specs\/approved\/[a-z0-9-]+\/spec\.md$/.test(spec.path) ||
+    if (typeof spec.path !== "string" || !/^specs\/(?:approved\/)?[a-z0-9-]+\/spec\.md$/.test(spec.path) ||
         !SHA256_PATTERN.test(spec.sha256)) {
       throw new Error("Approved specification context contains an invalid path or SHA-256.");
     }
@@ -816,6 +833,27 @@ function prepareApprovedSpecContext(root, plan, contextPackage = null) {
     const buffer = fs.readFileSync(filename);
     if (digest(buffer) !== spec.sha256) {
       throw new Error(`Approved specification changed after routing: ${spec.path}. Route the task again before approving transfer.`);
+    }
+    if (!spec.path.startsWith("specs/approved/")) {
+      const { featureStatus, readFeature } = require("./lifecycle");
+      const slug = path.posix.basename(path.posix.dirname(spec.path));
+      const status = featureStatus(root, slug);
+      if (!status.reviews.specification.approved || spec.bundle_sha256 !== status.reviews.specification.sha256) {
+        throw new Error(`Canonical specification approval changed or is no longer current: ${spec.path}. Review and route again.`);
+      }
+      const { directory, manifest } = readFeature(root, slug);
+      const casePaths = [...manifest.cases.map((item) => item.path), `${directory}/decisions.md`];
+      const caseContent = casePaths.map((file) => {
+        if (!file.startsWith(`${directory}/`)) throw new Error(`Invalid canonical case path: ${file}`);
+        const content = fs.readFileSync(projectPath(root, file));
+        bytes += content.length;
+        if (bytes > 128 * 1024) throw new Error("Approved specification context exceeds 131072 bytes; no contract was silently truncated.");
+        files.push(file);
+        return `### ${file}\n\n${redact(content.toString("utf8"))}`;
+      });
+      sections.push(`### Approved specification: ${spec.path}\n\nSource drift: ${status.drift.length ? `drifted (${status.drift.join(", ")})` : "current"}. Approved requirements remain normative; review differences rather than rewriting the contract.\n\n${redact(buffer.toString("utf8"))}\n\n${caseContent.join("\n\n")}`);
+      files.push(spec.path);
+      continue;
     }
     const evidence = safeReadJson(root, `${path.posix.dirname(spec.path)}/evidence.json`);
     if (evidence.generated_by !== "mcpee" || evidence.status !== "approved" ||
@@ -845,7 +883,9 @@ function prepareApprovedSpecContext(root, plan, contextPackage = null) {
     files: [...new Set([...files, ...(contextPackage?.files || [])])],
     byteLength: Buffer.byteLength(content, "utf8"),
     estimatedTokens: Math.ceil(content.length / 4),
-    approvedSpecHashes: specs.map(({ path: specPath, sha256 }) => ({ path: specPath, sha256 })),
+    approvedSpecHashes: specs.map(({ path: specPath, sha256, bundle_sha256 }) => ({
+      path: specPath, sha256, ...(bundle_sha256 ? { bundle_sha256 } : {}),
+    })),
   };
 }
 

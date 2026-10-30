@@ -5,27 +5,31 @@
 - Repository: <https://github.com/Sertxito/mcp-efficiency-engine>
 - npm package: `mcp-efficiency-engine`
 - Commands: `mcpee` and `mcp-efficiency-engine`
-- Current candidate: **0.1.38**, following published **0.1.37**
+- Current candidate: **0.1.39**, following published **0.1.38**
 - Runtime: Node.js **>=24**
 
 Keep the normal pre-1.0 version sequence until stable acceptance is complete.
 Do not label the target architecture fully implemented or promote to 1.0.0
 based only on passing automated tests.
 
-The 0.1.38 patch completes the generic documentation-to-specification output:
-one product index, independent use-case Markdown documents and a traceability
-manifest. Cases require one actor goal, explicit prerequisite cases and local
-open questions. All product sources in scope are selected, not a keyword top
-five; failed conversions and size limits block explicitly. Documentation-only
-authoring does not require querying an application CodeGraph index, and plain
-npm-init metadata is not evidence of application code. Existing projects should
+The 0.1.39 patch installs the full local catalog by default for new projects,
+while routing only relevant guidance. Explicit agent selections and existing
+removals are preserved. Existing projects can approve `capabilities install all`
+to expand their local catalog; installation does not execute specialists.
+
+The human entry point is `specs/README.md` (or `specs/MCPEE.md` when preserving
+an owner-edited README). Functional specs, independent cases, decisions, plans,
+tasks and review snapshots share `specs/<feature>/`. Approval gates bind the
+reviewed artifacts and upstream phases; readiness is not implementation or
+verification. Legacy draft migration copies rather than deletes, rebases links
+and never transfers approval or invents atomic decomposition. Existing projects should
 upgrade and run `mcpee update`, followed by `mcpee sync` to refresh detection
 and inventories. Old drafts and approved contracts are preserved.
 
 The functional gate checks structure and provenance, not semantic correctness.
 The prior 0.1.37 release had one authorized real SDK acceptance with a small
 synthetic requirements document. No additional paid SDK attempt has been run
-for 0.1.38. The atomic-output routing, execution and persistence tests use an
+for 0.1.39. The workspace routing, execution and persistence tests use an
 SDK fixture with a different synthetic product; they do not prove semantic
 decomposition quality or certify arbitrary project completeness. Automated SDK
 tests remain mocked and do not spend model quota.
@@ -81,8 +85,8 @@ After deployment, verify:
 
 ```sh
 npm view mcp-efficiency-engine version
-npm view mcp-efficiency-engine@0.1.38 bin engines dist.integrity --json
-npx --package=mcp-efficiency-engine@0.1.38 mcpee help
+npm view mcp-efficiency-engine@0.1.39 bin engines dist.integrity --json
+npx --package=mcp-efficiency-engine@0.1.39 mcpee help
 ```
 
 Also check the release workflow and GitHub Pages deployment. A failed

@@ -7,7 +7,7 @@ const path = require("node:path");
 const { test } = require("node:test");
 const { evaluateAssetResponse } = require("../packages/evaluation-engine/src/asset-evaluation");
 const {
-  GENERATED_MARKER, readCatalog, renderCatalog,
+  GENERATED_MARKER, detectProjectCapabilities, readCatalog, renderCatalog,
 } = require("../packages/copilot-renderer/src/render");
 
 function project(t, files) {
@@ -30,6 +30,10 @@ function scopes(markdown) {
   return JSON.parse(markdown.match(/^applyTo: (.+)$/m)[1]).split(",");
 }
 
+function detectedGuides(root) {
+  return detectProjectCapabilities(root, readCatalog().catalog).assets.technical_guidance.sort();
+}
+
 function matches(globs, file) {
   return globs.some(glob => path.posix.matchesGlob(file, glob));
 }
@@ -40,8 +44,8 @@ test("mixed C# and Python receive independent exact file/config scopes", t => {
     "jobs/worker.py": "pass",
     "jobs/pyproject.toml": '[project]\nname = "jobs"\n',
   });
-  const result = renderCatalog(root);
-  assert.deepEqual(result.capabilities.assets.technical_guidance,
+  renderCatalog(root);
+  assert.deepEqual(detectedGuides(root),
     ["dotnet-csharp", "python-engineering"]);
   const csharp = scopes(guide(root, "dotnet-csharp"));
   const python = scopes(guide(root, "python-engineering"));
@@ -63,8 +67,8 @@ test("Angular and React guidance stays independent without assuming Node backend
   const root = project(t, { "package.json": JSON.stringify({
     dependencies: { "@angular/core": "19.0.0", react: "19.0.0" },
   }) });
-  const result = renderCatalog(root);
-  assert.deepEqual(result.capabilities.assets.technical_guidance,
+  renderCatalog(root);
+  assert.deepEqual(detectedGuides(root),
     ["angular-engineering", "react-engineering", "typescript-engineering"]);
   assert.ok(matches(scopes(guide(root, "angular-engineering")), "app/template.html"));
   assert.equal(matches(scopes(guide(root, "react-engineering")), "app/template.html"), false);
@@ -86,7 +90,7 @@ test("Vue and Nuxt activate actual frontend guidance, tests and evidence contrac
     assert.ok(capabilities.has_code_signals);
     assert.ok(capabilities.assets.agents.includes("frontend"));
     assert.ok(capabilities.assets.agents.includes("ux-ui"));
-    assert.deepEqual(capabilities.assets.technical_guidance,
+    assert.deepEqual(detectedGuides(root),
       ["typescript-engineering", "vue-engineering"]);
     assert.ok(capabilities.assets.eval_cases.includes("frontend-framework-fit"));
     assert.ok(capabilities.assets.scorecards.includes("frontend-quality"));
@@ -97,14 +101,16 @@ test("Vue and Nuxt activate actual frontend guidance, tests and evidence contrac
   }
 });
 
-test("SQL and Cosmos guidance only activates from the corresponding stack", t => {
+test("SQL and Cosmos guidance is detected from the corresponding stack regardless of local installation", t => {
   const sql = project(t, { "db/schema.sql": "SELECT 1;" });
-  assert.deepEqual(renderCatalog(sql).capabilities.assets.technical_guidance,
+  renderCatalog(sql);
+  assert.deepEqual(detectedGuides(sql),
     ["sql-engineering"]);
   const cosmos = project(t, { "package.json": JSON.stringify({
     dependencies: { "@azure/cosmos": "4.0.0" },
   }) });
-  const selected = renderCatalog(cosmos).capabilities.assets.technical_guidance;
+  renderCatalog(cosmos);
+  const selected = detectedGuides(cosmos);
   assert.ok(selected.includes("cosmos-engineering"));
   assert.ok(!selected.includes("sql-engineering"));
   assert.ok(!selected.includes("python-engineering"));

@@ -117,13 +117,13 @@ test("readable specifications preserve flows, acceptance criteria, traceability 
   const { root, file, sources } = fixture();
   const response = JSON.stringify(draft(file));
   const result = publishFunctionalSpec(root, response, sources);
-  assert.equal(result.path, "docs/specifications/league-public-participation.md");
-  assert.match(result.content, /\[UC-001 - Check team registration availability\]\(league-public-participation\/UC-001\.md\)/);
+  assert.equal(result.path, "specs/league-public-participation/spec.md");
+  assert.match(result.content, /\[UC-001 - Check team registration availability\]\(UC-001\.md\)/);
   const atomic = fs.readFileSync(path.join(root, result.casePaths[0]), "utf8");
   assert.match(atomic, /### UC-001 - Check team registration availability/);
   assert.match(atomic, /Main flow/);
   assert.match(atomic, /Given:?\*\*/);
-  assert.match(atomic, /\.\.\/\.\.\/\.\.\/knowledge\/sources\/business\/league\.md#L4/);
+  assert.match(atomic, /\.\.\/\.\.\/knowledge\/sources\/business\/league\.md#L4/);
   assert.match(atomic, /Product index/);
   const manifest = JSON.parse(fs.readFileSync(path.join(root, result.manifestPath)));
   assert.equal(manifest.cases[0].sha256, crypto.createHash("sha256").update(atomic).digest("hex"));
@@ -297,13 +297,13 @@ test("a non-League greenfield routes and executes through independent case files
 test("any atomic file conflict preserves the entire existing bundle before new files are written", () => {
   const { root, file, sources } = fixture();
   const data = draft(file);
-  const directory = `docs/specifications/${data.slug}`;
+  const directory = `specs/${data.slug}`;
   fs.mkdirSync(path.join(root, directory), { recursive: true });
   const existing = path.join(root, directory, "UC-001.md");
   fs.writeFileSync(existing, "An owner-authored case must not be overwritten.");
   assert.throws(() => publishFunctionalSpec(root, JSON.stringify(data), sources), /UC-001\.md already exists/);
   assert.equal(fs.readFileSync(existing, "utf8"), "An owner-authored case must not be overwritten.");
-  assert.equal(fs.existsSync(path.join(root, `${directory}.md`)), false);
+  assert.equal(fs.existsSync(path.join(root, directory, "spec.md")), false);
   assert.equal(fs.existsSync(path.join(root, directory, "manifest.json")), false);
 });
 
@@ -382,7 +382,10 @@ test("the executor persists a validated deliverable and fails instead of reporti
     { approved: true, clientFactory: () => client });
   assert.equal(disconnected, 2);
   assert.equal(result.specification.status, "draft-structurally-validated");
-  assert.deepEqual(result.changedPaths, [result.specification.path, result.specification.manifestPath, ...result.specification.casePaths].sort());
+  const directory = path.posix.dirname(result.specification.path);
+  assert.deepEqual(result.changedPaths, [result.specification.path, result.specification.manifestPath,
+    result.specification.workspacePath, `${directory}/decisions.json`, `${directory}/decisions.md`,
+    `${directory}/lifecycle.json`, ...result.specification.casePaths].sort());
   assert.match(fs.readFileSync(path.join(root, result.specification.casePaths[0]), "utf8"), /Registration remains closed|registration remains closed/);
 });
 

@@ -66,6 +66,7 @@ const { runWorkflow } = require("../../workflow-engine/src/workflow");
 const { auditHarness } = require("../../asset-audit/src/audit");
 const { buildSkillHealth } = require("../../asset-audit/src/skill-health");
 const { createPlan, listPlans } = require("../../planning-engine/src/planning");
+const { listFeatures, featureStatus, approveStage, resolveDecision, migrateDrafts, refreshWorkspaceIndex } = require("../../spec-engine/src/lifecycle");
 const {
   checkSpecDrift,
   discoverBrownfieldSpec,
@@ -81,6 +82,7 @@ const { writeRunReport } = require("../../execution-engine/src/run-report");
 const {
   capabilityRegistry,
   manageCapability,
+  installAllCapabilities,
   readCatalog,
   renderCatalog,
 } = require("../../copilot-renderer/src/render");
@@ -517,7 +519,7 @@ function printHelp() {
     "  quality    Report configured and observed validation gates for this project",
     "  skills     Report observed workflow evaluation outcomes for catalog skills",
     "  plan       Create or list durable project specifications and delivery plans",
-    "  specs      Discover, review, ratify, and check drift in brownfield specifications",
+    "  specs      Navigate specifications, clarify, approve phases, migrate drafts, and inspect evidence",
     "  evaluate   Execute local checks or evaluate an agent-asset response",
     "  workflow   Run a declared, project-local sequence of allowlisted checks",
     "  learn      Propose, inspect, and explicitly approve evaluated learning",
@@ -545,12 +547,16 @@ function printHelp() {
     "  knowledge embeddings status|setup|index [--profile light|bge-m3]",
     "  impact --path <project-relative-path> [--json]",
     "  specs discover | list [--all] | drift [--json]",
+    "  specs status [--slug <feature>] [--json] | specs migrate [--json]",
+    "  specs decide --slug <feature> --id Q-001 --answer <decision> --reviewer <owner>",
+    "  specs approve --slug <feature> --stage specification|plan|tasks --reviewer <owner> --confirm-sha256 <digest>",
     "  specs ratify --slug <id> --reviewer <name> --confirm-sha256 <digest>",
     "  drift [--json]",
     "  tools list | tools validate [--tool <id> ...]",
     "  cloud inventory --provider azure|aws [--json]",
     "  capabilities list [--type <type>] [--json]",
     "  capabilities install|update|remove <id> [--type <type>]",
+    "  capabilities install all [--type <type>]  Install catalog locally (approval required)",
     "  capabilities update [--type <type>]  Refresh all installed catalog assets",
     "  evaluate --run <project-relative-json> | --case <id> --asset <id> --response <file> [--ratings <json> --reviewer <name>]",
     "  evaluate --suite specialist-core [--scenario <id> --variant normal|failure|boundary | --results <project-relative-json>] [--json]",
@@ -647,7 +653,7 @@ function runStatus(root) {
   return state ? 0 : 1;
 }
 
-function runCapabilities(root, args) {
+async function runCapabilities(root, args) {
   const action = args[0] || "list";
   if (!["list", "install", "update", "remove"].includes(action)) {
     process.stderr.write(`[mcpee] Unknown capabilities action: ${action}\n`);
@@ -708,6 +714,29 @@ function runCapabilities(root, args) {
   const positional = args.slice(1).filter((argument, index, all) =>
     !argument.startsWith("--") && (index === 0 || !all[index - 1].startsWith("--")));
   const id = positional[0];
+  if (action === "install" && id === "all") {
+    if (positional.length !== 1 || (args.includes("--type") && !rawType)) {
+      process.stderr.write("[mcpee] Usage: mcpee capabilities install all [--type <type>]\n");
+      return 2;
+    }
+    const installableTypes = new Set(registry.items.filter((item) =>
+      !["policy", "tool-capability"].includes(item.type)).map((item) => item.type));
+    if (type && !installableTypes.has(type)) {
+      process.stderr.write(`[mcpee] Unknown installable capability type '${rawType}'.\n`);
+      return 2;
+    }
+    if (!await approveMaintenance("install",
+      `Install all ${type || "catalog"} capabilities and their dependencies locally, restoring previous removals in that scope. Preserve user-owned files. No workflow, tool installation, or model execution is authorized.`)) return 1;
+    try {
+      const result = installAllCapabilities(root, type || null);
+      process.stdout.write(`[mcpee] Catalog installed locally: scope=${result.type}; selected=${result.selected}; newly installed including dependencies=${result.newly_installed}; files created=${result.changes.created}, updated=${result.changes.updated}, removed=${result.changes.removed}, preserved=${result.changes.preserved}.\n`);
+      process.stdout.write("[mcpee] Installation does not execute agents or workflows; task routing selects relevant installed assets only.\n");
+      return 0;
+    } catch (error) {
+      process.stderr.write(`[mcpee] Catalog install failed: ${error.message}\n`);
+      return 1;
+    }
+  }
   if (action === "update" && !id) {
     const installed = registry.items.filter((item) =>
       item.status !== "available" && item.status !== "core" && (!type || item.type === type));
@@ -872,6 +901,7 @@ async function runSync(root) {
   process.stdout.write(`  processed=${result.counts.processed} unchanged=${result.counts.unchanged} requires-tool=${result.counts["requires-tool"]} skipped=${result.counts.skipped} failed=${result.counts.failed}\n`);
   process.stdout.write(`  Copilot catalog created=${result.catalog.counts.created} updated=${result.catalog.counts.updated} preserved=${result.catalog.counts.preserved}\n`);
   process.stdout.write(`  generated documentation written=${result.documentation.counts.written} preserved=${result.documentation.counts.preserved}\n`);
+  process.stdout.write(`  Project workspace: ${result.documentation.workspace?.path || refreshWorkspaceIndex(root).path}; next steps: mcpee specs status.\n`);
   process.stdout.write(`  unified evidence graph nodes=${result.unifiedGraph.node_count} edges=${result.unifiedGraph.edge_count}\n`);
   if (result.specifications.status !== "empty") {
     process.stdout.write(`  specification proposals ${result.specifications.status}: ${result.specifications.indexPath}; approved contracts and previous drafts preserved\n`);
@@ -906,6 +936,27 @@ function runSpecs(root, args) {
   const [action = "list"] = args;
   const json = args.includes("--json");
   let result;
+  if (["status", "approve", "decide", "migrate"].includes(action)) {
+    const slug = optionValue(args, "--slug");
+    if (action === "status") {
+      result = slug ? listFeatures(root).find((feature) => feature.id === slug) || featureStatus(root, slug) : listFeatures(root);
+    } else if (action === "migrate") {
+      result = migrateDrafts(root);
+    } else if (action === "approve") {
+      result = approveStage(root, {
+        slug, stage: optionValue(args, "--stage") || "specification",
+        reviewer: optionValue(args, "--reviewer"), confirmSha256: optionValue(args, "--confirm-sha256"),
+      });
+    } else {
+      result = resolveDecision(root, {
+        slug, id: optionValue(args, "--id"), answer: optionValue(args, "--answer"), reviewer: optionValue(args, "--reviewer"),
+      });
+    }
+    const navigation = refreshWorkspaceIndex(root);
+    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    if (!json) process.stdout.write(`[mcpee] Start here: ${navigation.path} (${navigation.status}). Draft, approved and implemented are separate states.\n`);
+    return 0;
+  }
   if (action === "discover") {
     result = discoverBrownfieldSpec(root);
     if (json) {
@@ -951,7 +1002,7 @@ function runSpecs(root, args) {
     process.stdout.write(`  reviewed proposal SHA-256=${result.proposalSha256}\n`);
     return 0;
   }
-  throw new Error("Use mcpee specs discover|list|drift, or specs ratify --slug <id> --reviewer <name> --confirm-sha256 <digest>.");
+  throw new Error("Use mcpee specs status|migrate|discover|list|drift; specs decide --slug <id> --id Q-001 --answer <text> --reviewer <owner>; specs approve --slug <id> --stage specification|plan|tasks --reviewer <owner> --confirm-sha256 <digest>; or legacy specs ratify.");
 }
 
 async function approveMaintenance(action, description) {
@@ -1672,32 +1723,7 @@ async function chooseInitAgents(root, args) {
     if (new Set(selected).size !== selected.length) throw new Error("--agents cannot contain duplicate IDs.");
     return selected;
   }
-  if (!process.stdin.isTTY || !process.stdout.isTTY ||
-      fs.existsSync(path.join(root, ".mcpee/state/catalog-capabilities.json"))) {
-    return null;
-  }
-  const capabilities = detectProjectCapabilities(root, readCatalog().catalog);
-  if (capabilities.has_code_signals) return null;
-  const catalogAgents = readCatalog().catalog.agents;
-  const defaults = new Set(capabilities.assets.agents);
-  process.stdout.write("[mcpee] No source-code stack detected. Choose capabilities; the orchestrator and matching skills and workflows are included automatically.\n");
-  const profile = await selectOptions({
-    title: "Initial capabilities (you can change these later)",
-    options: [
-      { value: [...defaults], label: "Recommended - general-purpose project team" },
-      { value: ["backend", "architecture"], label: "Backend + Architecture - APIs, services and system design" },
-      { value: ["frontend", "ux-ui"], label: "Frontend + UX/UI - interfaces and user experience" },
-      { value: ["frontend", "backend", "architecture"], label: "Full stack - frontend, backend and architecture" },
-      { value: "custom", label: "Customize - select individual capabilities" },
-    ],
-  });
-  if (profile !== "custom") return profile;
-  return selectOptions({
-    title: "Capabilities - Space to select, Enter to confirm (empty = none)",
-    multiple: true,
-    initial: [...defaults],
-    options: catalogAgents.map(agent => ({ value: agent.id, label: `${agent.id} - ${agent.description}` })),
-  });
+  return null;
 }
 
 function requiredToolInstallationFailures(results, tools) {
@@ -1993,7 +2019,9 @@ function runPlan(root, args) {
     return 2;
   }
   const plan = createPlan(root, { slug, title });
+  refreshWorkspaceIndex(root);
   process.stdout.write(`[mcpee] Created planning artifacts for ${plan.id}:\n${plan.files.map((file) => `  ${file}`).join("\n")}\n`);
+  process.stdout.write("[mcpee] Unreviewed template, not a completed plan. Start here: specs/README.md. Historical .mcpee/planning artifacts remain preserved.\n");
   return 0;
 }
 
@@ -2999,6 +3027,7 @@ async function runCommand(args) {
     startStep(5, "Synchronizing local sources, evidence and documentation");
     const sync = syncProject(root);
     const brownfieldProposal = sync.specifications;
+    process.stdout.write(`[mcpee] Project workspace: ${sync.documentation.workspace?.path || refreshWorkspaceIndex(root).path}; next steps: mcpee specs status.\n`);
     const workflowSpecs = provisionWorkflowSpecs(root, toolReport, result.catalog.capabilities);
     let embeddingResult;
     try {
@@ -3045,7 +3074,7 @@ async function runCommand(args) {
     }
     process.stdout.write(`[mcpee] Initial local sync: ${sync.discoveredFiles} source(s); processed=${sync.counts.processed}, requires-tool=${sync.counts["requires-tool"]}, failed=${sync.counts.failed}.\n`);
     if (brownfieldProposal.status === "created" || brownfieldProposal.status === "preserved") {
-      process.stdout.write(`[mcpee] Brownfield proposals ${brownfieldProposal.status}: ${brownfieldProposal.domainCount} candidate domains; ${brownfieldProposal.proposals.length} documents; sources=${brownfieldProposal.sourceCount}. Start reading: ${brownfieldProposal.indexPath}. None are approved.\n`);
+      process.stdout.write(`[mcpee] Brownfield evidence inventories ${brownfieldProposal.status}: ${brownfieldProposal.domainCount} candidate domains; ${brownfieldProposal.proposals.length} documents; sources=${brownfieldProposal.sourceCount}. Extraction detail: ${brownfieldProposal.indexPath}. None are approved.\n`);
       const coverage = brownfieldProposal.coverage;
       process.stdout.write(`[mcpee] Automatic brownfield extraction: observations=${coverage.observations}, declared-tests=${coverage.declared_tests}, associated-assertions=${coverage.associated_assertions}; excluded-sources=${coverage.excluded_sources.length}, unsupported-implementation-files=${coverage.implementation_recognition.unsupported.length}. Coverage and gaps are recorded in ${brownfieldProposal.indexPath} and .mcpee/specs/latest.json. No extra discovery command is needed.\n`);
     } else {
