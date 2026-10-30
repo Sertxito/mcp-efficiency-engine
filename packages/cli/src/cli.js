@@ -811,12 +811,13 @@ function runDoctor(root) {
       );
     }
     const codeGraph = readCodeGraphState(root);
-    if (codeGraph?.status === "ready") {
+    const hasCode = detectProjectCapabilities(root, readCatalog().catalog).has_code_signals;
+    if (hasCode && codeGraph?.status === "ready") {
       requiredFiles.push(
         codeGraph.graph_directory,
         ".mcp.json",
       );
-    } else {
+    } else if (hasCode) {
       missing.push(`Required CodeGraph index healthy (${codeGraph?.error || "not initialized; run mcpee init" })`);
     }
   }
@@ -896,6 +897,7 @@ async function runSync(root) {
   const codeGraph = updateCodeGraph(root, {
     available: discoverTools(root).tools.some((tool) => tool.id === "codegraph" && tool.available),
     required: true,
+    documentationOnly: !detectProjectCapabilities(root, readCatalog().catalog).has_code_signals,
   });
   process.stdout.write(`[mcpee] Knowledge sync completed: ${result.discoveredFiles} source(s) found.\n`);
   process.stdout.write(`  processed=${result.counts.processed} unchanged=${result.counts.unchanged} requires-tool=${result.counts["requires-tool"]} skipped=${result.counts.skipped} failed=${result.counts.failed}\n`);
@@ -926,10 +928,12 @@ async function runSync(root) {
     process.stdout.write(`[mcpee] CodeGraph ${codeGraph.operation} completed: files=${codeGraph.summary.file_count ?? "unknown"} nodes=${codeGraph.summary.node_count ?? "unknown"} edges=${codeGraph.summary.edge_count ?? "unknown"}; MCP ${codeGraph.mcp.status}.\n`);
   } else if (codeGraph.status === "unavailable") {
     process.stderr.write("[mcpee] CodeGraph is required but the project-local tool is not installed; run mcpee init after approving its installation.\n");
+  } else if (codeGraph.status === "not-applicable") {
+    process.stdout.write(`[mcpee] CodeGraph not applicable: ${codeGraph.reason}\n`);
   } else {
     process.stderr.write(`[mcpee] CodeGraph sync failed: ${codeGraph.error}\n`);
   }
-  return result.counts.failed > 0 || codeGraph.status !== "ready" || result.graphify.status === "failed" ? 1 : 0;
+  return result.counts.failed > 0 || !["ready", "not-applicable"].includes(codeGraph.status) || result.graphify.status === "failed" ? 1 : 0;
 }
 
 function runSpecs(root, args) {
@@ -1173,6 +1177,7 @@ async function runRebuild(root) {
   const codeGraph = updateCodeGraph(root, {
     available: discoverTools(root).tools.some((tool) => tool.id === "codegraph" && tool.available),
     required: true,
+    documentationOnly: !detectProjectCapabilities(root, readCatalog().catalog).has_code_signals,
   });
   process.stdout.write(`[mcpee] Rebuild completed: sources=${result.discoveredFiles}; processed=${result.counts.processed}; failed=${result.counts.failed}; docs written=${result.documentation.counts.written}.\n`);
   if (specDrift.specifications.length) {
@@ -1194,10 +1199,12 @@ async function runRebuild(root) {
     process.stdout.write(`[mcpee] CodeGraph ${codeGraph.operation}: files=${codeGraph.summary.file_count ?? "unknown"}, nodes=${codeGraph.summary.node_count ?? "unknown"}, edges=${codeGraph.summary.edge_count ?? "unknown"}.\n`);
   } else if (codeGraph.status === "unavailable") {
     process.stderr.write("[mcpee] CodeGraph is required but its project-local tool is unavailable.\n");
+  } else if (codeGraph.status === "not-applicable") {
+    process.stdout.write(`[mcpee] CodeGraph not applicable: ${codeGraph.reason}\n`);
   } else {
     process.stderr.write(`[mcpee] CodeGraph rebuild failed: ${codeGraph.error}\n`);
   }
-  return result.counts.failed > 0 || codeGraph.status !== "ready" || result.graphify.status === "failed" ? 1 : 0;
+  return result.counts.failed > 0 || !["ready", "not-applicable"].includes(codeGraph.status) || result.graphify.status === "failed" ? 1 : 0;
 }
 
 async function runUpdate(root) {
@@ -2326,8 +2333,9 @@ async function synchronizeAfterCopilotChanges(root, changedPaths, workflowId, op
   const codeGraph = (options.updateCodeGraph || updateCodeGraph)(root, {
     available: tools.tools.some((tool) => tool.id === "codegraph" && tool.available),
     required: true,
+    documentationOnly: !detectProjectCapabilities(root, readCatalog().catalog).has_code_signals,
   });
-  if (codeGraph.status !== "ready" || result.counts.failed > 0 || result.graphify?.status === "failed") {
+  if (!["ready", "not-applicable"].includes(codeGraph.status) || result.counts.failed > 0 || result.graphify?.status === "failed") {
     process.stderr.write(`[mcpee] Post-change sync incomplete: source failures=${result.counts.failed}; CodeGraph=${codeGraph.status}${codeGraph.error ? ` (${codeGraph.error})` : ""}; Graphify=${result.graphify?.status || "not-run"}${result.graphify?.error ? ` (${result.graphify.error})` : ""}. Run mcpee doctor for details.\n`);
     onValidation({ status: "blocked", reason: "Post-change source, Graphify, or required CodeGraph synchronization failed." });
     return 1;
@@ -3023,6 +3031,7 @@ async function runCommand(args) {
     const codeGraph = updateCodeGraph(root, {
       available: toolReport.tools.some((tool) => tool.id === "codegraph" && tool.available),
       required: true,
+      documentationOnly: !detectProjectCapabilities(root, readCatalog().catalog).has_code_signals,
     });
     startStep(5, "Synchronizing local sources, evidence and documentation");
     const sync = syncProject(root);
@@ -3104,6 +3113,8 @@ async function runCommand(args) {
       process.stdout.write(`[mcpee] CodeGraph ${codeGraph.operation} completed: files=${codeGraph.summary.file_count ?? "unknown"} nodes=${codeGraph.summary.node_count ?? "unknown"} edges=${codeGraph.summary.edge_count ?? "unknown"}; MCP ${codeGraph.mcp.status} in ${codeGraph.mcp.file}.\n`);
     } else if (codeGraph.status === "unavailable") {
       process.stderr.write("[mcpee] CodeGraph is required but the project-local tool is not installed.\n");
+    } else if (codeGraph.status === "not-applicable") {
+      process.stdout.write(`[mcpee] CodeGraph not applicable: ${codeGraph.reason}\n`);
     } else {
       process.stderr.write(`[mcpee] CodeGraph initialization failed: ${codeGraph.error}\n`);
     }
@@ -3113,7 +3124,7 @@ async function runCommand(args) {
     );
     if (workflowSpecs.status === "failed" ||
         sync.counts.failed > 0 || sync.graphify.status === "failed" ||
-        toolFailures.length > 0 || codeGraph.status !== "ready") {
+        toolFailures.length > 0 || !["ready", "not-applicable"].includes(codeGraph.status)) {
       process.stderr.write("[mcpee] SETUP INCOMPLETE - capabilities are configured, but the harness is not fully ready.\n");
       for (const failure of toolFailures) process.stderr.write(`[mcpee] Required tool pending: ${failure.id} - ${failure.reason || failure.status}\n`);
       process.stderr.write("[mcpee] Resolve the reported blockers, then rerun mcpee init; existing capability selections and user files are preserved.\n");

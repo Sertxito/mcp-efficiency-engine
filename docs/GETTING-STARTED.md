@@ -34,13 +34,13 @@ why MCPEE manages its own isolated Python runtime instead of requiring one.
 Global installation (recommended):
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.40
+npm install --global mcp-efficiency-engine@0.1.41
 ```
 
 Run a pinned version without installing globally:
 
 ```sh
-npx --package=mcp-efficiency-engine@0.1.40 mcpee init --project C:\path\to\project
+npx --package=mcp-efficiency-engine@0.1.41 mcpee init --project C:\path\to\project
 ```
 
 The npm package is `mcp-efficiency-engine`. It installs two equivalent
@@ -50,7 +50,7 @@ If npm reports that the Copilot SDK's native `koffi` dependency has a blocked
 install script, allow only that dependency:
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.40 --allow-scripts=koffi
+npm install --global mcp-efficiency-engine@0.1.41 --allow-scripts=koffi
 ```
 
 This does not enable install scripts globally. A successful `mcpee help`
@@ -92,8 +92,10 @@ never overwrites user-owned files. In one run it:
    are not touched. Use Up/Down and Enter to choose Yes or No; no typed
    approval keywords are needed. Required tools are included, not separate
    questions. Declining the bundle leaves required tools pending.
-   **CodeGraph is required**: setup and routing fail closed without its package
-   and index. GitNexus is never installed because its PolyForm Noncommercial
+   **CodeGraph is bundled**, but its index is required only for projects with
+   application code. Documentation-only setup, sync, discovery and architecture
+   skip the code-index health check, preserving any existing index.
+   GitNexus is never installed because its PolyForm Noncommercial
    license is not suitable for general business use. A newer Node LTS patch
    is an advisory, not a blocker. Incompatible Node versions or a missing
    npm CLI are reported before requesting installation approval.
@@ -253,6 +255,12 @@ After upgrading MCPEE and running `mcpee update`, cancel a previously stalled
 turn and start a fresh chat so it uses the refreshed integration. Attach or
 reference the requirements again. Do not send duplicate requests while an
 earlier run is still executing.
+
+Git is optional for documentation, specifications and architecture proposals.
+If there is no Git worktree, inspect the generated files directly and report
+Git diff/status as not applicable. Do not initialize Git just to unblock a
+documentation request. Source freshness and specification approvals still apply.
+Once application code exists, code-index health and impact checks are required.
 
 For each request MCPEE selects a workflow and specialist, retrieves cited local
 evidence and shows the impact of the files involved. Calling `mcpee_run`

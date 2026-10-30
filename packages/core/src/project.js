@@ -84,6 +84,12 @@ codegraph_explore, codegraph_search, and codegraph_impact tools for source-level
 discovery and change-impact evidence. Run mcpee sync after source changes to
 refresh the local graph and lexical knowledge index.
 
+Git is optional for documentation, specifications and architecture proposals.
+Without a Git worktree, review the actual files and report diff/status as not
+applicable; do not initialize Git or block document creation. Projects without
+application code do not require CodeGraph health or a code index for this work.
+Keep source provenance, specification review gates and validation intact.
+
 For every engineering request about this project, use the project-scoped
 mcpee_run MCP tool in ordinary Copilot Chat. It routes the task through MCPEE
 and the Copilot CLI agent runtime; do not require the user to invoke a special

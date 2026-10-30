@@ -215,7 +215,19 @@ try {
   });
   assert.match(initOutput, /Project files configured/);
   assert.match(initOutput, /SETUP COMPLETE/);
-  assert.match(initOutput, /CodeGraph init completed/);
+  assert.match(initOutput, /CodeGraph not applicable/);
+  assert.equal(fs.existsSync(path.join(projectRoot, ".git")), false);
+  fs.writeFileSync(path.join(projectRoot, "app.js"), "module.exports = () => 'consumer application';\n");
+  const codeInitOutput = execFileSync(process.execPath, [
+    installedCli, "init", "--project", projectRoot,
+    "--skip-tool-install", "--embeddings", "none",
+  ], {
+    cwd: consumerRoot,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    timeout: 120_000,
+  });
+  assert.match(codeInitOutput, /CodeGraph init completed/);
   assert.ok(fs.existsSync(path.join(projectRoot, ".github", "copilot-instructions.md")));
   assert.ok(fs.existsSync(path.join(projectRoot, ".mcpee", "generated", "project-capabilities.json")));
 

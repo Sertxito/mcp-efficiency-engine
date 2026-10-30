@@ -82,6 +82,14 @@ use an interactive terminal prompt for approvals. Options:
 
 ## Request lifecycle
 
+Git is optional for documentation and architecture work. Without a worktree,
+review generated file contents instead of requiring a diff. MCPEE detects the
+current project stack for every route: projects without application code do
+not require CodeGraph queries or health checks. Harness-only package metadata
+is not an application and is excluded from documentation-only impact targets.
+Actual requirement changes still require synchronization; canonical phase
+approvals remain mandatory. Adding application code restores code-index checks.
+
 1. **Route.** MCPEE selects a workflow and specialist using workflow and
    specialist rules, current memory, indexed source evidence and available
    tools. Routing is deterministic. Explicitly named, already indexed
