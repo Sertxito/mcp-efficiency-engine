@@ -31,12 +31,20 @@ ordinary Copilot Chat through MCPEE. No VSIX and no `@mcpee` invocation are
 needed. VS Code starts the MCP server automatically when Chat needs its tools
 and may ask once to trust the workspace or start the server.
 
-The server uses MCP elicitation for explicit approval before context transfer
-and before each state-changing action. It fails closed when the host cannot
-show that approval UI. An explicit host acceptance authorizes the requested
-action even if the host omits the redundant form value; decline and cancel
-remain denials. Workspace trust and normal Copilot tool confirmations remain
-in effect.
+Calling `mcpee_run` authorizes the task's selected project context to the
+authenticated GitHub Copilot runtime and ordinary post-task local index sync.
+MCPEE does not ask again for these internal steps. Its generated hook also
+allows the exact task, status and cancellation tools without repeated prompts;
+polling an existing run never starts another execution or requests approval.
+This is not a blanket grant to the nested agent. Actions outside task-scoped
+local edits still use MCP elicitation and fail closed if the host cannot show
+the approval UI. Decline and cancel remain denials.
+
+Workspace trust, MCP server enablement and the host's own tool-confirmation
+policy remain in effect. MCPEE cannot override host-level confirmations:
+enable the generated approval hook in hosts that support it, or use the
+host's tool-specific “always allow” control for these three MCPEE tools only.
+Do not enable global autoapproval to solve internal polling prompts.
 
 MCPEE adds its own stdio server and the CodeGraph server to the portable
 workspace `.mcp.json` read directly by Copilot harness sessions, without
@@ -83,12 +91,12 @@ use an interactive terminal prompt for approvals. Options:
 2. **Impact preflight.** MCPEE shows the direct and transitive dependents of
    the routed evidence. If the preflight is unavailable, state-changing tool
    calls are denied.
-3. **Context approval.** You approve sending the task and selected context to
-   Copilot. That approval covers only this transfer.
+3. **Context authorization.** Calling the MCP task tool authorizes the selected
+   context to Copilot. Direct terminal execution still requests transfer approval.
 4. **Execution.** The selected workflow's ordered lifecycle stages are passed
    to Copilot, which must report incomplete stages. Each state-changing tool
    call is checked against its exact target and a fresh source checksum and
-   then requires your approval.
+   then requires approval unless it is an ordinary task-scoped local edit.
 5. **Post-change maintenance.** See
    [After a change](#after-a-change-sync-validation-and-documentation).
 6. **Lifecycle report.** An eight-stage report is written under
@@ -121,12 +129,13 @@ retrieved.
 
 | Action | Approval |
 |---|---|
-| Sending task and context to Copilot | Required, once per transfer |
+| Sending task and context to Copilot | Authorized by `mcpee_run`; direct CLI still prompts |
+| MCPEE task transport, status polling and cancellation | Internal; no MCPEE approval prompt |
 | Ordinary task-scoped project-local file creation and edits | Authorized by the task; no per-file approval |
 | Other state-changing tool calls | Required, per call, with a fresh impact check |
 | SDK tool-hook permission | Delegated to MCPEE's `PreToolUse` policy; no duplicate prompt |
 | Other runtime permissions requested by the SDK | Required |
-| Post-change sync of indexes and graphs | Required |
+| Post-change sync of indexes and graphs | Internal in MCP runs; direct CLI still prompts |
 | Non-read-only validation steps | Required, per step |
 | Built-in `view`, `glob`, `grep` and `rg` | Not required (read-only) |
 | Unknown tools | Required |
@@ -137,8 +146,10 @@ interactive prompt. Approval events record decision metadata; SDK and hook
 events can contain redacted tool arguments and results (see
 [Observability](OBSERVABILITY.md)).
 
-The project `preToolUse` hook allows only recognized read-only tools and
-commands. Other calls return `ask` in interactive CLI sessions and `deny` in
+The project `preToolUse` hook allows recognized read-only tools and commands
+and exact MCPEE transport/status/cancellation names (including supported host
+prefixes). These transport tools are not falsely classified as read-only.
+Other calls return `ask` in interactive CLI sessions and `deny` in
 known non-interactive or CI sessions. The hook accepts Copilot and VS Code
 Local harness input and emits both decision formats. Besides the read-only
 search tools, the exact PowerShell listing forms `Get-ChildItem`, optionally
