@@ -279,6 +279,18 @@ function searchCodeGraph(projectRoot, query, limit = 10) {
 
 function updateCodeGraph(projectRoot, options = {}) {
   const root = path.resolve(projectRoot);
+  if (options.documentationOnly === true) {
+    const result = {
+      status: "not-applicable",
+      operation: "skipped",
+      reason: "No application code was detected. Documentation-only work does not require a CodeGraph index.",
+    };
+    recordEvent(root, {
+      event_name: "knowledge.codegraph.completed",
+      attributes: { operation: result.operation, status: result.status, reason: result.reason },
+    });
+    return result;
+  }
   const mcp = configureProjectMcp(root, { available: options.available });
   if (mcp.status === "failed" || mcp.status === "conflict") {
     throw new Error(mcp.error);

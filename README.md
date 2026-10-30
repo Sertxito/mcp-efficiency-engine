@@ -14,7 +14,7 @@ action, automatic validation after changes and a full local audit trail.
   Existing user files are never overwritten.
 
 npm package: **`mcp-efficiency-engine`** · commands: `mcpee` (or
-`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.40)
+`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.41)
 
 ## Requirements
 
@@ -32,12 +32,12 @@ Full details: [Getting started → Requirements](docs/GETTING-STARTED.md#require
 **1. Install**
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.40
+npm install --global mcp-efficiency-engine@0.1.41
 ```
 
 If npm blocks the native `koffi` dependency, add `--allow-scripts=koffi`
 (only that dependency is allowed). Prefer no global install? Use
-`npx --package=mcp-efficiency-engine@0.1.40 mcpee init --project <path>`.
+`npx --package=mcp-efficiency-engine@0.1.41 mcpee init --project <path>`.
 
 **2. Initialize your project**
 
@@ -45,9 +45,15 @@ If npm blocks the native `koffi` dependency, add `--allow-scripts=koffi`
 mcpee init --project C:\path\to\project
 ```
 
-Approve the tool downloads when asked (CodeGraph is required; the others are
-optional). The summary at the end shows the detected stack, the installed
+Approve the tool downloads when asked. CodeGraph is included in the bundle,
+but its code index is required only when application code exists. The summary
+at the end shows the detected stack, the installed
 capabilities and anything still incomplete.
+
+Git is not required to start from business documents or to draft specifications
+and architecture. Without Git, review the generated files directly; no diff is
+required. Documentation-only projects use source provenance and review gates,
+not CodeGraph health, to validate this work.
 
 **3. Work in Copilot Chat**
 

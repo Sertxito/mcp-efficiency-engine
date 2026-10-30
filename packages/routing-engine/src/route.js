@@ -295,18 +295,17 @@ function routeTask(projectRoot, task, options = {}) {
       result => ({ consulted: true, selected_count: result.length })).map((match) => ({ ...match, graph: "unified" }))
     : [];
   const codeGraphState = readCodeGraphState(projectRoot);
-  const documentOnlyGreenfield = (specificationTask || activeFeatures.length && ["plan", "tasks"].includes(requestedStage)) &&
-    !catalog.project_stack?.has_code_signals;
-  if (codeGraphState?.status !== "ready" && !documentOnlyGreenfield) {
+  const documentationOnly = catalog.project_stack?.has_code_signals === false;
+  if (codeGraphState?.status !== "ready" && !documentationOnly) {
     recordEvent(projectRoot, { event_name: "context.layer.completed",
       attributes: { layer: "graph.codegraph", consulted: false, outcome: "failure", reason: "Required local CodeGraph index is not ready." } });
     throw new Error("CodeGraph is required for routing but its local index is not ready; run mcpee init or mcpee sync.");
   }
-  const codeGraphMatches = !documentOnlyGreenfield
+  const codeGraphMatches = !documentationOnly
     ? observeLayer(projectRoot, "graph.codegraph", () => searchCodeGraph(projectRoot, task, limit),
       result => ({ consulted: true, selected_count: result.length })) : [];
-  if (documentOnlyGreenfield) recordEvent(projectRoot, { event_name: "context.layer.completed",
-    attributes: { layer: "graph.codegraph", consulted: false, outcome: "not-applicable", reason: "Documentation-only specification authoring has no application code to search." } });
+  if (documentationOnly) recordEvent(projectRoot, { event_name: "context.layer.completed",
+    attributes: { layer: "graph.codegraph", consulted: false, outcome: "not-applicable", reason: "This project has no application code to search; documentation-only discovery and architecture do not require a code index." } });
   const graphifyState = readGraphifyState(projectRoot);
   const graphifyMatches = graphifyState?.status === "ready"
     ? observeLayer(projectRoot, "graph.graphify", () => searchGraphify(projectRoot, task, limit),
@@ -330,7 +329,7 @@ function routeTask(projectRoot, task, options = {}) {
   const impactPaths = [...new Set([
     ...knowledge.map((source) => source.source_path),
     ...knowledgeGraph.filter((source) => source.graph === "unified").map((source) => source.source_path),
-  ])].slice(0, 10);
+  ])].filter((sourcePath) => !documentationOnly || !isScaffolding(projectRoot, sourcePath)).slice(0, 10);
   const impactPreflight = analyzeImpacts(projectRoot, impactPaths);
   const availableTools = discoverTools(projectRoot).tools
     .filter((tool) => tool.invokable)
@@ -396,7 +395,7 @@ function routeTask(projectRoot, task, options = {}) {
         ...(bundle_sha256 ? { bundle_sha256 } : {}) })),
     knowledge_graph_status: {
       unified: unifiedGraphStatus,
-      codegraph: documentOnlyGreenfield ? "not-applicable-documentation-only" : codeGraphState.status,
+      codegraph: documentationOnly ? "not-applicable-documentation-only" : codeGraphState.status,
       graphify: graphifyState?.status || "not-synchronized",
     },
     impact_preflight: impactPreflight,

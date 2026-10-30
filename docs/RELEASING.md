@@ -5,12 +5,21 @@
 - Repository: <https://github.com/Sertxito/mcp-efficiency-engine>
 - npm package: `mcp-efficiency-engine`
 - Commands: `mcpee` and `mcp-efficiency-engine`
-- Current candidate: **0.1.40**, following published **0.1.39**
+- Current candidate: **0.1.41**, following published **0.1.40**
 - Runtime: Node.js **>=24**
 
 Keep the normal pre-1.0 version sequence until stable acceptance is complete.
 Do not label the target architecture fully implemented or promote to 1.0.0
 based only on passing automated tests.
+
+The 0.1.41 patch extends documentation-only routing to discovery and architecture,
+not only functional specifications. Init, sync, rebuild, post-change sync and
+doctor do not require code-index health when no application code exists.
+Existing CodeGraph state and index files are preserved. Harness-only package
+metadata is excluded from documentation-only impact targets; actual source drift
+and phase approvals remain blocking. Generated guidance makes Git optional and
+requires direct file review when diff/status is unavailable. Adding application
+code restores CodeGraph gates. Acceptance uses fixtures, with no paid SDK run.
 
 The 0.1.40 patch automatically authorizes exact internal MCP task/status/cancel
 transport, the task's selected context to authenticated Copilot and post-task

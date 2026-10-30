@@ -2940,6 +2940,7 @@ test("documentation generation preserves custom output and routes requests from 
 
 test("routing fails closed when the required CodeGraph index is missing", () => {
   const root = temporaryProject();
+  fs.writeFileSync(path.join(root, "app.js"), "module.exports = () => 'application code';\n");
   initializeProject(root);
   syncProject(root);
   assert.throws(() => routeTask(root, "Understand the project"), /CodeGraph is required.*not ready/);
