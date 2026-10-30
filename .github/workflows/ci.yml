@@ -30,6 +30,8 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Test runtime and catalog
         run: npm test
+      - name: Audit dependency advisories
+        run: npm run audit:dependencies
       - name: Validate local documentation
         run: npm run docs:check-links
       - name: Validate installed npm package

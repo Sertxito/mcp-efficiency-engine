@@ -5,12 +5,20 @@
 - Repository: <https://github.com/Sertxito/mcp-efficiency-engine>
 - npm package: `mcp-efficiency-engine`
 - Commands: `mcpee` and `mcp-efficiency-engine`
-- Current candidate: **0.1.42**, following published **0.1.41**
+- Current candidate: **0.1.43**, following published **0.1.42**
 - Runtime: Node.js **>=24**
 
 Keep the normal pre-1.0 version sequence until stable acceptance is complete.
 Do not label the target architecture fully implemented or promote to 1.0.0
 based only on passing automated tests.
+
+The 0.1.43 security patch updates vulnerable transitive dependencies and bundles
+the pinned SDK JavaScript without its vulnerable transitive Zod installation.
+The source build uses patched Zod; the published package retains its patched
+direct Zod. Native runtime packages remain platform-selected and version-aligned
+with the SDK. Build provenance and MIT notices are included. Both the source
+dependency audit and a fresh consumer audit must pass, along with an actual
+native library load on Linux and Windows. No model session is started.
 
 The 0.1.42 follow-up delivers the no-Git/documentation-only guidance through
 the generated operating contract as well as fresh project instructions and
@@ -66,14 +74,18 @@ tests remain mocked and do not spend model quota.
    ```sh
    npm ci
    npm test
+   npm run audit:dependencies
    npm run docs:check-links
    npm run pack:check
    ```
 
-   The tarball check seeds a consumer lockfile with the exact dependency
-   versions and integrities from the project lockfile, then uses `npm ci
-   --offline` with the cached tarballs populated by the initial `npm ci`.
-   It does not require previously cached registry metadata. It
+   The tarball check builds the pinned SDK JavaScript and installs the package
+   in a fresh consumer without copying repository overrides or its lockfile.
+   Installation prefers cached downloads but may query registry metadata;
+   auditing contacts npm's advisory service.
+   It checks that the vulnerable SDK dependency tree is absent, verifies the
+   bundle digest/export surface and loads the actual native library in a child
+   process. It
    tests both command aliases, preserves consumer-owned instructions on
    refresh, and exports local OTLP. Its CodeGraph fixture is a contract test,
    not a real indexer certification. Optional official-reference URL checks
