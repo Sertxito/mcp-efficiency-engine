@@ -5,28 +5,30 @@
 - Repository: <https://github.com/Sertxito/mcp-efficiency-engine>
 - npm package: `mcp-efficiency-engine`
 - Commands: `mcpee` and `mcp-efficiency-engine`
-- Current candidate: **0.1.37**, following published **0.1.36**
+- Current candidate: **0.1.38**, following published **0.1.37**
 - Runtime: Node.js **>=24**
 
 Keep the normal pre-1.0 version sequence until stable acceptance is complete.
 Do not label the target architecture fully implemented or promote to 1.0.0
 based only on passing automated tests.
 
-The 0.1.37 patch separates functional authoring from static evidence extraction.
-Explicit specification requests produce source-grounded, structurally validated
-Markdown drafts rather than empty discovery templates. Authoring sessions are
-read-only; MCPEE saves the checked document. Generic case padding and
-scaffolding-only proposals are removed, and an MCPEE-only dependency no longer
-classifies an empty project as brownfield. Installation and daily-use guidance
-also explain VS Code's separate MCP enablement check. Existing projects should
+The 0.1.38 patch completes the generic documentation-to-specification output:
+one product index, independent use-case Markdown documents and a traceability
+manifest. Cases require one actor goal, explicit prerequisite cases and local
+open questions. All product sources in scope are selected, not a keyword top
+five; failed conversions and size limits block explicitly. Documentation-only
+authoring does not require querying an application CodeGraph index, and plain
+npm-init metadata is not evidence of application code. Existing projects should
 upgrade and run `mcpee update`, followed by `mcpee sync` to refresh detection
 and inventories. Old drafts and approved contracts are preserved.
 
 The functional gate checks structure and provenance, not semantic correctness.
-One authorized real SDK acceptance with a small synthetic requirements document
-produced a persisted use case with all selected source sections mapped; it is
-not certification of arbitrary project completeness. Automated SDK tests remain
-mocked and do not spend model quota.
+The prior 0.1.37 release had one authorized real SDK acceptance with a small
+synthetic requirements document. No additional paid SDK attempt has been run
+for 0.1.38. The atomic-output routing, execution and persistence tests use an
+SDK fixture with a different synthetic product; they do not prove semantic
+decomposition quality or certify arbitrary project completeness. Automated SDK
+tests remain mocked and do not spend model quota.
 
 ## Before merging
 
@@ -79,8 +81,8 @@ After deployment, verify:
 
 ```sh
 npm view mcp-efficiency-engine version
-npm view mcp-efficiency-engine@0.1.37 bin engines dist.integrity --json
-npx --package=mcp-efficiency-engine@0.1.37 mcpee help
+npm view mcp-efficiency-engine@0.1.38 bin engines dist.integrity --json
+npx --package=mcp-efficiency-engine@0.1.38 mcpee help
 ```
 
 Also check the release workflow and GitHub Pages deployment. A failed

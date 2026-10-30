@@ -34,6 +34,8 @@ function draft(file) {
     actors: [{ id: "ACT-001", name: "Prospective participant", goal: "Understand when and how their team can participate." }],
     use_cases: [{
       id: "UC-001", title: "Check team registration availability", actor: "ACT-001", basis: "documented",
+      goal: "Understand whether participation registration is available for an official team.",
+      dependencies: [], open_questions: [],
       trigger: "The visitor opens the public participation page.",
       preconditions: ["The organizer has not yet published an authorized registration link."],
       main_flow: ["The visitor reads the official team size of four participants.", "The page explains that registration remains closed."],
@@ -54,7 +56,7 @@ function draft(file) {
 after(() => roots.forEach((root) => fs.rmSync(root, { recursive: true, force: true })));
 
 test("specification intent distinguishes authoring from ordinary audits and coding", () => {
-  for (const task of ["Prepara las especificaciones funcionales de League", "Genera casos de uso del documento", "Draft functional specifications", "hazme el greenfield", "brownfield del proyecto"]) {
+  for (const task of ["Prepara las especificaciones funcionales de League", "Genera casos de uso del documento", "Draft functional specifications", "hazme el greenfield", "Quiero que hagas el greenfield con estos documentos", "brownfield del proyecto"]) {
     assert.equal(isSpecificationTask(task), true, task);
   }
   for (const task of ["Fix a bug in the greenfield detector", "Review the functional specification", "Explain use cases", "Create a website", "Write tests for the specification parser"]) {
@@ -116,10 +118,16 @@ test("readable specifications preserve flows, acceptance criteria, traceability 
   const response = JSON.stringify(draft(file));
   const result = publishFunctionalSpec(root, response, sources);
   assert.equal(result.path, "docs/specifications/league-public-participation.md");
-  assert.match(result.content, /### UC-001 - Check team registration availability/);
-  assert.match(result.content, /Main flow/);
-  assert.match(result.content, /Given:?\*\*/);
-  assert.match(result.content, /league\.md#L4/);
+  assert.match(result.content, /\[UC-001 - Check team registration availability\]\(league-public-participation\/UC-001\.md\)/);
+  const atomic = fs.readFileSync(path.join(root, result.casePaths[0]), "utf8");
+  assert.match(atomic, /### UC-001 - Check team registration availability/);
+  assert.match(atomic, /Main flow/);
+  assert.match(atomic, /Given:?\*\*/);
+  assert.match(atomic, /\.\.\/\.\.\/\.\.\/knowledge\/sources\/business\/league\.md#L4/);
+  assert.match(atomic, /Product index/);
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, result.manifestPath)));
+  assert.equal(manifest.cases[0].sha256, crypto.createHash("sha256").update(atomic).digest("hex"));
+  assert.equal(manifest.review_required, true);
   assert.equal(publishFunctionalSpec(root, response, sources).content, result.content);
   fs.appendFileSync(path.join(root, result.path), "\nOwner changes\n");
   assert.throws(() => publishFunctionalSpec(root, response, sources), /already exists with different content/);
@@ -145,6 +153,8 @@ test("validation rejects empty, generic, ungrounded and incompletely mapped outp
     [(data) => { data.coverage[0].use_cases = ["UC-999"]; }, /Invalid use-case mapping/],
     [(data) => { data.coverage.push(data.coverage[0]); }, /Duplicate source section/],
     [(data) => { data.use_cases[0].evidence.pop(); }, /Unsupported covered section/],
+    [(data) => { data.use_cases[0].dependencies = ["UC-999"]; }, /Invalid prerequisite/],
+    [(data) => { data.use_cases[0].dependencies = ["UC-001"]; }, /Invalid prerequisite/],
   ]) {
     const data = draft(file);
     modify(data);
@@ -154,6 +164,157 @@ test("validation rejects empty, generic, ungrounded and incompletely mapped outp
   assert.throws(() => validateFunctionalSpec(root, "Discovery completed; please fill in the templates.", sources), /incomplete/);
   fs.appendFileSync(path.join(root, file), "\nChanged business rules.\n");
   assert.throws(() => validateFunctionalSpec(root, JSON.stringify(draft(file)), sources), /source changed/);
+});
+
+test("generic greenfield includes all seven product documents, not only keyword top-five matches", () => {
+  const { root, file } = fixture();
+  for (let index = 2; index <= 7; index += 1) {
+    fs.writeFileSync(path.join(root, `knowledge/sources/business/requirements-${index}.md`),
+      `# Product requirement ${index}\n\nConfirmed functional requirement number ${index} for an unrelated library product.\n`);
+  }
+  syncProject(root);
+  const plan = routeTask(root, "Haz el greenfield con la documentacion del proyecto");
+  assert.equal(plan.functional_specification.mode, "greenfield");
+  assert.equal(plan.knowledge.length, 7);
+  assert.ok(plan.knowledge.every((source) => source.selection === "product-documentation"));
+  const scoped = routeTask(root, `Draft functional specifications from ${file}`);
+  assert.deepEqual(scoped.knowledge.map((source) => source.source_path), [file]);
+});
+
+test("unconverted documentation blocks generic and explicitly scoped authoring without silent omissions", () => {
+  const { root, file } = fixture();
+  const original = "knowledge/sources/business/library.docx";
+  fs.writeFileSync(path.join(root, original), Buffer.from([0x50, 0x4b, 0, 1]));
+  syncProject(root, { tools: [], graphify: { installed: false } });
+  assert.throws(() => routeTask(root, "Haz el greenfield con la documentacion"), /library\.docx \(requires-tool\)/);
+  assert.throws(() => routeTask(root, `Draft functional specifications from ${original}`), /library\.docx \(requires-tool\)/);
+  assert.equal(routeTask(root, `Draft functional specifications from ${file}`).knowledge.length, 1);
+});
+
+test("documentation-only projects remain greenfield with npm-init metadata and no application code", () => {
+  const { root } = fixture();
+  fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({
+    name: "unrelated-library", version: "1.0.0",
+    scripts: { test: 'echo "Error: no test specified" && exit 1' },
+  }));
+  syncProject(root);
+  assert.equal(detectProjectCapabilities(root, readCatalog().catalog).has_code_signals, false);
+  assert.equal(routeTask(root, "haz el greenfield").functional_specification.mode, "greenfield");
+});
+
+test("a non-League greenfield routes and executes through independent case files with working links and dependency checks", async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "mcpee-library-atomic-"));
+  roots.push(root);
+  initializeProject(root);
+  const file = "knowledge/sources/business/library.md";
+  fs.writeFileSync(path.join(root, file), "# Public library\n\n## Search\nReaders can search the public catalog without signing in.\n\n## Borrowing\nMembers must confirm an available copy before requesting a loan.\n");
+  syncProject(root);
+  const sources = prepareFunctionalSources(root, [file]);
+  const data = draft(file);
+  data.title = "Public library functional specifications";
+  data.slug = "public-library";
+  data.summary = "Let readers discover books and request available copies without assuming a registration process.";
+  data.scope = ["Search the public book catalog and request an available library copy."];
+  data.non_goals = ["Do not implement payment, delivery or administrative operations."];
+  data.actors = [{ id: "ACT-001", name: "Library reader", goal: "Discover and borrow an available library book." }];
+  const search = data.use_cases[0];
+  Object.assign(search, {
+    title: "Search the public book catalog", goal: "Find a book in the public library catalog.",
+    trigger: "The reader submits a catalog search.",
+    preconditions: ["The public catalog is available."],
+    main_flow: ["The reader supplies a book title.", "The catalog shows matching books."],
+    alternatives: ["No matches are displayed as an explicit no-results state."],
+    postconditions: ["The reader sees available catalog matches without signing in."],
+    rules: ["Public searching does not require the reader to sign in."],
+    acceptance_criteria: [{ given: "A reader has not signed in.", when: "They search for a title.", then: "Public catalog search remains accessible." }],
+    evidence: [{ path: file, line: 4, quote: "Readers can search the public catalog without signing in." }],
+  });
+  const borrowing = structuredClone(search);
+  Object.assign(borrowing, {
+    id: "UC-002", title: "Request an available book copy", goal: "Request a loan of one available book copy.",
+    dependencies: ["UC-001"], open_questions: ["How long may an eligible member retain a borrowed copy?"],
+    trigger: "The member selects an available book copy.",
+    preconditions: ["The reader is a member and a copy is available."],
+    main_flow: ["The member confirms the selected copy is available.", "The member requests the loan."],
+    alternatives: ["A copy no longer available cannot be requested."],
+    postconditions: ["The requested loan identifies the selected available copy."],
+    rules: ["A member must confirm copy availability before requesting a loan."],
+    acceptance_criteria: [{ given: "A member has selected an available copy.", when: "They confirm availability and request a loan.", then: "The request identifies that available copy." }],
+    evidence: [{ path: file, line: 7, quote: "Members must confirm an available copy before requesting a loan." }],
+  });
+  data.use_cases.push(borrowing);
+  data.coverage[0].reason = "Public catalog searching is specified in UC-001.";
+  data.coverage[1].reason = "Available-copy loan requests are specified in UC-002.";
+  data.coverage[1].use_cases = ["UC-002"];
+  data.open_questions = [];
+  const cycle = structuredClone(data);
+  cycle.use_cases[0].dependencies = ["UC-002"];
+  assert.throws(() => publishFunctionalSpec(root, JSON.stringify(cycle), sources), /Cyclic use-case prerequisites/);
+  const unknown = structuredClone(data);
+  unknown.use_cases[1].dependencies = ["UC-099"];
+  assert.throws(() => publishFunctionalSpec(root, JSON.stringify(unknown), sources), /Invalid prerequisite use case in UC-002/);
+  const plan = routeTask(root, "Run the greenfield process using the project documentation; stop at atomic use-case specifications.");
+  assert.equal(plan.functional_specification.mode, "greenfield");
+  assert.deepEqual(plan.knowledge.map((source) => source.source_path), [file]);
+  const execution = await runCopilotTask(root, "Run the greenfield process using the project documentation", plan, {
+    approved: true,
+    clientFactory: () => ({
+      async start() {}, async stop() {},
+      async createSession() {
+        return {
+          sessionId: "library-atomic-fixture",
+          async sendAndWait({ prompt }) {
+            assert.match(prompt, /one independent Markdown specification per use case/);
+            assert.match(prompt, /one business goal|exactly one business goal/);
+            assert.match(prompt, /library\.md/);
+            return { data: { content: JSON.stringify(data) } };
+          },
+          async disconnect() {},
+        };
+      },
+    }),
+  });
+  const result = publishFunctionalSpec(root, JSON.stringify(data), sources);
+  assert.deepEqual(execution.specification.casePaths, result.casePaths);
+  assert.equal(result.casePaths.length, 2);
+  assert.equal(result.unresolvedDecisions, 1);
+  for (const [index, casePath] of result.casePaths.entries()) {
+    const markdown = fs.readFileSync(path.join(root, casePath), "utf8");
+    const other = index === 0 ? borrowing : search;
+    assert.ok(!markdown.includes(`### ${other.id}`));
+    for (const match of markdown.matchAll(/\]\(([^)#]+)(?:#[^)]*)?\)/g)) {
+      assert.ok(fs.existsSync(path.resolve(root, path.dirname(casePath), decodeURIComponent(match[1]))), match[1]);
+    }
+  }
+  const first = path.join(root, result.casePaths[0]);
+  fs.appendFileSync(first, "\nOwner clarification.\n");
+  const originalIndex = fs.readFileSync(path.join(root, result.path), "utf8");
+  assert.throws(() => publishFunctionalSpec(root, JSON.stringify(data), sources), /already exists with different content/);
+  assert.equal(fs.readFileSync(path.join(root, result.path), "utf8"), originalIndex);
+  assert.match(fs.readFileSync(first, "utf8"), /Owner clarification/);
+});
+
+test("any atomic file conflict preserves the entire existing bundle before new files are written", () => {
+  const { root, file, sources } = fixture();
+  const data = draft(file);
+  const directory = `docs/specifications/${data.slug}`;
+  fs.mkdirSync(path.join(root, directory), { recursive: true });
+  const existing = path.join(root, directory, "UC-001.md");
+  fs.writeFileSync(existing, "An owner-authored case must not be overwritten.");
+  assert.throws(() => publishFunctionalSpec(root, JSON.stringify(data), sources), /UC-001\.md already exists/);
+  assert.equal(fs.readFileSync(existing, "utf8"), "An owner-authored case must not be overwritten.");
+  assert.equal(fs.existsSync(path.join(root, `${directory}.md`)), false);
+  assert.equal(fs.existsSync(path.join(root, directory, "manifest.json")), false);
+});
+
+test("oversized product documentation fails before a paid SDK session", async () => {
+  const { root, file } = fixture();
+  fs.writeFileSync(path.join(root, file), "x".repeat(2 * 1024 * 1024 + 1));
+  let started = false;
+  await assert.rejects(runCopilotTask(root, "haz el greenfield", {
+    workflow: { id: "refine-backlog" }, agent: { id: "product" }, knowledge: [{ source_path: file }],
+  }, { approved: true, clientFactory: () => { started = true; } }), /exceed the 2 MiB limit/);
+  assert.equal(started, false);
 });
 
 test("authored behavior fills matching review proposals without manual copying or automatic approval", () => {
@@ -221,23 +382,17 @@ test("the executor persists a validated deliverable and fails instead of reporti
     { approved: true, clientFactory: () => client });
   assert.equal(disconnected, 2);
   assert.equal(result.specification.status, "draft-structurally-validated");
-  assert.deepEqual(result.changedPaths, [result.specification.path]);
-  assert.match(fs.readFileSync(path.join(root, result.specification.path), "utf8"), /Registration remains closed|registration remains closed/);
+  assert.deepEqual(result.changedPaths, [result.specification.path, result.specification.manifestPath, ...result.specification.casePaths].sort());
+  assert.match(fs.readFileSync(path.join(root, result.specification.casePaths[0]), "utf8"), /Registration remains closed|registration remains closed/);
 });
 
 test("functional routing takes priority over document and frontend keywords", () => {
   const { root, file } = fixture();
   syncProject(root);
-  const toolRoot = path.join(root, ".mcpee/tools/npm/node_modules/@colbymchenry");
-  for (const name of ["codegraph", `codegraph-${process.platform}-${process.arch}`]) {
-    fs.mkdirSync(path.join(toolRoot, name), { recursive: true });
-    fs.writeFileSync(path.join(toolRoot, name, "package.json"), '{"version":"1.6.2"}');
-  }
-  fs.writeFileSync(path.join(toolRoot, "codegraph/npm-shim.js"), 'process.stdout.write("[]");');
-  fs.writeFileSync(path.join(root, ".mcpee/state/codegraph.json"), JSON.stringify({ generated_by: "mcpee", status: "ready" }));
   const plan = routeTask(root, "Prepara las especificaciones funcionales greenfield de la web a partir del documento");
   assert.equal(plan.agent.id, "product");
   assert.equal(plan.functional_specification.mode, "greenfield");
   assert.ok(plan.skills.some(({ id }) => id === "requirements-discovery"));
   assert.equal(plan.knowledge[0].source_path, file);
+  assert.equal(plan.knowledge_graph_status.codegraph, "not-applicable-documentation-only");
 });
