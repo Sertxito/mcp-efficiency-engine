@@ -110,6 +110,9 @@ function routeTask(projectRoot, task, options = {}) {
   if (!Number.isInteger(limit) || limit < 1 || limit > 20) throw new Error("Route context limit must be between 1 and 20");
   const catalog = observeLayer(projectRoot, "catalog", () => readInstalledCatalog(projectRoot),
     result => ({ consulted: true, agent_count: result.agents.length, skill_count: result.skills.length, workflow_count: result.workflows.length }));
+  const detectedTechnologyIds = new Set(
+    (catalog.project_stack?.detected_technologies || []).map(({ id }) => id),
+  );
   const workflowScores = rules.routes.map((route, index) => ({
     ...route,
     ...scoreKeywords(normalizedTask, route.keywords),
@@ -120,12 +123,30 @@ function routeTask(projectRoot, task, options = {}) {
     ? workflowScores[0]
     : workflowScores.find((route) => route.workflow === rules.fallback_workflow) || workflowScores[0];
   if (!selected) throw new Error("No installed MCPEE workflows are available; install a workflow with 'mcpee capabilities install <id>'.");
+  const databaseRecoveryRoute = selected.workflow === "diagnose-operation" &&
+    detectedTechnologyIds.has("sql") && !["azure", "aws"].some((id) => detectedTechnologyIds.has(id))
+    ? workflowScores.find((route) => route.workflow === "database-change-with-baseline" && route.score > 0 && route.score === selected.score)
+    : null;
+  if (databaseRecoveryRoute) selected = databaseRecoveryRoute;
   const specificationTask = isSpecificationTask(task);
+  const features = listFeatures(projectRoot);
+  const namedFeatures = features.filter((feature) => new RegExp(`(^|[^a-z0-9-])${feature.id}(?=$|[^a-z0-9-])`, "i").test(task));
+  const activeFeatures = namedFeatures.length ? namedFeatures : features.length === 1 ? features : [];
+  const actionable = normalize(task).replace(/\b(?:do not implement|don't implement|sin implementar|no implementar|no implementes)\b/g, "");
+  const requestedStage = specificationTask ? "specification"
+    : /\b(?:tasks|tareas)\b/.test(actionable) && /\b(?:create|generate|write|genera\w*|crea\w*|prepara\w*)\b/.test(actionable) ? "tasks"
+    : /\b(?:plan|planifica\w*)\b/.test(actionable) && (/\b(?:create|generate|write|genera\w*|crea\w*|prepara\w*|planifica\w*)\b/.test(actionable) || /^(?:please\s+)?plan\b/.test(actionable)) ? "plan"
+    : /\b(?:implement|implementa|implementar|implementad|implementes|programa|programar)\b|\bbuild\s+(?:a|an|the|this)\b/.test(actionable) ? "implementation"
+    : "review";
   if (specificationTask) {
     const specificationRoute = workflowScores.find((route) => route.workflow === "refine-backlog") ||
       workflowScores.find((route) => route.workflow === "understand-project");
     if (!specificationRoute) throw new Error("Specification authoring requires the refine-backlog or understand-project workflow.");
     selected = { ...specificationRoute, score: 1, matches: ["functional-specification-authoring"] };
+  } else if (activeFeatures.length && ["plan", "tasks"].includes(requestedStage)) {
+    const phaseWorkflow = requestedStage === "plan" ? "change-architecture" : "refine-backlog";
+    const phaseRoute = workflowScores.find((route) => route.workflow === phaseWorkflow);
+    if (phaseRoute) selected = { ...phaseRoute, score: 1, matches: [`specification-phase-${requestedStage}`] };
   }
   const specialistScores = rules.specialists.map((specialist, index) => ({
     ...specialist,
@@ -133,9 +154,6 @@ function routeTask(projectRoot, task, options = {}) {
     order: index,
   })).filter((specialist) => catalog.agents.some((agent) => agent.id === specialist.agent))
     .sort((left, right) => right.score - left.score || left.order - right.order);
-  const detectedTechnologyIds = new Set(
-    (catalog.project_stack?.detected_technologies || []).map(({ id }) => id),
-  );
   const projectAgentId = detectedTechnologyIds.has("angular") ||
     detectedTechnologyIds.has("react") || detectedTechnologyIds.has("vue")
     ? "frontend"
@@ -146,6 +164,7 @@ function routeTask(projectRoot, task, options = {}) {
     : null;
   const agentId = specificationTask && catalog.agents.some((agent) => agent.id === "product") ? "product"
     : specificationTask ? "orchestrator"
+    : databaseRecoveryRoute ? "database"
     : specialistScores[0]?.score > 0
     ? specialistScores[0].agent
     : preferredProjectAgent ||
@@ -193,7 +212,7 @@ function routeTask(projectRoot, task, options = {}) {
     };
   });
   const playbooks = catalog.playbooks
-    .filter((item) => matchesTechnology(item.technology_keywords))
+    .filter((item) => item.workflows.includes(workflow.id) && matchesTechnology(item.technology_keywords))
     .map((item) => ({
       id: item.id,
       description: item.description,
@@ -276,7 +295,8 @@ function routeTask(projectRoot, task, options = {}) {
       result => ({ consulted: true, selected_count: result.length })).map((match) => ({ ...match, graph: "unified" }))
     : [];
   const codeGraphState = readCodeGraphState(projectRoot);
-  const documentOnlyGreenfield = specificationTask && !catalog.project_stack?.has_code_signals;
+  const documentOnlyGreenfield = (specificationTask || activeFeatures.length && ["plan", "tasks"].includes(requestedStage)) &&
+    !catalog.project_stack?.has_code_signals;
   if (codeGraphState?.status !== "ready" && !documentOnlyGreenfield) {
     recordEvent(projectRoot, { event_name: "context.layer.completed",
       attributes: { layer: "graph.codegraph", consulted: false, outcome: "failure", reason: "Required local CodeGraph index is not ready." } });
@@ -315,15 +335,6 @@ function routeTask(projectRoot, task, options = {}) {
   const availableTools = discoverTools(projectRoot).tools
     .filter((tool) => tool.invokable)
     .map((tool) => tool.id);
-  const features = listFeatures(projectRoot);
-  const namedFeatures = features.filter((feature) => new RegExp(`(^|[^a-z0-9-])${feature.id}(?=$|[^a-z0-9-])`, "i").test(task));
-  const activeFeatures = namedFeatures.length ? namedFeatures : features.length === 1 ? features : [];
-  const actionable = normalize(task).replace(/\b(?:do not implement|don't implement|sin implementar|no implementar|no implementes)\b/g, "");
-  const requestedStage = specificationTask ? "specification"
-    : /\b(?:tasks|tareas)\b/.test(actionable) && /\b(?:create|generate|write|genera\w*|crea\w*|prepara\w*)\b/.test(actionable) ? "tasks"
-    : /\b(?:plan|planifica\w*)\b/.test(actionable) && /\b(?:create|generate|write|genera\w*|crea\w*|prepara\w*|planifica\w*)\b/.test(actionable) ? "plan"
-    : /\b(?:implement|implementa|implementar|implementad|implementes|programa|programar)\b|\bbuild\s+(?:a|an|the|this)\b/.test(actionable) ? "implementation"
-    : "review";
   const plan = {
     schema_version: 1,
     generated_at: new Date().toISOString(),

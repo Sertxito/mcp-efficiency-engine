@@ -455,7 +455,7 @@
       "id": "architecture-challenge",
       "description": "Challenge an architecture proposal against evidence, simpler options, and reversible experiments.",
       "path": "mcpee/playbooks/architecture-challenge.md",
-      "technology_keywords": ["architecture", "rewrite", "microservices", "kubernetes", "platform adoption", "modernization"],
+      "technology_keywords": ["architecture challenge", "architecture proposal", "architecture decision", "rewrite", "microservices", "kubernetes", "platform adoption", "modernization"],
       "workflows": ["architecture-challenge", "change-architecture"]
     },
     {

@@ -127,6 +127,13 @@ test("missing canonical approval blocks planning and execution before SDK constr
   const authored = routeTask(root, "Haz el greenfield con la documentación, sin implementar");
   assert.equal(authored.specification_workspace.requested_stage, "specification");
   assert.deepEqual(authored.knowledge.map((item) => item.source_path), ["knowledge/sources/business/library.md"]);
+  const planning = routeTask(root, "Plan public-catalog");
+  assert.equal(planning.specification_workspace.requested_stage, "plan");
+  assert.equal(planning.workflow.id, "change-architecture");
+  assert.equal(planning.knowledge_graph_status.codegraph, "not-applicable-documentation-only");
+  await assert.rejects(runCopilotTask(root, "Plan public-catalog", planning,
+    { approved: true, clientFactory: () => { started = true; } }), /Specification phase blocked/);
+  assert.equal(started, false);
 });
 
 test("navigation preserves owner edits and manual drafts stay visibly unvalidated", (t) => {
