@@ -9,7 +9,7 @@ const { renderCatalog } = require("../../copilot-renderer/src/render");
 const { generateProjectDocumentation } = require("../../documentation-engine/src/generate");
 const { buildUnifiedGraph } = require("../../knowledge-engine/src/unified");
 const { updateGraphifyGraph } = require("../../knowledge-engine/src/graphify");
-const { discoverBrownfieldSpec } = require("../../spec-engine/src/brownfield");
+const { discoverBrownfieldSpec, isScaffolding } = require("../../spec-engine/src/brownfield");
 
 const PROCESSOR_CATALOG_PATH = path.join(__dirname, "../../../catalog/source-processors/processors.json");
 const DEFAULT_IGNORES = new Set([
@@ -467,6 +467,7 @@ function collectSources(projectRoot, config) {
         const relative = relativePath(project, absolute);
         if (matchesIgnore(relative, entry.name, config.ignore)) continue;
         if (entry.isSymbolicLink()) continue;
+        if (relative.startsWith("specs/") && isScaffolding(project, relative)) continue;
         if (entry.isDirectory()) {
           visit(absolute);
           continue;

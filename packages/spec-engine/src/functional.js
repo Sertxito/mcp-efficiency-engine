@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { z } = require("zod");
 const { projectPath, ensureDirectory, isScaffolding, listBrownfieldSpecs, readProposal } = require("./brownfield");
+const { workspace, decisionDocument, renderDecisions, refreshWorkspaceIndex, navigationTarget } = require("./lifecycle");
 
 const text = z.string().trim().min(8).max(4000).refine((value) =>
   !/<!--|\b(?:TODO|TBD|placeholder|lorem ipsum)\b|Owner-confirmed normal behavior|Define a representative valid input/i.test(value),
@@ -115,7 +116,7 @@ function functionalPrompt(sources, mode) {
   return [
     `Functional specification authoring (${mode}). Static discovery is an evidence inventory, NOT the requested deliverable.`,
     "Read the selected product sources once. Write in the user's language. Do not implement application code, install dependencies, approve requirements, or run specs discover as a substitute for analysis.",
-    "The final assistant message MUST be one JSON object with the shape below (no commentary). MCPEE validates it and renders an index plus one independent Markdown specification per use case under docs/specifications/. Do not write those files yourself.",
+    "The final assistant message MUST be one JSON object with the shape below (no commentary). MCPEE validates it and renders an index plus one independent Markdown specification per use case under specs/<product-slug>/. Do not write those files yourself.",
     "Complete the documentation-to-specification process: establish product scope and non-goals, identify actors and outcomes, decompose independent actor goals into atomic use cases, derive their detailed behavior, and account for source coverage and unresolved decisions. Do not stop at an inventory or high-level journey summary. Each case must have exactly one business goal; split independently useful actions into different cases rather than bundling them because they share a page. Record prerequisite case IDs as dependencies, not navigation links. Distinguish shared product constraints from individual behavior. Missing visual references are an explicit gap, not assets claimed to exist or an excuse to omit documented functional behavior.",
     "Use concrete business actors, goals, triggers, numbered flows, alternatives, postconditions, business rules and observable Given/When/Then criteria. Do not provide generic valid/invalid-input scenarios. Keep uncertain rules as open questions; label proposed behavior. Brownfield observations are not automatically desired behavior.",
     "Every use case needs an exact source-line quote. Evidence proves provenance, not semantic correctness. Account for EVERY supplied top-level source section in coverage, including its subsections, using its exact path and line. Mark covered only with related use-case IDs; deferred or out-of-scope requires a concrete reason. Do not hide omissions by calling a partial draft exhaustive.",
@@ -230,7 +231,7 @@ function renderFunctionalSpec(document, sources, { from, atomicCase = null } = {
   const label = (english, spanish) => document.language === "es" ? spanish : english;
   const bullet = (values) => values.map((value) => `- ${value}`).join("\n");
   const numbered = (values) => values.map((value, index) => `${index + 1}. ${value}`).join("\n");
-  const sourceLink = (file, line) => `[${file}:${line}](${path.posix.relative(path.posix.dirname(from || `docs/specifications/${document.slug}.md`), file).split("/").map(encodeURIComponent).join("/")}#L${line})`;
+  const sourceLink = (file, line) => `[${file}:${line}](${path.posix.relative(path.posix.dirname(from || `${workspace(document.slug)}/spec.md`), file).split("/").map(encodeURIComponent).join("/")}#L${line})`;
   return [
     "<!-- MCPEE functional specification draft; human review required -->",
     `# ${document.title}`, "",
@@ -258,7 +259,7 @@ function renderFunctionalSpec(document, sources, { from, atomicCase = null } = {
       ...useCase.evidence.map((reference) => `- ${sourceLink(reference.path, reference.line)}: ${reference.quote}`),
       "", `#### ${label("Prerequisite use cases", "Casos previos necesarios")}`,
       useCase.dependencies.length
-        ? useCase.dependencies.map((id) => `- [${id}](${atomicCase ? `${id}.md` : `${document.slug}/${id}.md`})`).join("\n")
+        ? useCase.dependencies.map((id) => `- [${id}](${id}.md)`).join("\n")
         : label("No prerequisite use case.", "Ningun caso previo necesario."),
       "", `#### ${label("Case decisions still open", "Decisiones pendientes del caso")}`,
       useCase.open_questions.length ? bullet(useCase.open_questions) : label("None recorded.", "Ninguna registrada."),
@@ -277,8 +278,8 @@ function renderFunctionalSpec(document, sources, { from, atomicCase = null } = {
 
 function publishFunctionalSpec(root, response, sources) {
   const document = validateFunctionalSpec(root, response, sources);
-  const relative = `docs/specifications/${document.slug}.md`;
-  const directory = `docs/specifications/${document.slug}`;
+  const directory = workspace(document.slug);
+  const relative = `${directory}/spec.md`;
   const caseFiles = document.use_cases.map((useCase) => {
     const file = `${directory}/${useCase.id}.md`;
     const selectedSources = new Set(useCase.evidence.map((reference) => reference.path));
@@ -291,13 +292,13 @@ function publishFunctionalSpec(root, response, sources) {
       coverage: document.coverage.filter((section) => section.use_cases.includes(useCase.id)),
     };
     const content = renderFunctionalSpec(isolated, sources.filter((source) => selectedSources.has(source.path)), { from: file, atomicCase: useCase.id });
-    return { path: file, content: `${content}\n[${document.language === "es" ? "Indice del producto" : "Product index"}](../${document.slug}.md)\n` };
+    return { path: file, content: `${content}\n[${document.language === "es" ? "Indice del producto" : "Product index"}](spec.md)\n` };
   });
   const overview = renderFunctionalSpec({ ...document, use_cases: [] }, sources);
   const caseLinks = document.use_cases.map((useCase) =>
-    `- [${useCase.id} - ${useCase.title}](${document.slug}/${useCase.id}.md): ${useCase.goal}`).join("\n");
+    `- [${useCase.id} - ${useCase.title}](${useCase.id}.md): ${useCase.goal}`).join("\n");
   const casesHeading = document.language === "es" ? "## Casos de uso" : "## Use cases";
-  const content = overview.replace(casesHeading, () => `${casesHeading}\n\n${caseLinks}`);
+  const content = `${overview.replace(casesHeading, () => `${casesHeading}\n\n${caseLinks}`)}\n[Decisions / Decisiones](decisions.md) · [Project workspace / Espacio del proyecto](${path.posix.relative(directory, navigationTarget(root))})\n`;
   const unresolved = document.open_questions.length + document.use_cases.reduce((total, useCase) => total + useCase.open_questions.length, 0);
   const manifestPath = `${directory}/manifest.json`;
   const manifest = {
@@ -318,7 +319,11 @@ function publishFunctionalSpec(root, response, sources) {
     open_questions: document.open_questions,
     unresolved_decisions: unresolved,
   };
-  const outputs = [...caseFiles, { path: manifestPath, content: `${JSON.stringify(manifest, null, 2)}\n` }, { path: relative, content }];
+  const decisions = decisionDocument(document);
+  const outputs = [...caseFiles, { path: manifestPath, content: `${JSON.stringify(manifest, null, 2)}\n` }, { path: relative, content },
+    { path: `${directory}/lifecycle.json`, content: `${JSON.stringify({ generated_by: "mcpee", approvals: {} }, null, 2)}\n` },
+    { path: `${directory}/decisions.json`, content: `${JSON.stringify(decisions, null, 2)}\n` },
+    { path: `${directory}/decisions.md`, content: renderDecisions(decisions) }];
   for (const file of outputs) {
     const filename = projectPath(root, file.path);
     if (fs.existsSync(filename) && fs.readFileSync(filename, "utf8") !== file.content) {
@@ -340,8 +345,10 @@ function publishFunctionalSpec(root, response, sources) {
     throw error;
   }
   const reviews = completeReviewProposals(root, document, sources, relative);
+  const navigation = refreshWorkspaceIndex(root);
   return {
     path: relative, content, reviews, casePaths: caseFiles.map((file) => file.path), manifestPath,
+    workspacePath: navigation.path,
     useCaseCount: document.use_cases.length, deferredSections: manifest.deferred_sections, unresolvedDecisions: unresolved,
   };
 }
@@ -370,7 +377,7 @@ function completeReviewProposals(root, document, sources, documentPath) {
       ...cases.flatMap((useCase) => [
         "", `### ${useCase.id} - ${useCase.title}`, "",
         `Actor: ${document.actors.find(({ id }) => id === useCase.actor).name}. Basis: ${useCase.basis}.`,
-        `Case specification: [${useCase.id}](${path.posix.relative(path.posix.dirname(spec.path), `docs/specifications/${document.slug}/${useCase.id}.md`)}). Prerequisite cases: ${useCase.dependencies.join(", ") || "none"}.`,
+        `Case specification: [${useCase.id}](${path.posix.relative(path.posix.dirname(spec.path), `${workspace(document.slug)}/${useCase.id}.md`)}). Prerequisite cases: ${useCase.dependencies.join(", ") || "none"}.`,
         useCase.goal,
         useCase.trigger, ...useCase.preconditions,
         ...useCase.main_flow.map((step, index) => `${index + 1}. ${step}`),

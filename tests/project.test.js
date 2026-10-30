@@ -144,7 +144,7 @@ test("init creates the project structure and preserves existing user files", () 
   assert.ok(fs.existsSync(path.join(root, ".github/skills/mcpee-knowledge/SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".github/skills/mcpee-github-ado-work-items/SKILL.md")));
   assert.equal(capabilityRegistry(root).items.find((item) =>
-    item.type === "workflow" && item.id === "deliver-feature")?.status, "available");
+    item.type === "workflow" && item.id === "deliver-feature")?.status, "installed");
   assert.ok(fs.existsSync(path.join(root, ".github/instructions/mcpee-policies.instructions.md")));
   assert.ok(fs.existsSync(path.join(root, ".mcpee/generated/catalog-patterns.md")));
   assert.ok(fs.existsSync(path.join(root, ".mcpee/generated/catalog-templates.md")));
@@ -157,19 +157,19 @@ test("init creates the project structure and preserves existing user files", () 
   assert.match(fs.readFileSync(path.join(root, ".mcpee/generated/catalog-patterns.md"), "utf8"), /## vertical-slice/);
   assert.match(fs.readFileSync(path.join(root, ".mcpee/generated/catalog-templates.md"), "utf8"), /## project-mcp-server/);
   assert.match(fs.readFileSync(path.join(root, ".mcpee/generated/catalog-templates.md"), "utf8"), /require\(serverEntry\)\.startMcpServer/);
-  assert.doesNotMatch(fs.readFileSync(path.join(root, ".mcpee/generated/catalog-technical-guidance.md"), "utf8"), /https:\/\/learn\.microsoft\.com/);
+  assert.match(fs.readFileSync(path.join(root, ".mcpee/generated/catalog-technical-guidance.md"), "utf8"), /https:\/\/learn\.microsoft\.com/);
   assert.equal(capabilityRegistry(root).items.find((item) =>
-    item.type === "technical-guidance" && item.id === "dotnet-csharp")?.status, "available");
+    item.type === "technical-guidance" && item.id === "dotnet-csharp")?.status, "installed");
   assert.match(fs.readFileSync(path.join(root, ".mcpee/generated/catalog-quality.md"), "utf8"), /not automatic graders/i);
-  assert.doesNotMatch(fs.readFileSync(path.join(root, ".mcpee/generated/catalog-playbooks.md"), "utf8"), /## migration-strategy/);
+  assert.match(fs.readFileSync(path.join(root, ".mcpee/generated/catalog-playbooks.md"), "utf8"), /## migration-strategy/);
   assert.equal(capabilityRegistry(root).items.find((item) =>
-    item.type === "playbook" && item.id === "migration-strategy")?.status, "available");
+    item.type === "playbook" && item.id === "migration-strategy")?.status, "installed");
   assert.match(fs.readFileSync(path.join(root, ".github/agents/mcpee-ai.agent.md"), "utf8"), /## Preferred knowledge/);
   assert.match(fs.readFileSync(path.join(root, ".github/agents/mcpee-ai.agent.md"), "utf8"), /optional-mcp: Workspace-scoped MCP integrations/);
   assert.match(fs.readFileSync(path.join(root, ".github/agents/mcpee-product.agent.md"), "utf8"), /Specialist role guidance\n\n# Product owner/);
   assert.match(fs.readFileSync(path.join(root, ".github/agents/mcpee-product.agent.md"), "utf8"), /Reusable patterns/);
   assert.match(fs.readFileSync(path.join(root, ".github/agents/mcpee-orchestrator.agent.md"), "utf8"), /Supporting role guidance: scrum-master/);
-  assert.equal(fs.existsSync(path.join(root, ".github/skills/mcpee-deliver-feature/SKILL.md")), false);
+  assert.equal(fs.existsSync(path.join(root, ".github/skills/mcpee-deliver-feature/SKILL.md")), true);
   assert.match(fs.readFileSync(path.join(root, ".mcpee/generated/catalog-policy.md"), "utf8"), /\*\*Enforcement:\*\*/);
   assert.equal(second.catalog.counts.created, 0);
   assert.equal(second.catalog.counts.updated, 0);
@@ -393,7 +393,9 @@ test("capabilities can be listed, installed, updated, and removed without breaki
   fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({
     dependencies: { express: "^5.0.0" },
   }));
-  renderCatalog(root);
+  renderCatalog(root, { capabilityState: {
+    schema_version: 1, generated_by: "mcpee", overrides: {},
+  } });
 
   const list = spawnSync(process.execPath, [
     cli, "capabilities", "list", "--type", "agent", "--json", "--project", root,
@@ -731,7 +733,7 @@ test("catalog renderer preserves user files and removes only obsolete MCPEE-owne
 
 test("workflows render as Copilot skills and replace legacy or VS Code-migrated prompt output", () => {
   const root = temporaryProject();
-  initializeProject(root);
+  initializeProject(root, { initialAgents: [] });
   manageCapability(root, "install", "workflow", "deliver-feature");
   manageCapability(root, "install", "workflow", "architecture-challenge");
   const skillPath = path.join(root, ".github/skills/mcpee-deliver-feature/SKILL.md");

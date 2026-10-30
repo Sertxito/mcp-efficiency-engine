@@ -13,6 +13,7 @@ const { recordEvent, observeLayer } = require("../../core/src/telemetry");
 const { readInstalledCatalog, sourceBody } = require("../../copilot-renderer/src/render");
 const { listBrownfieldSpecs, isScaffolding } = require("../../spec-engine/src/brownfield");
 const { isSpecificationTask } = require("../../spec-engine/src/functional");
+const { listFeatures } = require("../../spec-engine/src/lifecycle");
 
 const RULES_PATH = path.resolve(__dirname, "../../../catalog/routing/routing-rules.json");
 const rules = JSON.parse(fs.readFileSync(RULES_PATH, "utf8"));
@@ -257,7 +258,9 @@ function routeTask(projectRoot, task, options = {}) {
       return new RegExp(`${prefix}${escaped}(?=$|[^a-z0-9_])`).test(normalizedTask);
     }) || explicitSources.some(source =>
       item.apply_to.some(glob => path.posix.matchesGlob(source.source_path.replace(/\\/g, "/"), glob))));
-  const technicalGuidance = (matchingGuidance.length ? matchingGuidance : catalog.technical_guidance)
+  const detectedGuidance = new Set(catalog.project_stack?.assets?.technical_guidance || []);
+  const technicalGuidance = (matchingGuidance.length ? matchingGuidance
+    : catalog.technical_guidance.filter((item) => detectedGuidance.has(item.id)))
     .map(item => ({
       id: item.id,
       description: item.description,
@@ -312,6 +315,15 @@ function routeTask(projectRoot, task, options = {}) {
   const availableTools = discoverTools(projectRoot).tools
     .filter((tool) => tool.invokable)
     .map((tool) => tool.id);
+  const features = listFeatures(projectRoot);
+  const namedFeatures = features.filter((feature) => new RegExp(`(^|[^a-z0-9-])${feature.id}(?=$|[^a-z0-9-])`, "i").test(task));
+  const activeFeatures = namedFeatures.length ? namedFeatures : features.length === 1 ? features : [];
+  const actionable = normalize(task).replace(/\b(?:do not implement|don't implement|sin implementar|no implementar|no implementes)\b/g, "");
+  const requestedStage = specificationTask ? "specification"
+    : /\b(?:tasks|tareas)\b/.test(actionable) && /\b(?:create|generate|write|genera\w*|crea\w*|prepara\w*)\b/.test(actionable) ? "tasks"
+    : /\b(?:plan|planifica\w*)\b/.test(actionable) && /\b(?:create|generate|write|genera\w*|crea\w*|prepara\w*|planifica\w*)\b/.test(actionable) ? "plan"
+    : /\b(?:implement|implementa|implementar|implementad|implementes|programa|programar)\b|\bbuild\s+(?:a|an|the|this)\b/.test(actionable) ? "implementation"
+    : "review";
   const plan = {
     schema_version: 1,
     generated_at: new Date().toISOString(),
@@ -325,6 +337,8 @@ function routeTask(projectRoot, task, options = {}) {
       execution_stages: EXECUTION_STAGES,
     },
     project_stack: catalog.project_stack,
+    specification_workspace: { path: "specs/README.md", requested_stage: requestedStage,
+      features: activeFeatures, requires_feature_selection: features.length > 1 && !namedFeatures.length },
     ...(specificationTask ? { functional_specification: {
       mode: /\bgreenfield\b/i.test(task) ? "greenfield"
         : /\bbrownfield\b/i.test(task) ? "brownfield"
@@ -367,7 +381,8 @@ function routeTask(projectRoot, task, options = {}) {
     knowledge_graph: knowledgeGraph,
     approved_specs: listBrownfieldSpecs(projectRoot)
       .filter((spec) => spec.status === "approved")
-      .map(({ slug, path: specPath, sha256 }) => ({ slug, path: specPath, sha256 })),
+      .map(({ slug, path: specPath, sha256, bundle_sha256 }) => ({ slug, path: specPath, sha256,
+        ...(bundle_sha256 ? { bundle_sha256 } : {}) })),
     knowledge_graph_status: {
       unified: unifiedGraphStatus,
       codegraph: documentOnlyGreenfield ? "not-applicable-documentation-only" : codeGraphState.status,

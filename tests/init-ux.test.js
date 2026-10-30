@@ -137,12 +137,13 @@ test("incompatible Node is blocked before asking for installation approval", () 
   assert.match(result.stdout, /20\.0\.0\+ is required/);
 });
 
-test("interactive init configures Backend + Architecture with two menus and an unambiguous final status", () => {
+test("interactive init defaults to the full catalog, preserves explicit agents and only asks for tool approval", () => {
   const cli = path.resolve(__dirname, "../packages/cli/src/cli");
   const selector = path.resolve(__dirname, "../packages/cli/src/terminal-select");
   const tools = path.resolve(__dirname, "../packages/tool-manager/src/tools");
   const graph = path.resolve(__dirname, "../packages/knowledge-engine/src/codegraph");
   for (const ready of [false, true]) {
+    for (const explicit of [false, true]) {
     const script = `
       const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
       const root=fs.mkdtempSync(path.join(os.tmpdir(),'mcpee-init-menu-'));
@@ -151,8 +152,7 @@ test("interactive init configures Backend + Architecture with two menus and an u
       let menus=0;
       require(${JSON.stringify(selector)}).selectOptions=async options=>{
         menus++;
-        if(menus===1) return options.options.find(option=>Array.isArray(option.value)&&option.value.join(',')==='backend,architecture').value;
-        if(menus===2) return true;
+        if(menus===1) return true;
         throw new Error('unexpected extra setup question');
       };
       require(${JSON.stringify(tools)}).installCatalogTools=async(root,options)=>{
@@ -167,18 +167,21 @@ test("interactive init configures Backend + Architecture with two menus and an u
       require(${JSON.stringify(graph)}).updateCodeGraph=()=>(${JSON.stringify(ready
         ? { status: "ready", operation: "fixture", summary: {}, mcp: { status: "configured", file: ".mcp.json" } }
         : { status: "failed", error: "Fixture CodeGraph unavailable" })});
-      require(${JSON.stringify(cli)}).run(['init','--project',root]).then(code=>{
+      require(${JSON.stringify(cli)}).run(['init','--project',root,...${JSON.stringify(explicit ? ["--agents", "backend,architecture"] : [])}]).then(code=>{
         assert.equal(code,${ready ? 0 : 1});
-        assert.equal(menus,2);
+        assert.equal(menus,1);
         const state=JSON.parse(fs.readFileSync(path.join(root,'.mcpee/generated/project-capabilities.json'),'utf8'));
-        assert.deepEqual(state.assets.agents,['architecture','backend','orchestrator']);
+        assert.deepEqual(state.assets.agents,${explicit
+          ? "['architecture','backend','orchestrator']"
+          : `require(${JSON.stringify(path.resolve(__dirname, "../catalog/catalog.json"))}).agents.map(agent=>agent.id).sort()`});
       }).catch(error=>{console.error(error);process.exitCode=1})
         .finally(()=>fs.rmSync(root,{recursive:true,force:true}));
     `;
     const result = spawnSync(process.execPath, ["-e", script], { encoding: "utf8", timeout: 30_000 });
     assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, /Capabilities configured: architecture, backend, orchestrator/);
+    assert.match(result.stdout, explicit ? /Capabilities configured: architecture, backend, orchestrator/ : /Capabilities configured: .*performance-forensics/);
     assert.match(result.stdout + result.stderr, ready ? /SETUP COMPLETE/ : /SETUP INCOMPLETE/);
     assert.doesNotMatch(result.stdout, /Agent IDs \(comma|Type "approve"|Optional local semantic embeddings:/);
+    }
   }
 });
