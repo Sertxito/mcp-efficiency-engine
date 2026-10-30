@@ -27,6 +27,15 @@ const READ_ONLY_TOOL_CALLS = new Set([
   "codegraph_status",
 ]);
 
+const INTERNAL_MCPEE_TOOLS = new Set(["mcpee_run", "mcpee_run_status", "mcpee_run_cancel"]);
+
+function isInternalMcpeeTool(toolName) {
+  const name = String(toolName || "").toLowerCase();
+  return INTERNAL_MCPEE_TOOLS.has(name) ||
+    [...INTERNAL_MCPEE_TOOLS].some((tool) =>
+      name === `mcp__mcpee__${tool}` || name === `mcp_mcpee_${tool}` || name === `mcpee-${tool}`);
+}
+
 const WRITE_TOOL_CALLS = /(?:write|edit|patch|delete|remove|move|rename|create|apply|deploy|publish|send|commit|push|merge|migrate|install|execute|run)/i;
 const SECRET_ARGUMENT = /^--?(?:password|secret|token|api[-_]?key|authorization|cookie|credential)(?:=|$)/i;
 const SECRET_ASSIGNMENT = /\b((?:[A-Z0-9_]*(?:TOKEN|SECRET|PASSWORD|API_KEY|ACCESS_KEY|PRIVATE_KEY|AUTHORIZATION|COOKIE|CREDENTIAL)[A-Z0-9_]*|password|secret|token|api[-_]?key|authorization|cookie|credential)\s*[:=]\s*)(?:Bearer\s+)?(?:"[^"]*"|'[^']*'|[^\s,;&]+)/gi;
@@ -218,7 +227,12 @@ function assessCopilotToolCall(input, options = {}) {
   let requiresApproval = true;
   let reason = "This tool is not on MCPEE's verified read-only allowlist.";
 
-  if (READ_ONLY_TOOL_CALLS.has(toolName)) {
+  if (isInternalMcpeeTool(toolName)) {
+    return {
+      decision: "allow",
+      reason: "Internal MCPEE task transport/status/cancellation; nested actions retain their own approval checks.",
+    };
+  } else if (READ_ONLY_TOOL_CALLS.has(toolName)) {
     requiresApproval = false;
     reason = "Recognized read-only Copilot tool.";
   } else if (/^(?:bash|shell|powershell|terminal|run_in_terminal)$/.test(toolName)) {

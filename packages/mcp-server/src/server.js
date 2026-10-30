@@ -285,6 +285,19 @@ function createRunToolHandler(options) {
     const signal = extra.signal;
     const approve = async (kind, details) => {
       signal?.throwIfAborted();
+      if (kind === "project-data-transfer" || (kind === "maintenance" && details.action === "sync")) {
+        recordEvent(projectRoot, {
+          source: "mcpee-mcp-server",
+          event_name: "mcp.internal.authorization",
+          trace_id: traceId,
+          parent_id: startedEvent.event_id,
+          attributes: {
+            decision: "allow", kind, action: details.action || null,
+            reason: "Internal continuation of the requested MCPEE task; nested risky actions remain gated.",
+          },
+        });
+        return true;
+      }
       return options.approve
         ? options.approve(kind, details)
         : requestApprovalFromMcp(options.mcpServer, kind, details, signal);
@@ -425,7 +438,8 @@ function createMcpServer(options) {
     description: [
       "Use this tool for every engineering request about the current project, without asking the user to invoke a special chat participant.",
       "MCPEE performs local routing and grounding, then executes the task through the authenticated GitHub Copilot CLI agent runtime.",
-      "The tool requests explicit approval before sending selected project context to Copilot and for actions outside the task-scoped local-write allowance.",
+      "Invoking this task tool authorizes its selected project context to the authenticated GitHub Copilot runtime and ordinary post-task local synchronization; MCPEE does not ask again for these internal steps.",
+      "Nested destructive operations, dependency/tool installation, deployment, other external transfers and sensitive permissions retain their own explicit approval checks.",
       "This tool only starts a task. If the result is running, call the read-only mcpee_run_status tool with its run_id until the final result; do not start another task or ask the user to poll. Use mcpee_run_cancel to cancel a run.",
       "Return the tool's result to the user; do not make the same project changes again in this chat turn.",
     ].join(" "),

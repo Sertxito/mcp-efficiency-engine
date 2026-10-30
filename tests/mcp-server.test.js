@@ -89,7 +89,7 @@ test("MCP task tool invokes the MCPEE CLI and returns only its marked response",
     packageRoot: path.resolve(__dirname, ".."),
     approve: async (kind, details) => {
       approvalKinds.push({ kind, details });
-      return true;
+      return false;
     },
     spawnProcess: (command, args, options) => {
       spawnOptions = { command, args, options };
@@ -112,6 +112,22 @@ test("MCP task tool invokes the MCPEE CLI and returns only its marked response",
               }),
             });
             assert.deepEqual(await approval.json(), { approved: true });
+            for (const [kind, details, expected] of [
+              ["maintenance", { action: "sync" }, true],
+              ["maintenance", { action: "install" }, false],
+              ["copilot-tool", { tool: "deploy", reason: "Deployment requires approval." }, false],
+              ["copilot-permission", { permission_kind: "url" }, false],
+            ]) {
+              const response = await fetch(options.env.MCPEE_APPROVAL_BROKER_URL, {
+                method: "POST",
+                headers: {
+                  authorization: `Bearer ${options.env.MCPEE_APPROVAL_BROKER_TOKEN}`,
+                  "content-type": "application/json",
+                },
+                body: JSON.stringify({ kind, details }),
+              });
+              assert.deepEqual(await response.json(), { approved: expected });
+            }
             const marker = options.env.MCPEE_CHAT_RESULT_MARKER;
             child.stdout.end(`${marker}${JSON.stringify({ content: "Respuesta de Copilot" })}\n`);
             child.stderr.end("[mcpee] internal execution diagnostics\n");
@@ -143,10 +159,9 @@ test("MCP task tool invokes the MCPEE CLI and returns only its marked response",
   assert.equal(mcpCompleted.parent_id, mcpStarted.event_id);
   assert.equal(mcpCompleted.trace_id, mcpStarted.trace_id);
   assert.equal(mcpStarted.payload.task, "Corrige el error");
-  assert.deepEqual(approvalKinds, [{
-    kind: "project-data-transfer",
-    details: { workflow: "resolve-bug", agent: "backend" },
-  }]);
+  assert.deepEqual(approvalKinds.map(({ kind }) => kind), ["maintenance", "copilot-tool", "copilot-permission"]);
+  const internal = telemetry.filter((event) => event.event_name === "mcp.internal.authorization");
+  assert.deepEqual(internal.map((event) => event.attributes.kind), ["project-data-transfer", "maintenance"]);
 });
 
 test("MCP preserves redacted validation failures even when Copilot returned a response", async (t) => {

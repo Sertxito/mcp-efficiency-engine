@@ -5,12 +5,19 @@
 - Repository: <https://github.com/Sertxito/mcp-efficiency-engine>
 - npm package: `mcp-efficiency-engine`
 - Commands: `mcpee` and `mcp-efficiency-engine`
-- Current candidate: **0.1.39**, following published **0.1.38**
+- Current candidate: **0.1.40**, following published **0.1.39**
 - Runtime: Node.js **>=24**
 
 Keep the normal pre-1.0 version sequence until stable acceptance is complete.
 Do not label the target architecture fully implemented or promote to 1.0.0
 based only on passing automated tests.
+
+The 0.1.40 patch automatically authorizes exact internal MCP task/status/cancel
+transport, the task's selected context to authenticated Copilot and post-task
+local sync. Nested high-impact tools and runtime permissions remain gated.
+Host-level trust and confirmation cannot be overridden by MCPEE; its generated
+hook provides the narrow internal allowance where supported. No paid SDK run
+was started for this patch.
 
 The 0.1.39 patch installs the full local catalog by default for new projects,
 while routing only relevant guidance. Explicit agent selections and existing

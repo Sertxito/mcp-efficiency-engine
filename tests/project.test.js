@@ -866,6 +866,11 @@ test("installed Copilot hook records real sanitized input and enforces preToolUs
   for (const [toolName, toolArgs] of [
     ["skill", { skill: "mcpee-requirements-discovery" }],
     ["tool_search_tool", { query: "mcpee_run" }],
+    ["mcpee_run", { task: "Write functional specifications" }],
+    ["mcpee_run_status", { run_id: "existing-run" }],
+    ["mcpee_run_cancel", { run_id: "existing-run" }],
+    ["mcp__mcpee__mcpee_run_status", { run_id: "existing-run" }],
+    ["mcp_mcpee_mcpee_run_status", { run_id: "existing-run" }],
   ]) {
     const discovery = spawnSync(process.execPath, [hook, "preToolUse"], {
       cwd: root,

@@ -14,7 +14,7 @@ action, automatic validation after changes and a full local audit trail.
   Existing user files are never overwritten.
 
 npm package: **`mcp-efficiency-engine`** · commands: `mcpee` (or
-`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.39)
+`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.40)
 
 ## Requirements
 
@@ -32,12 +32,12 @@ Full details: [Getting started → Requirements](docs/GETTING-STARTED.md#require
 **1. Install**
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.39
+npm install --global mcp-efficiency-engine@0.1.40
 ```
 
 If npm blocks the native `koffi` dependency, add `--allow-scripts=koffi`
 (only that dependency is allowed). Prefer no global install? Use
-`npx --package=mcp-efficiency-engine@0.1.39 mcpee init --project <path>`.
+`npx --package=mcp-efficiency-engine@0.1.40 mcpee init --project <path>`.
 
 **2. Initialize your project**
 
@@ -60,8 +60,12 @@ to repeat before every request.
 
 Open the project in VS Code and ask Copilot Chat as usual, for example
 *"Add input validation to the orders endpoint"*. MCPEE routes the request,
-asks before sending context, asks before each change, then offers to sync,
-validate and refresh documentation.
+authorizes the selected context through `mcpee_run`, allows internal status
+polling and post-task sync without repeated prompts, and checks nested actions.
+Ordinary task-scoped local edits need no per-file approval; destructive actions,
+installations, deployments and other sensitive operations still require it.
+Host-level trust and tool-confirmation controls remain separate; see
+[approvals and hooks](docs/COPILOT-EXECUTION.md#approvals-and-hooks).
 
 Verify that the chat actually calls `mcpee_run` and receives a result or run ID.
 Installed agents, a loaded skill or a "Thinking" indicator alone do not prove

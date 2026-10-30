@@ -34,13 +34,13 @@ why MCPEE manages its own isolated Python runtime instead of requiring one.
 Global installation (recommended):
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.39
+npm install --global mcp-efficiency-engine@0.1.40
 ```
 
 Run a pinned version without installing globally:
 
 ```sh
-npx --package=mcp-efficiency-engine@0.1.39 mcpee init --project C:\path\to\project
+npx --package=mcp-efficiency-engine@0.1.40 mcpee init --project C:\path\to\project
 ```
 
 The npm package is `mcp-efficiency-engine`. It installs two equivalent
@@ -50,7 +50,7 @@ If npm reports that the Copilot SDK's native `koffi` dependency has a blocked
 install script, allow only that dependency:
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.39 --allow-scripts=koffi
+npm install --global mcp-efficiency-engine@0.1.40 --allow-scripts=koffi
 ```
 
 This does not enable install scripts globally. A successful `mcpee help`
@@ -255,12 +255,17 @@ reference the requirements again. Do not send duplicate requests while an
 earlier run is still executing.
 
 For each request MCPEE selects a workflow and specialist, retrieves cited local
-evidence, shows the impact of the files involved, and then asks you to approve:
-
-1. sending the task and selected context to Copilot;
-2. every state-changing tool call (file edits, commands);
-3. refreshing indexes after changes;
-4. each non-read-only validation step.
+evidence and shows the impact of the files involved. Calling `mcpee_run`
+authorizes its selected context to the authenticated Copilot runtime and local
+post-task index sync. The generated hook automatically allows MCPEE task,
+status and cancellation calls; repeated status checks do not ask for approval.
+Ordinary task-scoped local edits are also covered by the requested task.
+Destructive actions, installations, deployment, other external transfers,
+sensitive runtime permissions and non-read-only validation still require
+explicit approval. Direct CLI execution still asks before context transfer.
+Workspace trust, server enablement and the host's own confirmation policy
+are separate: enable the generated approval hook, or use the host's
+tool-specific “always allow” for the three MCPEE tools, not global autoapproval.
 
 Generated documentation is refreshed only when validation passes. Details are
 in [Copilot execution and approvals](COPILOT-EXECUTION.md).
@@ -286,7 +291,7 @@ knowledge state, approval hook and known capability gaps. If something fails,
 see [Troubleshooting](TROUBLESHOOTING.md).
 
 Then verify the actual chat path: submit a scoped task and check that Copilot
-calls the project `mcpee_run` tool. Review any context-transfer approval. A
+calls the project `mcpee_run` tool. Review any approval for nested risky actions. A
 long-running call can return a run ID; subsequent checks must use
 `mcpee_run_status` for that same ID, not start the task again. Installed agents,
 a loaded skill, a connected MCP transport and a "Thinking" indicator are not
