@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const IGNORED_DIRECTORIES = new Set([
-  ".angular", ".cache", ".git", ".mcpee", ".next", ".nuxt", ".nx", ".parcel-cache",
+  ".angular", ".cache", ".codegraph", ".git", ".mcpee", ".next", ".nuxt", ".nx", ".parcel-cache",
   ".pnpm-store", ".pytest_cache", ".turbo", ".venv", ".yarn", "__pycache__", "bin",
   "build", "coverage", "dist", "node_modules", "obj", "out", "target", "vendor", "venv",
 ]);
@@ -93,6 +93,16 @@ function readPackageDependencies(projectRoot, files) {
   return { byFile, manifestsByFile, packageFiles };
 }
 
+function isHarnessOnlyPackage(manifest) {
+  const dependencies = ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"]
+    .flatMap((section) => Object.keys(manifest[section] || {}));
+  return dependencies.includes("mcp-efficiency-engine") &&
+    dependencies.every((name) => name === "mcp-efficiency-engine") &&
+    !["main", "bin", "exports", "workspaces"].some((key) => manifest[key]) &&
+    Object.values(manifest.scripts || {}).every((script) =>
+      typeof script === "string" && /^\s*mcpee(?:\s|$)/.test(script));
+}
+
 function detectProjectCapabilities(projectRoot, catalog) {
   const root = path.resolve(projectRoot);
   const scan = walkProjectFiles(root);
@@ -100,8 +110,9 @@ function detectProjectCapabilities(projectRoot, catalog) {
   const {
     byFile: packageDependencies,
     manifestsByFile: packageManifests,
-    packageFiles,
+    packageFiles: allPackageFiles,
   } = readPackageDependencies(root, files);
+  const packageFiles = allPackageFiles.filter((file) => !isHarnessOnlyPackage(packageManifests.get(file)));
   const technologies = new Map();
   const add = (technology, evidence) => {
     const sources = technologies.get(technology) || new Set();
@@ -287,4 +298,4 @@ function detectProjectCapabilities(projectRoot, catalog) {
   };
 }
 
-module.exports = { detectProjectCapabilities, SUPPORTED_TECHNOLOGIES };
+module.exports = { detectProjectCapabilities, SUPPORTED_TECHNOLOGIES, isHarnessOnlyPackage };

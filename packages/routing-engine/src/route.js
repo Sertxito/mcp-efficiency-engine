@@ -4,7 +4,7 @@ const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
 const { searchMemory } = require("../../memory-engine/src/memory");
-const { searchKnowledge } = require("../../source-engine/src/sync");
+const { searchKnowledge, classifySource } = require("../../source-engine/src/sync");
 const { discoverTools } = require("../../tool-manager/src/tools");
 const { readCodeGraphState, searchCodeGraph } = require("../../knowledge-engine/src/codegraph");
 const { analyzeImpacts, searchUnifiedGraph, GRAPH_PATH } = require("../../knowledge-engine/src/unified");
@@ -12,6 +12,7 @@ const { readGraphifyState, searchGraphify } = require("../../knowledge-engine/sr
 const { recordEvent, observeLayer } = require("../../core/src/telemetry");
 const { readInstalledCatalog, sourceBody } = require("../../copilot-renderer/src/render");
 const { listBrownfieldSpecs } = require("../../spec-engine/src/brownfield");
+const { isSpecificationTask } = require("../../spec-engine/src/functional");
 
 const RULES_PATH = path.resolve(__dirname, "../../../catalog/routing/routing-rules.json");
 const rules = JSON.parse(fs.readFileSync(RULES_PATH, "utf8"));
@@ -63,8 +64,11 @@ function selectTaskKnowledge(projectRoot, task, limit) {
   }).map(document => ({ ...document, selection: "explicit-task-path" }));
   if (explicit.length > 10) throw new Error("Task names more than 10 indexed source files; narrow the task before impact analysis.");
   const matches = searchKnowledge(projectRoot, task, limit);
-  return [...explicit, ...matches.filter(match => !explicit.some(item => item.source_path === match.source_path))]
-    .slice(0, Math.max(limit, explicit.length));
+  const business = isSpecificationTask(task) && !explicit.length
+    ? index.documents.filter((document) => classifySource(document.source_path) === "business") : [];
+  const preferred = business.length === 1 ? [...explicit, { ...business[0], selection: "sole-business-source" }] : explicit;
+  return [...preferred, ...matches.filter(match => !preferred.some(item => item.source_path === match.source_path))]
+    .slice(0, Math.max(limit, preferred.length));
 }
 
 function routeTask(projectRoot, task, options = {}) {
@@ -79,10 +83,17 @@ function routeTask(projectRoot, task, options = {}) {
     order: index,
   })).filter((route) => catalog.workflows.some((workflow) => workflow.id === route.workflow))
     .sort((left, right) => right.score - left.score || left.order - right.order);
-  const selected = workflowScores[0]?.score > 0
+  let selected = workflowScores[0]?.score > 0
     ? workflowScores[0]
     : workflowScores.find((route) => route.workflow === rules.fallback_workflow) || workflowScores[0];
   if (!selected) throw new Error("No installed MCPEE workflows are available; install a workflow with 'mcpee capabilities install <id>'.");
+  const specificationTask = isSpecificationTask(task);
+  if (specificationTask) {
+    const specificationRoute = workflowScores.find((route) => route.workflow === "refine-backlog") ||
+      workflowScores.find((route) => route.workflow === "understand-project");
+    if (!specificationRoute) throw new Error("Specification authoring requires the refine-backlog or understand-project workflow.");
+    selected = { ...specificationRoute, score: 1, matches: ["functional-specification-authoring"] };
+  }
   const specialistScores = rules.specialists.map((specialist, index) => ({
     ...specialist,
     ...scoreKeywords(normalizedTask, specialist.keywords),
@@ -100,7 +111,9 @@ function routeTask(projectRoot, task, options = {}) {
     catalog.agents.some((agent) => agent.id === projectAgentId)
     ? projectAgentId
     : null;
-  const agentId = specialistScores[0]?.score > 0
+  const agentId = specificationTask && catalog.agents.some((agent) => agent.id === "product") ? "product"
+    : specificationTask ? "orchestrator"
+    : specialistScores[0]?.score > 0
     ? specialistScores[0].agent
     : preferredProjectAgent ||
       (catalog.agents.some((agent) => agent.id === selected.agent)
@@ -113,7 +126,8 @@ function routeTask(projectRoot, task, options = {}) {
     source_path: sourcePath,
     guidance: sourceBody(sourcePath, `agents/${agent.id}`),
   }));
-  const skillIds = [...new Set([...selected.skills, ...agent.skills])];
+  const skillIds = [...new Set([...selected.skills, ...agent.skills,
+    ...(specificationTask ? ["requirements-discovery"] : [])])];
   const skills = skillIds.map((id) => {
     const skill = catalog.skills.find((item) => item.id === id);
     if (!skill) throw new Error(`Catalog is missing routed skill '${id}'`);
@@ -275,6 +289,12 @@ function routeTask(projectRoot, task, options = {}) {
       execution_stages: EXECUTION_STAGES,
     },
     project_stack: catalog.project_stack,
+    ...(specificationTask ? { functional_specification: {
+      mode: /\bgreenfield\b/i.test(task) ? "greenfield"
+        : /\bbrownfield\b/i.test(task) ? "brownfield"
+        : catalog.project_stack?.has_code_signals ? "brownfield" : "greenfield",
+      status: "authoring-required; static discovery is not the deliverable",
+    } } : {}),
     agent: {
       id: agent.id,
       description: agent.description,

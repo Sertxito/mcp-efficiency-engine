@@ -229,32 +229,7 @@ function testCases(sources) {
         behavior: "observed-syntax", automation: "not-assessed", execution: "not-run-by-discovery",
         review: "A return/throw is lexically inside the cited if-condition(s). Inspect surrounding flow, inputs and dependencies before writing a characterization test; reachability and exact runtime outcome are not established.",
       })));
-  const candidates = [
-    {
-      kind: "positive-candidate",
-      title: "Owner-confirmed normal behavior",
-      review: "Define a representative valid input and exact observable output; map it to an approved criterion.",
-    },
-    {
-      kind: "negative-candidate",
-      title: "Invalid or incomplete input",
-      review: "Define invalid input and expected error/no-side-effects contract; determine applicability with the owner.",
-    },
-    {
-      kind: "boundary-candidate",
-      title: "Empty, minimum and maximum input",
-      review: "Identify actual domain limits first; do not invent numeric thresholds.",
-    },
-    {
-      kind: "negative-candidate",
-      title: "Dependency failure or unavailable resource",
-      review: "Confirm applicability, error result, bounded retry/timeout policy and recovery; do not call live services.",
-    },
-  ].map((item) => ({
-    ...item, source: sources[0].path, line: 1,
-    behavior: "not-assessed", automation: "not-assessed", execution: "not-run-by-discovery",
-  }));
-  return [...declared, ...validationCases, ...authorizationCases, ...implementationCases, ...candidates]
+  return [...declared, ...validationCases, ...authorizationCases, ...implementationCases]
     .map((item, index) => ({ id: `TC-${String(index + 1).padStart(3, "0")}`, ...item }));
 }
 
@@ -341,7 +316,7 @@ function renderDomainProposal({ slug, domain, part, parts, sources, cases, snaps
   const implementationCases = cases.filter((item) => item.kind === "implementation-candidate");
   return [
     marker, "",
-    `# ${domain}${parts > 1 ? ` - part ${part}/${parts}` : ""}`,
+    `# Evidence inventory: ${domain}${parts > 1 ? ` - part ${part}/${parts}` : ""}`,
     "",
     "**Status:** proposed — not an approved specification  ",
     `**Proposal ID:** \`${slug}\`  `,
@@ -349,6 +324,7 @@ function renderDomainProposal({ slug, domain, part, parts, sources, cases, snaps
     "",
     `**Scope:** ${sources.length} sources; ${declared.length} test declarations; ${facts.length} static observations.`,
     "Domain membership is a path/name-based inference, not a confirmed business boundary.",
+    "This static inventory is not a functional specification. Ask mcpee_run to draft a functional specification from the relevant product sources; the readable deliverable belongs under docs/specifications/.",
     "",
     "## Intended behavior", "",
     "<!-- Replace this prompt with behavior confirmed by the accountable owner. -->",
@@ -387,7 +363,9 @@ function renderDomainProposal({ slug, domain, part, parts, sources, cases, snaps
     ...shownCases.map((item) =>
       `| ${item.id} | ${item.kind} | ${syntaxTable(item.title)} | ${sourceLink(item.source, item.line, specPath)} | ${caseStatus(item)} | ${syntaxTable(item.review)} |`),
     "",
-    `[Read all ${cases.length} test cases, including negative and boundary candidates](${slug}.cases-1.md).`,
+    ...(cases.length
+      ? [`[Read all ${cases.length} source-derived test cases](${slug}.cases-1.md).`]
+      : ["No source-derived test cases were extracted. No generic scenarios have been substituted for business use cases."]),
     ...(cases.length > shownCases.length
       ? [`The table above is a preview; ${cases.length - shownCases.length} more cases are in the paginated Markdown catalog, not hidden in JSON.`] : []),
     "",
