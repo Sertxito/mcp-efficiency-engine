@@ -7,6 +7,49 @@ validation/route/authorization declarations, and declared test names. It
 does not execute tests, infer business intent, send source content to a model,
 or declare observed code to be desired behavior.
 
+## Functional authoring versus static inventory
+
+Static discovery is not a functional specification. In Copilot Chat, request
+"Draft functional specifications from `<indexed product sources>`; do not
+implement yet." Spanish requests such as "Prepara las especificaciones
+funcionales" and short "greenfield" / "brownfield" requests also select this
+authoring path. The product agent is preferred when installed; requirements
+discovery guidance is included even when document or frontend keywords occur.
+
+The internal executor reads the selected sources and returns a structured
+draft. MCPEE validates non-empty actors, use cases, main flows, alternatives,
+postconditions, rules, Given/When/Then criteria and exact source-line quotes.
+Each supplied top-level source section must be mapped to use cases or explicitly
+deferred/excluded with a reason. The checked draft is rendered as readable
+Markdown under `docs/specifications/<descriptive-slug>.md`; the JSON response is
+not the human deliverable. Existing different content is never overwritten:
+use a new descriptive revision slug after review.
+
+Matching source-bound discovery proposals have their empty behavior and
+acceptance prompts filled from the validated cases, without manual copying.
+The executor returns their paths and current review digests. Existing reviewed
+text is preserved; no approval happens automatically. A case citing sources
+outside a proposal is not copied into it: cross-domain approval needs a
+deliberately reviewed evidence boundary, not an unbound requirement.
+
+Missing sources fail before the SDK starts. Invalid output or sources changing
+during execution fail the run rather than reporting template generation as a
+completed specification. There is one authoring attempt per run, not an
+automatic paid repair loop. These structural and provenance checks cannot
+prove semantic completeness, correctness, runtime behavior or owner approval.
+Source sections marked deferred remain visible review gaps.
+Converted Office/PDF/image sources use their current indexed normalized text
+for line citations; both that text and the original source hash are rechecked
+before saving. Missing or stale document conversion blocks authoring before
+the SDK starts instead of decoding binary bytes as business requirements.
+
+MCPEE-only dependency manifests, configuration and generated integration files
+are excluded from product evidence. Static discovery no longer adds generic
+valid/invalid-input scenarios to inflate its case catalog; only source-derived
+test declarations, validation/auth declarations and recognized implementation
+observations contribute cases. A source without those facts has zero extracted
+test cases, not four purported business cases.
+
 `mcpee init` creates the first local proposals under
 `.mcpee/specs/proposed/` after the initial source sync when eligible sources
 exist. Drafts and extraction evidence stay in MCPEE-managed state until a
@@ -53,16 +96,16 @@ business requirements.
 
 ## Greenfield acceptance path
 
-An empty project has no implemented behavior to reverse-engineer. Initialization
-may produce proposals for managed configuration/documentation; those are not
-product requirements and remain unapproved. Start with written requirements:
+An empty project has no implemented behavior to reverse-engineer. Installing
+MCPEE as its only dependency does not change that. Start with written requirements:
 
 1. Run `mcpee init --project <path>`.
 2. Write requirements in an indexed project Markdown file, with concrete inputs,
    observable outcomes, non-goals and unresolved decisions.
-3. Run `mcpee sync --project <path>`. Open the printed index and the proposal
-   referencing those requirements. Record intended behavior and acceptance
-   criteria; discovery does not infer or approve them from prose.
+3. Run `mcpee sync --project <path>`, then request a functional draft in Copilot
+   using the requirements document's exact path. Review the readable document
+   in `docs/specifications/`, not just the static inventory. Review the
+   automatically filled matching proposals and their returned digests.
 4. Ratify the exact reviewed digest using the normal explicit reviewer command.
    Routing includes the approved contract in subsequent execution context.
 5. Implement the agreed slice and its tests, with the ordinary execution/tool
@@ -246,7 +289,8 @@ transactionality or runtime access enforcement.
 
 Observation catalogs are bound to the proposal snapshot, checked before
 ratification and copied alongside approved specs. New relationship evidence uses
-format 8. Historical format-4/5/6/7
+format 8; format 9 removes generic cases and identifies inventories explicitly.
+Historical format-4/5/6/7/8
 catalogs remain verifiable without being rewritten or upgraded in place.
 
 ## Review and approval lifecycle

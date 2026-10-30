@@ -34,13 +34,13 @@ why MCPEE manages its own isolated Python runtime instead of requiring one.
 Global installation (recommended):
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.36
+npm install --global mcp-efficiency-engine@0.1.37
 ```
 
 Run a pinned version without installing globally:
 
 ```sh
-npx --package=mcp-efficiency-engine@0.1.36 mcpee init --project C:\path\to\project
+npx --package=mcp-efficiency-engine@0.1.37 mcpee init --project C:\path\to\project
 ```
 
 The npm package is `mcp-efficiency-engine`. It installs two equivalent
@@ -50,7 +50,7 @@ If npm reports that the Copilot SDK's native `koffi` dependency has a blocked
 install script, allow only that dependency:
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.36 --allow-scripts=koffi
+npm install --global mcp-efficiency-engine@0.1.37 --allow-scripts=koffi
 ```
 
 This does not enable install scripts globally. A successful `mcpee help`
@@ -186,11 +186,22 @@ business intent. Requirements come first:
 2. **Write requirements** in a Markdown file in the project, for example
    `docs/requirements.md`. Include concrete inputs, observable outcomes,
    non-goals and open decisions.
-3. **Synchronize.** Run `mcpee sync --project <path>` and open the printed
-   review index. Find the proposal that references your requirements and
-   record the intended behavior and acceptance criteria.
-4. **Ratify** the reviewed proposal with `mcpee specs ratify` (as in
-   brownfield step 4). Approved content is then routed into every request.
+3. **Synchronize and draft.** Run `mcpee sync --project <path>`, then ask
+   Copilot: "Draft functional specifications from `docs/requirements.md`;
+   do not implement yet." The executor produces actors, concrete use cases,
+   flows, alternatives, rules, acceptance criteria and open decisions.
+   MCPEE validates structure, source quotes and declared section coverage,
+   then saves the human-readable draft under `docs/specifications/`.
+   An empty template, an inventory or an unsupported citation fails the run.
+4. **Review and ratify.** Review the draft for business correctness and
+   completeness, including deferred source sections. Matching source-bound
+   discovery proposals have their empty behavior/acceptance prompts filled
+   automatically; existing reviewed text is preserved. Review the returned
+   proposal paths and digests, then use `mcpee specs ratify` (as in brownfield
+   step 4). Cross-domain cases without a matching source-bound proposal need
+   explicit review rather than silently widening a proposal's evidence.
+   Draft creation never approves requirements. Approved content is then
+   routed into every request.
 5. **Plan the delivery** (optional): `mcpee plan init --slug <id> --title <title>`
    creates a specification and delivery-plan draft under
    `.mcpee/planning/<id>/`.
@@ -204,14 +215,27 @@ business intent. Requirements come first:
    evidence is discovered automatically; approved requirements remain
    untouched.
 
-Initialization may also produce proposals for MCPEE's own configuration or
-documentation files. Those are not product requirements and remain unapproved.
+MCPEE-only package metadata, configuration and generated instructions do not
+count as application code or product evidence. Old scaffolding-only proposals
+remain archived for provenance; synchronization excludes them from new reviews.
 
 ## Daily use
 
 Open the project in VS Code and use Copilot Chat normally. The generated
 instructions route engineering requests to the project `mcpee_run` MCP tool.
 VS Code may ask once to trust the workspace or start the MCP server.
+
+Before the first request, run **Chat: Open Customizations**, select the active
+Copilot harness and open **MCP Servers**. Enable both `mcpee` and
+`mcpee-codegraph` for the intended project/workspace where that scope is
+available. A previous global disablement can apply to a newly initialized
+project. Starting a server from `.mcp.json` does not clear that preference.
+This is a first-use check, not a command to repeat for every request.
+
+After upgrading MCPEE and running `mcpee update`, cancel a previously stalled
+turn and start a fresh chat so it uses the refreshed integration. Attach or
+reference the requirements again. Do not send duplicate requests while an
+earlier run is still executing.
 
 For each request MCPEE selects a workflow and specialist, retrieves cited local
 evidence, shows the impact of the files involved, and then asks you to approve:
@@ -243,6 +267,18 @@ mcpee explain --project C:\path\to\project
 source and telemetry state, and `explain` describes the catalog, tools,
 knowledge state, approval hook and known capability gaps. If something fails,
 see [Troubleshooting](TROUBLESHOOTING.md).
+
+Then verify the actual chat path: submit a scoped task and check that Copilot
+calls the project `mcpee_run` tool. Review any context-transfer approval. A
+long-running call can return a run ID; subsequent checks must use
+`mcpee_run_status` for that same ID, not start the task again. Installed agents,
+a loaded skill, a connected MCP transport and a "Thinking" indicator are not
+proof that the task completed.
+
+The generated `.mcpee/generated/project-capabilities.json` lists exactly which
+agents, skills and workflows were provisioned. The general-purpose team is not
+every catalog specialist: stack-specific assets are selected from detected
+technology evidence or explicit capability choices.
 
 ## Scripted and CI setup
 

@@ -14,7 +14,7 @@ action, automatic validation after changes and a full local audit trail.
   Existing user files are never overwritten.
 
 npm package: **`mcp-efficiency-engine`** · commands: `mcpee` (or
-`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.36)
+`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.37)
 
 ## Requirements
 
@@ -32,12 +32,12 @@ Full details: [Getting started → Requirements](docs/GETTING-STARTED.md#require
 **1. Install**
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.36
+npm install --global mcp-efficiency-engine@0.1.37
 ```
 
 If npm blocks the native `koffi` dependency, add `--allow-scripts=koffi`
 (only that dependency is allowed). Prefer no global install? Use
-`npx --package=mcp-efficiency-engine@0.1.36 mcpee init --project <path>`.
+`npx --package=mcp-efficiency-engine@0.1.37 mcpee init --project <path>`.
 
 **2. Initialize your project**
 
@@ -51,10 +51,21 @@ capabilities and anything still incomplete.
 
 **3. Work in Copilot Chat**
 
+Before the first request, run **Chat: Open Customizations** in VS Code, select
+the active Copilot harness and open **MCP Servers**. Enable `mcpee` and
+`mcpee-codegraph` for the project and accept any trust prompts. Enablement is
+separate from starting a server in `.mcp.json`; a previous global disablement
+can keep an installed server unavailable. This is a setup check, not a step
+to repeat before every request.
+
 Open the project in VS Code and ask Copilot Chat as usual, for example
 *"Add input validation to the orders endpoint"*. MCPEE routes the request,
 asks before sending context, asks before each change, then offers to sync,
 validate and refresh documentation.
+
+Verify that the chat actually calls `mcpee_run` and receives a result or run ID.
+Installed agents, a loaded skill or a "Thinking" indicator alone do not prove
+the harness executed. See [first-use verification](docs/GETTING-STARTED.md#verify-the-installation).
 
 **4. Keep knowledge current**
 
@@ -70,16 +81,28 @@ Run it after editing code or documents outside Copilot.
 
 | Your project | MCPEE treats it as | What you get |
 |---|---|---|
-| Has source code or a `package.json` | **Brownfield** | Agents and guides for your detected stack, specification proposals extracted from your code and tests, and validation workflows built from your existing checks. |
+| Has source code or an application `package.json` | **Brownfield** | Agents and guides for your detected stack, static evidence inventories extracted from your code and tests, and validation workflows built from your existing checks. |
 | Has no code yet | **Greenfield** | A general-purpose team (orchestrator, product, architecture, QA, security, AI, documentation). Interactive setup lets you accept it or pick other agents. Specifications start from the requirements you write. |
 
-**Brownfield next steps:** review the detected stack (`mcpee explain`), read
-the specification proposals, ratify the ones that are correct
-(`mcpee specs ratify`) and check that a validation workflow exists for your
-stack (`mcpee quality`).
+Installing MCPEE as the only dependency does not make an empty project brownfield.
+Its configuration and generated instructions are not product evidence.
+
+**Functional specifications:** ask Copilot to **"Draft functional specifications
+from `<requirements document or application source paths>`; do not implement
+yet."** The internal executor must deliver concrete actors, use cases, flows,
+alternatives, business rules and acceptance criteria. MCPEE checks the structure,
+exact source quotes and declared section coverage, then saves a readable draft
+under `docs/specifications/`. Empty templates do not count as success. These
+checks do not certify semantic correctness or replace owner review.
+
+**Brownfield next steps:** review the detected stack (`mcpee explain`), use the
+evidence inventory to draft and review functional behavior, then ratify the
+reviewed proposal (`mcpee specs ratify`). Check that a validation workflow
+exists for your stack (`mcpee quality`).
 
 **Greenfield next steps:** write requirements in a project document, run
-`mcpee sync`, review and ratify the proposal, implement with Copilot, add a
+`mcpee sync`, request and review the functional draft and its filled source-bound
+proposals for explicit ratification, implement with Copilot, add a
 test script, and re-run `mcpee init` once code exists so MCPEE detects the new
 stack and generates validation.
 

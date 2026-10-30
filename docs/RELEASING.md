@@ -5,19 +5,28 @@
 - Repository: <https://github.com/Sertxito/mcp-efficiency-engine>
 - npm package: `mcp-efficiency-engine`
 - Commands: `mcpee` and `mcp-efficiency-engine`
-- Current candidate: **0.1.36**, following published **0.1.35**
+- Current candidate: **0.1.37**, following published **0.1.36**
 - Runtime: Node.js **>=24**
 
 Keep the normal pre-1.0 version sequence until stable acceptance is complete.
 Do not label the target architecture fully implemented or promote to 1.0.0
 based only on passing automated tests.
 
-The 0.1.36 patch removes redundant approval prompts for skill loading and tool
-discovery, retries transient Windows Python runtime rename locks, shares
-runtime failures between Python tool installers, and gives packaged CLIs
-realistic cold-start validation deadlines. Existing projects must run
-`mcpee update` after upgrading to refresh their generated approval policy.
-VS Code's separate server enablement remains a user-controlled preference.
+The 0.1.37 patch separates functional authoring from static evidence extraction.
+Explicit specification requests produce source-grounded, structurally validated
+Markdown drafts rather than empty discovery templates. Authoring sessions are
+read-only; MCPEE saves the checked document. Generic case padding and
+scaffolding-only proposals are removed, and an MCPEE-only dependency no longer
+classifies an empty project as brownfield. Installation and daily-use guidance
+also explain VS Code's separate MCP enablement check. Existing projects should
+upgrade and run `mcpee update`, followed by `mcpee sync` to refresh detection
+and inventories. Old drafts and approved contracts are preserved.
+
+The functional gate checks structure and provenance, not semantic correctness.
+One authorized real SDK acceptance with a small synthetic requirements document
+produced a persisted use case with all selected source sections mapped; it is
+not certification of arbitrary project completeness. Automated SDK tests remain
+mocked and do not spend model quota.
 
 ## Before merging
 
@@ -70,8 +79,8 @@ After deployment, verify:
 
 ```sh
 npm view mcp-efficiency-engine version
-npm view mcp-efficiency-engine@0.1.36 bin engines dist.integrity --json
-npx --package=mcp-efficiency-engine@0.1.36 mcpee help
+npm view mcp-efficiency-engine@0.1.37 bin engines dist.integrity --json
+npx --package=mcp-efficiency-engine@0.1.37 mcpee help
 ```
 
 Also check the release workflow and GitHub Pages deployment. A failed

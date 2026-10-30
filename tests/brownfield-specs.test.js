@@ -272,7 +272,7 @@ test("domain review covers each source once and extracts cited contract and test
   assert.match(markdown, /disabled-not-run/);
   assert.match(markdown, /denies unauthenticated access/);
   const authEvidence = manifests.find((manifest) => manifest.domain === "auth");
-  assert.equal(authEvidence.format_version, 8);
+  assert.equal(authEvidence.format_version, 9);
   const validation = authEvidence.test_cases.find((item) => item.title === "Password: Required");
   assert.equal(validation.behavior, "observed-declaration");
   assert.equal(validation.automation, "not-assessed");
@@ -285,8 +285,7 @@ test("domain review covers each source once and extracts cited contract and test
   assert.equal(existingTest.execution, "not-verified");
   assert.equal(authEvidence.test_cases.find((item) => item.title === "pending case").automation, "declared-disabled");
   const generic = authEvidence.test_cases.find((item) => item.title === "Owner-confirmed normal behavior");
-  assert.equal(generic.behavior, "not-assessed");
-  assert.equal(generic.automation, "not-assessed");
+  assert.equal(generic, undefined);
   assert.ok(authEvidence.test_cases.every((item) => item.execution !== "not-implemented"));
   assert.match(markdown, /Product behavior \| Test automation \| Execution/);
   assert.doesNotMatch(markdown, /not-implemented/);

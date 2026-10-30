@@ -9,6 +9,7 @@ const { behaviorFacts, testBodyAssertions, maskCode } = require("./behavior");
 const { stackCapability, maskStack } = require("./stack-evidence");
 const { attachRelationships } = require("./relationships");
 const { GRAPH_PATH } = require("../../knowledge-engine/src/unified");
+const { isHarnessOnlyPackage } = require("../../copilot-renderer/src/project-capabilities");
 
 const PROPOSALS = ".mcpee/specs/proposed";
 const APPROVED = "specs/approved";
@@ -152,6 +153,22 @@ function declaredTestCases(sourcePath, category, text, facts) {
   return cases;
 }
 
+function isScaffolding(root, sourcePath) {
+  if (typeof sourcePath !== "string") return false;
+  if (/^(?:\.mcpee\/|\.codegraph\/|docs\/generated\/|\.github\/(?:agents|skills)\/mcpee-|\.github\/hooks\/mcpee)/.test(sourcePath) ||
+      [".mcp.json", "mcpee.config.yml"].includes(sourcePath)) return true;
+  if (sourcePath === ".github/copilot-instructions.md") {
+    return fs.readFileSync(projectPath(root, sourcePath), "utf8").startsWith("# MCPEE project instructions");
+  }
+  if (["package.json", "package-lock.json"].includes(path.posix.basename(sourcePath))) {
+    const manifestPath = path.posix.join(path.posix.dirname(sourcePath), "package.json");
+    if (fs.existsSync(projectPath(root, manifestPath))) {
+      return isHarnessOnlyPackage(safeReadJson(root, manifestPath));
+    }
+  }
+  return false;
+}
+
 function sourceInventory(root) {
   const manifestPath = "knowledge/traceability/source-manifest.json";
   const manifest = safeReadJson(root, manifestPath);
@@ -164,6 +181,8 @@ function sourceInventory(root) {
       RELEVANT_CATEGORIES.has(source.category) &&
       typeof source.path === "string" &&
       !source.path.startsWith("specs/approved/") &&
+      !source.path.startsWith("docs/specifications/") &&
+      !isScaffolding(root, source.path) &&
       typeof source.sha256 === "string" && SHA256_PATTERN.test(source.sha256) &&
       typeof source.extracted_path === "string")
     .map((source) => {
@@ -232,7 +251,9 @@ function discoverBrownfieldSpec(root) {
       path: source.path, status: ["processed", "unchanged"].includes(source.status) ? "indexed" : source.status, category: source.category,
       reason: !["processed", "unchanged"].includes(source.status)
         ? `source-processing-${source.status}`
-        : source.path?.startsWith("specs/approved/") ? "approved-contract-not-reingested" : "category-not-eligible",
+        : source.path?.startsWith("specs/approved/") ? "approved-contract-not-reingested"
+        : source.path?.startsWith("docs/specifications/") ? "functional-draft-not-reingested"
+        : isScaffolding(root, source.path) ? "harness-scaffolding-not-product-evidence" : "category-not-eligible",
     })),
     implementation_recognition: { supported: [], unsupported: [] },
     language_capabilities: [],
@@ -388,7 +409,7 @@ function writeReviewIndex(root, indexPath, content) {
 function createDomainProposal(root, group) {
   const { domain, part, parts, sources } = group;
   const cases = testCases(sources);
-  const snapshotHash = digest(JSON.stringify({ schema_version: 2, format_version: 8, domain, part, parts, sources, cases }));
+  const snapshotHash = digest(JSON.stringify({ schema_version: 2, format_version: 9, domain, part, parts, sources, cases }));
   const slug = `brownfield-${domain}-part-${part}-${snapshotHash.slice(0, 12)}`;
   ensureDirectory(root, PROPOSALS);
   const specRelative = `${PROPOSALS}/${slug}.md`;
@@ -407,7 +428,7 @@ function createDomainProposal(root, group) {
   const specSha256 = digest(content);
   const evidence = {
     schema_version: 2,
-    format_version: 8,
+    format_version: 9,
     generated_by: "mcpee",
     status: "proposed",
     slug,
@@ -834,4 +855,8 @@ module.exports = {
   listBrownfieldSpecs,
   ratifyBrownfieldSpec,
   prepareApprovedSpecContext,
+  projectPath,
+  ensureDirectory,
+  isScaffolding,
+  readProposal,
 };

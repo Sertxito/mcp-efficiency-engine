@@ -9,6 +9,7 @@ const { analyzeImpacts } = require("../../knowledge-engine/src/unified");
 const { invokeTool } = require("../../tool-manager/src/tools");
 const { WALL_TIMEOUT_MS, createExecutionDeadline } = require("./execution-deadline");
 const { prepareApprovedSpecContext } = require("../../spec-engine/src/brownfield");
+const { isSpecificationTask, prepareFunctionalSources, functionalPrompt, publishFunctionalSpec } = require("../../spec-engine/src/functional");
 
 const MAX_CONTEXT_PACKAGE_BYTES = 2 * 1024 * 1024;
 const SENSITIVE_SOURCE = /(?:^|\/)(?:\.env(?:\..*)?|\.ssh|\.aws|\.azure|\.gnupg|\.kube|\.docker|\.npmrc|\.pypirc|\.netrc|secrets?|credentials?|certificates?|private|id_(?:rsa|dsa|ecdsa|ed25519)|private[-_.]?keys?)(?:\/|$)|\.(?:pem|key|p12|pfx|keystore)$/i;
@@ -179,12 +180,20 @@ function createCopilotHooks(projectRoot, options = {}) {
         payload: { input },
         attributes: {},
       });
-      const assessment = assessCopilotToolCall(input, {
+      let assessment = assessCopilotToolCall(input, {
         nonInteractive: !interactive,
         taskScopedWrites: true,
         projectRoot,
         task: options.task,
       });
+      if (options.specificationAuthoring &&
+          (assessment.decision !== "allow" || isFileMutationCall(input) ||
+            SHELL_TOOL.test(String(input.toolName || input.tool_name || "")))) {
+        assessment = {
+          decision: "deny",
+          reason: "Specification authoring is read-only. Return the structured draft; MCPEE writes the validated document. Implementation, shell commands and additional transfers are not part of this run.",
+        };
+      }
       const taskScopedWrite = assessment.taskScopedWrite === true;
       const fileMutation = isFileMutationCall(input);
       let actionImpact = options.impactPreflight || null;
@@ -389,7 +398,7 @@ function createPermissionRequestHandler(projectRoot, options = {}) {
   };
 }
 
-function createPrompt(task, plan, contextPackage = null, conversationContext = []) {
+function createPrompt(task, plan, contextPackage = null, conversationContext = [], specificationSources = null) {
   const context = {
     workflow: plan.workflow,
     agent: plan.agent,
@@ -440,6 +449,10 @@ function createPrompt(task, plan, contextPackage = null, conversationContext = [
       contextPackage.content,
     ].join("\n\n"));
   }
+  if (specificationSources) {
+    sections.push(functionalPrompt(specificationSources, plan.functional_specification?.mode ||
+      (plan.project_stack?.has_code_signals ? "brownfield" : "greenfield")));
+  }
   return sections.join("\n\n");
 }
 
@@ -462,7 +475,9 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
   const conversationContext = Array.isArray(options.conversationContext)
     ? options.conversationContext
     : [];
-  const prompt = createPrompt(task, plan, contextPackage, conversationContext);
+  const specificationSources = plan.functional_specification || isSpecificationTask(task)
+    ? prepareFunctionalSources(root, collectContextFiles(root, plan)) : null;
+  const prompt = createPrompt(task, plan, contextPackage, conversationContext, specificationSources);
   const taskHash = crypto.createHash("sha256").update(task).digest("hex");
   const startedAt = Date.now();
   const traceId = options.traceId || process.env.MCPEE_TRACE_ID || crypto.randomUUID();
@@ -510,6 +525,7 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
         hooks: createCopilotHooks(root, {
           ...approvalOptions,
           task,
+          specificationAuthoring: Boolean(specificationSources),
           changedPaths,
           getExecutionEventId: () => executionStartedEvent?.event_id || null,
         }),
@@ -711,6 +727,14 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
         attributes: { content_sha256: crypto.createHash("sha256").update(content).digest("hex") },
         payload: { content },
       });
+      options.signal?.throwIfAborted();
+      const specification = specificationSources ? publishFunctionalSpec(root, content, specificationSources) : null;
+      if (specification) {
+        changedPaths.add(specification.path);
+        for (const review of specification.reviews) {
+          if (review.status === "draft-filled-for-review") changedPaths.add(review.path);
+        }
+      }
       recordEvent(root, {
         event_name: "copilot.execution.completed",
         session_id: session.sessionId,
@@ -730,7 +754,18 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
           models: [...usage.models],
         },
       });
-      return { sessionId: session.sessionId, content, changedPaths: [...changedPaths].sort() };
+      return {
+        sessionId: session.sessionId,
+        content: specification
+          ? `${specification.path}\n\n${specification.content}\nStructural validation passed; human review required. Deferred/out-of-scope sections: ${specification.deferredSections}.\nReview proposals (not approved): ${JSON.stringify(specification.reviews)}`
+          : content,
+        changedPaths: [...changedPaths].sort(),
+        ...(specification ? { specification: {
+          path: specification.path, useCaseCount: specification.useCaseCount,
+          deferredSections: specification.deferredSections, status: "draft-structurally-validated",
+          reviews: specification.reviews,
+        } } : {}),
+      };
     } catch (error) {
       recordEvent(root, {
         event_name: "copilot.execution.completed",
