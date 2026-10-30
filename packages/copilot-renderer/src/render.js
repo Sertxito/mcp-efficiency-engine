@@ -1112,6 +1112,12 @@ participant, and do not repeat the task's implementation directly in Chat after
 MCPEE returns. If \`mcpee_run\` is unavailable, explain that the MCPEE execution
 path is unavailable instead of silently bypassing its routing and approvals.
 
+Git is optional for documentation, specifications and architecture proposals.
+Without a Git worktree, review the actual generated files and report diff/status
+as not applicable; do not initialize Git or block document creation. Projects
+without application code do not require CodeGraph health or a code index for
+this work. Keep source provenance, phase approvals and validation intact.
+
 Use project-local evidence and memory before reasoning. Provide only the minimum
 relevant context. Installed catalog assets are available on demand, not a request
 to execute every specialist. Load only task-relevant specialist, workflow and

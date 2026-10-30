@@ -238,6 +238,7 @@ try {
   const { initializeProject } = require(path.join(installedRoot, "packages", "core", "src", "project.js"));
   initializeProject(projectRoot, { refreshRuntime: true, packageRoot: installedRoot });
   assert.equal(fs.readFileSync(userInstructions, "utf8"), customContent);
+  assert.match(fs.readFileSync(path.join(projectRoot, ".github", "instructions", "mcpee-catalog.instructions.md"), "utf8"), /Git is optional/);
   const state = JSON.parse(fs.readFileSync(path.join(projectRoot, ".mcpee", "state", "mcp-server.json"), "utf8"));
   assert.equal(state.package_root, installedRoot);
 

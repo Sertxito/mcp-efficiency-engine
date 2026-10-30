@@ -34,13 +34,13 @@ why MCPEE manages its own isolated Python runtime instead of requiring one.
 Global installation (recommended):
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.41
+npm install --global mcp-efficiency-engine@0.1.42
 ```
 
 Run a pinned version without installing globally:
 
 ```sh
-npx --package=mcp-efficiency-engine@0.1.41 mcpee init --project C:\path\to\project
+npx --package=mcp-efficiency-engine@0.1.42 mcpee init --project C:\path\to\project
 ```
 
 The npm package is `mcp-efficiency-engine`. It installs two equivalent
@@ -50,7 +50,7 @@ If npm reports that the Copilot SDK's native `koffi` dependency has a blocked
 install script, allow only that dependency:
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.41 --allow-scripts=koffi
+npm install --global mcp-efficiency-engine@0.1.42 --allow-scripts=koffi
 ```
 
 This does not enable install scripts globally. A successful `mcpee help`
@@ -261,6 +261,8 @@ If there is no Git worktree, inspect the generated files directly and report
 Git diff/status as not applicable. Do not initialize Git just to unblock a
 documentation request. Source freshness and specification approvals still apply.
 Once application code exists, code-index health and impact checks are required.
+`mcpee update` refreshes these rules in MCPEE's generated operating contract
+without overwriting existing project-owned Copilot instructions.
 
 For each request MCPEE selects a workflow and specialist, retrieves cited local
 evidence and shows the impact of the files involved. Calling `mcpee_run`

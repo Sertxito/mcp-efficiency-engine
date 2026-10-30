@@ -5,12 +5,17 @@
 - Repository: <https://github.com/Sertxito/mcp-efficiency-engine>
 - npm package: `mcp-efficiency-engine`
 - Commands: `mcpee` and `mcp-efficiency-engine`
-- Current candidate: **0.1.41**, following published **0.1.40**
+- Current candidate: **0.1.42**, following published **0.1.41**
 - Runtime: Node.js **>=24**
 
 Keep the normal pre-1.0 version sequence until stable acceptance is complete.
 Do not label the target architecture fully implemented or promote to 1.0.0
 based only on passing automated tests.
+
+The 0.1.42 follow-up delivers the no-Git/documentation-only guidance through
+the generated operating contract as well as fresh project instructions and
+executor prompts. Existing project instructions remain untouched on update;
+tests verify that upgrades still receive the new rules.
 
 The 0.1.41 patch extends documentation-only routing to discovery and architecture,
 not only functional specifications. Init, sync, rebuild, post-change sync and
