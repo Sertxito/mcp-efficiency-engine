@@ -25,8 +25,9 @@ npm run init                      # initialize this repository with MCPEE
   plus the scope, version and review metadata of technical guides.
 - `docs:check-official-links` checks HTTP reachability of official guide URLs,
   not the technical correctness of those pages.
-- Tool version probes default to three seconds. npm, which starts more slowly,
-  gets ten. Callers can supply a specific timeout.
+- Tool version probes default to three seconds. npm gets ten seconds; packaged
+  Python and Node tools get thirty seconds for cold starts. Callers can supply
+  a specific timeout.
 
 ## Try an unpublished build in a project
 

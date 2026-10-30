@@ -299,6 +299,21 @@ function reportsUvVersion(result, expectedVersion) {
   return output.match(/^uv\s+(\d+\.\d+\.\d+)(?:\s|$)/m)?.[1] === expectedVersion;
 }
 
+function runPythonRuntimeCommand(root, uv, args, env, options) {
+  const run = options.runProcess || runProcess;
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    const result = run(uv, args, { cwd: root, env });
+    if (!result.error && result.status === 0) return result;
+    const details = (result.error?.message || result.stderr || "Managed Python installation failed.").slice(-4000);
+    const lockedRename = /failed to rename file/i.test(details) && /\bos error (?:5|32|33)\b/i.test(details);
+    if (process.platform !== "win32" || !lockedRename || attempt === 3) {
+      throw new Error(`${details.trim()}${attempt > 1 ? ` (after ${attempt} attempts)` : ""}`);
+    }
+    // Windows scanners can briefly hold files while uv finalizes the runtime.
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, attempt * 500);
+  }
+}
+
 function ensureUv(root, options) {
   const runtimeDefinition = catalog.python_runtime;
   const localUv = uvExecutablePath(root);
@@ -354,14 +369,8 @@ function ensureLatestPython(root, state, options) {
   const runtimeDirectory = ensureManagedSubdirectory(root, path.join(PYTHON_TOOL_ROOT, "runtime"));
   ensureManagedSubdirectory(root, ".mcpee/tools/uv-cache");
   const env = pythonEnvironment(root, runtimeDirectory);
-  const installed = run(uv, ["python", "install"], { cwd: root, env });
-  if (installed.error || installed.status !== 0) {
-    throw new Error(installed.error?.message || (installed.stderr || "Could not install the latest stable Python runtime").slice(-4000));
-  }
-  const upgraded = run(uv, ["python", "upgrade"], { cwd: root, env });
-  if (upgraded.error || upgraded.status !== 0) {
-    throw new Error(upgraded.error?.message || (upgraded.stderr || "Could not upgrade the project-local Python runtime to its latest patch").slice(-4000));
-  }
+  runPythonRuntimeCommand(root, uv, ["python", "install"], env, options);
+  runPythonRuntimeCommand(root, uv, ["python", "upgrade"], env, options);
   const found = run(uv, ["python", "find", "--managed-python"], { cwd: root, env });
   if (found.error || found.status !== 0) {
     throw new Error(found.error?.message || (found.stderr || "Could not locate the project-local Python runtime").slice(-4000));
@@ -510,11 +519,7 @@ function installPythonEnvironment(projectRoot, environmentId, pythonVersion, pac
   const runtimeDirectory = ensureManagedSubdirectory(root, path.join(PYTHON_TOOL_ROOT, "runtime"));
   ensureManagedSubdirectory(root, ".mcpee/tools/uv-cache");
   const env = pythonEnvironment(root, runtimeDirectory);
-  const installedRuntime = run(uv, ["python", "install", pythonVersion], { cwd: root, env });
-  if (installedRuntime.error || installedRuntime.status !== 0) {
-    throw new Error(installedRuntime.error?.message ||
-      (installedRuntime.stderr || `Could not install managed Python ${pythonVersion}`).slice(-4000));
-  }
+  runPythonRuntimeCommand(root, uv, ["python", "install", pythonVersion], env, options);
   const foundRuntime = run(uv, ["python", "find", "--managed-python", pythonVersion], {
     cwd: root,
     env,
@@ -592,6 +597,7 @@ async function installCatalogTools(projectRoot, options = {}) {
   const state = readInstallState(root);
   const results = [];
   let pythonRuntime;
+  let pythonRuntimeError;
   let latestLts;
   let ltsCheckError;
   const tools = catalog.tools.filter((item) =>
@@ -674,9 +680,11 @@ async function installCatalogTools(projectRoot, options = {}) {
       result = installNpmTool(root, tool, state, options);
     } else if (tool.installer.type === "python-venv") {
       try {
+        if (pythonRuntimeError) throw pythonRuntimeError;
         pythonRuntime ||= ensureLatestPython(root, state, options);
         result = installPythonTool(root, tool, state, options, pythonRuntime);
       } catch (error) {
+        if (!pythonRuntime) pythonRuntimeError = error;
         const blocked = error.message.startsWith("Cannot bootstrap") ||
           error.message.startsWith("A Python 3.8+");
         result = { id: tool.id, status: blocked ? "blocked" : "failed", reason: error.message };
@@ -766,11 +774,14 @@ function validateTool(projectRoot, toolId, options = {}) {
     : localNpmCli
       ? [localNpmCli, ...definition.version_args]
       : definition.version_args;
-  const result = spawnSync(command, args, {
+  const run = options.runProcess || spawnSync;
+  const result = run(command, args, {
     cwd: projectRoot,
     encoding: "utf8",
     env: definition.installer?.env ? { ...process.env, ...definition.installer.env } : process.env,
-    timeout: options.timeoutMs || (definition.id === "npm" ? 10_000 : 3000),
+    timeout: options.timeoutMs || (definition.installer
+      ? 30_000
+      : definition.id === "npm" ? 10_000 : 3000),
     maxBuffer: 256 * 1024,
     windowsHide: true,
     shell: false,

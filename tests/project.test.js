@@ -861,6 +861,20 @@ test("installed Copilot hook records real sanitized input and enforces preToolUs
   });
   assert.equal(allowed.status, 0);
   assert.equal(JSON.parse(allowed.stdout).permissionDecision, "allow");
+  for (const [toolName, toolArgs] of [
+    ["skill", { skill: "mcpee-requirements-discovery" }],
+    ["tool_search_tool", { query: "mcpee_run" }],
+  ]) {
+    const discovery = spawnSync(process.execPath, [hook, "preToolUse"], {
+      cwd: root,
+      input: JSON.stringify({ toolName, toolArgs }),
+      encoding: "utf8",
+      env: { ...process.env, MCPEE_NON_INTERACTIVE: "1" },
+    });
+    assert.equal(discovery.status, 0);
+    assert.equal(JSON.parse(discovery.stdout).permissionDecision, "allow");
+    assert.equal(JSON.parse(discovery.stdout).hookSpecificOutput.permissionDecision, "allow");
+  }
   const ask = spawnSync(process.execPath, [hook, "preToolUse"], {
     cwd: root,
     input: JSON.stringify({ toolName: "shell", toolArgs: { command: "npm test" } }),
@@ -1413,6 +1427,8 @@ test("run lifecycle reports account for all stages using evidence, not model cla
 test("approval policy allows only verified read-only invocations and blocks uncertain commands", () => {
   for (const nonInteractive of [false, true]) {
     for (const [toolName, toolArgs] of [
+      ["skill", { skill: "mcpee-requirements-discovery" }],
+      ["tool_search_tool", { query: "mcpee_run" }],
       ["view", { path: "README.md", view_range: [1, 200] }],
       ["glob", { pattern: "**/package.json" }],
       ["grep", { pattern: "test", glob: "package.json", output_mode: "content" }],
