@@ -34,13 +34,13 @@ why MCPEE manages its own isolated Python runtime instead of requiring one.
 Global installation (recommended):
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.37
+npm install --global mcp-efficiency-engine@0.1.38
 ```
 
 Run a pinned version without installing globally:
 
 ```sh
-npx --package=mcp-efficiency-engine@0.1.37 mcpee init --project C:\path\to\project
+npx --package=mcp-efficiency-engine@0.1.38 mcpee init --project C:\path\to\project
 ```
 
 The npm package is `mcp-efficiency-engine`. It installs two equivalent
@@ -50,7 +50,7 @@ If npm reports that the Copilot SDK's native `koffi` dependency has a blocked
 install script, allow only that dependency:
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.37 --allow-scripts=koffi
+npm install --global mcp-efficiency-engine@0.1.38 --allow-scripts=koffi
 ```
 
 This does not enable install scripts globally. A successful `mcpee help`
@@ -183,16 +183,26 @@ business intent. Requirements come first:
 1. **Initialize.** Run `mcpee init --project <path>`. In an interactive
    terminal, choose a capability preset or customize with checkboxes, then
    authorize the displayed tool bundle once.
-2. **Write requirements** in a Markdown file in the project, for example
-   `docs/requirements.md`. Include concrete inputs, observable outcomes,
-   non-goals and open decisions.
+2. **Provide requirements** as project documents, for example Markdown files
+   under `knowledge/sources/business/`, or Office/PDF sources supported by the
+   configured local converter. No project-specific names or templates are
+   required. Missing rules remain questions, not invented requirements.
 3. **Synchronize and draft.** Run `mcpee sync --project <path>`, then ask
    Copilot: "Draft functional specifications from `docs/requirements.md`;
    do not implement yet." The executor produces actors, concrete use cases,
    flows, alternatives, rules, acceptance criteria and open decisions.
    MCPEE validates structure, source quotes and declared section coverage,
-   then saves the human-readable draft under `docs/specifications/`.
+   then saves a human-readable product index and one independent specification
+   per use case under `docs/specifications/`. Each case includes one goal,
+   actor, trigger, preconditions, main flow, alternatives, postconditions,
+   rules, Given/When/Then criteria, source references, prerequisite cases and
+   its unresolved decisions.
    An empty template, an inventory or an unsupported citation fails the run.
+   To process all product documentation, ask "Run the greenfield process using
+   the project documentation; stop at atomic use-case specifications."
+   Retrieval does not silently stop at five files; unprocessed documents or
+   limits (100 documents / 2 MiB source text) block before paid execution.
+   A documentation-only run does not require querying an application code graph.
 4. **Review and ratify.** Review the draft for business correctness and
    completeness, including deferred source sections. Matching source-bound
    discovery proposals have their empty behavior/acceptance prompts filled

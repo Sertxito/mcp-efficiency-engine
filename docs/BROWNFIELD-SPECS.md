@@ -21,9 +21,55 @@ draft. MCPEE validates non-empty actors, use cases, main flows, alternatives,
 postconditions, rules, Given/When/Then criteria and exact source-line quotes.
 Each supplied top-level source section must be mapped to use cases or explicitly
 deferred/excluded with a reason. The checked draft is rendered as readable
-Markdown under `docs/specifications/<descriptive-slug>.md`; the JSON response is
-not the human deliverable. Existing different content is never overwritten:
-use a new descriptive revision slug after review.
+Markdown as an index under `docs/specifications/<descriptive-slug>.md`, with
+one self-contained `docs/specifications/<descriptive-slug>/UC-001.md` file per
+case and a machine-readable `manifest.json`. The index links to all cases.
+Each case has one explicit actor goal, local decisions still open, and
+prerequisite case references; missing, self-referencing or cyclic dependencies
+are rejected. The manifest binds case content hashes, source hashes and
+coverage. It records unresolved decisions and does not claim implementation
+readiness. The JSON model response is not the human deliverable.
+Existing different content in any bundle file is never overwritten; conflicts
+are checked before creating the bundle. Use a new descriptive revision slug
+after review.
+
+## Generic documentation-to-atomic-greenfield process
+
+This path applies to any documentation-only project; it is not specialized for
+a named product. Initialize MCPEE, provide product documentation and synchronize.
+Then request the greenfield process, stopping at atomic use-case specifications:
+
+1. **Verify inputs.** Inventory the indexed product documents, their conversion
+   state and hashes. Explicit source paths restrict the requested scope;
+   otherwise include all product business, architecture, documentation,
+   contract and decision sources. Do not silently use the first five search
+   results. Unconverted/failed documents in scope block authoring before
+   model execution. More than 100 documents or 2 MiB of source text requires an
+   explicitly narrower scope.
+2. **Establish product boundaries.** Derive outcomes, actors, scope, non-goals,
+   shared constraints and unresolved decisions from those sources.
+3. **Decompose by goal.** Separate independently useful actor goals, not merely
+   pages or technical modules. Express only real prerequisite relationships
+   as case dependencies.
+4. **Specify each case.** Define trigger, preconditions, numbered normal flow,
+   alternatives, postconditions, rules, observable acceptance criteria and
+   exact source-line quotes. Missing visual references are disclosed as gaps;
+   no visual assets or visual validation are claimed to exist.
+5. **Validate and persist.** Check structure, case references, quotes, hashes
+   and declared source-section coverage, then save the index and individual
+   documents. Atomic files and a complete source mapping are not proof of
+   semantic atomicity or completeness; a human must review the decomposition.
+6. **Hand off for review.** Present unresolved decisions and deferred sections.
+   Fill matching source-bound review proposals without approving requirements
+   or starting implementation.
+
+These are authoring stages within one bounded model attempt, not a claim that
+several independent specialist agents executed. The executor remains read-only;
+MCPEE performs validated artifact persistence. A documentation-only authoring
+request does not query or require an application CodeGraph index. Plain npm-init
+metadata also does not by itself establish an application implementation.
+
+## Draft review handoff
 
 Matching source-bound discovery proposals have their empty behavior and
 acceptance prompts filled from the validated cases, without manual copying.

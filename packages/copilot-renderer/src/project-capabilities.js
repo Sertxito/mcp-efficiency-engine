@@ -112,7 +112,15 @@ function detectProjectCapabilities(projectRoot, catalog) {
     manifestsByFile: packageManifests,
     packageFiles: allPackageFiles,
   } = readPackageDependencies(root, files);
-  const packageFiles = allPackageFiles.filter((file) => !isHarnessOnlyPackage(packageManifests.get(file)));
+  const packageFiles = allPackageFiles.filter((file) => {
+    const manifest = packageManifests.get(file);
+    if (isHarnessOnlyPackage(manifest)) return false;
+    return packageDependencies.get(file).size > 0 ||
+      ["main", "bin", "exports", "workspaces"].some((key) => manifest[key]) ||
+      typeof manifest.engines?.node === "string" ||
+      Object.entries(manifest.scripts || {}).some(([name, script]) =>
+        name !== "test" || !/Error: no test specified/.test(script));
+  });
   const technologies = new Map();
   const add = (technology, evidence) => {
     const sources = technologies.get(technology) || new Set();

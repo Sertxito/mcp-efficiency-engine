@@ -4,14 +4,14 @@ const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
 const { searchMemory } = require("../../memory-engine/src/memory");
-const { searchKnowledge, classifySource } = require("../../source-engine/src/sync");
+const { searchKnowledge } = require("../../source-engine/src/sync");
 const { discoverTools } = require("../../tool-manager/src/tools");
 const { readCodeGraphState, searchCodeGraph } = require("../../knowledge-engine/src/codegraph");
 const { analyzeImpacts, searchUnifiedGraph, GRAPH_PATH } = require("../../knowledge-engine/src/unified");
 const { readGraphifyState, searchGraphify } = require("../../knowledge-engine/src/graphify");
 const { recordEvent, observeLayer } = require("../../core/src/telemetry");
 const { readInstalledCatalog, sourceBody } = require("../../copilot-renderer/src/render");
-const { listBrownfieldSpecs } = require("../../spec-engine/src/brownfield");
+const { listBrownfieldSpecs, isScaffolding } = require("../../spec-engine/src/brownfield");
 const { isSpecificationTask } = require("../../spec-engine/src/functional");
 
 const RULES_PATH = path.resolve(__dirname, "../../../catalog/routing/routing-rules.json");
@@ -62,13 +62,45 @@ function selectTaskKnowledge(projectRoot, task, limit) {
     return new RegExp(`(^|[\\s\`"'([{])(?:\\./)?${escaped}(?=$|[\\s\`"'\\])},;:!?])`,
       process.platform === "win32" ? "i" : "").test(text);
   }).map(document => ({ ...document, selection: "explicit-task-path" }));
+  if (isSpecificationTask(task)) {
+    const manifestPath = path.join(projectRoot, "knowledge/traceability/source-manifest.json");
+    const manifest = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, "utf8")) : null;
+    if (!manifest || manifest.generated_by !== "mcpee" || !Array.isArray(manifest.sources)) {
+      throw new Error("Specification authoring requires a current source inventory. Run mcpee sync before requesting the greenfield specification.");
+    }
+    const namedSources = manifest.sources.filter((source) => {
+      const escaped = source.path.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return new RegExp(`(^|[\\s\`"'([{])(?:\\./)?${escaped}(?=$|[\\s\`"'\\])},;:!?])`,
+        process.platform === "win32" ? "i" : "").test(text);
+    });
+    const candidates = namedSources.length ? namedSources : manifest.sources.filter((source) =>
+      ["business", "architecture", "documentation", "api-contracts", "decisions", "office-documents"].includes(source.category) &&
+      !source.path.startsWith("docs/specifications/") &&
+      !source.path.startsWith("specs/approved/") &&
+      !isScaffolding(projectRoot, source.path));
+    const unavailable = candidates.filter((source) => !["processed", "unchanged"].includes(source.status) ||
+      !index.documents.some((document) => document.source_path === source.path));
+    if (unavailable.length) {
+      throw new Error(`Specification authoring blocked: product documents are not ready: ${unavailable.map((source) => `${source.path} (${source.status})`).join(", ")}. Resolve processing/conversion and synchronize; no paid authoring attempt was started.`);
+    }
+    const selected = namedSources.length ? index.documents
+      .filter((document) => namedSources.some((source) => source.path === document.source_path))
+      .map((document) => ({ ...document, selection: "explicit-task-path" }))
+      : index.documents.filter((document) =>
+      candidates.some((source) => source.path === document.source_path) &&
+      !document.source_path.startsWith("docs/specifications/") &&
+      !document.source_path.startsWith("specs/approved/") &&
+      !isScaffolding(projectRoot, document.source_path))
+      .map((document) => ({ ...document, selection: "product-documentation" }));
+    if (selected.length > 100) {
+      throw new Error("Specification authoring found more than 100 product documents. Name the source paths for one product scope; no documents were silently discarded.");
+    }
+    return selected;
+  }
   if (explicit.length > 10) throw new Error("Task names more than 10 indexed source files; narrow the task before impact analysis.");
   const matches = searchKnowledge(projectRoot, task, limit);
-  const business = isSpecificationTask(task) && !explicit.length
-    ? index.documents.filter((document) => classifySource(document.source_path) === "business") : [];
-  const preferred = business.length === 1 ? [...explicit, { ...business[0], selection: "sole-business-source" }] : explicit;
-  return [...preferred, ...matches.filter(match => !preferred.some(item => item.source_path === match.source_path))]
-    .slice(0, Math.max(limit, preferred.length));
+  return [...explicit, ...matches.filter(match => !explicit.some(item => item.source_path === match.source_path))]
+    .slice(0, Math.max(limit, explicit.length));
 }
 
 function routeTask(projectRoot, task, options = {}) {
@@ -241,13 +273,17 @@ function routeTask(projectRoot, task, options = {}) {
       result => ({ consulted: true, selected_count: result.length })).map((match) => ({ ...match, graph: "unified" }))
     : [];
   const codeGraphState = readCodeGraphState(projectRoot);
-  if (codeGraphState?.status !== "ready") {
+  const documentOnlyGreenfield = specificationTask && !catalog.project_stack?.has_code_signals;
+  if (codeGraphState?.status !== "ready" && !documentOnlyGreenfield) {
     recordEvent(projectRoot, { event_name: "context.layer.completed",
       attributes: { layer: "graph.codegraph", consulted: false, outcome: "failure", reason: "Required local CodeGraph index is not ready." } });
     throw new Error("CodeGraph is required for routing but its local index is not ready; run mcpee init or mcpee sync.");
   }
-  const codeGraphMatches = observeLayer(projectRoot, "graph.codegraph", () => searchCodeGraph(projectRoot, task, limit),
-    result => ({ consulted: true, selected_count: result.length }));
+  const codeGraphMatches = !documentOnlyGreenfield
+    ? observeLayer(projectRoot, "graph.codegraph", () => searchCodeGraph(projectRoot, task, limit),
+      result => ({ consulted: true, selected_count: result.length })) : [];
+  if (documentOnlyGreenfield) recordEvent(projectRoot, { event_name: "context.layer.completed",
+    attributes: { layer: "graph.codegraph", consulted: false, outcome: "not-applicable", reason: "Documentation-only specification authoring has no application code to search." } });
   const graphifyState = readGraphifyState(projectRoot);
   const graphifyMatches = graphifyState?.status === "ready"
     ? observeLayer(projectRoot, "graph.graphify", () => searchGraphify(projectRoot, task, limit),
@@ -334,7 +370,7 @@ function routeTask(projectRoot, task, options = {}) {
       .map(({ slug, path: specPath, sha256 }) => ({ slug, path: specPath, sha256 })),
     knowledge_graph_status: {
       unified: unifiedGraphStatus,
-      codegraph: codeGraphState.status,
+      codegraph: documentOnlyGreenfield ? "not-applicable-documentation-only" : codeGraphState.status,
       graphify: graphifyState?.status || "not-synchronized",
     },
     impact_preflight: impactPreflight,

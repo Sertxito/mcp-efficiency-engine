@@ -14,7 +14,7 @@ action, automatic validation after changes and a full local audit trail.
   Existing user files are never overwritten.
 
 npm package: **`mcp-efficiency-engine`** · commands: `mcpee` (or
-`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.37)
+`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.38)
 
 ## Requirements
 
@@ -32,12 +32,12 @@ Full details: [Getting started → Requirements](docs/GETTING-STARTED.md#require
 **1. Install**
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.37
+npm install --global mcp-efficiency-engine@0.1.38
 ```
 
 If npm blocks the native `koffi` dependency, add `--allow-scripts=koffi`
 (only that dependency is allowed). Prefer no global install? Use
-`npx --package=mcp-efficiency-engine@0.1.37 mcpee init --project <path>`.
+`npx --package=mcp-efficiency-engine@0.1.38 mcpee init --project <path>`.
 
 **2. Initialize your project**
 
@@ -92,7 +92,10 @@ from `<requirements document or application source paths>`; do not implement
 yet."** The internal executor must deliver concrete actors, use cases, flows,
 alternatives, business rules and acceptance criteria. MCPEE checks the structure,
 exact source quotes and declared section coverage, then saves a readable draft
-under `docs/specifications/`. Empty templates do not count as success. These
+index and **one self-contained document per use case** under
+`docs/specifications/`. Each case states one actor goal, flows, rules, acceptance
+criteria, source citations, prerequisite cases and unresolved decisions.
+Empty templates do not count as success. These
 checks do not certify semantic correctness or replace owner review.
 
 **Brownfield next steps:** review the detected stack (`mcpee explain`), use the
@@ -100,8 +103,13 @@ evidence inventory to draft and review functional behavior, then ratify the
 reviewed proposal (`mcpee specs ratify`). Check that a validation workflow
 exists for your stack (`mcpee quality`).
 
-**Greenfield next steps:** write requirements in a project document, run
-`mcpee sync`, request and review the functional draft and its filled source-bound
+**Greenfield next steps (any project, not a project-specific preset):** provide
+product documents, run `mcpee sync`, and ask "Run the greenfield process using
+the project documentation; stop at atomic use-case specifications, do not
+implement." Without named source paths, all indexed product documents are
+selected, not just keyword search matches. Missing conversion or exceeded
+input limits block the request explicitly rather than dropping requirements.
+Then review the functional index, each independent case and its filled source-bound
 proposals for explicit ratification, implement with Copilot, add a
 test script, and re-run `mcpee init` once code exists so MCPEE detects the new
 stack and generates validation.

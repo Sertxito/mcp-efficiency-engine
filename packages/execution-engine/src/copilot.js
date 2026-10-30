@@ -476,7 +476,8 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
     ? options.conversationContext
     : [];
   const specificationSources = plan.functional_specification || isSpecificationTask(task)
-    ? prepareFunctionalSources(root, collectContextFiles(root, plan)) : null;
+    ? prepareFunctionalSources(root, collectContextFiles(root, plan.functional_specification
+      ? { ...plan, knowledge_graph: [] } : plan)) : null;
   const prompt = createPrompt(task, plan, contextPackage, conversationContext, specificationSources);
   const taskHash = crypto.createHash("sha256").update(task).digest("hex");
   const startedAt = Date.now();
@@ -731,6 +732,8 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
       const specification = specificationSources ? publishFunctionalSpec(root, content, specificationSources) : null;
       if (specification) {
         changedPaths.add(specification.path);
+        changedPaths.add(specification.manifestPath);
+        for (const casePath of specification.casePaths) changedPaths.add(casePath);
         for (const review of specification.reviews) {
           if (review.status === "draft-filled-for-review") changedPaths.add(review.path);
         }
@@ -757,13 +760,15 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
       return {
         sessionId: session.sessionId,
         content: specification
-          ? `${specification.path}\n\n${specification.content}\nStructural validation passed; human review required. Deferred/out-of-scope sections: ${specification.deferredSections}.\nReview proposals (not approved): ${JSON.stringify(specification.reviews)}`
+          ? `${specification.path}\n\n${specification.content}\nStructural validation passed; human review required. Deferred/out-of-scope sections: ${specification.deferredSections}. Open decisions: ${specification.unresolvedDecisions}.\nAtomic use-case documents: ${JSON.stringify(specification.casePaths)}\nReview proposals (not approved): ${JSON.stringify(specification.reviews)}`
           : content,
         changedPaths: [...changedPaths].sort(),
         ...(specification ? { specification: {
           path: specification.path, useCaseCount: specification.useCaseCount,
           deferredSections: specification.deferredSections, status: "draft-structurally-validated",
           reviews: specification.reviews,
+          casePaths: specification.casePaths, manifestPath: specification.manifestPath,
+          unresolvedDecisions: specification.unresolvedDecisions,
         } } : {}),
       };
     } catch (error) {
