@@ -117,7 +117,7 @@ test("Copilot pauses its active budget for both approval surfaces", async t => {
     async start() {},
     async createSession(config) {
       return {
-        sessionId: "approval-deadline-test",
+        sessionId: "20000000-0000-4000-8000-000000000003",
         async sendAndWait(message, timeoutMs) {
           assert.equal(timeoutMs, 1_800_000);
           const permission = await config.onPermissionRequest(
@@ -167,7 +167,9 @@ test("Copilot aborts on its active deadline and on host cancellation during appr
       async start() {},
       async createSession(config) {
         return {
-          sessionId: mode,
+          sessionId: mode === "active-timeout"
+            ? "40000000-0000-4000-8000-000000000004"
+            : "40000000-0000-4000-8000-000000000005",
           async sendAndWait() {
             if (mode === "active-timeout") t.mock.timers.tick(600_000);
             else await config.onPermissionRequest({ kind: "write", fileName: "worker.cjs" },

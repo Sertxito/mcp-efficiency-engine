@@ -48,7 +48,7 @@ test("architecture and discovery route without Git or CodeGraph despite changed 
       async start() {},
       async createSession() {
         return {
-          sessionId: "documentation-only-fixture",
+          sessionId: "20000000-0000-4000-8000-000000000002",
           on() {},
           async sendAndWait(message) {
             prompt = message.prompt;

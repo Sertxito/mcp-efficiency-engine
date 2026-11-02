@@ -12,8 +12,9 @@ Separate these levels:
 1. **Mapping:** catalog references, routing and guide/skill selection exist.
 2. **Harness regression:** unit/fixture tests verify selection, permissions,
    evidence processing and the ability of a checker to detect a seeded defect.
-3. **Specialist acceptance:** an actual execution produces artifacts that pass
-   meaningful checks and explicit technical review for the scenario.
+3. **Specialist acceptance:** an actual execution produces artifacts with
+   sufficient verified outcomes, using a supported automatic oracle or explicit
+   technical review where semantic evidence cannot yet be checked automatically.
 4. **Operational acceptance:** the intended environment, workload and recovery
    conditions have separately approved, observed validation.
 
@@ -22,7 +23,97 @@ No level implies every framework version, all possible work or a statistical
 "most tasks" percentage. Extend the suite from real usage and regressions; count
 the denominator and report untested work rather than extrapolating competence.
 
+The repository regression `tests/workflow-catalog-routing.test.js` exercises an
+independent request for every catalogue workflow in a disposable MCPEE project.
+It checks workflow selection, delivered guidance, declared workflow skills,
+generic skill procedures and matching routing telemetry. Workflow, routing-rule
+and selected-agent skills are combined; selecting a specialist must not discard
+the workflow's required skills. Agent/skill/workflow evaluation retains the QA
+role: words describing the asset's domain must not select that domain's producer
+instead of its evaluator. These are routing/context-delivery regressions,
+not executions of the specialists or acceptance of their outputs.
+
 ## Inspect and export
+
+For an honest native behavioral-checker inventory across **every technical
+guide**, separate from the static source-pattern probes:
+
+```powershell
+mcpee evaluate --suite technology-runtime --json
+mcpee evaluate --suite technology-runtime --scenario python-resource-lifetime --variant baseline --json
+mcpee evaluate --suite technology-runtime --scenario python-resource-lifetime --variant candidate --json
+```
+
+The export's `evaluation_spec` is an ordinary `evaluate --run` specification.
+Copy the named packaged fixture to separate disposable `baseline/` and
+`candidate/` directories, install only its declared prerequisites and retain
+all immutable files byte-for-byte. Save the two exported `evaluation_spec`
+objects as project-relative JSON files and run them through the ordinary
+approval-gated evaluator. Only the candidate implementation may be repaired.
+The baseline must fail behavioral assertions, not a missing tool, restore or
+compilation step; a successful candidate must run every packaged check.
+
+Retain evaluation IDs in a project-relative manifest:
+
+```json
+{
+  "suite_id": "technology-runtime",
+  "suite_sha256": "<current native suite digest>",
+  "catalog_sha256": "<current catalogue digest>",
+  "trials": [{
+    "oracle": "python-resource-lifetime",
+    "baseline_validation_id": "<failing baseline evaluation UUID>",
+    "candidate_validation_id": "<passing candidate evaluation UUID>"
+  }]
+}
+```
+
+Inspect with `mcpee evaluate --suite technology-runtime --results native-results.json
+--json`. The reader binds current hashes, the exact native command and a complete
+test result; altered checks, a passing baseline, partial results, failed
+commands and reused evaluations are rejected. A pair becomes `checked-fixture`,
+**not** an accepted specialist run. Every guide lacking an executable fixture
+remains `missing-native-fixture`, regardless of its static probe. Inspection
+always returns exit 2: it does not claim complete product certification, run a
+model, install packages or access a database/cloud account.
+
+Current native fixtures exercise Node, Python, .NET, Angular, React, Vue,
+TypeScript compilation, SQLite query semantics and Terraform local lifecycle
+with its built-in provider. Pipelines have a native actionlint fixture for static
+GitHub Actions schema, graph, expression and script-interpolation diagnostics,
+not actual CI execution or expression evaluation. AWS has a native SDK fixture
+with controlled transport for pagination, cancellation and ownership, not actual
+service or IAM validation. Azure has actual Storage SDK transport-bound checks;
+Bicep has compiler-emitted ARM output assertions. Neither establishes deployed
+Azure behavior. Cosmos DB has actual SDK checks over controlled loopback HTTP
+for partition-key request routing, continuation, cancellation and responses,
+not service partitioning, RU charges or consistency. Every technical guide now
+has a bounded native-tool/SDK fixture; this is fixture availability, **not**
+complete runtime, specialist or product acceptance. SQLite does not replace the SQL Server
+acceptance scenario, and DOM harnesses do not replace real-browser acceptance.
+The Terraform fixture requires 1.14.0 on `PATH` and executes native `init`,
+`validate` and nine `test` runs without external providers or cloud resources;
+it does not establish remote locking, provider/API or deployed-system behavior.
+
+For catalogue-wide **local evidence inventory**, run:
+
+```powershell
+mcpee evaluate --suite workflow-catalog --json
+```
+
+This reports every workflow as `not-run`, `evidence-incomplete` or
+`observed-checked-execution`. It joins run reports with matching execution
+telemetry, distinguishes structured authoring from application checks, and
+checks current artifact hashes against passing evaluations. Revised reports
+for the same execution are not counted as independent runs. Missing or stale
+evidence remains a gap. Large telemetry is streamed, not silently truncated.
+
+The inventory is scoped to this project, not every installation or historical
+session. It never executes a model, grants an approval or certifies a workflow;
+it returns exit 2 because a checked local run does not establish all outcomes,
+failure/boundary variants or specialist acceptance. Local evidence is not
+tamper-proof. Use the specialist suites below for their separate acceptance
+contracts, not as interchangeable workflow certificates.
 
 From a consuming project, using the current installed MCPEE version:
 
@@ -67,7 +158,9 @@ inspect the suite and never invokes a model, installs dependencies or runs code.
    passes on the candidate without weakening the oracle. For analytical roles,
    use a redacted evidence pack, counterexamples and a reviewer/checker that
    verifies claims against it; counting headings is not a meaningful oracle.
-6. Obtain explicit review of correctness, regression quality and scope. Scores:
+6. Use a supported automatic oracle below when its complete evidence is present.
+   Otherwise obtain sufficient technical review of correctness, regression quality
+   and scope, not a ritual approval. Scores:
    0 = wrong/absent, 1 = partial or insufficient evidence, 2 = demonstrated.
    Every criterion must score 2 to accept a trial. Reviewer notes must address
    this scenario's outcomes and cite artifacts bound to validation.
@@ -79,13 +172,58 @@ mcpee evaluate --suite specialist-core --results acceptance-results.json --json
 
 This command checks evidence; it does not execute or approve anything. A failed
 trial gives exit 1, incomplete gives 2, all required accepted trials gives 0.
-Blocked/missing work is not a pass. A safe refusal can satisfy a boundary task,
-but the execution, response, checker and reviewer evidence are still required.
+Blocked/missing work is not a pass. Missing semantic verification reports
+`awaiting-verification` and exit 2 rather than demanding an approval or accepting
+an unverified result. A safe refusal can satisfy a boundary task, but still needs
+execution, response and sufficient outcome evidence.
+
+### Automatic Node behavioral oracle
+
+For `node-bounded-operation`, replace the `review` object with:
+
+```json
+{
+  "automatic_review": {
+    "oracle": "node-bounded-operation-v1",
+    "baseline_validation_id": "<separate failing evaluation UUID>"
+  }
+}
+```
+
+Keep separate `baseline/` and `candidate/` directories, each containing
+`worker.cjs` and the exact packaged `checks.cjs`. The baseline worker must be the
+unchanged seeded defective worker. Run both through `mcpee evaluate --run` using
+the exact exported scenario task. Each evaluation must have exactly one check:
+tool `node`, args `["--test", "--test-reporter=tap", "checks.cjs"]`, cwd set to
+its retained directory. Hash both files in each evaluation; hash the response
+in the candidate evaluation too. Do not reuse the candidate evaluation as the
+baseline. The retained baseline must fail with exit 1, and the candidate must
+pass all ten tests without skips, cancellation, timeouts or weakened checks.
+TAP keeps the completed counts in the bounded evaluation output.
+Exporting this scenario with `--json` includes ready `evaluation_specs.baseline`
+and `evaluation_specs.candidate` objects with the exact task, checks and evidence
+paths. Save those objects as run-spec JSON in the disposable project; the export
+does not write files or execute them. Preserve the executor response verbatim as
+`response.txt` before running the candidate spec.
+
+Matching execution start/completion and response-hash telemetry are required.
+Recorded changed paths must stay within the candidate worker; missing scope
+evidence remains insufficient. Denied actions fail. Inspection does not rerun a
+checker or a model. Automatic acceptance is specifically bounded fixture behavior
+and recorded file changes, not general resource/Node competency, independent
+attestation or production acceptance. A successful command without the bound
+baseline and unchanged behavioral oracle cannot pass.
 
 ## Result manifest
 
 Use the suite/catalog digests returned by suite inspection. This is an example,
 not an accepted observation; replace IDs, hashes, paths and notes with real data.
+The specialist suite uses schema version 2. Every manual trial must rate each
+exact scenario outcome with a note and evidence path present in the validation
+report. Scores are 0 (wrong/absent), 1 (partial/insufficient) and 2
+(demonstrated); every outcome and review criterion must score 2 to pass. Old
+results need the current suite digest and per-outcome ratings. Automatic oracles
+instead report their verified outcome-to-test mapping.
 
 ```json
 {
@@ -107,9 +245,14 @@ not an accepted observation; replace IDs, hashes, paths and notes with real data
       "review": {
         "reviewer": "<review owner>",
         "ratings": [
-          { "criterion": "correctness", "rating": 2, "note": "<outcome-by-outcome review>", "evidence": ["acceptance/candidate.cjs"] },
+          { "criterion": "correctness", "rating": 2, "note": "<review of outcome evidence>", "evidence": ["acceptance/candidate.cjs"] },
           { "criterion": "regression", "rating": 2, "note": "<initial failure and unchanged oracle evidence>", "evidence": ["acceptance/checks.cjs"] },
           { "criterion": "scope", "rating": 2, "note": "<actual permission, version and cleanup observations>", "evidence": ["acceptance/response.txt"] }
+        ],
+        "outcome_ratings": [
+          { "index": 0, "outcome": "<exact first scenario outcome>", "rating": 2, "note": "<how the artifact demonstrates this outcome>", "evidence": ["acceptance/candidate.cjs"] },
+          { "index": 1, "outcome": "<exact second scenario outcome>", "rating": 2, "note": "<how the artifact demonstrates this outcome>", "evidence": ["acceptance/checks.cjs"] },
+          { "index": 2, "outcome": "<exact third scenario outcome>", "rating": 2, "note": "<how the artifact demonstrates this outcome>", "evidence": ["acceptance/checks.cjs"] }
         ]
       }
     }
@@ -135,7 +278,18 @@ trial unverifiable. Do not store sensitive data or credentials in fixture packs.
 
 The separate `specialist-audit` suite has 14 technologies, each with a positive
 defect probe, a valid-code counterexample and an insufficient-evidence fragment.
-These are 42 static audit trials, not the 93 implementation trials above.
+These are 42 static audit trials, separate from the 96 specialist-core trials
+(32 scenarios with three variants). Suite inspection returns the current
+denominator; adding a scenario does not constitute a successful execution.
+Each technical guide now has its own deterministic source oracle. Suite loading
+checks that it detects every seeded positive defect and detects none in that
+technology's safe and insufficient-evidence controls; the report exposes all
+14 oracle results and counts. The oracle implementation digest is part of the
+suite digest, so changing a detector invalidates old result manifests. These
+fixture oracles validate the known examples and prevent always-silent or
+always-alarm controls; they do not automatically certify free-form specialist
+explanations or production behavior. Positive findings and evidence-gap
+reasoning still require technical review against the cited source.
 
 ```powershell
 mcpee evaluate --suite specialist-audit --json
@@ -174,12 +328,21 @@ The project-relative audit manifest has this shape (placeholders are not evidenc
 }
 ```
 
+For a **negative** control, omit `review` to use the automatic control oracle:
+no findings, successful exact execution, matching source/response hashes, no
+changed files and no forbidden tool or permission attempts. This checks the
+control outcome and scope, not general audit skill. Findings in a control fail
+even without review. Positive silence also fails automatically.
+
+Positive findings and insufficient-evidence reasoning still need semantic
+verification: absent review stays `awaiting-verification`, not a pass. No
+keyword-based or self-rated semantic approval is substituted.
 Classify **every** returned finding with `finding_id`, `verdict` (`supported`,
 `unsupported` or `duplicate`), `expected_ids` and a source-based `note`. A supported
 finding may map to multiple related oracle IDs; do not reuse a defect to inflate
 detection. Additional supported positive-case findings use an empty mapping.
 Unknown mappings use reviewer-only IDs from the selected control and zero-based
-indices into actual response `unknowns`. Missing mappings fail; generic
+indices into actual response `unknowns`. Incomplete supplied mappings fail; generic
 "more context needed" does not satisfy a specific evidence gap without review.
 
 Passing a control requires no corrective findings. A finding in a control fails

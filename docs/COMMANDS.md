@@ -21,15 +21,22 @@ guides.
 
 | Command | Purpose |
 |---|---|
-| `mcpee run --task <request> [--model <id>] [--pack-context \| --no-ground-context] [--context-tokens <128..32000>]` | Execute a routed task with GitHub Copilot under approvals. See [Copilot execution](COPILOT-EXECUTION.md). |
+| `mcpee run --task <request> [--model <id>] [--resume-session <uuid>] [--pack-context \| --no-ground-context] [--context-tokens <128..32000>]` | Execute a routed task with GitHub Copilot under approvals, or explicitly resume an interrupted SDK session for the same task. See [Copilot execution](COPILOT-EXECUTION.md). |
+| `mcpee run --task <request> --feature <slug> --through tasks\|verification` | Explicitly chain canonical authoring phases through tasks or implementation checks. Stops on decisions, drift, failed or non-advancing phases; never grants risky approvals or claims product acceptance. |
 | `mcpee route --task <request> [--json]` | Create a deterministic local plan without executing it. |
 | `mcpee plan init --slug <id> --title <title>` / `plan list [--json]` | Create or list delivery plans. |
 | `mcpee specs discover \| list [--all] \| drift [--json]` | Review specification proposals and drift. See [Specification discovery](BROWNFIELD-SPECS.md). |
-| `mcpee specs ratify --slug <id> --reviewer <name> --confirm-sha256 <digest>` | Approve a proposal into `specs/approved/`. |
-| `mcpee specs status [--slug <feature>] [--json]` | Open `specs/README.md`; inspect the active phase, pending decisions, source drift and review hashes. |
+| `mcpee brownfield [--model <id>] [--concurrency <auto\|1..10>] [--last-domain <domain,...>] [--resume-session <uuid>]` | Sync RAG/graphs and author proposals. Default `auto` selects one session per ten pending units (rounded up, maximum ten), excluding reused/blocked units; explicit 1..10 overrides it. Large runs may take hours; progress reports actual counts and selected concurrency. Failures retain evidence and do not stop other units; incomplete runs return `partial` and nonzero exit. All domains use the same queue unless the owner requests `--last-domain`. Current proposals are reused; an interrupted session can resume only its unchanged context. |
+| `mcpee init --prepare-only` | Explicitly prepare only local tools/indexes, without Copilot functional authoring; not complete brownfield. |
+| `mcpee specs scopes [--json]` | Prepare bounded brownfield extraction units (4 primary files, 24 KiB, 12 sections; separate 12 KiB related-context budget). Exact primary ranges account for every planned source line once. Context does not require whole-document coverage in each unit. Read-only, no model execution; blocks/exclusions remain explicit. |
+| `mcpee specs reconcile [--json]` | Persist a hash-linked post-authoring scope/case/source matrix with exact duplicate candidates, source conflicts and graph-derived technical links. Always requires owner review; does not approve product behavior. |
+| `mcpee specs ratify --slug <id> --reviewer <name> --confirm-sha256 <digest>` | Approve a legacy inventory-based contract into `docs/specifications/approved/`. |
+| `mcpee specs status [--slug <feature>] [--json]` | Start at `docs/README.md`; inspect each specification's physical state, authority, phase, drift and review hashes. |
+| `mcpee specs review --slug <feature> --reviewer <owner> --confirm-sha256 <digest>` | Record exact review and move the bundle to `reviewed/`, without granting authority. |
 | `mcpee specs decide --slug <feature> --id Q-001 --answer <decision> --reviewer <owner>` | Record an explicit owner answer without rewriting the question. |
 | `mcpee specs approve --slug <feature> --stage specification\|plan\|tasks --reviewer <owner> --confirm-sha256 <digest>` | Approve the exact reviewed artifacts in order; never marks implementation verified. |
-| `mcpee specs migrate [--json]` | Safely copy old functional drafts into `specs/<feature>/`; preserve originals and do not transfer approval. |
+| `mcpee specs migrate [--json]` | Move legacy root specs and inventories under `docs/` with rebased links and audited provenance; preserve existing authority, never invent it. Older pre-workspace drafts are imported as unapproved copies. |
+| `mcpee specs recover --candidate <project-relative-response.txt> [--source <original-path>]` | Validate a preserved authoring candidate and rebuild local indexes without calling a model. Requires the recorded response checksum and unchanged original source snapshot; never overwrites conflicting artifacts. |
 
 ## Knowledge
 
@@ -52,8 +59,10 @@ Details: [Knowledge and context](KNOWLEDGE.md).
 | `mcpee workflow run --spec <project-relative-json>` | Run a declared sequence of allowlisted checks. |
 | `mcpee evaluate --run <project-relative-json>` | Execute local checks and record the evidence. |
 | `mcpee evaluate --case <id> --asset <id> --response <file> [--ratings <json> --reviewer <name>]` | Evaluate an agent-asset response. |
-| `mcpee evaluate --suite specialist-core [--scenario <id> --variant normal\|failure\|boundary \| --results <json>] [--json]` | Specialist acceptance suite. |
-| `mcpee evaluate --suite specialist-audit [--scenario <id> --variant positive\|negative\|insufficient \| --results <json>] [--json]` | Paired static audit trials. |
+| `mcpee evaluate --suite specialist-core [--scenario <id> --variant normal\|failure\|boundary \| --results <json>] [--json]` | Specialist acceptance with supported automatic oracles or sufficient technical review. Node JSON task exports include ready baseline/candidate evaluation specs. |
+| `mcpee evaluate --suite specialist-audit [--scenario <id> --variant positive\|negative\|insufficient \| --results <json>] [--json]` | Paired static audit trials; safe negative controls can verify automatically, semantic cases remain unverified without sufficient evidence. |
+| `mcpee evaluate --suite technology-runtime [--scenario <oracle-id> --variant baseline\|candidate \| --results <json>] [--json]` | Inventory native behavioral fixtures separately from static probes; export exact evaluation specs or verify retained baseline/candidate evaluations. Does not execute a model or confer specialist/product acceptance; inspection returns exit 2. |
+| `mcpee evaluate --suite workflow-catalog [--json]` | Inspect all catalogue workflows against this project's run, telemetry and current hashed evaluation evidence. Reports gaps and not-run flows; does not execute or certify them. Exit 2 means catalogue acceptance is incomplete. |
 | `mcpee quality [--strict] [--json]` | Report validation gates for the detected stack. |
 | `mcpee coverage [--json]` | Report the mapped catalog baseline per technology. |
 | `mcpee skills health [--json]` | Correlate workflow outcomes with skills. |

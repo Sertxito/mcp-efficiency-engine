@@ -3,27 +3,21 @@
 const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
+const { renameAtomicSync } = require("../../core/src/atomic-file");
 const { projectPath, ensureDirectory } = require("./brownfield");
+const { SPEC_ROOT, STATES, workspace, featureDirectories } = require("./storage");
 
 const MARKER = "<!-- MCPEE specification workspace; generated navigation, not product approval -->";
 const hash = (value) => crypto.createHash("sha256").update(value).digest("hex");
-const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const stages = ["specification", "plan", "tasks"];
 const files = { specification: "spec.md", plan: "plan.md", tasks: "tasks.md" };
-
-function workspace(slug) {
-  if (typeof slug !== "string" || !slugPattern.test(slug) || ["approved", "readme"].includes(slug)) {
-    throw new Error("Specification ID must be a lowercase descriptive slug, not an internal directory name.");
-  }
-  return `specs/${slug}`;
-}
 
 function readJson(root, relative) {
   return JSON.parse(fs.readFileSync(projectPath(root, relative), "utf8"));
 }
 
 function readFeature(root, slug) {
-  const directory = workspace(slug);
+  const directory = workspace(slug, root);
   const manifest = readJson(root, `${directory}/manifest.json`);
   if (manifest.generated_by !== "mcpee" || manifest.kind !== "atomic-functional-specifications" ||
       manifest.index !== `${directory}/spec.md` || !Array.isArray(manifest.cases) || !manifest.cases.length ||
@@ -44,7 +38,7 @@ function replaceState(root, relative, value) {
   const temporary = projectPath(root, `${relative}.${crypto.randomUUID()}.tmp`);
   try {
     fs.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, { flag: "wx" });
-    fs.renameSync(temporary, filename);
+    renameAtomicSync(temporary, filename);
   } finally {
     if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
   }
@@ -67,7 +61,7 @@ function renderDecisions(decisions) {
     ...(decisions.length ? decisions.flatMap((decision) => [
       `## ${decision.id} (${decision.scope})`, "", decision.question, "",
       decision.answer ? `**Resolved by ${decision.reviewer}:** ${decision.answer}` : "**OPEN / PENDIENTE**", "",
-    ]) : ["No open questions were recorded. Human review is still required.", ""]),
+    ]) : ["No open questions were recorded. Validation is not proof of product acceptance.", ""]),
   ].join("\n");
 }
 
@@ -76,8 +70,9 @@ function reviewPaths(root, slug, stage) {
   const { directory, manifest } = readFeature(root, slug);
   const paths = stage === "specification"
     ? [`${directory}/manifest.json`, manifest.index, ...manifest.cases.map((item) => item.path),
-      `${directory}/decisions.json`, `${directory}/decisions.md`]
-    : [`${directory}/${files[stage]}`];
+      `${directory}/decisions.json`, `${directory}/decisions.md`, ...(manifest.document ? [manifest.document] : [])]
+    : [`${directory}/${files[stage]}`, ...(fs.existsSync(projectPath(root, `${directory}/${stage}.json`))
+      ? [`${directory}/${stage}.json`] : [])];
   if (paths.some((file) => !file.startsWith(`${directory}/`)) || new Set(paths).size !== paths.length) {
     throw new Error(`Invalid or duplicate specification artifact paths: ${slug}`);
   }
@@ -114,43 +109,127 @@ function featureStatus(root, slug) {
     const approved = previous && Boolean(approval && approval.sha256 === digest &&
       (stage === "specification" || approval.specification_sha256 === reviews.specification.sha256) &&
       (stage !== "tasks" || approval.plan_sha256 === reviews.plan.sha256));
-    reviews[stage] = { path: `${directory}/${files[stage]}`, present, sha256: digest, approved };
+    reviews[stage] = { path: `${directory}/${files[stage]}`, present, sha256: digest, approved,
+      validation: approved && approval.validation_source === "mcpee-automatic"
+        ? "machine-validated" : approved ? "human-reviewed" : "pending" };
     previous = approved;
   }
   const pending = decisions.filter((decision) => !decision.answer).length;
   const deferred = manifest.coverage.filter((section) => section.status === "deferred").length;
+  const blockedPhase = ["plan", "tasks"].find(stage => {
+    if (reviews[stage].approved || !fs.existsSync(projectPath(root, `${directory}/${stage}.json`))) return false;
+    const document = readJson(root, `${directory}/${stage}.json`);
+    if (!Array.isArray(document.open_questions) || stage === "plan" && !Array.isArray(document.risks)) {
+      throw new Error(`Invalid structured phase decision register: ${stage}`);
+    }
+    return document.open_questions.length || stage === "plan" && document.risks.some(risk => risk.requires_approval);
+  });
+  const implementation = require("./verification").implementationStatus(root, directory, reviews, drift);
   const next = drift.length ? "synchronize-and-review-source-drift"
     : !reviews.specification.approved ? (pending || deferred ? "clarify" : "review-specification")
+    : blockedPhase ? "clarify-phase"
     : !reviews.plan.approved ? (reviews.plan.present ? "review-plan" : "author-plan")
     : !reviews.tasks.approved ? (reviews.tasks.present ? "review-tasks" : "author-tasks")
-    : "implement-and-verify";
+    : implementation.verified ? "review-product-acceptance" : "implement-and-verify";
+  const explicitApproval = reviews.specification.approved &&
+    lifecycle.approvals.specification.validation_source !== "mcpee-automatic";
+  const authoritative = explicitApproval || implementation.verified;
   return {
     id: slug, path: manifest.index, status: reviews.tasks.approved ? "ready-for-implementation" : "draft",
     next, pending_decisions: pending, deferred_sections: deferred, drift, reviews,
-    implementation_verified: false,
+    advancement: lifecycle.advancement || "manual",
+    ...(blockedPhase ? { blocked_phase: blockedPhase } : {}),
+    implementation_verified: implementation.verified, implementation,
+    document_state: directory.startsWith(`${SPEC_ROOT}/`) ? directory.split("/")[2] : "legacy",
+    authoritative,
+    authority_basis: explicitApproval ? "explicit-approval" : implementation.verified ? "implemented-and-verified" : null,
   };
 }
 
 function listFeatures(root) {
-  const directory = projectPath(root, "specs");
-  if (!fs.existsSync(directory)) return [];
-  return fs.readdirSync(directory, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && entry.name !== "approved" && slugPattern.test(entry.name))
-    .filter((entry) => fs.existsSync(projectPath(root, `specs/${entry.name}/spec.md`)))
-    .map((entry) => {
-      if (fs.existsSync(projectPath(root, `specs/${entry.name}/manifest.json`))) return featureStatus(root, entry.name);
+  return featureDirectories(root)
+    .filter(({ directory }) => !directory.startsWith(`${SPEC_ROOT}/approved/`) ||
+      !fs.existsSync(projectPath(root, `${directory}/evidence.json`)))
+    .map(({ slug, directory }) => {
+      workspace(slug, root);
+      if (fs.existsSync(projectPath(root, `${directory}/manifest.json`))) return featureStatus(root, slug);
       return {
-        id: entry.name, path: `specs/${entry.name}/spec.md`, status: "unvalidated-manual-draft",
+        id: slug, path: `${directory}/spec.md`, status: "unvalidated-manual-draft",
+        document_state: directory.startsWith(`${SPEC_ROOT}/`) ? directory.split("/")[2] : "legacy",
+        authoritative: false,
         next: "author-and-review-functional-specification", pending_decisions: null, drift: [],
         reviews: Object.fromEntries(stages.map((stage) => [stage, {
-          path: `specs/${entry.name}/${files[stage]}`,
-          present: fs.existsSync(projectPath(root, `specs/${entry.name}/${files[stage]}`)), approved: false,
+          path: `${directory}/${files[stage]}`,
+          present: fs.existsSync(projectPath(root, `${directory}/${files[stage]}`)), approved: false,
         }])),
       };
     }).sort((a, b) => a.id.localeCompare(b.id));
 }
 
-function approveStage(root, { slug, stage = "specification", reviewer, confirmSha256 }) {
+function canonicalArtifacts(root) {
+  return listFeatures(root).filter((feature) => feature.status !== "unvalidated-manual-draft")
+    .flatMap((feature) => {
+      const { directory, manifest } = readFeature(root, feature.id);
+      const artifacts = [
+        manifest.index, ...manifest.cases.map((item) => item.path),
+        `${directory}/manifest.json`, `${directory}/decisions.json`, `${directory}/decisions.md`,
+        ...["specification.json", "plan.md", "plan.json", "tasks.md", "tasks.json", "verification.json"]
+          .map((file) => `${directory}/${file}`)
+          .filter((file) => fs.existsSync(projectPath(root, file))),
+      ];
+      return [...new Set(artifacts)].map((file) => {
+        if (!file.startsWith(`${directory}/`)) throw new Error(`Canonical artifact escapes its feature: ${file}`);
+        return { path: file, sha256: hash(fs.readFileSync(projectPath(root, file))),
+          feature: feature.id, authority: feature.authoritative ? "approved-specification" : "draft-specification",
+          feature_status: feature.status, document_state: feature.document_state };
+      });
+    });
+}
+
+function advanceValidatedStages(root, slug) {
+  const { lifecycle } = readFeature(root, slug);
+  if (lifecycle.advancement !== "validated") return featureStatus(root, slug);
+  let status = featureStatus(root, slug);
+  if (status.drift.length || status.pending_decisions || status.deferred_sections) return status;
+  for (const stage of stages) {
+    const { directory, manifest } = readFeature(root, slug);
+    if (status.reviews[stage].approved) continue;
+    if (!status.reviews[stage].present) break;
+    if (stage === "specification") {
+      if (manifest.document !== `${directory}/specification.json` ||
+          hash(fs.readFileSync(projectPath(root, manifest.index))) !== manifest.index_sha256 ||
+          hash(fs.readFileSync(projectPath(root, manifest.document))) !== manifest.document_sha256 ||
+          manifest.cases.some(item => hash(fs.readFileSync(projectPath(root, item.path))) !== item.sha256)) {
+        throw new Error("Canonical specification changed after structural validation; reconcile the revision instead of silently reauthorizing it.");
+      }
+      const { prepareRecordedFunctionalSources, validateFunctionalSpec } = require("./functional");
+      validateFunctionalSpec(root, fs.readFileSync(projectPath(root, manifest.document), "utf8"),
+        prepareRecordedFunctionalSources(root, manifest.sources));
+      const decisions = readJson(root, `${directory}/decisions.json`);
+      if (fs.readFileSync(projectPath(root, `${directory}/decisions.md`), "utf8") !== renderDecisions(decisions)) {
+        throw new Error("Decision JSON and Markdown disagree; reconcile owner edits before advancement.");
+      }
+    } else {
+      const phasePath = `${directory}/${stage}.json`;
+      if (!fs.existsSync(projectPath(root, phasePath))) break;
+      const { validatePhase, phaseMarkdownMatches } = require("./phases");
+      const document = validatePhase(root, slug, stage, fs.readFileSync(projectPath(root, phasePath), "utf8"));
+      if (!phaseMarkdownMatches(stage, document, fs.readFileSync(projectPath(root, `${directory}/${stage}.md`), "utf8"), manifest.cases)) {
+        throw new Error(`${stage} JSON and Markdown disagree; preserve and reconcile the edited artifact.`);
+      }
+      if (document.open_questions.length || stage === "plan" && document.risks.some(risk => risk.requires_approval)) {
+        return { ...status, next: "clarify-phase", blocked_phase: stage,
+          phase_decisions: document.open_questions,
+          risky_decisions: stage === "plan" ? document.risks.filter(risk => risk.requires_approval) : [] };
+      }
+    }
+    status = approveStage(root, { slug, stage, reviewer: "MCPEE automated validation",
+      confirmSha256: status.reviews[stage].sha256 }, { validationSource: "mcpee-automatic" });
+  }
+  return status;
+}
+
+function approveStage(root, { slug, stage = "specification", reviewer, confirmSha256 }, { validationSource = "human-review" } = {}) {
   if (typeof reviewer !== "string" || !reviewer.trim() || /[\r\n]/.test(reviewer) || reviewer.length > 160) {
     throw new Error("An accountable --reviewer is required.");
   }
@@ -165,6 +244,17 @@ function approveStage(root, { slug, stage = "specification", reviewer, confirmSh
   const digest = currentDigest(root, slug, stage);
   if (confirmSha256 !== digest) throw new Error(`Review digest does not match ${stage}. Current SHA-256: ${digest}`);
   if (stage !== "specification") {
+    const structuredPath = `${workspace(slug, root)}/${stage}.json`;
+    if (fs.existsSync(projectPath(root, structuredPath))) {
+      const { validatePhase, phaseMarkdownMatches } = require("./phases");
+      const document = validatePhase(root, slug, stage, fs.readFileSync(projectPath(root, structuredPath), "utf8"));
+      if (document.open_questions.length) throw new Error(`Resolve open ${stage} questions in the canonical artifact pair before approval.`);
+      if (!phaseMarkdownMatches(stage, document, fs.readFileSync(projectPath(root, status.reviews[stage].path), "utf8"), readFeature(root, slug).manifest.cases)) {
+        throw new Error(`${stage} JSON and Markdown disagree; reconcile the canonical pair before review.`);
+      }
+    } else if (status.advancement === "validated") {
+      throw new Error(`Automatic workspaces require structured ${stage}.json; an empty or manual template cannot bypass phase validation.`);
+    }
     const content = fs.readFileSync(projectPath(root, status.reviews[stage].path), "utf8");
     if (content.trim().length < 80 || /<[^>]+>|\b(?:TODO|TBD|placeholder)\b/.test(content) ||
         !content.includes("spec.md") || !/UC-\d{3}/.test(content) ||
@@ -175,6 +265,7 @@ function approveStage(root, { slug, stage = "specification", reviewer, confirmSh
   const { directory, lifecycle } = readFeature(root, slug);
   const approval = {
     reviewer: reviewer.trim(), sha256: digest, approved_at: new Date().toISOString(),
+    validation_source: validationSource,
     ...(stage !== "specification" ? { specification_sha256: status.reviews.specification.sha256 } : {}),
     ...(stage === "tasks" ? { plan_sha256: status.reviews.plan.sha256 } : {}),
   };
@@ -195,8 +286,27 @@ function approveStage(root, { slug, stage = "specification", reviewer, confirmSh
     fs.unlinkSync(projectPath(root, snapshotPath));
     throw error;
   }
+  const updated = require("./relocation").relocateFeature(root, slug,
+    stage === "specification" && validationSource !== "mcpee-automatic" ? "approved"
+      : featureStatus(root, slug).authoritative ? "approved" : "reviewed");
   refreshWorkspaceIndex(root);
-  return featureStatus(root, slug);
+  return updated;
+}
+
+function reviewSpecification(root, { slug, reviewer, confirmSha256 }) {
+  const status = featureStatus(root, slug);
+  if (typeof reviewer !== "string" || !reviewer.trim() || /[\r\n]/.test(reviewer)) {
+    throw new Error("An accountable reviewer is required.");
+  }
+  if (status.drift.length || confirmSha256 !== status.reviews.specification.sha256) {
+    throw new Error("Review requires the exact current specification digest and unchanged sources.");
+  }
+  const { directory, lifecycle } = readFeature(root, slug);
+  lifecycle.document_review = { reviewer: reviewer.trim(), sha256: confirmSha256, reviewed_at: new Date().toISOString() };
+  replaceState(root, `${directory}/lifecycle.json`, lifecycle);
+  const result = require("./relocation").relocateFeature(root, slug, status.authoritative ? "approved" : "reviewed");
+  refreshWorkspaceIndex(root);
+  return result;
 }
 
 function resolveDecision(root, { slug, id, answer, reviewer }) {
@@ -216,6 +326,7 @@ function resolveDecision(root, { slug, id, answer, reviewer }) {
   Object.assign(decision, { answer: answer.trim(), reviewer: reviewer.trim(), resolved_at: new Date().toISOString() });
   replaceState(root, `${directory}/decisions.json`, decisions);
   fs.writeFileSync(filename, renderDecisions(decisions));
+  advanceValidatedStages(root, slug);
   refreshWorkspaceIndex(root);
   return featureStatus(root, slug);
 }
@@ -230,7 +341,7 @@ function rebaseLinks(content, from, to) {
   });
 }
 
-function migrateDrafts(root) {
+function migrateLegacyDrafts(root) {
   const legacy = projectPath(root, "docs/specifications");
   const results = [];
   if (!fs.existsSync(legacy)) return results;
@@ -238,7 +349,8 @@ function migrateDrafts(root) {
     if (entry.isFile() && entry.name.endsWith(".md")) {
       if (!fs.existsSync(projectPath(root, `docs/specifications/${entry.name.slice(0, -3)}/manifest.json`))) {
         const from = `docs/specifications/${entry.name}`;
-        const directory = workspace(entry.name.slice(0, -3));
+        if (["README.md", "MCPEE.md"].includes(entry.name)) continue;
+        const directory = workspace(entry.name.slice(0, -3), root);
         if (fs.existsSync(projectPath(root, directory))) {
           results.push({ path: directory, status: "preserved-existing-destination" });
           continue;
@@ -270,7 +382,7 @@ function migrateDrafts(root) {
         manifest.index !== `docs/specifications/${entry.name}.md` || !Array.isArray(manifest.cases)) {
       throw new Error(`Unsupported legacy atomic manifest: ${oldManifestPath}`);
     }
-    const directory = workspace(entry.name);
+    const directory = workspace(entry.name, root);
     if (fs.existsSync(projectPath(root, directory))) {
       results.push({ path: directory, status: "preserved-existing-destination" });
       continue;
@@ -328,64 +440,176 @@ function navigationTarget(root) {
   const statePath = ".mcpee/state/specification-navigation.json";
   const stateFile = projectPath(root, statePath);
   const previous = fs.existsSync(stateFile) ? readJson(root, statePath) : null;
-  for (const relative of ["specs/README.md", "specs/MCPEE.md"]) {
+  for (const relative of [`${SPEC_ROOT}/README.md`, `${SPEC_ROOT}/MCPEE.md`]) {
     const filename = projectPath(root, relative);
     if (!fs.existsSync(filename) || previous?.generated_by === "mcpee" &&
-        (previous.path || "specs/README.md") === relative && previous.sha256 === hash(fs.readFileSync(filename))) return relative;
+        previous.path === relative && previous.sha256 === hash(fs.readFileSync(filename))) return relative;
   }
-  throw new Error("Both specs/README.md and specs/MCPEE.md contain owner content. Preserve them and choose an entry-point filename before regenerating navigation.");
+  throw new Error("Both docs/specifications/README.md and docs/specifications/MCPEE.md contain owner content. Preserve them and choose an entry-point filename before regenerating navigation.");
 }
 
 function refreshWorkspaceIndex(root) {
   const features = listFeatures(root);
+  const legacyApprovals = require("./brownfield").listLegacyApprovals(root);
+  const atomicCases = features.filter((feature) => feature.status !== "unvalidated-manual-draft")
+    .flatMap((feature) => readFeature(root, feature.id).manifest.cases.map((item) => ({
+      name: item.name || path.posix.basename(item.path, ".md"),
+      title: item.title || item.goal, path: item.path, feature: feature.id, status: feature.document_state,
+      authoritative: feature.authoritative, implemented: feature.implementation_verified,
+    }))).sort((left, right) => left.name.localeCompare(right.name) || left.path.localeCompare(right.path));
   const relative = navigationTarget(root);
   const filename = projectPath(root, relative);
   const statePath = ".mcpee/state/specification-navigation.json";
-  const legacy = ["docs/specifications", ".mcpee/specs/reviews", "specs/approved", ".mcpee/planning"]
-    .filter((file) => fs.existsSync(projectPath(root, file)));
   const content = [
-    MARKER, "# Project workspace / Espacio del proyecto", "",
-    "**Start here / Empieza aqui.** Product specifications live together; extraction inventories are not approved requirements.", "",
+    MARKER, "# Project specifications / Especificaciones del proyecto", "",
+    "**Start here / Empieza aqui.** The same product workspace for greenfield and brownfield. Internal extraction inventories are not functional specifications.", "",
+    "## Atomic specifications / Especificaciones atomicas", "",
+    ...(atomicCases.length ? [
+      "| Name / Nombre | Capability / Capacidad | State / Estado | Source of truth / Fuente de verdad | Implementation / Implementacion |",
+      "| --- | --- | --- | --- | --- |",
+      ...atomicCases.map((item) => `| [${item.name}](${path.posix.relative(SPEC_ROOT, item.path)}) | ${item.title.replace(/[|\r\n]/g, " ")} | ${item.status} | ${item.authoritative ? "yes / si" : "no"} | ${item.implemented ? "verified / verificada" : "not verified / no verificada"} |`),
+    ] : [
+      "No atomic functional specifications have been authored yet. Internal extraction inventories do not count as completed specs.",
+      "Ask MCPEE to draft specifications from the product documents and/or existing application. Prepared scopes are batches of evidence, not atomic business capabilities.",
+    ]),
+    "",
+    ...(legacyApprovals.length ? [
+      "## Previously ratified contracts / Contratos ratificados", "",
+      ...legacyApprovals.map(item => `- [${item.slug}](${path.posix.relative(SPEC_ROOT, item.path)}) - approved; source of truth; historical static proposal, not newly authored atomic use cases.`), "",
+    ] : []),
     "## Workflow / Flujo", "",
-    "Sources -> specification and use cases -> clarification -> owner approval -> technical plan -> ordered tasks -> implementation -> verification.",
-    "Each review is explicit. Draft creation, installed specialists and passing structural checks do not prove product acceptance.",
+    "proposed -> reviewed -> approved. Files move with their documentary state; feature and case names do not change.",
+    "Proposed and reviewed documents are NOT authoritative. Explicit specification approval OR implemented and currently verified behavior promotes them to approved, the project source of truth. Structural machine validation only enables phase progression and may move a proposal to reviewed; it does not grant documentary authority.",
+    "Implementation verification covers the recorded checks, not untested behavior, visual acceptance or production deployment. Source drift and stale checks remain visible.",
     "Run `mcpee specs status` for review hashes and the next step. No model is invoked by status or approval.", "",
     "## Features / Funcionalidades", "",
     ...(features.length ? features.map((feature) =>
-      `- [${feature.id}](${feature.id}/spec.md) — **${feature.status}**; next: ${feature.next}; open decisions: ${feature.pending_decisions ?? "not inventoried"}; source drift: ${feature.drift.length}.${feature.status !== "unvalidated-manual-draft" ? ` [Decisions](${feature.id}/decisions.md)` : ""}${feature.reviews.plan.present ? `; [Plan](${feature.id}/plan.md)` : ""}${feature.reviews.tasks.present ? `; [Tasks](${feature.id}/tasks.md)` : ""}`)
-      : ["No canonical specifications yet. Request greenfield authoring from your product sources; no empty plan counts as a specification."]),
+      `- [${feature.id}](${path.posix.relative(SPEC_ROOT, feature.path)}) - **${feature.document_state}**; source of truth: ${feature.authoritative ? "yes" : "no"}; next: ${feature.next}; open decisions: ${feature.pending_decisions ?? "not inventoried"}; source drift: ${feature.drift.length}.${feature.status !== "unvalidated-manual-draft" ? ` [Decisions](${path.posix.relative(SPEC_ROOT, path.posix.join(path.posix.dirname(feature.path), "decisions.md"))})` : ""}${feature.reviews.plan.present ? `; [Plan](${path.posix.relative(SPEC_ROOT, feature.reviews.plan.path)})` : ""}${feature.reviews.tasks.present ? `; [Tasks](${path.posix.relative(SPEC_ROOT, feature.reviews.tasks.path)})` : ""}`)
+      : ["No canonical specifications yet. Request functional authoring from product sources; the origin does not change the workspace or naming."]),
     "", "## Where things belong / Donde esta cada cosa", "",
-    "- [knowledge/sources](../knowledge/sources/): original business, architecture, technical and other project inputs; edit your originals here.",
-    "- specs/&lt;feature&gt;/: editable product spec.md, UC-###.md cases, decisions.md, plan.md and tasks.md; manifest/lifecycle JSON records provenance and review.",
-    "- [docs/generated](../docs/generated/): regenerated evidence maps, NOT desired behavior or product approval; change the original sources instead.",
-    "- knowledge/normalized, extracted and traceability: machine-derived text, metadata and source hashes; not the place to author requirements.",
-    "- [.mcpee/generated](../.mcpee/generated/): installed harness catalog and capability reports, not your product specifications.",
-    "- .mcpee/specs/proposed and reviews: static extraction inventories and historical review evidence, not the canonical greenfield workspace.",
-    "- .mcpee/: internal tools, indexes and execution evidence; do not move or delete it to reorganize documents.",
-    "", "## Existing material / Material anterior", "",
-    ...legacy.map((file) => `- [${file}](../${file}/): preserved historical material; not silently promoted to approval.`),
-    "", "Use `mcpee specs migrate` to copy supported atomic drafts into the canonical workspace without deleting originals.",
-    "Monolithic/manual drafts are copied as unvalidated drafts, not automatically decomposed or approved. Old approvals stay linked above and are not rewritten.",
+    "- docs/: all project-facing documentation. Start here for questions about the product, not in hidden MCPEE state.",
+    "- docs/specifications/{proposed,reviewed,approved}/&lt;feature&gt;/&lt;case-slug&gt;.md: one readable atomic capability per file, e.g. about-us-staff.md or about-us-ambassador.md. UC IDs are internal references, not public filenames.",
+    "- spec.md is the feature overview; decisions.md, plan.md and tasks.md track its decisions and delivery. JSON records keep the structured contract and provenance with the documents.",
+    "- [Generated documentation](../generated/): source-backed extraction inventories and maps, NOT approved requirements.",
+    "- [knowledge/sources](../../knowledge/sources/): original knowledge supplied by the project owners. Existing project-specific input locations remain valid.",
+    "- knowledge/normalized, extracted and traceability: derived local retrieval material, converted text and source hashes; embeddings/indexes remain engine-managed.",
+    "- .mcpee/: MCPEE tools, state, caches, execution and migration evidence ONLY. Agent/IDE integrations remain in their standard project locations.",
+    "", "Use `mcpee specs migrate` to relocate existing workspaces. Original review evidence is retained and relocation never grants authority.",
     "", "## Validation evidence / Evidencia de validacion", "",
     ...[".mcpee/reports/workflows", ".mcpee/reports/runs"].filter((file) => fs.existsSync(projectPath(root, file)))
-      .map((file) => `- [${file}](../${file}/): recorded execution evidence; inspect status and scope, not just file existence.`),
+      .map((file) => `- [${file}](../../${file}/): recorded execution evidence; inspect status and scope, not just file existence.`),
     "Requirement approval and task readiness do not replace passing project checks or human product/visual acceptance.",
-    "", "## Review commands", "",
+    "", "## Automatic phases", "",
+    "For runtime-authored validated features, request `Create plan for <id>` then `Create tasks for <id>` through mcpee_run. MCPEE validates and records advancement without a separate review prompt.",
+    "Open decisions or risky actions remain explicit blockers. Read the structured JSON and Markdown together before changing a phase.", "",
+    "## Review commands (manual workspaces or optional human review)", "",
     "1. `mcpee specs status --slug <id>` — inspect decisions, source drift, per-stage digest and next action.",
+    "   `mcpee specs review --slug <id> --reviewer \"owner\" --confirm-sha256 <digest>` records review without approval.",
     "2. `mcpee specs decide --slug <id> --id Q-001 --answer \"owner decision\" --reviewer \"owner\"`.",
     "3. `mcpee specs approve --slug <id> --stage specification --reviewer \"owner\" --confirm-sha256 <reviewed-digest>`.",
     "4. Author plan.md against spec.md and UC IDs, then approve with `--stage plan`.",
     "5. Author tasks.md against spec.md, plan.md and UC IDs, then approve with `--stage tasks`.",
     "6. Implement and run the project's real validation checks. Ready-for-implementation is NOT verified or delivered.", "",
   ].join("\n");
-  ensureDirectory(root, "specs");
+  ensureDirectory(root, SPEC_ROOT);
+  for (const state of STATES) ensureDirectory(root, `${SPEC_ROOT}/${state}`);
+  ensureDirectory(root, "docs/generated");
   ensureDirectory(root, ".mcpee/state");
   fs.writeFileSync(filename, content);
   replaceState(root, statePath, { generated_by: "mcpee", path: relative, sha256: hash(content) });
-  return { path: relative, status: relative === "specs/README.md" ? "updated" : "updated-preserving-owner-readme" };
+  refreshDocsIndex(root, relative);
+  return { path: relative, status: relative === `${SPEC_ROOT}/README.md` ? "updated" : "updated-preserving-owner-readme" };
+}
+
+function refreshDocsIndex(root, specificationIndex) {
+  const statePath = ".mcpee/state/documentation-navigation.json";
+  const previous = fs.existsSync(projectPath(root, statePath)) ? readJson(root, statePath) : null;
+  const relative = ["docs/README.md", "docs/MCPEE.md"].find(file =>
+    !fs.existsSync(projectPath(root, file)) || previous?.generated_by === "mcpee" &&
+    previous.path === file && previous.sha256 === hash(fs.readFileSync(projectPath(root, file))));
+  if (!relative) throw new Error("docs/README.md and docs/MCPEE.md both contain owner edits; preserve them and reconcile the documentation entry point.");
+  const content = [
+    MARKER, "# Project documentation / Documentacion del proyecto", "",
+    "Start here for product questions. All user-facing project documentation belongs under docs/.", "",
+    `- [Specifications: proposed, reviewed and approved](${path.posix.relative("docs", specificationIndex)}).`,
+    "- [Generated documentation and source inventories](generated/): evidence and maps, not automatic product approval.",
+    "- [Owner-supplied knowledge](../knowledge/sources/): original inputs; normalized/extracted knowledge supports local retrieval.",
+    "", "Only explicitly approved specifications or implemented-and-verified specifications are sources of truth.",
+    "Reviewed proposals are not approved. Verification is bounded to its recorded checks; stale evidence is shown in specification status.",
+    "MCPEE's tools, execution state and evidence live under .mcpee/; IDE integrations use standard project locations.", "",
+  ].join("\n");
+  fs.writeFileSync(projectPath(root, relative), content);
+  replaceState(root, statePath, { generated_by: "mcpee", path: relative, sha256: hash(content) });
+}
+
+function migrateDrafts(root) {
+  const results = [];
+  const navigationState = ".mcpee/state/specification-navigation.json";
+  const previousNavigation = fs.existsSync(projectPath(root, navigationState)) ? readJson(root, navigationState) : null;
+  const latestPath = ".mcpee/specs/latest.json";
+  const hasLatest = fs.existsSync(projectPath(root, latestPath));
+  const latest = hasLatest ? readJson(root, latestPath) : null;
+  if (hasLatest && (!latest || latest.generated_by !== "mcpee" || !Array.isArray(latest.proposals))) {
+    throw new Error(`Refusing to overwrite user-owned review state: ${latestPath}`);
+  }
+  for (const feature of listFeatures(root).filter(item => item.document_state === "legacy")) {
+    if (feature.status === "unvalidated-manual-draft") {
+      const from = path.posix.dirname(feature.path);
+      const to = `${SPEC_ROOT}/proposed/${feature.id}`;
+      if (fs.existsSync(projectPath(root, to))) throw new Error(`Migration destination already exists: ${to}`);
+      require("./relocation").relocateDocuments(root, from, to);
+      results.push({ path: `${to}/spec.md`, status: "moved-unvalidated-manual-draft" });
+      continue;
+    }
+    const updated = require("./relocation").relocateFeature(root, feature.id,
+      feature.authoritative ? "approved" : feature.reviews.specification.approved ? "reviewed" : "proposed");
+    results.push({ path: updated.path, status: "moved-preserving-review-evidence" });
+  }
+  const legacyApproved = "specs/approved";
+  if (fs.existsSync(projectPath(root, legacyApproved))) {
+    results.push(require("./relocation").relocateDocuments(root, legacyApproved, `${SPEC_ROOT}/approved`, { rewriteJson: true }));
+  }
+  const legacyEvidence = ".mcpee/specs/proposed";
+  const legacyReviews = ".mcpee/specs/reviews";
+  const evidenceDestinations = [[legacyEvidence, "docs/generated/specification-evidence"],
+    [legacyReviews, "docs/generated/specification-evidence/reviews"]];
+  if (fs.existsSync(projectPath(root, legacyEvidence))) {
+    results.push(require("./relocation").relocateDocuments(root, legacyEvidence, evidenceDestinations[0][1],
+      { destinations: evidenceDestinations, rewriteJson: true }));
+  }
+  if (fs.existsSync(projectPath(root, legacyReviews))) {
+    results.push(require("./relocation").relocateDocuments(root, legacyReviews, evidenceDestinations[1][1],
+      { destinations: evidenceDestinations, rewriteJson: true }));
+  }
+  if (latest) {
+      const rewrite = value => {
+        if (typeof value === "string") {
+          const mapping = evidenceDestinations.find(([from]) => value.startsWith(`${from}/`));
+          return mapping ? `${mapping[1]}${value.slice(mapping[0].length)}` : value;
+        }
+        if (Array.isArray(value)) return value.map(rewrite);
+        if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, rewrite(item)]));
+        return value;
+      };
+      const updated = rewrite(latest);
+      if (JSON.stringify(updated) !== JSON.stringify(latest)) replaceState(root, latestPath, updated);
+  }
+  results.push(...migrateLegacyDrafts(root));
+  refreshWorkspaceIndex(root);
+  if (previousNavigation?.generated_by === "mcpee" &&
+      ["specs/README.md", "specs/MCPEE.md"].includes(previousNavigation.path)) {
+    const filename = projectPath(root, previousNavigation.path);
+    if (fs.existsSync(filename) && hash(fs.readFileSync(filename)) === previousNavigation.sha256) fs.unlinkSync(filename);
+  }
+  if (fs.existsSync(projectPath(root, "specs")) && !fs.readdirSync(projectPath(root, "specs")).length) {
+    fs.rmdirSync(projectPath(root, "specs"));
+  }
+  return results;
 }
 
 module.exports = {
   workspace, readFeature, currentDigest, sourceDrift, featureStatus, listFeatures, approveStage,
   decisionDocument, renderDecisions, resolveDecision, refreshWorkspaceIndex, migrateDrafts, navigationTarget,
+  canonicalArtifacts,
+  advanceValidatedStages, reviewSpecification,
 };

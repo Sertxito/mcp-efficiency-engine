@@ -11,8 +11,8 @@ const { attachRelationships } = require("./relationships");
 const { GRAPH_PATH } = require("../../knowledge-engine/src/unified");
 const { isHarnessOnlyPackage } = require("../../copilot-renderer/src/project-capabilities");
 
-const PROPOSALS = ".mcpee/specs/proposed";
-const APPROVED = "specs/approved";
+const PROPOSALS = "docs/generated/specification-evidence";
+const APPROVED = "docs/specifications/approved";
 const LATEST = ".mcpee/specs/latest.json";
 const RELEVANT_CATEGORIES = new Set([
   "api-contracts",
@@ -155,6 +155,10 @@ function declaredTestCases(sourcePath, category, text, facts) {
 
 function isScaffolding(root, sourcePath) {
   if (typeof sourcePath !== "string") return false;
+  if (sourcePath.startsWith("docs/specifications/")) return true;
+  if (["docs/README.md", "docs/MCPEE.md"].includes(sourcePath) &&
+      fs.existsSync(projectPath(root, sourcePath)) &&
+      fs.readFileSync(projectPath(root, sourcePath), "utf8").startsWith("<!-- MCPEE specification workspace;")) return true;
   const feature = sourcePath.match(/^specs\/([a-z0-9-]+)\//)?.[1];
   if (feature && feature !== "approved" && fs.existsSync(projectPath(root, `specs/${feature}/manifest.json`))) return true;
   if (["specs/README.md", "specs/MCPEE.md"].includes(sourcePath) || /^specs\/[^/]+\/(?:spec\.md|UC-\d{3}\.md|manifest\.json|migration\.json|lifecycle\.json|decisions\.(?:md|json)|plan\.md|tasks\.md)$/.test(sourcePath)) return true;
@@ -242,6 +246,7 @@ function discoverBrownfieldSpec(root) {
     });
     return { status: "empty", sourceCount: 0 };
   }
+  require("./lifecycle").refreshWorkspaceIndex(root);
   const manifest = safeReadJson(root, "knowledge/traceability/source-manifest.json");
   const relationships = fs.existsSync(projectPath(root, GRAPH_PATH))
     ? attachRelationships(sources, safeReadJson(root, GRAPH_PATH))
@@ -278,7 +283,7 @@ function discoverBrownfieldSpec(root) {
   const groups = partitionDomains(sources);
   const proposals = groups.map((group) => createDomainProposal(root, group));
   const snapshotHash = digest(JSON.stringify({ format: "domain-index-v4", proposals: proposals.map(({ slug }) => slug), coverage }));
-  const reviewDirectory = `.mcpee/specs/reviews/${snapshotHash.slice(0, 12)}`;
+  const reviewDirectory = `${PROPOSALS}/reviews/${snapshotHash.slice(0, 12)}`;
   ensureDirectory(root, reviewDirectory);
   const indexPath = `${reviewDirectory}/index.md`;
   const domainGroups = new Map();
@@ -361,6 +366,7 @@ function discoverBrownfieldSpec(root) {
 }
 
 function writeLatestReview(root, review) {
+  ensureDirectory(root, path.posix.dirname(LATEST));
   const filename = projectPath(root, LATEST);
   if (fs.existsSync(filename)) {
     const existing = safeReadJson(root, LATEST);
@@ -388,7 +394,7 @@ function currentProposalPaths(root) {
   }
   for (const proposal of review.proposals) {
     if (!proposal || typeof proposal.slug !== "string" || !SLUG_PATTERN.test(proposal.slug) ||
-        proposal.path !== `${PROPOSALS}/${proposal.slug}.md`) {
+        ![`${PROPOSALS}/${proposal.slug}.md`, `.mcpee/specs/proposed/${proposal.slug}.md`].includes(proposal.path)) {
       throw new Error(`Invalid proposal reference in review state: ${LATEST}`);
     }
     for (const relative of [proposal.path, proposal.path.replace(/\.md$/, ".evidence.json")]) {
@@ -412,7 +418,8 @@ function writeReviewIndex(root, indexPath, content) {
 function createDomainProposal(root, group) {
   const { domain, part, parts, sources } = group;
   const cases = testCases(sources);
-  const snapshotHash = digest(JSON.stringify({ schema_version: 2, format_version: 9, domain, part, parts, sources, cases }));
+  const workspacePath = require("./lifecycle").navigationTarget(root);
+  const snapshotHash = digest(JSON.stringify({ schema_version: 2, format_version: 11, workspacePath, domain, part, parts, sources, cases }));
   const slug = `brownfield-${domain}-part-${part}-${snapshotHash.slice(0, 12)}`;
   ensureDirectory(root, PROPOSALS);
   const specRelative = `${PROPOSALS}/${slug}.md`;
@@ -421,7 +428,7 @@ function createDomainProposal(root, group) {
   const evidencePath = projectPath(root, evidenceRelative);
   const content = renderDomainProposal({
     slug, domain, part, parts, sources, cases, snapshotHash,
-    specPath: specRelative, evidencePath: evidenceRelative, marker: GENERATED_MARKER,
+    specPath: specRelative, evidencePath: evidenceRelative, marker: GENERATED_MARKER, workspacePath,
   });
   const casePages = [
     ...renderCasePages({ slug, cases, specPath: specRelative, evidencePath: evidenceRelative }),
@@ -431,7 +438,8 @@ function createDomainProposal(root, group) {
   const specSha256 = digest(content);
   const evidence = {
     schema_version: 2,
-    format_version: 9,
+    format_version: 11,
+    workspace_path: workspacePath,
     generated_by: "mcpee",
     status: "proposed",
     slug,
@@ -489,8 +497,9 @@ function createDomainProposal(root, group) {
 
 function readProposal(root, slug) {
   if (!SLUG_PATTERN.test(slug)) throw new Error(`Invalid specification slug: ${slug}`);
-  const relative = `${PROPOSALS}/${slug}.md`;
-  const evidenceRelative = `${PROPOSALS}/${slug}.evidence.json`;
+  const base = fs.existsSync(projectPath(root, `${PROPOSALS}/${slug}.md`)) ? PROPOSALS : ".mcpee/specs/proposed";
+  const relative = `${base}/${slug}.md`;
+  const evidenceRelative = `${base}/${slug}.evidence.json`;
   const content = fs.readFileSync(projectPath(root, relative), "utf8");
   const evidence = safeReadJson(root, evidenceRelative);
   if (!content.startsWith(GENERATED_MARKER) ||
@@ -504,6 +513,7 @@ function readProposal(root, slug) {
     ? digest(JSON.stringify({
       schema_version: 2,
       ...(evidence.format_version ? { format_version: evidence.format_version } : {}),
+      ...(evidence.format_version >= 10 ? { workspacePath: evidence.workspace_path } : {}),
       domain: evidence.domain, part: evidence.part,
       parts: evidence.parts, sources: evidence.sources, cases: evidence.test_cases,
     }))
@@ -609,11 +619,20 @@ function ratifyBrownfieldSpec(root, { slug, reviewer, confirmSha256 }) {
   const evidenceRelative = `${APPROVED}/${slug}/evidence.json`;
   const specPath = projectPath(root, specRelative);
   const evidencePath = projectPath(root, evidenceRelative);
+  const destinations = new Map([
+    [proposal.relative, specRelative], [proposal.evidenceRelative, evidenceRelative],
+    ...proposal.casePages.map(page => [page.path, `${APPROVED}/${slug}/${path.posix.basename(page.path)}`]),
+  ]);
+  const rebase = (content, from, to) => content.replace(/(\]\()([^)\s]+)(\))/g, (match, start, target, end) => {
+    if (/^(?:[a-z]+:|#|\/)/i.test(target)) return match;
+    const [file, fragment] = target.split("#", 2);
+    const absolute = path.posix.normalize(path.posix.join(path.posix.dirname(from), decodeURIComponent(file)));
+    const relative = path.posix.relative(path.posix.dirname(to), destinations.get(absolute) || absolute);
+    return `${start}${relative.split("/").map(encodeURIComponent).join("/")}${fragment ? `#${fragment}` : ""}${end}`;
+  });
   const caseCopies = proposal.casePages.map((page) => ({
     path: projectPath(root, `${APPROVED}/${slug}/${path.posix.basename(page.path)}`),
-    content: page.content
-      .replace(`](${path.posix.basename(proposal.relative)})`, "](spec.md)")
-      .replaceAll(`](${path.posix.basename(proposal.evidenceRelative)})`, "](evidence.json)"),
+    content: rebase(page.content, page.path, destinations.get(page.path)),
   }));
   if ([specPath, evidencePath, ...caseCopies.map((page) => page.path)].some((filename) => fs.existsSync(filename))) {
     throw new Error(`Approved specification already exists; refusing to overwrite: ${slug}`);
@@ -627,10 +646,9 @@ function ratifyBrownfieldSpec(root, { slug, reviewer, confirmSha256 }) {
     `**Approved at:** ${approvedAt}  `,
     `**Reviewed proposal SHA-256:** \`${proposalSha256}\``,
     "",
-    proposal.content
+    rebase(proposal.content, proposal.relative, specRelative)
       .replace(`${GENERATED_MARKER}\n`, "")
-      .replace("**Status:** proposed — not an approved specification  ", "**Status:** approved  ")
-      .replaceAll(`](${path.posix.basename(proposal.evidenceRelative)})`, "](evidence.json)"),
+      .replace("**Status:** proposed — not an approved specification  ", "**Status:** approved  "),
   ].join("\n");
   const evidence = {
     ...proposal.evidence,
@@ -684,13 +702,17 @@ function walkFiles(root, relativeDirectory, predicate) {
 }
 
 function approvedEvidencePaths(root) {
-  for (const specPath of walkFiles(root, APPROVED, (name) => name === "spec.md")) {
+  const legacySpecs = [APPROVED, "specs/approved"].flatMap(directory =>
+    walkFiles(root, directory, name => name === "spec.md"));
+  for (const specPath of legacySpecs) {
     const evidencePath = `${path.posix.dirname(specPath)}/evidence.json`;
+    if (fs.existsSync(projectPath(root, `${path.posix.dirname(specPath)}/manifest.json`))) continue;
     if (!fs.existsSync(projectPath(root, evidencePath))) {
       throw new Error(`Approved specification is missing its evidence manifest: ${specPath}`);
     }
   }
-  const evidencePaths = walkFiles(root, APPROVED, (name) => name === "evidence.json");
+  const evidencePaths = [APPROVED, "specs/approved"].flatMap(directory =>
+    walkFiles(root, directory, name => name === "evidence.json"));
   for (const evidencePath of evidencePaths) {
     const specPath = `${path.posix.dirname(evidencePath)}/spec.md`;
     if (!fs.existsSync(projectPath(root, specPath))) {
@@ -700,31 +722,8 @@ function approvedEvidencePaths(root) {
   return evidencePaths;
 }
 
-function listBrownfieldSpecs(root, { includeArchived = false } = {}) {
-  const current = includeArchived ? null : currentProposalPaths(root);
-  const proposals = walkFiles(root, PROPOSALS, (name) => name.endsWith(".evidence.json"))
-    .filter((evidencePath) => !current || current.has(evidencePath.replace(/\.evidence\.json$/, ".md")))
-    .map((evidencePath) => {
-      const evidence = safeReadJson(root, evidencePath);
-      const slug = path.posix.basename(evidencePath, ".evidence.json");
-      if (evidence.generated_by !== "mcpee" || evidence.status !== "proposed" ||
-          evidence.slug !== slug || !Array.isArray(evidence.sources)) {
-        throw new Error(`Invalid proposal evidence manifest: ${evidencePath}`);
-      }
-      const specPath = evidencePath.replace(/\.evidence\.json$/, ".md");
-      const content = fs.readFileSync(projectPath(root, specPath), "utf8");
-      if (!content.startsWith(GENERATED_MARKER)) {
-        throw new Error(`Proposal evidence does not match a managed draft: ${specPath}`);
-      }
-      return {
-        status: "proposed",
-        domain: evidence.domain || null,
-        slug: path.posix.basename(specPath, ".md"),
-        path: specPath,
-        sha256: digest(content),
-      };
-    });
-  const approvals = approvedEvidencePaths(root)
+function listLegacyApprovals(root) {
+  return approvedEvidencePaths(root)
     .map((evidencePath) => {
       const evidence = safeReadJson(root, evidencePath);
       const slug = path.posix.basename(path.posix.dirname(evidencePath));
@@ -747,10 +746,39 @@ function listBrownfieldSpecs(root, { includeArchived = false } = {}) {
         sha256: digest(fs.readFileSync(projectPath(root, specPath), "utf8")),
       };
     });
+}
+
+function listBrownfieldSpecs(root, { includeArchived = false } = {}) {
+  const current = includeArchived ? null : currentProposalPaths(root);
+  const proposals = [PROPOSALS, ".mcpee/specs/proposed"].flatMap(directory =>
+    walkFiles(root, directory, name => name.endsWith(".evidence.json")))
+    .filter((evidencePath) => !current || current.has(evidencePath.replace(/\.evidence\.json$/, ".md")))
+    .map((evidencePath) => {
+      const evidence = safeReadJson(root, evidencePath);
+      const slug = path.posix.basename(evidencePath, ".evidence.json");
+      if (evidence.generated_by !== "mcpee" || evidence.status !== "proposed" ||
+          evidence.slug !== slug || !Array.isArray(evidence.sources)) {
+        throw new Error(`Invalid proposal evidence manifest: ${evidencePath}`);
+      }
+      const specPath = evidencePath.replace(/\.evidence\.json$/, ".md");
+      const content = fs.readFileSync(projectPath(root, specPath), "utf8");
+      if (!content.startsWith(GENERATED_MARKER)) {
+        throw new Error(`Proposal evidence does not match a managed draft: ${specPath}`);
+      }
+      return {
+        status: "proposed",
+        domain: evidence.domain || null,
+        slug: path.posix.basename(specPath, ".md"),
+        path: specPath,
+        sha256: digest(content),
+      };
+    });
+  const approvals = listLegacyApprovals(root);
   const canonical = require("./lifecycle").listFeatures(root)
-    .filter((feature) => feature.reviews.specification.approved)
+    .filter((feature) => feature.status !== "unvalidated-manual-draft")
     .map((feature) => ({
-      status: "approved", slug: feature.id, path: feature.path, kind: "canonical-functional",
+      status: feature.authoritative ? "approved" : feature.document_state === "legacy" ? "proposed" : feature.document_state,
+      slug: feature.id, path: feature.path, kind: "canonical-functional", authoritative: feature.authoritative,
       sha256: digest(fs.readFileSync(projectPath(root, feature.path))),
       bundle_sha256: feature.reviews.specification.sha256,
     }));
@@ -761,7 +789,8 @@ function listBrownfieldSpecs(root, { includeArchived = false } = {}) {
 function checkSpecDrift(root) {
   const entries = [];
   const current = currentProposalPaths(root);
-  for (const specPath of walkFiles(root, PROPOSALS, (name) => name.endsWith(".evidence.json"))) {
+  for (const specPath of [PROPOSALS, ".mcpee/specs/proposed"].flatMap(directory =>
+    walkFiles(root, directory, (name) => name.endsWith(".evidence.json")))) {
     if (current && !current.has(specPath.replace(/\.evidence\.json$/, ".md"))) continue;
     const evidence = safeReadJson(root, specPath);
     const slug = path.posix.basename(specPath, ".evidence.json");
@@ -800,7 +829,7 @@ function checkSpecDrift(root) {
   }
   for (const feature of require("./lifecycle").listFeatures(root).filter((item) => item.status !== "unvalidated-manual-draft")) {
     entries.push({
-      slug: feature.id, specification_status: feature.reviews.specification.approved ? "approved" : "draft",
+      slug: feature.id, specification_status: feature.authoritative ? "approved" : feature.document_state,
       specPath: feature.path, drift_status: feature.drift.length ? "drifted" : "current",
       changed: feature.drift, missing: [],
     });
@@ -820,7 +849,7 @@ function prepareApprovedSpecContext(root, plan, contextPackage = null) {
   const files = [];
   let bytes = 0;
   for (const spec of specs) {
-    if (typeof spec.path !== "string" || !/^specs\/(?:approved\/)?[a-z0-9-]+\/spec\.md$/.test(spec.path) ||
+    if (typeof spec.path !== "string" || !/^(?:specs\/(?:approved\/)?|docs\/specifications\/approved\/)[a-z0-9-]+\/spec\.md$/.test(spec.path) ||
         !SHA256_PATTERN.test(spec.sha256)) {
       throw new Error("Approved specification context contains an invalid path or SHA-256.");
     }
@@ -834,11 +863,12 @@ function prepareApprovedSpecContext(root, plan, contextPackage = null) {
     if (digest(buffer) !== spec.sha256) {
       throw new Error(`Approved specification changed after routing: ${spec.path}. Route the task again before approving transfer.`);
     }
-    if (!spec.path.startsWith("specs/approved/")) {
+    if (spec.kind === "canonical-functional" || !spec.path.startsWith("specs/approved/") &&
+        fs.existsSync(projectPath(root, `${path.posix.dirname(spec.path)}/manifest.json`))) {
       const { featureStatus, readFeature } = require("./lifecycle");
       const slug = path.posix.basename(path.posix.dirname(spec.path));
       const status = featureStatus(root, slug);
-      if (!status.reviews.specification.approved || spec.bundle_sha256 !== status.reviews.specification.sha256) {
+      if (!status.authoritative || spec.bundle_sha256 !== status.reviews.specification.sha256) {
         throw new Error(`Canonical specification approval changed or is no longer current: ${spec.path}. Review and route again.`);
       }
       const { directory, manifest } = readFeature(root, slug);
@@ -893,6 +923,7 @@ module.exports = {
   checkSpecDrift,
   discoverBrownfieldSpec,
   listBrownfieldSpecs,
+  listLegacyApprovals,
   ratifyBrownfieldSpec,
   prepareApprovedSpecContext,
   projectPath,

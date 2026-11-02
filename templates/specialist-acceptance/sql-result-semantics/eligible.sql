@@ -1,0 +1,3 @@
+SELECT id FROM customers
+WHERE id NOT IN (SELECT customer_id FROM blocked_customers)
+ORDER BY id;

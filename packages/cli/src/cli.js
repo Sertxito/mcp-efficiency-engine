@@ -123,7 +123,7 @@ const PROJECT_VALIDATION_SCRIPTS = [
   ["build", "build"],
 ];
 const TELEMETRY_COMMANDS = new Set([
-  "evaluate", "workflow", "sync", "rebuild", "update", "learn", "tasks", "memory", "specs",
+  "evaluate", "workflow", "sync", "rebuild", "update", "learn", "tasks", "memory", "specs", "brownfield",
 ]);
 
 function optionValue(args, name, fallback = "") {
@@ -520,6 +520,7 @@ function printHelp() {
     "  skills     Report observed workflow evaluation outcomes for catalog skills",
     "  plan       Create or list durable project specifications and delivery plans",
     "  specs      Navigate specifications, clarify, approve phases, migrate drafts, and inspect evidence",
+    "  brownfield Sync local RAG/graphs and author all source-bound functional proposals with Copilot",
     "  evaluate   Execute local checks or evaluate an agent-asset response",
     "  workflow   Run a declared, project-local sequence of allowlisted checks",
     "  learn      Propose, inspect, and explicitly approve evaluated learning",
@@ -534,6 +535,7 @@ function printHelp() {
     "",
     "Options:",
     "  --project <path>  Project root (default: current directory)",
+    "  init --prepare-only  Prepare local tools/indexes without paid brownfield authoring",
     "  --session <id>    Filter traces by Copilot session",
     "  --event <name>    Filter traces by hook event",
     "  --show <id>       Print one complete sanitized event",
@@ -547,9 +549,13 @@ function printHelp() {
     "  knowledge embeddings status|setup|index [--profile light|bge-m3]",
     "  impact --path <project-relative-path> [--json]",
     "  specs discover | list [--all] | drift [--json]",
+    "  specs scopes [--json] (read-only bounded brownfield authoring scopes)",
+    "  specs reconcile [--json] (hash-linked brownfield cross-scope review matrix)",
     "  specs status [--slug <feature>] [--json] | specs migrate [--json]",
+    "  specs review --slug <feature> --reviewer <owner> --confirm-sha256 <digest>",
     "  specs decide --slug <feature> --id Q-001 --answer <decision> --reviewer <owner>",
     "  specs approve --slug <feature> --stage specification|plan|tasks --reviewer <owner> --confirm-sha256 <digest>",
+    "  specs recover --candidate .mcpee/reports/authoring/<run>/<phase>-<attempt>.txt [--source <original-path>]",
     "  specs ratify --slug <id> --reviewer <name> --confirm-sha256 <digest>",
     "  drift [--json]",
     "  tools list | tools validate [--tool <id> ...]",
@@ -561,12 +567,13 @@ function printHelp() {
     "  evaluate --run <project-relative-json> | --case <id> --asset <id> --response <file> [--ratings <json> --reviewer <name>]",
     "  evaluate --suite specialist-core [--scenario <id> --variant normal|failure|boundary | --results <project-relative-json>] [--json]",
     "  evaluate --suite specialist-audit [--scenario <id> --variant positive|negative|insufficient | --results <project-relative-json>] [--json]",
+    "  evaluate --suite technology-runtime [--scenario <oracle-id> --variant baseline|candidate | --results <project-relative-json>] [--json]",
     "  workflow run --spec <project-relative-json>",
     "  learn propose --evaluation <id> --kind <pattern|insight> --text <text>",
     "  learn approve|reject <proposal-id> | learn list",
     "  tasks list | approve|reject|start <task-id> | complete <task-id> --evaluation <id>",
     "  route --task <request> [--json]",
-    "  run --task <request> [--model <id>] [--pack-context | --no-ground-context] [--context-tokens <128..32000>]",
+    "  run --task <request> [--model <id>] [--resume-session <uuid>] [--pack-context | --no-ground-context] [--context-tokens <128..32000>]",
     "  init [--agents <id,...|all|none>] [--skip-tool-install] [--embeddings none|light|bge-m3]",
     "  observe [--json] [--export <project-relative-json>] [--html <project-relative-html>]",
     "  view --html <project-relative-html> [--report <project-relative-json>]",
@@ -880,7 +887,7 @@ async function refreshConfiguredEmbeddings(root) {
   return buildEmbeddingIndex(root, { profile, onProgress: reportEmbeddingProgress });
 }
 
-async function runSync(root) {
+async function runSync(root, { allowSourceFailures = false } = {}) {
   const statePath = path.join(root, ".mcpee", "state", "project.json");
   if (!fs.existsSync(statePath)) {
     process.stderr.write("[mcpee] Project is not initialized. Run mcpee init first.\n");
@@ -933,24 +940,53 @@ async function runSync(root) {
   } else {
     process.stderr.write(`[mcpee] CodeGraph sync failed: ${codeGraph.error}\n`);
   }
-  return result.counts.failed > 0 || !["ready", "not-applicable"].includes(codeGraph.status) || result.graphify.status === "failed" ? 1 : 0;
+  return (!allowSourceFailures && result.counts.failed > 0) || !["ready", "not-applicable"].includes(codeGraph.status) || result.graphify.status === "failed" ? 1 : 0;
 }
 
 function runSpecs(root, args) {
   const [action = "list"] = args;
   const json = args.includes("--json");
   let result;
-  if (["status", "approve", "decide", "migrate"].includes(action)) {
+  if (action === "scopes") {
+    result = require("../../spec-engine/src/scopes").buildSpecificationScopes(root);
+    if (json) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else {
+      process.stdout.write(`[mcpee] Brownfield scope preparation: ${result.status}; scopes=${result.summary.scopes}; planned sources=${result.summary.planned_sources}; blocked=${result.summary.blocked_sources}; explicitly excluded=${result.summary.excluded_sources}.\n`);
+      for (const scope of result.scopes) process.stdout.write(`  ${scope.id}: ${scope.sources.length} sources; ${scope.sections} sections; ${scope.bytes} bytes\n    ${scope.task}\n`);
+      for (const source of result.blocked) process.stdout.write(`  BLOCKED ${source.path}: ${source.reason}\n`);
+      process.stdout.write("Preparation only; no model, source write, specification approval or implementation was performed.\n");
+    }
+    return result.status === "blocked" ? 2 : 0;
+  }
+  if (action === "reconcile") {
+    result = require("../../spec-engine/src/reconciliation").buildSpecificationReconciliation(root);
+    if (json) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else {
+      const { summary } = result;
+      process.stdout.write(`[mcpee] Brownfield reconciliation: ${result.status}; scopes=${summary.scopes}, structurally validated=${summary.structurally_validated}, missing=${summary.missing_specifications}, blocked=${summary.blocked_scopes}, duplicate candidates=${summary.duplicate_candidates}, cross-scope technical links=${summary.cross_scope_source_dependencies}.\n`);
+      process.stdout.write(`  Evidence matrix: ${result.path}; graph=${result.graph.status}; owner review required; no requirements or product acceptance were approved.\n`);
+    }
+    return ["blocked", "incomplete"].includes(result.status) ? 2 : 0;
+  }
+  if (["status", "approve", "review", "decide", "migrate", "recover"].includes(action)) {
     const slug = optionValue(args, "--slug");
     if (action === "status") {
       result = slug ? listFeatures(root).find((feature) => feature.id === slug) || featureStatus(root, slug) : listFeatures(root);
     } else if (action === "migrate") {
       result = migrateDrafts(root);
+    } else if (action === "review") {
+      result = require("../../spec-engine/src/lifecycle").reviewSpecification(root, {
+        slug, reviewer: optionValue(args, "--reviewer"), confirmSha256: optionValue(args, "--confirm-sha256"),
+      });
     } else if (action === "approve") {
       result = approveStage(root, {
         slug, stage: optionValue(args, "--stage") || "specification",
         reviewer: optionValue(args, "--reviewer"), confirmSha256: optionValue(args, "--confirm-sha256"),
       });
+    } else if (action === "recover") {
+      const sources = args.flatMap((value, index) => value === "--source" ? [args[index + 1]] : []);
+      if (sources.some(value => !value || value.startsWith("--"))) throw new Error("--source requires an original project-relative source path.");
+      result = require("../../spec-engine/src/phases").recoverAuthoring(root, optionValue(args, "--candidate"), sources);
     } else {
       result = resolveDecision(root, {
         slug, id: optionValue(args, "--id"), answer: optionValue(args, "--answer"), reviewer: optionValue(args, "--reviewer"),
@@ -1006,7 +1042,7 @@ function runSpecs(root, args) {
     process.stdout.write(`  reviewed proposal SHA-256=${result.proposalSha256}\n`);
     return 0;
   }
-  throw new Error("Use mcpee specs status|migrate|discover|list|drift; specs decide --slug <id> --id Q-001 --answer <text> --reviewer <owner>; specs approve --slug <id> --stage specification|plan|tasks --reviewer <owner> --confirm-sha256 <digest>; or legacy specs ratify.");
+  throw new Error("Use mcpee specs status|migrate|discover|scopes|list|drift; specs decide --slug <id> --id Q-001 --answer <text> --reviewer <owner>; specs review --slug <id> --reviewer <owner> --confirm-sha256 <digest>; specs approve --slug <id> --stage specification|plan|tasks --reviewer <owner> --confirm-sha256 <digest>; or legacy specs ratify.");
 }
 
 async function approveMaintenance(action, description) {
@@ -1764,6 +1800,54 @@ async function approveRuntimeRefresh({ refreshRuntime, refreshApprovalHook }) {
 async function runEvaluation(root, args) {
   const suiteId = optionValue(args, "--suite");
   if (suiteId) {
+    if (suiteId === "technology-runtime") {
+      if (args.includes("--run") || args.includes("--case")) {
+        throw new Error("Native oracle inspection/export cannot be combined with --run or --case.");
+      }
+      const {
+        loadBehavioralOracles, behavioralRunSpecs, buildBehavioralAcceptance,
+      } = require("../../evaluation-engine/src/behavioral-oracles");
+      const scenarioId = optionValue(args, "--scenario");
+      const variant = optionValue(args, "--variant");
+      const results = optionValue(args, "--results");
+      if (scenarioId || variant) {
+        if (!scenarioId || !["baseline", "candidate"].includes(variant) || results) {
+          throw new Error("Native oracle export requires --scenario and --variant baseline|candidate, without --results.");
+        }
+        const suite = loadBehavioralOracles();
+        const oracle = suite.oracles.find(item => item.id === scenarioId);
+        if (!oracle) throw new Error(`Unknown native oracle '${scenarioId}'.`);
+        const specs = behavioralRunSpecs(oracle);
+        process.stdout.write(`${JSON.stringify({
+          suite_id: suite.id, suite_sha256: suite.suite_sha256, catalog_sha256: suite.catalog_sha256,
+          oracle, variant, evaluation_spec: specs[variant],
+        }, null, 2)}\n`);
+        return 0;
+      }
+      const report = buildBehavioralAcceptance(root, results);
+      if (args.includes("--json")) process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+      else {
+        process.stdout.write(`[mcpee] Native behavioral oracles: ${report.summary.technologies_with_native_fixtures}/${report.summary.technologies} technologies have fixtures; ${report.summary.checked_fixtures} fixture pairs checked; specialist certification=0.\n`);
+        for (const technology of report.technologies) {
+          process.stdout.write(`  ${technology.guide}: ${technology.status}${technology.native_oracles.length ? ` (${technology.native_oracles.join(", ")})` : ""}\n`);
+        }
+        process.stdout.write("Missing fixtures and executions remain gaps. No model or native check ran during this inspection.\n");
+      }
+      return 2;
+    }
+    if (suiteId === "workflow-catalog") {
+      if (["--run", "--case", "--scenario", "--variant", "--results"].some(option => args.includes(option))) {
+        throw new Error("Workflow catalogue health only inspects local run evidence; do not combine it with execution or specialist trial options.");
+      }
+      const report = require("../../asset-audit/src/workflow-health").buildWorkflowHealth(root, readCatalog().catalog);
+      if (args.includes("--json")) process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+      else {
+        process.stdout.write(`[mcpee] Workflow catalogue: ${report.summary.observed_checked}/${report.summary.workflows} have current checked execution evidence; ${report.summary.evidence_incomplete} incomplete; ${report.summary.not_run} not run; certified=0.\n`);
+        for (const workflow of report.workflows) process.stdout.write(`  ${workflow.id}: ${workflow.status}\n`);
+        process.stdout.write(`${report.interpretation}\n`);
+      }
+      return 2;
+    }
     if (!["specialist-core", "specialist-audit"].includes(suiteId) || args.includes("--run") || args.includes("--case")) {
       throw new Error("Use --suite specialist-core or specialist-audit separately from --run and --case.");
     }
@@ -1778,8 +1862,11 @@ async function runEvaluation(root, args) {
       const scenario = suite.scenarios.find(item => item.id === scenarioId);
       if (!scenario) throw new Error(`Unknown specialist scenario '${scenarioId}'.`);
       const task = suiteId === "specialist-audit" ? auditTask(scenario, variant).task : specialistTask(scenario, variant);
+      const evaluationSpecs = suiteId === "specialist-core" && scenarioId === "node-bounded-operation"
+        ? require("../../evaluation-engine/src/automatic-specialist-review").nodeOracleRunSpecs(task) : null;
       process.stdout.write(args.includes("--json")
-        ? `${JSON.stringify({ scenario_id: scenarioId, variant, agent: scenario.agent, task }, null, 2)}\n`
+        ? `${JSON.stringify({ scenario_id: scenarioId, variant, agent: scenario.agent, task,
+          ...(evaluationSpecs ? { evaluation_specs: evaluationSpecs } : {}) }, null, 2)}\n`
         : `${task}\n`);
       return 0;
     }
@@ -1789,6 +1876,7 @@ async function runEvaluation(root, args) {
       process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
     } else {
       process.stdout.write(`[mcpee] Specialist acceptance: ${report.status}; ${report.summary.passed}/${report.summary.required_trials} trials passed; ${report.summary.failed} failed; ${report.summary.not_run} not run.\n`);
+      process.stdout.write(`  Automatically verified: ${report.summary.automatically_verified}; awaiting sufficient verification: ${report.summary.awaiting_verification}.\n`);
       for (const scenario of report.scenarios) {
         process.stdout.write(`  ${scenario.id} (${scenario.agent}): ${scenario.trials.map(item => `${item.variant}=${item.status}`).join(", ")}\n`);
       }
@@ -2028,7 +2116,7 @@ function runPlan(root, args) {
   const plan = createPlan(root, { slug, title });
   refreshWorkspaceIndex(root);
   process.stdout.write(`[mcpee] Created planning artifacts for ${plan.id}:\n${plan.files.map((file) => `  ${file}`).join("\n")}\n`);
-  process.stdout.write("[mcpee] Unreviewed template, not a completed plan. Start here: specs/README.md. Historical .mcpee/planning artifacts remain preserved.\n");
+  process.stdout.write("[mcpee] Unreviewed template, not a completed plan. Start here: docs/README.md. Historical .mcpee/planning artifacts remain preserved.\n");
   return 0;
 }
 
@@ -2172,12 +2260,15 @@ function runRouteInternal(root, args) {
   return 0;
 }
 
-async function approveCopilotDataTransfer(projectRoot, plan, contextPackage = null, conversationContext = []) {
+async function approveCopilotDataTransfer(projectRoot, plan, contextPackage = null, conversationContext = [], {
+  authorizedByMcpInvocation = false,
+} = {}) {
   const startedAt = Date.now();
-  const recordDecision = (decision, error = null) => recordEvent(projectRoot, {
+  const recordDecision = (decision, error = null, approvalSource = null) => recordEvent(projectRoot, {
     event_name: "copilot.data_transfer.approval",
     attributes: {
       decision,
+      ...(approvalSource ? { approval_source: approvalSource } : {}),
       workflow: plan.workflow.id,
       agent: plan.agent.id,
       memory_count: plan.memory.length,
@@ -2193,6 +2284,10 @@ async function approveCopilotDataTransfer(projectRoot, plan, contextPackage = nu
       ...(error ? { error: error.message } : {}),
     },
   });
+  if (authorizedByMcpInvocation) {
+    recordDecision("approved", null, "mcpee_run-invocation");
+    return true;
+  }
   try {
     const hostDecision = await requestApprovalFromHost("project-data-transfer", {
       workflow: plan.workflow.id,
@@ -2300,6 +2395,10 @@ async function approveCopilotTool(input, reason, impactPreflight = { targets: []
 
 async function synchronizeAfterCopilotChanges(root, changedPaths, workflowId, options = {}) {
   const onValidation = options.onValidation || (() => {});
+  const canonicalValidation = options.canonicalFeature && !fs.existsSync(path.join(root, `.mcpee/workflows/${workflowId}.json`))
+    ? require("../../spec-engine/src/phases").prepareImplementationValidation(root, options.canonicalFeature)
+    : null;
+  if (canonicalValidation) workflowId = canonicalValidation.spec.workflow_id;
   const description = [
     "Copilot successfully changed project files. Refresh MCPEE's local indexes, evidence graph, and required CodeGraph before running the selected validation workflow. Generated documentation is refreshed only if that workflow passes.",
     ...changedPaths.map((sourcePath) => `  - ${sourcePath}`),
@@ -2340,7 +2439,17 @@ async function synchronizeAfterCopilotChanges(root, changedPaths, workflowId, op
     onValidation({ status: "blocked", reason: "Post-change source, Graphify, or required CodeGraph synchronization failed." });
     return 1;
   }
-  const workflowSpec = `.mcpee/workflows/${workflowId}.json`;
+  const workflowSpec = canonicalValidation
+    ? `.mcpee/workflows/${workflowId}-${canonicalValidation.tasks_sha256}.json`
+    : `.mcpee/workflows/${workflowId}.json`;
+  if (canonicalValidation) {
+    const filename = path.join(root, workflowSpec);
+    const content = `${JSON.stringify(canonicalValidation.spec, null, 2)}\n`;
+    if (fs.existsSync(filename) && fs.readFileSync(filename, "utf8") !== content) {
+      throw new Error("Canonical validation workflow conflicts with existing work; do not overwrite it.");
+    }
+    if (!fs.existsSync(filename)) fs.writeFileSync(filename, content, { flag: "wx" });
+  }
   if (!fs.existsSync(path.join(root, workflowSpec))) {
     recordEvent(root, {
       event_name: "copilot.post_change_validation.required",
@@ -2351,10 +2460,28 @@ async function synchronizeAfterCopilotChanges(root, changedPaths, workflowId, op
     return 1;
   }
   const validation = await (options.runWorkflow || runWorkflow)(root, workflowSpec, {
-    approveStep: options.approveStep || approveStep,
+    approveStep: canonicalValidation
+      ? async step => canonicalValidation.spec.steps.some(planned =>
+        planned.tool === step.tool && JSON.stringify(planned.args) === JSON.stringify(step.args))
+      : options.approveStep || approveStep,
     beforeRun: options.beforeRun || printImpactPreflight,
     expectedWorkflowId: workflowId,
   });
+  if (canonicalValidation) {
+    const current = require("../../spec-engine/src/phases").prepareImplementationValidation(root, options.canonicalFeature);
+    if (JSON.stringify(current) !== JSON.stringify(canonicalValidation)) {
+      throw new Error("Canonical phases changed during implementation checks; verification cannot be credited.");
+    }
+    recordEvent(root, { event_name: "copilot.canonical_validation.completed",
+      attributes: { feature: options.canonicalFeature, status: validation.status,
+        specification_sha256: current.specification_sha256, plan_sha256: current.plan_sha256,
+        tasks_sha256: current.tasks_sha256, evaluation_id: validation.id, report: validation.file,
+        scope: "planned-implementation-checks", product_acceptance: "not-verified" } });
+    if (validation.status === "passed") {
+      require("../../spec-engine/src/verification").recordImplementationVerification(
+        root, options.canonicalFeature, current, validation.file);
+    }
+  }
   if (validation.status !== "passed") {
     recordEvent(root, {
       event_name: "copilot.post_change_validation.completed",
@@ -2429,6 +2556,42 @@ async function synchronizeAfterCopilotChanges(root, changedPaths, workflowId, op
 }
 
 async function runCopilotCommand(root, args) {
+  if (require("../../spec-engine/src/brownfield-authoring").isBrownfieldRequest(optionValue(args, "--task"))) {
+    const result = await runBrownfield(root, args);
+    if (args.includes("--chat-json")) {
+      if (!/^__MCPEE_CHAT_RESULT_[a-f0-9]{32}__$/.test(CHAT_RESULT_MARKER || "")) throw new Error("Invalid chat response marker.");
+      process.stdout.write(`${CHAT_RESULT_MARKER}${JSON.stringify({
+        content: `Brownfield ${result.status}. Completed scopes: ${result.summary?.completed || 0}; failed: ${result.summary?.failed || 0}; total: ${result.scopes?.length || 0}. Start at docs/README.md. Report: ${result.report || "see setup diagnostics"}. Specifications are proposals, not approved requirements.`,
+      })}\n`);
+    }
+    return result.exitCode;
+  }
+  if (args.includes("--through")) {
+    if (args.includes("--resume-session")) {
+      process.stderr.write("[mcpee] --resume-session cannot be combined with --through; resume one interrupted SDK task at a time.\n");
+      return 2;
+    }
+    const through = optionValue(args, "--through");
+    const slug = optionValue(args, "--feature");
+    const task = optionValue(args, "--task");
+    const authorized = args.includes("--chat-json") && process.env.MCPEE_MCP_TASK_AUTHORIZED === "1";
+    const phaseArgs = args.filter((arg, index) =>
+      !["--through", "--feature", "--task"].includes(arg) &&
+      !["--through", "--feature", "--task"].includes(args[index - 1]));
+    const result = await require("../../spec-engine/src/orchestration").runSpecificationLifecycle(root, {
+      slug, task, through, execute: async phaseTask => {
+        if (authorized) process.env.MCPEE_MCP_TASK_AUTHORIZED = "1";
+        return runCopilotCommand(root, [...phaseArgs, "--task", phaseTask]);
+      },
+    });
+    const content = `Canonical lifecycle ${result.status}: ${slug}. Report: ${result.report}. ` +
+      `${result.reason || "Requested endpoint validated."} Product acceptance remains unverified.`;
+    if (args.includes("--chat-json")) {
+      if (!/^__MCPEE_CHAT_RESULT_[a-f0-9]{32}__$/.test(CHAT_RESULT_MARKER || "")) throw new Error("Invalid chat response marker.");
+      process.stdout.write(`${CHAT_RESULT_MARKER}${JSON.stringify({ content })}\n`);
+    } else process.stdout.write(`${content}\n`);
+    return result.exitCode;
+  }
   const task = optionValue(args, "--task");
   if (!task || !fs.existsSync(path.join(root, ".mcpee/state/project.json"))) {
     return runCopilotCommandInternal(root, args);
@@ -2476,6 +2639,53 @@ async function runCopilotCommand(root, args) {
   });
 }
 
+async function runBrownfield(root, args, { prepared = false } = {}) {
+  const requestedConcurrency = optionValue(args, "--concurrency", "auto");
+  const concurrency = requestedConcurrency === "auto" ? "auto" : Number(requestedConcurrency);
+  const lastDomains = optionValue(args, "--last-domain", "").split(",").filter(Boolean);
+  require("../../spec-engine/src/brownfield-authoring").brownfieldConcurrency(0, concurrency);
+  process.stdout.write(`[mcpee] Large brownfield discovery can take hours; ${concurrency === "auto" ? "automatic parallelism, up to 10" : concurrency} concurrent authoring session(s). Scope failures retain evidence and the remaining scopes continue. A partial batch is not complete. Progress is reported every 30 seconds; activity alone does not prove progress.\n`);
+  if (!prepared) {
+    const code = await runSync(root, { allowSourceFailures: true });
+    if (code !== 0) return { status: "blocked", exitCode: code };
+    const codeGraph = readCodeGraphState(root);
+    if (codeGraph?.status !== "ready") throw new Error("Brownfield requires a healthy code graph; run mcpee init to resolve the reported tool/index blocker.");
+  }
+  process.stdout.write("[mcpee] Brownfield includes Copilot authoring of functional proposals from code plus related local documentation. This request authorizes source transfer and quota use, not implementation or approval.\n");
+  const cancellation = new AbortController();
+  const onHostMessage = message => {
+    if (message?.type === "mcpee.cancel") cancellation.abort(new Error("MCPEE execution was cancelled by the host."));
+  };
+  if (process.connected) process.on("message", onHostMessage);
+  try {
+    const result = await require("../../spec-engine/src/brownfield-authoring").authorBrownfield(root, {
+      authorized: true, model: optionValue(args, "--model", "auto"),
+      resumeSessionId: optionValue(args, "--resume-session"),
+      concurrency, lastDomains,
+      signal: cancellation.signal,
+      onProgress: progress => {
+        process.stdout.write(`[mcpee] Brownfield ${progress.event}: ${progress.scope}; completed=${progress.completed}/${progress.total} failed=${progress.failed} active=${progress.active} pending=${progress.pending} concurrency=${progress.concurrency} elapsed=${Math.round(progress.elapsed_ms / 1000)}s; last-activity=${progress.last_activity_at}; report=${progress.report}\n`);
+        if (progress.error) process.stderr.write(`[mcpee] Scope ${progress.scope}: ${progress.error}; evidence saved, continuing independent scopes.\n`);
+        if (process.connected && typeof process.send === "function") {
+          process.send({ type: "mcpee-authoring-progress", stage: "brownfield", status: "authoring", attempt: 1,
+            completed: progress.completed, total: progress.total, scope: progress.scope,
+            failed: progress.failed, active: progress.active, pending: progress.pending,
+            concurrency: progress.concurrency,
+            elapsed_ms: progress.elapsed_ms, last_activity_at: progress.last_activity_at });
+        }
+      },
+      onModelProgress: progress => {
+        if (process.connected && typeof process.send === "function") process.send({ type: "mcpee-authoring-progress", ...progress });
+      },
+    });
+    process.stdout.write(`[mcpee] Brownfield ${result.status}; scopes=${result.scopes.length}; report=${result.report}; authority not granted.\n`);
+    if (result.reason) process.stderr.write(`[mcpee] ${result.reason}\n`);
+    return result;
+  } finally {
+    if (process.connected) process.removeListener("message", onHostMessage);
+  }
+}
+
 async function runCopilotCommandInternal(root, args) {
   if (!fs.existsSync(path.join(root, ".mcpee/state/project.json"))) {
     process.stderr.write("[mcpee] Project is not initialized. Run mcpee init first.\n");
@@ -2483,9 +2693,18 @@ async function runCopilotCommandInternal(root, args) {
   }
   const task = optionValue(args, "--task");
   if (!task) {
-    process.stderr.write("[mcpee] Usage: mcpee run --task <request> [--model <id>] [--pack-context | --ground-context] [--context-tokens <128..32000>]\n");
+    process.stderr.write("[mcpee] Usage: mcpee run --task <request> [--model <id>] [--resume-session <uuid>] [--pack-context | --ground-context] [--context-tokens <128..32000>]\n");
     return 2;
   }
+  const resumeSessionId = optionValue(args, "--resume-session");
+  if (args.includes("--resume-session") &&
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(resumeSessionId)) {
+    process.stderr.write("[mcpee] --resume-session requires a recorded SDK session UUID.\n");
+    return 2;
+  }
+  const authorizedByMcpInvocation = args.includes("--chat-json") &&
+    process.env.MCPEE_MCP_TASK_AUTHORIZED === "1";
+  delete process.env.MCPEE_MCP_TASK_AUTHORIZED;
   const model = optionValue(args, "--model", "auto");
   let contextMode;
   let conversationContext;
@@ -2552,12 +2771,14 @@ async function runCopilotCommandInternal(root, args) {
     process.stderr.write(`[mcpee] Could not prepare approved specification context: ${error.message}\n`);
     return 1;
   }
-  if (!await approveCopilotDataTransfer(root, plan, contextPackage, conversationContext)) {
+  if (!await approveCopilotDataTransfer(root, plan, contextPackage, conversationContext, {
+    authorizedByMcpInvocation,
+  })) {
     process.stderr.write("[mcpee] Copilot data transfer was not approved.\n");
     return 1;
   }
 
-  process.stdout.write(`[mcpee] Starting Copilot session (${model}) with workflow=${plan.workflow.id}, agent=${plan.agent.id}.\n`);
+  process.stdout.write(`[mcpee] ${resumeSessionId ? `Resuming Copilot session ${resumeSessionId}` : "Starting Copilot session"} (${model}) with workflow=${plan.workflow.id}, agent=${plan.agent.id}.\n`);
   let result;
   const cancellation = new AbortController();
   const onHostMessage = (message) => {
@@ -2576,11 +2797,20 @@ async function runCopilotCommandInternal(root, args) {
       contextPackage,
       impactPreflight: plan.impact_preflight,
       model,
+      ...(resumeSessionId ? { resumeSessionId } : {}),
       interactive: (process.stdin.isTTY && process.stdout.isTTY) ||
         Boolean(INITIAL_APPROVAL_BROKER.url && INITIAL_APPROVAL_BROKER.token),
       conversationContext,
       approvePermission: approveCopilotPermission,
       approveTool: (input, reason) => approveCopilotTool(input, reason, plan.impact_preflight),
+      onProgress: (progress) => {
+        if (typeof process.send === "function" && process.connected) {
+          process.send({ type: "mcpee-authoring-progress", ...progress }, (error) => {
+            if (error) recordEvent(root, { event_name: "copilot.progress.delivery.failed",
+              attributes: { error: error.message } });
+          });
+        }
+      },
     });
   } catch (error) {
     const events = readEvents(root);
@@ -2621,6 +2851,9 @@ async function runCopilotCommandInternal(root, args) {
       events: readEvents(root),
     });
     printRunReport(report);
+    if (failedExecution.sessionId) {
+      process.stderr.write(`[mcpee] Copilot session ${failedExecution.sessionId} is recorded for explicit recovery. After confirming the prior process has exited, run mcpee run --resume-session ${failedExecution.sessionId} --task "<same request>".\n`);
+    }
     throw error;
   } finally {
     process.removeListener("message", onHostMessage);
@@ -2628,10 +2861,23 @@ async function runCopilotCommandInternal(root, args) {
   if (!args.includes("--chat-json")) process.stdout.write(`${result.content}\n`);
   let postChange = null;
   let exitCode = 0;
-  if (result.changedPaths.length) {
+  const structuredAuthoring = result.specification || result.phase;
+  if (structuredAuthoring) {
+    postChange = {
+      validation: { status: "passed", kind: "source-bound-authoring",
+        report: result.authoringEvidence },
+      documentation: { refreshed: true, files: result.changedPaths.filter(file => file.endsWith(".md")) },
+    };
+    recordEvent(root, { event_name: "copilot.post_change_authoring.completed",
+      attributes: { status: "passed", scope: "structured-artifacts-only",
+        evidence: result.authoringEvidence, application_validation: "not-run" } });
+  } else if (result.changedPaths.length) {
     process.stdout.write(`[mcpee] Copilot changed ${result.changedPaths.length} project file(s): ${result.changedPaths.join(", ")}\n`);
     try {
       exitCode = await synchronizeAfterCopilotChanges(root, result.changedPaths, plan.workflow.id, {
+        ...(plan.specification_workspace?.requested_stage === "implementation" &&
+          plan.specification_workspace.features?.length === 1
+          ? { canonicalFeature: plan.specification_workspace.features[0].id } : {}),
         onValidation: (validation) => { postChange = { validation, documentation: validation.documentation || null, learning: validation.learning || null }; },
       });
     } catch (error) {
@@ -3036,6 +3282,9 @@ async function runCommand(args) {
     startStep(5, "Synchronizing local sources, evidence and documentation");
     const sync = syncProject(root);
     const brownfieldProposal = sync.specifications;
+    const specificationScopes = result.catalog.capabilities.has_code_signals
+      ? require("../../spec-engine/src/scopes").buildSpecificationScopes(root)
+      : null;
     process.stdout.write(`[mcpee] Project workspace: ${sync.documentation.workspace?.path || refreshWorkspaceIndex(root).path}; next steps: mcpee specs status.\n`);
     const workflowSpecs = provisionWorkflowSpecs(root, toolReport, result.catalog.capabilities);
     let embeddingResult;
@@ -3089,6 +3338,18 @@ async function runCommand(args) {
     } else {
       process.stdout.write("[mcpee] Brownfield specification discovery skipped: no eligible source evidence was indexed.\n");
     }
+    if (specificationScopes) {
+      process.stdout.write(`[mcpee] Brownfield authoring scopes: ${specificationScopes.status}; scopes=${specificationScopes.summary.scopes}; planned sources=${specificationScopes.summary.planned_sources}; blocked=${specificationScopes.summary.blocked_sources}; explicitly excluded=${specificationScopes.summary.excluded_sources}.\n`);
+      for (const scope of specificationScopes.scopes) {
+        process.stdout.write(`  ${scope.id}: ${scope.sources.length} sources; ${scope.sections} sections; ${scope.bytes} bytes.\n`);
+      }
+      for (const source of specificationScopes.blocked) {
+        process.stderr.write(`[mcpee] Brownfield scope blocked: ${source.path} (${source.reason})${source.action ? ` - ${source.action}` : ""}\n`);
+      }
+      process.stdout.write(rest.includes("--prepare-only")
+        ? "[mcpee] Local preparation only: no model was run and no functional specification was authored. Run mcpee brownfield to complete authoring.\n"
+        : "[mcpee] Local preparation finished; automatic brownfield proposal authoring follows after readiness checks.\n");
+    }
     if (workflowSpecs.status === "ready") {
       const checks = workflowSpecs.checks.map((check) => `${check.tool}:${check.id}`).join(", ");
       process.stdout.write(`[mcpee] Workflow validation: generated=${workflowSpecs.created}, preserved=${workflowSpecs.preserved}, checks=${checks}. Checks run only after explicit approval.\n`);
@@ -3123,14 +3384,28 @@ async function runCommand(args) {
       toolReport.tools,
     );
     if (workflowSpecs.status === "failed" ||
-        sync.counts.failed > 0 || sync.graphify.status === "failed" ||
+        specificationScopes && !specificationScopes.scopes.length ||
+        (sync.counts.failed > 0 && !specificationScopes?.scopes.length) || sync.graphify.status === "failed" ||
         toolFailures.length > 0 || !["ready", "not-applicable"].includes(codeGraph.status)) {
       process.stderr.write("[mcpee] SETUP INCOMPLETE - capabilities are configured, but the harness is not fully ready.\n");
+      if (specificationScopes && specificationScopes.status !== "planned") {
+        process.stderr.write("[mcpee] Brownfield specification scope preparation is incomplete; resolve blocked sources or add eligible product evidence before authoring.\n");
+      }
       for (const failure of toolFailures) process.stderr.write(`[mcpee] Required tool pending: ${failure.id} - ${failure.reason || failure.status}\n`);
       process.stderr.write("[mcpee] Resolve the reported blockers, then rerun mcpee init; existing capability selections and user files are preserved.\n");
       return 1;
     }
-    process.stdout.write("[mcpee] SETUP COMPLETE - required tools and indexes are ready.\n");
+    if (specificationScopes && !rest.includes("--prepare-only")) {
+      const authored = await runBrownfield(root, rest, { prepared: true });
+      if (authored.exitCode !== 0) {
+        process.stderr.write(`[mcpee] BROWNFIELD INCOMPLETE - functional proposal authoring ${authored.status}; ${authored.report}.\n`);
+        return authored.exitCode;
+      }
+      process.stdout.write(`[mcpee] Brownfield complete: ${authored.scopes.length} source-bound scopes authored or preserved. Proposals: docs/specifications/proposed/; report=${authored.report}. No requirements were approved.\n`);
+    }
+    process.stdout.write(rest.includes("--prepare-only")
+      ? "[mcpee] LOCAL PREPARATION COMPLETE - tools and indexes are ready; functional brownfield authoring is pending.\n"
+      : "[mcpee] SETUP COMPLETE - required tools, indexes and requested functional proposals are ready.\n");
     return 0;
   }
   if (command === "trace") return runTrace(root, rest);
@@ -3138,6 +3413,7 @@ async function runCommand(args) {
   if (command === "impact") return runImpact(root, rest);
   if (command === "drift") return runDrift(root, rest);
   if (command === "specs") return runSpecs(root, rest);
+  if (command === "brownfield") return (await runBrownfield(root, rest)).exitCode;
   if (command === "tools") return runTools(root, rest);
   if (command === "cloud") return runCloud(root, rest);
   if (command === "telemetry") return runTelemetry(root, rest);
@@ -3172,6 +3448,7 @@ async function runCommand(args) {
 }
 
 module.exports = {
+  approveCopilotDataTransfer,
   provisionWorkflowSpecs,
   readChatContext,
   requestApprovalFromHost,

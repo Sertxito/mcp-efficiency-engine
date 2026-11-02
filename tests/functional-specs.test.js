@@ -11,7 +11,7 @@ const { readCatalog } = require("../packages/copilot-renderer/src/render");
 const { detectProjectCapabilities } = require("../packages/copilot-renderer/src/project-capabilities");
 const { syncProject } = require("../packages/source-engine/src/sync");
 const { discoverBrownfieldSpec, ratifyBrownfieldSpec, listBrownfieldSpecs } = require("../packages/spec-engine/src/brownfield");
-const { isSpecificationTask, prepareFunctionalSources, validateFunctionalSpec, publishFunctionalSpec } = require("../packages/spec-engine/src/functional");
+const { isSpecificationTask, prepareFunctionalSources, selectFunctionalSources, functionalPrompt, applyFunctionalRepair, validateFunctionalSpec, publishFunctionalSpec } = require("../packages/spec-engine/src/functional");
 const { runCopilotTask, createCopilotHooks } = require("../packages/execution-engine/src/copilot");
 const { routeTask } = require("../packages/routing-engine/src/route");
 
@@ -33,7 +33,7 @@ function draft(file) {
     non_goals: ["Do not create accounts or collect private participant details."],
     actors: [{ id: "ACT-001", name: "Prospective participant", goal: "Understand when and how their team can participate." }],
     use_cases: [{
-      id: "UC-001", title: "Check team registration availability", actor: "ACT-001", basis: "documented",
+      id: "UC-001", slug: "registration-status", title: "Check team registration availability", actor: "ACT-001", basis: "documented",
       goal: "Understand whether participation registration is available for an official team.",
       dependencies: [], open_questions: [],
       trigger: "The visitor opens the public participation page.",
@@ -62,6 +62,27 @@ test("specification intent distinguishes authoring from ordinary audits and codi
   for (const task of ["Fix a bug in the greenfield detector", "Review the functional specification", "Explain use cases", "Create a website", "Write tests for the specification parser"]) {
     assert.equal(isSpecificationTask(task), false, task);
   }
+});
+
+test("Spanish product prose and literal unfinished source evidence are not authored placeholders", () => {
+  const { root, file } = fixture();
+  fs.appendFileSync(path.join(root, file), "\n// TODO: conectar flujo real de contacto.\n");
+  const sources = prepareFunctionalSources(root, [file]);
+  const document = draft(file);
+  document.language = "es";
+  document.use_cases[0].main_flow[0] = "La persona selecciona el periodo: este mes, este año o todo.";
+  document.use_cases[0].rules[0] = "El método observado muestra todo el historial disponible.";
+  document.open_questions = ["La función contiene un TODO y no define el canal de contacto. ¿Qué resultado debe ofrecer?"];
+  const line = sources[0].lines.findIndex(value => value.startsWith("// TODO:")) + 1;
+  document.use_cases[0].evidence.push({ path: file, line, quote: "// TODO: conectar flujo real de contacto." });
+  validateFunctionalSpec(root, JSON.stringify(document), sources);
+  for (const placeholder of ["TODO: definir el comportamiento", "todo fill this in", "[TODO] completar reglas", "TBD comportamiento", "placeholder behavior"]) {
+    const invalid = structuredClone(document);
+    invalid.summary = placeholder;
+    assert.throws(() => validateFunctionalSpec(root, JSON.stringify(invalid), sources), /Replace placeholders/);
+  }
+  document.use_cases[0].evidence.at(-1).quote = "// TODO: inventar un canal inexistente.";
+  assert.throws(() => validateFunctionalSpec(root, JSON.stringify(document), sources), /Unsupported evidence/);
 });
 
 test("MCPEE-only manifests and its caches are not application-code evidence", () => {
@@ -113,17 +134,126 @@ test("converted document authoring uses normalized text and binds both original 
   assert.throws(() => prepareFunctionalSources(root, [original]), /no current converted text/);
 });
 
+test("evidence diagnostics report every invalid citation and exact candidate lines together", () => {
+  const { root, file, sources } = fixture();
+  const document = draft(file);
+  document.use_cases[0].evidence.forEach(reference => { reference.line = 1; });
+  assert.throws(() => validateFunctionalSpec(root, JSON.stringify(document), sources), error => {
+    assert.match(error.message, /source lines 4;/);
+    assert.match(error.message, /source lines 7;/);
+    assert.equal(error.message.match(/Unsupported evidence/g).length, 2);
+    return true;
+  });
+});
+
+test("covered-section diagnostics state exact boundaries and reject evidence from the next section", () => {
+  const { root, file, sources } = fixture();
+  const document = draft(file);
+  document.use_cases[0].evidence = document.use_cases[0].evidence.filter(reference => reference.line === 7);
+  assert.throws(() => validateFunctionalSpec(root, JSON.stringify(document), sources), error => {
+    assert.match(error.message, /Unsupported covered section: .*:3;/);
+    assert.match(error.message, /lines 3-5, inclusive/);
+    assert.match(error.message, /Evidence elsewhere in the same file does not cover this section/);
+    assert.match(error.message, /out-of-scope/);
+    return true;
+  });
+  document.coverage[0] = { ...document.coverage[0], status: "out-of-scope", use_cases: [],
+    reason: "Registration behavior is explicitly outside this team-information proposal." };
+  validateFunctionalSpec(root, JSON.stringify(document), sources);
+});
+
+test("bounded primary coverage excludes related context but exact context citations remain required", () => {
+  const { root, file, sources } = fixture();
+  const second = "knowledge/sources/business/context.md";
+  fs.writeFileSync(path.join(root, second), "# Context\nReaders inspect the published item details.\n");
+  const all = prepareFunctionalSources(root, [file, second]);
+  const selections = [
+    { path: file, sha256: sources[0].sha256, role: "primary", ranges: [{ start_line: 3, end_line: 5 }] },
+    { path: second, sha256: all[1].sha256, role: "context", ranges: [{ start_line: 1, end_line: 2 }] },
+  ];
+  const selected = selectFunctionalSources(all, selections);
+  const doc = draft(file);
+  doc.coverage = [doc.coverage[0]];
+  doc.use_cases[0].evidence = [doc.use_cases[0].evidence[0], { path: second, line: 2, quote: all[1].lines[1] }];
+  validateFunctionalSpec(root, JSON.stringify(doc), selected);
+  const missing = structuredClone(doc);
+  missing.coverage = [{ ...doc.coverage[0], path: second, line: 1 }];
+  assert.throws(() => validateFunctionalSpec(root, JSON.stringify(missing), selected), /Unknown source section|missing section coverage/);
+  doc.use_cases[0].evidence.push({ path: file, line: 7, quote: all[0].lines[6] });
+  assert.throws(() => validateFunctionalSpec(root, JSON.stringify(doc), selected), /Unsupported evidence/);
+  assert.throws(() => selectFunctionalSources(all, [{ ...selections[0], ranges: [{ start_line: 3, end_line: 9999 }] }, selections[1]]), /Invalid or overlapping/);
+  const prompt = functionalPrompt(selected, "brownfield");
+  assert.match(prompt, /4: Registration is closed/);
+  assert.doesNotMatch(prompt, /7: Official teams/);
+});
+
+test("functional prompt explains in-section evidence boundaries before generation", () => {
+  const { sources } = fixture();
+  const prompt = functionalPrompt(sources, "brownfield");
+  assert.match(prompt, /INSIDE that section's inclusive line\/end_line range/);
+  const metadata = JSON.parse(prompt.split("Selected sources and required section coverage (read source files for their full content):\n\n")[1].split("\n\n")[0]);
+  assert.equal(metadata[0].headings[0].line, 3);
+  assert.equal(metadata[0].headings[0].end_line, 5);
+  assert.equal(metadata[0].headings[1].end_line, sources[0].lines.length);
+});
+
+test("functional repairs replace only explicit existing fields without altering the base or bypassing validation", () => {
+  const { root, file, sources } = fixture();
+  const document = draft(file), base = JSON.stringify(document);
+  const repair = replacements => applyFunctionalRepair(JSON.stringify({ replacements }), base);
+  const updated = repair([{ path: "/use_cases/0/evidence/0/line", value: 1 }]);
+  assert.equal(JSON.parse(updated).use_cases[0].evidence[0].line, 1);
+  assert.equal(JSON.stringify(document), base);
+  assert.throws(() => validateFunctionalSpec(root, updated, sources), /Unsupported evidence/);
+  for (const pointer of ["/__proto__/polluted", "/constructor/prototype", "/use_cases/01", "/use_cases/0/new_field", "/use_cases/-", "/use_cases/0/~2"]) {
+    assert.throws(() => repair([{ path: pointer, value: true }]), /Repair must replace|Invalid repair/);
+  }
+  assert.throws(() => repair([{ path: "/summary" }]), /replacement value|nonoptional/);
+  assert.throws(() => repair([]));
+  assert.equal(applyFunctionalRepair(base, base), base);
+  assert.equal(JSON.parse(applyFunctionalRepair(JSON.stringify({
+    replacements: [{ path: "/a~1b/~0key", value: "after" }],
+  }), '{"a/b":{"~key":"before"}}'))["a/b"]["~key"], "after");
+});
+
+test("proposal citation reconciliation changes only uniquely located exact quotes and records an audit", () => {
+  const { root, file, sources } = fixture();
+  const document = draft(file);
+  document.use_cases[0].evidence.forEach(reference => { reference.line = 1; });
+  const response = JSON.stringify(document);
+  const result = publishFunctionalSpec(root, response, sources, { automatic: true, proposalOnly: true });
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, result.manifestPath), "utf8"));
+  assert.deepEqual(manifest.citation_corrections.map(item => [item.previous_line, item.line]), [[1, 4], [1, 7]]);
+  assert.equal(result.lifecycle.document_state, "proposed");
+  assert.equal(result.lifecycle.authoritative, false);
+  assert.equal(document.use_cases[0].evidence[0].line, 1);
+  const published = fs.readFileSync(path.join(root, manifest.document), "utf8");
+  validateFunctionalSpec(root, published, sources);
+  const duplicate = fixture();
+  fs.appendFileSync(path.join(duplicate.root, duplicate.file),
+    "\nRegistration is closed until the organizer publishes an authorized link.\n");
+  const ambiguous = draft(duplicate.file);
+  ambiguous.use_cases[0].evidence[0].line = 1;
+  assert.throws(() => publishFunctionalSpec(duplicate.root, JSON.stringify(ambiguous),
+    prepareFunctionalSources(duplicate.root, [duplicate.file]), { automatic: true, proposalOnly: true }),
+  /Unsupported evidence/);
+  const invented = draft(file);
+  invented.use_cases[0].evidence[0].quote = "An invented registration rule that is absent from the source.";
+  assert.throws(() => publishFunctionalSpec(root, JSON.stringify(invented), sources,
+    { automatic: true, proposalOnly: true }), /Unsupported evidence/);
+});
+
 test("readable specifications preserve flows, acceptance criteria, traceability and owner edits", () => {
   const { root, file, sources } = fixture();
   const response = JSON.stringify(draft(file));
   const result = publishFunctionalSpec(root, response, sources);
-  assert.equal(result.path, "specs/league-public-participation/spec.md");
-  assert.match(result.content, /\[UC-001 - Check team registration availability\]\(UC-001\.md\)/);
+  assert.equal(result.path, "docs/specifications/proposed/league-public-participation/spec.md");
+  assert.match(result.content, /\[registration-status\]\(registration-status\.md\)/);
   const atomic = fs.readFileSync(path.join(root, result.casePaths[0]), "utf8");
   assert.match(atomic, /### UC-001 - Check team registration availability/);
   assert.match(atomic, /Main flow/);
   assert.match(atomic, /Given:?\*\*/);
-  assert.match(atomic, /\.\.\/\.\.\/knowledge\/sources\/business\/league\.md#L4/);
+  assert.match(atomic, /(?:\.\.\/){4}knowledge\/sources\/business\/league\.md#L4/);
   assert.match(atomic, /Product index/);
   const manifest = JSON.parse(fs.readFileSync(path.join(root, result.manifestPath)));
   assert.equal(manifest.cases[0].sha256, crypto.createHash("sha256").update(atomic).digest("hex"));
@@ -159,11 +289,69 @@ test("validation rejects empty, generic, ungrounded and incompletely mapped outp
     const data = draft(file);
     modify(data);
     assert.throws(() => publishFunctionalSpec(root, JSON.stringify(data), sources), message);
-    assert.equal(fs.existsSync(path.join(root, "docs/specifications")), false);
+    assert.equal(fs.existsSync(path.join(root, "docs/specifications/proposed/league-public-participation")), false);
   }
   assert.throws(() => validateFunctionalSpec(root, "Discovery completed; please fill in the templates.", sources), /incomplete/);
   fs.appendFileSync(path.join(root, file), "\nChanged business rules.\n");
   assert.throws(() => validateFunctionalSpec(root, JSON.stringify(draft(file)), sources), /source changed/);
+});
+
+test("atomic specifications have short capability names, navigable prerequisites and one public index", () => {
+  const { root, file } = fixture();
+  fs.writeFileSync(path.join(root, file), "# About us\n\n## Staff\nVisitors can read staff profiles.\n\n## Ambassadors\nVisitors can read ambassador profiles.\n");
+  const sources = prepareFunctionalSources(root, [file]);
+  const document = draft(file);
+  document.slug = "about-us";
+  document.title = "About the organization";
+  document.open_questions = [];
+  document.use_cases = ["staff", "ambassador"].map((role, index) => ({
+    ...document.use_cases[0], id: `UC-00${index + 1}`, slug: `about-us-${role}`,
+    title: `Browse the ${role} profiles`, goal: `Read the published ${role} profiles.`,
+    dependencies: index ? ["UC-001"] : [],
+    evidence: [{ path: file, line: index ? 7 : 4,
+      quote: index ? "Visitors can read ambassador profiles." : "Visitors can read staff profiles." }],
+  }));
+  document.coverage = [3, 6].map((line, index) => ({
+    path: file, line, status: "covered", use_cases: [`UC-00${index + 1}`],
+    reason: "The corresponding public profile capability covers this section.",
+  }));
+  const result = publishFunctionalSpec(root, JSON.stringify(document), sources);
+  assert.deepEqual(result.casePaths, [
+    "docs/specifications/proposed/about-us/about-us-staff.md", "docs/specifications/proposed/about-us/about-us-ambassador.md",
+  ]);
+  const dependent = fs.readFileSync(path.join(root, result.casePaths[1]), "utf8");
+  assert.match(dependent, /\[UC-001\]\(about-us-staff\.md\)/);
+  assert.doesNotMatch(dependent, /\]\(UC-\d{3}\.md\)/);
+  const index = fs.readFileSync(path.join(root, result.workspacePath), "utf8");
+  assert.match(index, /\[about-us-staff\]\(proposed\/about-us\/about-us-staff\.md\)/);
+  assert.match(index, /\[about-us-ambassador\]\(proposed\/about-us\/about-us-ambassador\.md\)/);
+  assert.match(index, /same product workspace for greenfield and brownfield/i);
+  assert.equal(fs.existsSync(path.join(root, "specs")), false);
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, result.manifestPath), "utf8"));
+  assert.equal(manifest.cases[0].id, "UC-001");
+  assert.equal(manifest.cases[0].name, "about-us-staff");
+});
+
+test("naming rejects ambiguous, internal, reserved and overlong names before writing any artifacts", () => {
+  const { root, file, sources } = fixture();
+  for (const name of ["brownfield-staff", "greenfield-staff", "staff-part-1", "staff-abcdef123456",
+    "manifest", "spec", "con", "com1", "../staff", "staff_ambassador", "a".repeat(65),
+    "one-two-three-four-five-six-seven-eight-nine", "UC-001", "uc-001"]) {
+    const document = draft(file);
+    document.use_cases[0].slug = name;
+    assert.throws(() => publishFunctionalSpec(root, JSON.stringify(document), sources), /structured deliverable/);
+  }
+  const duplicate = draft(file);
+  duplicate.use_cases.push({ ...duplicate.use_cases[0], id: "UC-002" });
+  assert.throws(() => publishFunctionalSpec(root, JSON.stringify(duplicate), sources), /duplicate atomic specification names/);
+  const internal = draft(file);
+  internal.slug = "brownfield-staff-abcdef123456";
+  assert.throws(() => publishFunctionalSpec(root, JSON.stringify(internal), sources), /feature slug/);
+  assert.equal(fs.existsSync(path.join(root, "docs/specifications/proposed/league-public-participation")), false);
+  const legacyResponse = draft(file);
+  delete legacyResponse.use_cases[0].slug;
+  assert.deepEqual(publishFunctionalSpec(root, JSON.stringify(legacyResponse), sources).casePaths,
+    ["docs/specifications/proposed/league-public-participation/check-team-registration-availability.md"]);
 });
 
 test("generic greenfield includes all seven product documents, not only keyword top-five matches", () => {
@@ -219,7 +407,7 @@ test("a non-League greenfield routes and executes through independent case files
   data.actors = [{ id: "ACT-001", name: "Library reader", goal: "Discover and borrow an available library book." }];
   const search = data.use_cases[0];
   Object.assign(search, {
-    title: "Search the public book catalog", goal: "Find a book in the public library catalog.",
+    slug: "catalog-search", title: "Search the public book catalog", goal: "Find a book in the public library catalog.",
     trigger: "The reader submits a catalog search.",
     preconditions: ["The public catalog is available."],
     main_flow: ["The reader supplies a book title.", "The catalog shows matching books."],
@@ -231,7 +419,7 @@ test("a non-League greenfield routes and executes through independent case files
   });
   const borrowing = structuredClone(search);
   Object.assign(borrowing, {
-    id: "UC-002", title: "Request an available book copy", goal: "Request a loan of one available book copy.",
+    id: "UC-002", slug: "loan-request", title: "Request an available book copy", goal: "Request a loan of one available book copy.",
     dependencies: ["UC-001"], open_questions: ["How long may an eligible member retain a borrowed copy?"],
     trigger: "The member selects an available book copy.",
     preconditions: ["The reader is a member and a copy is available."],
@@ -262,7 +450,7 @@ test("a non-League greenfield routes and executes through independent case files
       async start() {}, async stop() {},
       async createSession() {
         return {
-          sessionId: "library-atomic-fixture",
+          sessionId: "20000000-0000-4000-8000-000000000004",
           async sendAndWait({ prompt }) {
             assert.match(prompt, /one independent Markdown specification per use case/);
             assert.match(prompt, /one business goal|exactly one business goal/);
@@ -297,11 +485,11 @@ test("a non-League greenfield routes and executes through independent case files
 test("any atomic file conflict preserves the entire existing bundle before new files are written", () => {
   const { root, file, sources } = fixture();
   const data = draft(file);
-  const directory = `specs/${data.slug}`;
+  const directory = `docs/specifications/proposed/${data.slug}`;
   fs.mkdirSync(path.join(root, directory), { recursive: true });
-  const existing = path.join(root, directory, "UC-001.md");
+  const existing = path.join(root, directory, "registration-status.md");
   fs.writeFileSync(existing, "An owner-authored case must not be overwritten.");
-  assert.throws(() => publishFunctionalSpec(root, JSON.stringify(data), sources), /UC-001\.md already exists/);
+  assert.throws(() => publishFunctionalSpec(root, JSON.stringify(data), sources), /registration-status\.md already exists/);
   assert.equal(fs.readFileSync(existing, "utf8"), "An owner-authored case must not be overwritten.");
   assert.equal(fs.existsSync(path.join(root, directory, "spec.md")), false);
   assert.equal(fs.existsSync(path.join(root, directory, "manifest.json")), false);
@@ -360,14 +548,16 @@ test("the executor persists a validated deliverable and fails instead of reporti
   const { root, file } = fixture();
   let response = "Static discovery completed.";
   let prompt;
+  const prompts = [];
   let disconnected = 0;
+  let sessionCount = 0;
   const client = {
     async start() {},
     async stop() {},
     async createSession() {
       return {
-        sessionId: "functional-fixture",
-        async sendAndWait(message) { prompt = message.prompt; return { data: { content: response } }; },
+        sessionId: `20000000-0000-4000-8000-${String(++sessionCount).padStart(12, "0")}`,
+        async sendAndWait(message) { prompt = message.prompt; prompts.push(prompt); return { data: { content: response } }; },
         async disconnect() { disconnected += 1; },
       };
     },
@@ -375,8 +565,10 @@ test("the executor persists a validated deliverable and fails instead of reporti
   const plan = { workflow: { id: "refine-backlog" }, agent: { id: "product" }, knowledge: [{ source_path: file }] };
   await assert.rejects(runCopilotTask(root, "Draft functional specifications", plan,
     { approved: true, clientFactory: () => client }), /specification incomplete/);
-  assert.match(prompt, /Static discovery is an evidence inventory, NOT the requested deliverable/);
-  assert.match(prompt, /Do not implement application code/);
+  assert.match(prompts[0], /Static discovery is an evidence inventory, NOT the requested deliverable/);
+  assert.match(prompts[0], /Do not implement application code/);
+  assert.equal(prompts.length, 3);
+  assert.match(prompt, /Exact validator diagnostic/);
   response = JSON.stringify(draft(file));
   const result = await runCopilotTask(root, "Draft functional specifications", plan,
     { approved: true, clientFactory: () => client });
@@ -385,7 +577,7 @@ test("the executor persists a validated deliverable and fails instead of reporti
   const directory = path.posix.dirname(result.specification.path);
   assert.deepEqual(result.changedPaths, [result.specification.path, result.specification.manifestPath,
     result.specification.workspacePath, `${directory}/decisions.json`, `${directory}/decisions.md`,
-    `${directory}/lifecycle.json`, ...result.specification.casePaths].sort());
+    `${directory}/lifecycle.json`, `${directory}/specification.json`, ...result.specification.casePaths].sort());
   assert.match(fs.readFileSync(path.join(root, result.specification.casePaths[0]), "utf8"), /Registration remains closed|registration remains closed/);
 });
 

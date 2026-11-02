@@ -34,13 +34,13 @@ why MCPEE manages its own isolated Python runtime instead of requiring one.
 Global installation (recommended):
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.43
+npm install --global mcp-efficiency-engine@0.1.44
 ```
 
 Run a pinned version without installing globally:
 
 ```sh
-npx --package=mcp-efficiency-engine@0.1.43 mcpee init --project C:\path\to\project
+npx --package=mcp-efficiency-engine@0.1.44 mcpee init --project C:\path\to\project
 ```
 
 The npm package is `mcp-efficiency-engine`. It installs two equivalent
@@ -50,7 +50,7 @@ If npm reports that the Copilot SDK's native `koffi` dependency has a blocked
 install script, allow only that dependency:
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.43 --allow-scripts=koffi
+npm install --global mcp-efficiency-engine@0.1.44 --allow-scripts=koffi
 ```
 
 This does not enable install scripts globally. A successful `mcpee help`
@@ -102,7 +102,16 @@ never overwrites user-owned files. In one run it:
 5. Performs the first local knowledge sync: source index, unified evidence
    graph, CodeGraph index and, when installed, the Graphify AST graph. It also
    writes evidence maps to `docs/generated/`.
-6. Creates brownfield specification proposals when there is source evidence.
+6. For brownfield projects, creates static evidence proposals and prepares
+   bounded, source-hash-bound functional specification scopes from code, tests,
+   documents and configuration. After local readiness checks, automatically
+   uses Copilot to author every scope into `docs/specifications/proposed/`,
+   cross-checking code against related original documents retrieved locally.
+   This consumes Copilot quota and sends the selected sources to Copilot;
+   requesting brownfield authorizes that authoring without another confirmation.
+   It never approves requirements or implements the application. Use
+   `--prepare-only` for explicitly local-only initialization.
+   `mcpee specs scopes --json` remains read-only inspection.
 7. Generates validation workflow specs from the checks it can find (see
    [Quality and evaluation](QUALITY-AND-EVALUATION.md#generated-validation-workflows)).
    No check is executed during setup.
@@ -116,8 +125,8 @@ never overwrites user-owned files. In one run it:
    MCPEE. No VSIX and no `@mcpee` mention are needed.
 
 The summary printed at the end reports the detected stack, provisioned
-capabilities, each tool's status, sync counts, brownfield proposals, generated
-validation checks and graph sizes. Read any warning: it names exactly what is
+capabilities, each tool's status, sync counts, brownfield proposals and authoring
+scopes, generated validation checks and graph sizes. Read any warning: it names exactly what is
 incomplete. Capability configuration is reported separately from harness
 readiness. The last status is `SETUP COMPLETE` or `SETUP INCOMPLETE`; the latter
 returns a nonzero exit code and tells you to resolve blockers and rerun `init`.
@@ -154,24 +163,47 @@ selected capabilities at any time.
 ## Brownfield: existing code
 
 1. **Initialize.** Run `mcpee init --project <path>` and approve the tool
-   downloads. One run performs the full extraction; no extra discovery command
-   is needed.
+   downloads. One run performs static evidence discovery and prepares bounded
+   authoring scopes, then drafts source-bound functional proposals with Copilot.
+   A successful complete brownfield includes those proposals, not just indexes.
+   Authentication, conversion, graph or authoring failures leave it explicitly
+   incomplete. Repeating `mcpee brownfield` preserves current authored scopes
+   and resumes missing work without regenerating them.
+   Large projects may take hours. Automatic parallelism selects one model session
+   per ten pending units (rounded up, capped at ten), excluding reused and blocked
+   units; progress counts and last activity are reported every 30 seconds.
+   Failed scopes retain their diagnostics while the rest continue. A partial
+   batch exits nonzero; it is not complete. Use `--concurrency 1..10` to override
+   parallelism, or `--concurrency auto` for the default. Every domain uses the same queue unless the owner explicitly
+   requests `--last-domain <domain>`. Units have bounded primary line ranges;
+   related documents provide context and keep their own primary coverage units.
 2. **Review what was detected.** Check the stack line in the summary, or run
    `mcpee explain`. Adjust the selection with `mcpee capabilities list` and
    `mcpee capabilities install|remove <id>`.
-3. **Read the specification proposals.** `init` prints the review index under
-   `.mcpee/specs/reviews/<snapshot>/index.md`. Proposals are grouped by
+3. **Read the functional proposals.** Start at `docs/README.md`, then
+   `docs/specifications/README.md`; short capability-named files are under
+   `docs/specifications/proposed/<feature>/`. Source-linked code/document
+   differences remain visible questions, not automatically settled requirements.
+   The separate extraction index under
+   `docs/generated/specification-evidence/reviews/<snapshot>/index.md`. Inventories are grouped by
    candidate domain, cite their sources and list positive, negative and
    boundary test-case candidates. They are evidence, **not approved
    requirements**.
-4. **Ratify what is correct.** After reviewing a proposal, approve its exact
+   The same init summary also shows brownfield authoring scope IDs and limits.
+   Retrieve the exact source-bound tasks at any time with
+   `mcpee specs scopes --json`. After a source change, run `mcpee sync` and
+   regenerate scopes before authoring; stale tasks are rejected.
+4. **Review and approve what is correct.** Use `specs review` for review without
+   approval, or `specs approve --stage specification` with the exact current
+   digest to establish a source of truth. For historical inventory-based
+   contracts only, the compatibility command remains:
    content:
 
    ```sh
    mcpee specs ratify --slug <id> --reviewer <name> --confirm-sha256 <digest>
    ```
 
-   The approved specification is written under `specs/approved/` and is
+   The approved specification moves under `docs/specifications/approved/` and is
    included in every later Copilot request. See
    [Brownfield specification discovery](BROWNFIELD-SPECS.md).
 5. **Check validation.** Review the generated specs under `.mcpee/workflows/`.
@@ -198,8 +230,10 @@ business intent. Requirements come first:
    flows, alternatives, rules, acceptance criteria and open decisions.
    MCPEE validates structure, source quotes and declared section coverage,
    then saves a human-readable product index and one independent specification
-   per use case under `specs/<feature>/`. Open `specs/README.md` as the single
-   entry point. Each case includes one goal,
+   per use case under `docs/specifications/proposed/<feature>/`, moving the
+   bundle to `reviewed/` after automatic structural validation. Open
+   `docs/README.md` as the entry point, then `docs/specifications/README.md`
+   for every atomic specification and its state. Each case includes one goal,
    actor, trigger, preconditions, main flow, alternatives, postconditions,
    rules, Given/When/Then criteria, source references, prerequisite cases and
    its unresolved decisions.
@@ -215,8 +249,12 @@ business intent. Requirements come first:
    Review the specification and every case, then use
    `mcpee specs approve --slug <feature> --stage specification --reviewer "<owner>" --confirm-sha256 <digest>`.
    Open decisions and deferred requirements block approval; explicit
-   out-of-scope sections remain visible. Draft creation never approves requirements.
-5. **Plan and decompose.** Author `specs/<feature>/plan.md` against the approved
+   out-of-scope sections remain visible. Draft creation and machine validation
+   never approve requirements. `specs review` records a review without approval;
+   explicit specification approval moves the bundle to `approved/`.
+   Implementation with current passing recorded checks is the other path to
+   authority; verification is bounded to those checks, not full product acceptance.
+5. **Plan and decompose.** Author `plan.md` in the same feature bundle against the validated
    specification and case IDs; `mcpee plan init --slug <feature> --title "<title>"`
    can create an explicitly unreviewed template without replacing the spec.
    Review it using `specs approve --stage plan`, then author dependency-ordered,
@@ -359,20 +397,21 @@ No agents, workflows, tool downloads or model calls are executed by this command
 | Path | Content |
 |---|---|
 | `mcpee.config.yml` | Project configuration, including `knowledge.sourceRoots` |
-| `.mcpee/` | Runtime, state, tools, indexes, graphs, reports, telemetry, memory, workflow specs and specification proposals. Its own `.mcpee/.gitignore` excludes the cache, tools, indexes, graphs, specs, reports, telemetry and logs. |
+| `.mcpee/` | MCPEE runtime, state, tools, indexes, graphs, reports, telemetry, memory, workflow checks and migration evidence. Not the product documentation or requirements workspace. |
 | `.codegraph/` | Required local CodeGraph symbol index |
 | `.github/agents/`, `.github/skills/` | Rendered agent profiles, skill procedures and workflow skills (`/mcpee-<workflow>`, explicit invocation only; works in the Local and Copilot harnesses) |
 | `.github/instructions/` | Always-on policies and file-scoped technical guidance |
 | `.github/hooks/` | Approval and observability hook registration |
 | `.mcp.json` | Project MCP servers (`mcpee`, `mcpee-codegraph`); existing entries are preserved |
-| `knowledge/` | Optional extra source folders by category plus normalized, extracted and traceability artifacts |
-| `docs/generated/` | Source-linked evidence maps refreshed by `sync` |
-| `specs/README.md` | Single human entry point: features, status, next step and links to sources/maps/history |
-| `specs/<feature>/` | Functional `spec.md`, `UC-###.md`, decisions and reviews; technical `plan.md` and `tasks.md` in the same workspace |
-| `docs/specifications/`, `specs/approved/`, `.mcpee/planning/` | Historical drafts/approvals/plans, preserved for compatibility; `specs migrate` safely copies supported drafts without approving them |
+| `knowledge/sources/` | Owner-supplied original inputs; normalized, extracted and traceability siblings support local retrieval |
+| `docs/README.md` | First place to look for project knowledge; links specifications and generated documentation |
+| `docs/generated/` | Source-linked evidence maps and `specification-evidence/` inventories, not automatic sources of truth |
+| `docs/specifications/README.md` | Every specification, its state, source-of-truth status and implementation verification |
+| `docs/specifications/<state>/<feature>/` | Physical `proposed`, `reviewed`, `approved` states for both source modes. `spec.md`, short atomic capability names (e.g. `about-us-staff.md`), structured source-bound specification, decisions, plan/tasks and review bindings move together. UC IDs remain internal references. |
+| Legacy `specs/`, `.mcpee/specs/proposed/` | `specs migrate` moves supported content into `docs/`, preserving reviews and provenance without inventing authority. |
 
 Existing user files at generated paths are never overwritten. Stale generated
 files are removed only when MCPEE's manifest and ownership marker prove that it
 created them.
-If `specs/README.md` already has owner content, navigation uses `specs/MCPEE.md`
-and the CLI prints that path instead.
+If a generated `README.md` already has owner content, navigation uses the
+adjacent `MCPEE.md` and the CLI prints that path instead.

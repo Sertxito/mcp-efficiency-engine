@@ -81,7 +81,10 @@ function writeRunReport(projectRoot, { task, plan, execution, postChange = null,
       status: !hasChanges ? "not_applicable" :
         validationStatus === "passed" ? "completed" :
           validationStatus === "failed" ? "failed" : "blocked",
-      evidence: postChange?.validation?.evaluation_id
+      evidence: postChange?.validation?.kind === "source-bound-authoring"
+        ? [{ kind: "source-bound-authoring", report: postChange.validation.report,
+          application_validation: "not-run" }]
+        : postChange?.validation?.evaluation_id
         ? [{ evaluation_id: postChange.validation.evaluation_id, report: postChange.validation.report }]
         : [],
       ...(!hasChanges ? { reason: "The session did not report a file mutation." } :

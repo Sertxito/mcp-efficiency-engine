@@ -7,6 +7,7 @@ const { readCatalog } = require("../../copilot-renderer/src/render");
 const { sourceEvidence } = require("../../memory-engine/src/memory");
 const { readEvaluation } = require("./evaluate");
 const { readProjectFile } = require("./asset-evaluation");
+const { automaticSpecialistReview } = require("./automatic-specialist-review");
 
 const SUITE_PATH = path.resolve(__dirname, "../../../catalog/specialist-acceptance.json");
 const MAX_BYTES = 1024 * 1024;
@@ -44,7 +45,7 @@ function loadSpecialistSuite() {
   const bytes = fs.readFileSync(SUITE_PATH);
   const suite = JSON.parse(bytes.toString("utf8"));
   const { catalog, digest } = readCatalog();
-  if (suite.schema_version !== 1 || suite.id !== "specialist-core" ||
+  if (suite.schema_version !== 2 || suite.id !== "specialist-core" ||
       JSON.stringify(suite.variants) !== JSON.stringify(["normal", "failure", "boundary"]) ||
       !suite.review_criteria || Object.keys(suite.review_criteria).length !== 3 ||
       !Array.isArray(suite.scenarios) || !suite.scenarios.length) {
@@ -145,10 +146,42 @@ function inspectTrial(root, trial, scenario, variant, criteria, events) {
     throw new Error("Trial environment requires model, runtime and fixture_revision (1-200 characters each).");
   }
   const review = trial.review;
+  if (!review || trial.automatic_review) {
+    if (trial.automatic_review) {
+      const session = events.filter(event => event.session_id === run.session_id);
+      const started = session.filter(event => event.event_name === "copilot.execution.started");
+      const completed = session.filter(event => event.event_name === "copilot.execution.completed");
+      if (started.length !== 1 || completed.length !== 1 ||
+          started[0].attributes?.agent !== scenario.agent ||
+          started[0].attributes.task_sha256 !== taskHash) {
+        throw new Error("Automatic review requires unique matching execution start/completion telemetry.");
+      }
+      if (session.some(event => event.event_name === "copilot.tool.authorization" &&
+          event.attributes?.decision === "deny" ||
+          event.event_name === "copilot.permission.decision" &&
+          !["policy-approved", "approved-once"].includes(event.attributes?.decision))) {
+        return { scenario_id: scenario.id, variant, status: "failed", run_id: run.id,
+          validation_id: evaluation.id, response_sha256: responseHash, reviewer: null, environment,
+          verification: { status: "failed", reason: "Execution attempted an unauthorized action." } };
+      }
+    }
+    const verification = automaticSpecialistReview(root, trial, scenario, evaluation, completionEvent);
+    const executed = completionEvent.attributes.outcome === "success" &&
+      run.stages.some(stage => stage.id === "execute" && stage.status === "completed") &&
+      evaluation.status === "passed" &&
+      evaluation.checks.every(check => check.status === "passed" && check.exit_code === 0);
+    return {
+      scenario_id: scenario.id, variant, status: executed ? verification.status : "failed",
+      run_id: run.id, validation_id: evaluation.id, response_sha256: responseHash,
+      reviewer: null, verification, environment,
+    };
+  }
   if (!review || typeof review.reviewer !== "string" || !review.reviewer.trim() ||
       review.reviewer.length > 80 || /[\r\n]/.test(review.reviewer) ||
-      !Array.isArray(review.ratings) || review.ratings.length !== Object.keys(criteria).length) {
-    throw new Error("Each trial requires a named reviewer and every specialist review criterion.");
+      !Array.isArray(review.ratings) || review.ratings.length !== Object.keys(criteria).length ||
+      !Array.isArray(review.outcome_ratings) ||
+      review.outcome_ratings.length !== scenario.outcomes.length) {
+    throw new Error("Each trial requires a named reviewer, every review criterion and every scenario outcome.");
   }
   const seen = new Set();
   for (const rating of review.ratings) {
@@ -162,15 +195,31 @@ function inspectTrial(root, trial, scenario, variant, criteria, events) {
     }
     seen.add(rating.criterion);
   }
+  const outcomeIndexes = new Set();
+  for (const rating of review.outcome_ratings) {
+    if (!rating || !Number.isInteger(rating.index) ||
+        rating.index < 0 || rating.index >= scenario.outcomes.length ||
+        outcomeIndexes.has(rating.index) || rating.outcome !== scenario.outcomes[rating.index] ||
+        ![0, 1, 2].includes(rating.rating) ||
+        typeof rating.note !== "string" || !rating.note.trim() || rating.note.length > 2000 ||
+        !Array.isArray(rating.evidence) || !rating.evidence.length ||
+        rating.evidence.some(file => typeof file !== "string" ||
+          !evidencePaths.has(file.replace(/\\/g, "/")))) {
+      throw new Error("Outcome ratings must cover each exact scenario outcome once with a score, rationale and validation-bound evidence.");
+    }
+    outcomeIndexes.add(rating.index);
+  }
   const passed = completionEvent.attributes.outcome === "success" &&
     run.stages.some(stage => stage.id === "execute" && stage.status === "completed") &&
     evaluation.status === "passed" &&
     evaluation.checks.every(check => check.status === "passed" && check.exit_code === 0) &&
-    review.ratings.every(rating => rating.rating === 2);
+    review.ratings.every(rating => rating.rating === 2) &&
+    review.outcome_ratings.every(rating => rating.rating === 2);
   return {
     scenario_id: scenario.id, variant, status: passed ? "passed" : "failed",
     run_id: run.id, validation_id: evaluation.id, response_sha256: responseHash,
-    reviewer: review.reviewer, environment,
+    reviewer: review.reviewer, review_ratings: review.ratings,
+    outcome_ratings: review.outcome_ratings, environment,
   };
 }
 
@@ -214,6 +263,23 @@ function buildSpecialistAcceptance(projectRoot, resultsPath = null) {
     }),
   }));
   const outcomes = scenarios.flatMap(scenario => scenario.trials);
+  const requiredOutcomeChecks = suite.scenarios.reduce((total, scenario) =>
+    total + scenario.outcomes.length * suite.variants.length, 0);
+  const outcomeCounts = { verified: 0, partial: 0, not_demonstrated: 0, unverified: 0 };
+  for (const scenario of scenarios) {
+    for (const trial of scenario.trials) {
+      const expected = scenario.outcomes.length;
+      const ratings = trial.outcome_ratings ||
+        (trial.verification?.status === "passed" ? trial.verification.verified_outcomes : null) || [];
+      for (const rating of ratings) {
+        if (rating.rating === 2 && trial.status === "passed") outcomeCounts.verified += 1;
+        else if (rating.rating === 2) outcomeCounts.unverified += 1;
+        else if (rating.rating === 1) outcomeCounts.partial += 1;
+        else if (rating.rating === 0) outcomeCounts.not_demonstrated += 1;
+      }
+      outcomeCounts.unverified += expected - ratings.length;
+    }
+  }
   return {
     schema_version: 1, generated_by: "mcpee", suite_id: suite.id,
     suite_sha256, catalog_sha256,
@@ -225,13 +291,23 @@ function buildSpecialistAcceptance(projectRoot, resultsPath = null) {
       passed: outcomes.filter(item => item.status === "passed").length,
       failed: outcomes.filter(item => item.status === "failed").length,
       not_run: outcomes.filter(item => item.status === "not-run").length,
+      awaiting_verification: outcomes.filter(item => item.status === "awaiting-verification").length,
+      automatically_verified: outcomes.filter(item =>
+        item.status === "passed" && item.verification?.method === "automatic-behavioral-oracle").length,
+      required_outcome_checks: requiredOutcomeChecks,
+      verified_outcomes: outcomeCounts.verified,
+      partial_outcomes: outcomeCounts.partial,
+      not_demonstrated_outcomes: outcomeCounts.not_demonstrated,
+      unverified_outcomes: outcomeCounts.unverified,
     },
     review_criteria: suite.review_criteria,
     scenarios,
     limitations: [
       "No model or command is executed by this report. Missing trials remain not-run.",
       "Passing is bounded to these scenarios, fixtures, recorded environments and reviewed oracles, not general specialist certification or a statistical coverage percentage.",
-      "Command success alone is insufficient. Reviewers must assess the actual artifact and the adequacy of regression checks; local reports and reviewer statements are not tamper-proof.",
+      "Every manual review rates every exact scenario outcome and cites validation-bound artifacts; automated oracles report their verified outcome mapping.",
+      "Command success alone is insufficient. Supported automatic oracles bind unchanged checks, a failing baseline, current artifacts and scope evidence; other scenarios need sufficient technical review.",
+      "Missing semantic verification remains awaiting-verification, not a compulsory approval or a pass. Local reports and reviewer statements are not tamper-proof.",
       "Evidence must remain unchanged and execution telemetry must be retained. Changed suite/catalog content requires new results.",
     ],
   };

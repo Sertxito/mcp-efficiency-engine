@@ -88,8 +88,11 @@ function makeChunk(document, lines, start, end) {
   if (!text) return null;
   return {
     source_path: document.source_path,
+    source_id: document.source_id,
     normalized_path: document.normalized_path,
     source_sha256: document.sha256,
+    ...(document.authority ? { authority: document.authority, feature: document.feature,
+      feature_status: document.feature_status } : {}),
     file_path: document.source_path,
     file_name: document.file_name || path.posix.basename(document.source_path),
     modified_at: document.modified_at || null,
@@ -287,8 +290,11 @@ function chunkDocument(projectRoot, document, options = {}) {
     if (text) {
       chunks.push({
         source_path: document.source_path,
+        source_id: document.source_id,
         normalized_path: document.normalized_path,
         source_sha256: document.sha256,
+        ...(document.authority ? { authority: document.authority, feature: document.feature,
+          feature_status: document.feature_status } : {}),
         file_path: document.source_path,
         file_name: document.file_name || path.posix.basename(document.source_path),
         modified_at: document.modified_at || null,
@@ -309,8 +315,11 @@ function chunkDocument(projectRoot, document, options = {}) {
       for (let offset = 0; offset < line.length; offset += MAX_CHUNK_CHARS) {
         chunks.push({
           source_path: document.source_path,
+          source_id: document.source_id,
           normalized_path: document.normalized_path,
           source_sha256: document.sha256,
+          ...(document.authority ? { authority: document.authority, feature: document.feature,
+            feature_status: document.feature_status } : {}),
           file_path: document.source_path,
           file_name: document.file_name || path.posix.basename(document.source_path),
           modified_at: document.modified_at || null,

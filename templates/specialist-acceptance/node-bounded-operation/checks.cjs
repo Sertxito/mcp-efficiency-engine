@@ -109,3 +109,44 @@ test("boundary: invalid limits reject and empty input is valid", async () => {
   assert.deepEqual(await mapBounded([], 2, async () => { calls += 1; }), []);
   assert.equal(calls, 0);
 });
+
+test("boundary: abort listeners are removed after success, failure and cancellation", async () => {
+  const trackedSignal = () => {
+    const controller = new AbortController();
+    const listeners = new Set();
+    return {
+      listeners,
+      controller,
+      signal: {
+        get aborted() { return controller.signal.aborted; },
+        get reason() { return controller.signal.reason; },
+        throwIfAborted() { controller.signal.throwIfAborted(); },
+        addEventListener(type, listener, options) {
+          if (type === "abort") listeners.add(listener);
+          controller.signal.addEventListener(type, listener, options);
+        },
+        removeEventListener(type, listener, options) {
+          if (type === "abort") listeners.delete(listener);
+          controller.signal.removeEventListener(type, listener, options);
+        },
+      },
+    };
+  };
+  const successful = trackedSignal();
+  await mapBounded([1], 1, async value => value, { signal: successful.signal });
+  assert.equal(successful.listeners.size, 0, "successful completion must release abort listeners");
+
+  const failed = trackedSignal();
+  await assert.rejects(mapBounded([1], 1, async () => { throw new Error("worker failure"); },
+    { signal: failed.signal }), /worker failure/);
+  assert.equal(failed.listeners.size, 0, "failure must release abort listeners");
+
+  const cancelled = trackedSignal();
+  const cancellation = new Error("cancelled");
+  await assert.rejects(mapBounded([1], 1, async (_value, _index, signal) => {
+    cancelled.controller.abort(cancellation);
+    await nextTurn();
+    signal.throwIfAborted();
+  }, { signal: cancelled.signal }), error => error === cancellation);
+  assert.equal(cancelled.listeners.size, 0, "cancellation must release abort listeners");
+});

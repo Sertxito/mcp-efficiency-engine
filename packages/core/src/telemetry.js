@@ -4,6 +4,7 @@ const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
 const { AsyncLocalStorage } = require("node:async_hooks");
+const { StringDecoder } = require("node:string_decoder");
 
 const TELEMETRY_FILE = ".mcpee/telemetry/events/copilot.jsonl";
 const TELEMETRY_RETENTION_DAYS = 30;
@@ -127,32 +128,62 @@ function withTelemetryFileLock(projectRoot, callback) {
   }
 }
 
+function* telemetryLines(source) {
+  const descriptor = fs.openSync(source, "r");
+  const buffer = Buffer.alloc(64 * 1024);
+  const decoder = new StringDecoder("utf8");
+  let pending = "", index = 0;
+  try {
+    let bytes;
+    while ((bytes = fs.readSync(descriptor, buffer, 0, buffer.length, null)) > 0) {
+      pending += decoder.write(buffer.subarray(0, bytes));
+      let start = 0, end;
+      while ((end = pending.indexOf("\n", start)) !== -1) {
+        yield { line: pending.slice(start, end).replace(/\r$/, ""), index: index++ };
+        start = end + 1;
+      }
+      pending = pending.slice(start);
+    }
+    pending += decoder.end();
+    if (pending) yield { line: pending.replace(/\r$/, ""), index };
+  } finally {
+    fs.closeSync(descriptor);
+  }
+}
+
 function pruneExpiredTelemetryLocked(source, now = Date.now(), force = false) {
   if (!fs.existsSync(source)) return 0;
   const marker = `${source}.last-pruned`;
   if (!force && fs.existsSync(marker) &&
       now - fs.statSync(marker).mtimeMs < TELEMETRY_PRUNE_INTERVAL_MS) return 0;
 
-  const lines = fs.readFileSync(source, "utf8").split(/\r?\n/);
   const cutoff = now - TELEMETRY_RETENTION_DAYS * 24 * 60 * 60 * 1000;
-  const retained = [];
+  const temporary = `${source}.${crypto.randomUUID()}.tmp`;
+  const descriptor = fs.openSync(temporary, "wx");
   let removed = 0;
-  for (const [index, line] of lines.entries()) {
-    if (!line.trim()) continue;
-    let event;
-    try {
-      event = JSON.parse(line);
-      validateEvent(event);
-    } catch (error) {
-      throw new Error(`Invalid telemetry JSONL at ${source}:${index + 1}: ${error.message}`);
+  try {
+    for (const { index, line } of telemetryLines(source)) {
+      if (!line.trim()) continue;
+      let event;
+      try {
+        event = JSON.parse(line);
+        validateEvent(event);
+      } catch (error) {
+        throw new Error(`Invalid telemetry JSONL at ${source}:${index + 1}: ${error.message}`);
+      }
+      if (Date.parse(event.timestamp) < cutoff) removed += 1;
+      else fs.writeFileSync(descriptor, `${line}\n`, "utf8");
     }
-    if (Date.parse(event.timestamp) < cutoff) removed += 1;
-    else retained.push(line);
+    fs.closeSync(descriptor);
+  } catch (error) {
+    fs.closeSync(descriptor);
+    fs.unlinkSync(temporary);
+    throw error;
   }
-  if (removed) {
-    const temporary = `${source}.${crypto.randomUUID()}.tmp`;
-    fs.writeFileSync(temporary, retained.length ? `${retained.join("\n")}\n` : "", "utf8");
-    fs.renameSync(temporary, source);
+  try {
+    if (removed) fs.renameSync(temporary, source);
+  } finally {
+    if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
   }
   fs.writeFileSync(marker, new Date(now).toISOString(), "utf8");
   return removed;
@@ -212,16 +243,18 @@ function readEvents(projectRoot) {
   return withTelemetryFileLock(projectRoot, (source) => {
     pruneExpiredTelemetryLocked(source, Date.now(), true);
     if (!fs.existsSync(source)) return [];
-    return fs.readFileSync(source, "utf8").split(/\r?\n/).flatMap((line, index) => {
-      if (!line.trim()) return [];
+    const events = [];
+    for (const { line, index } of telemetryLines(source)) {
+      if (!line.trim()) continue;
       try {
         const event = JSON.parse(line);
         validateEvent(event);
-        return [event];
+        events.push(event);
       } catch (error) {
         throw new Error(`Invalid telemetry JSONL at ${source}:${index + 1}: ${error.message}`);
       }
-    });
+    }
+    return events;
   });
 }
 
@@ -230,9 +263,8 @@ function evaluateTelemetryIntegrity(projectRoot) {
   let eventCount = 0;
   withTelemetryFileLock(projectRoot, (source) => {
     if (!fs.existsSync(source)) return;
-    const lines = fs.readFileSync(source, "utf8").split(/\r?\n/);
     const cutoff = Date.now() - TELEMETRY_RETENTION_DAYS * 24 * 60 * 60 * 1000;
-    for (const [index, line] of lines.entries()) {
+    for (const { index, line } of telemetryLines(source)) {
       if (!line.trim()) continue;
       eventCount += 1;
       let event;

@@ -184,9 +184,12 @@ become memory only after explicit human approval (see
 
 ## Generated documentation
 
-Start at `specs/README.md`, not at a cache or snapshot folder. It connects your
-originals in `knowledge/sources/`, functional work in `specs/<feature>/`, the
-automatic maps below, and preserved historical reviews. Only `knowledge/sources/`
+Start at `docs/README.md`, not at a cache or snapshot folder. It connects your
+originals in `knowledge/sources/`, functional work in
+`docs/specifications/{proposed,reviewed,approved}/<feature>/`, the
+automatic maps below, and preserved historical reviews. Reviewed drafts are not
+sources of truth: explicit approval or implemented-and-currently-verified behavior
+is required. Only `knowledge/sources/`
 is the recommended document-input area: `knowledge/normalized`, `extracted`,
 `traceability` and `generated` are machine-derived, not business-authoring folders.
 `.mcpee/generated` is the installed harness/catalog report, not product behavior.

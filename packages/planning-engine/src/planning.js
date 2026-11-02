@@ -11,7 +11,10 @@ function validateSlug(value) {
 }
 
 function resolveDirectory(root, slug) {
-  const base = path.join(root, "specs");
+  const { workspace } = require("../../spec-engine/src/lifecycle");
+  const { projectPath } = require("../../spec-engine/src/brownfield");
+  const target = workspace(slug, root);
+  const base = path.dirname(projectPath(root, target));
   if (fs.existsSync(base) && (fs.lstatSync(base).isSymbolicLink() || !fs.lstatSync(base).isDirectory())) {
     throw new Error("Refusing to write planning artifacts through an unsafe specs path.");
   }
@@ -130,6 +133,9 @@ function createPlan(projectRoot, { slug: rawSlug, title: rawTitle }) {
   const canonical = fs.existsSync(path.join(directory, "manifest.json"));
   if (canonical) {
     const status = require("../../spec-engine/src/lifecycle").featureStatus(root, slug);
+    if (status.advancement === "validated") {
+      throw new Error(`This canonical feature uses structured plan authoring, not an empty template. Run mcpee run --task "Create plan for ${slug}" after specification validation.`);
+    }
     if (!status.reviews.specification.approved) throw new Error("Approve the functional specification before creating its technical plan.");
   }
   const files = canonical ? [["plan.md", deliveryPlan]] : [["spec.md", specification], ["plan.md", deliveryPlan]];
@@ -153,7 +159,7 @@ function createPlan(projectRoot, { slug: rawSlug, title: rawTitle }) {
   return {
     id: slug,
     title,
-    files: files.map(([name]) => `specs/${slug}/${name}`),
+    files: files.map(([name]) => `${path.relative(root, directory).split(path.sep).join("/")}/${name}`),
     status: "unreviewed-template",
   };
 }
@@ -161,7 +167,7 @@ function createPlan(projectRoot, { slug: rawSlug, title: rawTitle }) {
 function listPlans(projectRoot) {
   const root = path.resolve(projectRoot);
   const { projectPath } = require("../../spec-engine/src/brownfield");
-  return ["specs", ".mcpee/planning"].flatMap((relative) => {
+  return ["docs/specifications/proposed", "docs/specifications/reviewed", "docs/specifications/approved", "specs", ".mcpee/planning"].flatMap((relative) => {
     const directory = projectPath(root, relative);
     if (!fs.existsSync(directory)) return [];
     if (!fs.lstatSync(directory).isDirectory()) throw new Error(`Expected a planning directory: ${relative}`);
@@ -169,7 +175,7 @@ function listPlans(projectRoot) {
       .filter((entry) => entry.isDirectory() && !entry.isSymbolicLink() && entry.name !== "approved")
       .map((entry) => {
         const slug = validateSlug(entry.name);
-        const legacy = relative !== "specs";
+        const legacy = relative === ".mcpee/planning";
         const planDirectory = projectPath(root, `${relative}/${slug}`);
         return {
           id: slug,

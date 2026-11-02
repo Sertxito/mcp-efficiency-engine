@@ -239,7 +239,13 @@ function assessCopilotToolCall(input, options = {}) {
     const command = args.command ?? args.cmd ?? args.script;
     const directoryListing = toolName === "powershell" && typeof command === "string" &&
       /^Get-ChildItem(?: -Force)?(?: \| Select-Object Name,Mode(?:,Length)?)?$/i.test(command.trim());
-    if (directoryListing || shellCommandIsReadOnly(command)) {
+    const plannedValidation = typeof command === "string" &&
+      options.validationCommands?.includes(command.trim()) &&
+      /^node --test(?: [a-zA-Z0-9_./-]+\.test\.(?:cjs|mjs|js))+$/.test(command.trim());
+    if (plannedValidation) {
+      requiresApproval = false;
+      reason = "Exact local node:test command bound to the current validated canonical plan and tasks.";
+    } else if (directoryListing || shellCommandIsReadOnly(command)) {
       requiresApproval = false;
       reason = "Recognized read-only command.";
     } else {

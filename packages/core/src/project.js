@@ -344,6 +344,7 @@ function initializeProject(projectRoot, options = {}) {
       catalog_sha256: catalog.catalog_sha256,
     },
   });
+  require("../../spec-engine/src/lifecycle").migrateDrafts(root);
   return { created, preserved, updated, catalog };
 }
 

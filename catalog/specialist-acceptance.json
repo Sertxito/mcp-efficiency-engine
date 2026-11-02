@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "specialist-core",
   "description": "Representative specialist work, not a statistical claim about all possible tasks.",
   "variants": ["normal", "failure", "boundary"],

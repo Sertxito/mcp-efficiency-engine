@@ -1,8 +1,13 @@
 "use strict";
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
 const http = require("node:http");
+const os = require("node:os");
+const path = require("node:path");
 const { test } = require("node:test");
-const { requestApprovalFromHost } = require("../packages/cli/src/cli");
+const { approveCopilotDataTransfer, requestApprovalFromHost } = require("../packages/cli/src/cli");
+const { initializeProject } = require("../packages/core/src/project");
+const { readEvents } = require("../packages/core/src/telemetry");
 
 async function withBroker(handler, run) {
   const server = http.createServer(handler);
@@ -71,6 +76,27 @@ test("host approval has no implicit success fallback and rejects non-loopback or
       MCPEE_APPROVAL_BROKER_URL: url, MCPEE_APPROVAL_BROKER_TOKEN: "synthetic",
     }), /authenticated loopback/);
   }
+});
+
+test("MCP invocation authorizes its initial Copilot context transfer without another approval prompt", async t => {
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), "mcpee-mcp-transfer-"));
+  t.after(() => fs.rmSync(projectRoot, { recursive: true, force: true }));
+  initializeProject(projectRoot);
+  const plan = {
+    workflow: { id: "deliver-feature" },
+    agent: { id: "backend" },
+    memory: [],
+    knowledge: [],
+    knowledge_graph: [],
+  };
+
+  assert.equal(await approveCopilotDataTransfer(projectRoot, plan, null, [], {
+    authorizedByMcpInvocation: true,
+  }), true);
+  const decision = readEvents(projectRoot).find(event =>
+    event.event_name === "copilot.data_transfer.approval");
+  assert.equal(decision.attributes.decision, "approved");
+  assert.equal(decision.attributes.approval_source, "mcpee_run-invocation");
 });
 
 test("host approvals use separate connections rather than reusing idle sockets", async () => {

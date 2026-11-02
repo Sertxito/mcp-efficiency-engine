@@ -272,7 +272,7 @@ test("domain review covers each source once and extracts cited contract and test
   assert.match(markdown, /disabled-not-run/);
   assert.match(markdown, /denies unauthenticated access/);
   const authEvidence = manifests.find((manifest) => manifest.domain === "auth");
-  assert.equal(authEvidence.format_version, 9);
+  assert.equal(authEvidence.format_version, 11);
   const validation = authEvidence.test_cases.find((item) => item.title === "Password: Required");
   assert.equal(validation.behavior, "observed-declaration");
   assert.equal(validation.automation, "not-assessed");
@@ -615,7 +615,7 @@ test("executor receives actual approved content and refuses path-only or stale a
       async stop() {},
       async createSession() {
         return {
-          sessionId: "approved-spec-fixture",
+          sessionId: "20000000-0000-4000-8000-000000000001",
           async sendAndWait(message) {
             prompt = message.prompt;
             return { data: { content: "Read the approved contract." } };
@@ -689,6 +689,28 @@ test("executor receives actual approved content and refuses path-only or stale a
     assert.throws(() => discoverBrownfieldSpec(root), /symbolic link/);
     assert.deepEqual(fs.readdirSync(outside), []);
   });
+test("legacy extraction inventories migrate with usable exact case catalogs and can still be ratified", () => {
+  const { root } = makeProject();
+  const { relocateDocuments } = require("../packages/spec-engine/src/relocation");
+  const { migrateDrafts } = require("../packages/spec-engine/src/lifecycle");
+  const proposal = discoverBrownfieldSpec(root);
+  relocateDocuments(root, "docs/generated/specification-evidence", ".mcpee/specs/proposed", { rewriteJson: true });
+  const latestFile = path.join(root, ".mcpee/specs/latest.json");
+  fs.writeFileSync(latestFile, fs.readFileSync(latestFile, "utf8")
+    .replaceAll("docs/generated/specification-evidence", ".mcpee/specs/proposed"));
+  migrateDrafts(root);
+  assert.equal(fs.existsSync(path.join(root, ".mcpee/specs/proposed")), false);
+  const hash = completeProposal(root, proposal);
+  const approved = ratifyBrownfieldSpec(root, { slug: proposal.slug, reviewer: "Owner", confirmSha256: hash });
+  assert.match(approved.specPath, /^docs\/specifications\/approved\//);
+  assert.equal(checkSpecDrift(root).drifted, 0);
+  relocateDocuments(root, "docs/specifications/approved", "specs/approved", { rewriteJson: true });
+  migrateDrafts(root);
+  assert.equal(fs.existsSync(path.join(root, "specs/approved")), false);
+  assert.equal(listBrownfieldSpecs(root).find(item => item.status === "approved").slug, proposal.slug);
+  assert.match(fs.readFileSync(path.join(root, "docs/specifications/README.md"), "utf8"), /Previously ratified contracts/);
+});
+
 test("ratification requires completed behavior, exact reviewed hash, and current sources", () => {
   const { root, sourceFile } = makeProject();
   const proposal = discoverBrownfieldSpec(root);

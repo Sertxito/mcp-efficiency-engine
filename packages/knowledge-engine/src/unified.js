@@ -610,9 +610,12 @@ function buildUnifiedGraph(projectRoot, options = {}) {
       type: "source",
       label: sourcePath,
       source_path: sourcePath,
+      source_id: stableId(sourcePath),
       category: source.category,
       status: source.status,
       sha256: source.sha256 || null,
+      ...(source.authority ? { authority: source.authority, feature: source.feature,
+        feature_status: source.feature_status } : {}),
     });
     addEdge(projectId, sourceId, "contains_source", source);
 
@@ -1118,6 +1121,7 @@ function searchUnifiedGraph(projectRoot, query, limit = 10) {
   }
   const terms = [...new Set(query.toLowerCase().match(/[\p{L}\p{N}_-]{2,}/gu) || [])];
   const scores = [];
+  const sources = new Map(graph.nodes.filter(node => node.type === "source").map(node => [node.source_path, node]));
   for (const node of graph.nodes) {
     if (!["source", "heading", "symbol"].includes(node.type) || typeof node.label !== "string") continue;
     const text = `${node.label} ${node.source_path || ""} ${node.category || ""}`.toLowerCase();
@@ -1129,6 +1133,13 @@ function searchUnifiedGraph(projectRoot, query, limit = 10) {
       symbol_kind: node.type,
       score,
       node_id: node.id,
+      ...(sources.get(node.source_path)?.authority ? {
+        authority: sources.get(node.source_path).authority,
+        feature: sources.get(node.source_path).feature,
+        feature_status: sources.get(node.source_path).feature_status,
+        source_id: sources.get(node.source_path).source_id,
+        sha256: sources.get(node.source_path).sha256,
+      } : {}),
     });
   }
   return scores.sort((left, right) =>

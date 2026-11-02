@@ -10,7 +10,7 @@ const { execFileSync } = require("node:child_process");
 const { initializeProject } = require("../packages/core/src/project");
 const { prepareFunctionalSources, publishFunctionalSpec } = require("../packages/spec-engine/src/functional");
 const {
-  featureStatus, currentDigest, approveStage, resolveDecision, refreshWorkspaceIndex, migrateDrafts, listFeatures,
+  featureStatus, currentDigest, approveStage, resolveDecision, refreshWorkspaceIndex, migrateDrafts, listFeatures, workspace,
 } = require("../packages/spec-engine/src/lifecycle");
 const { listBrownfieldSpecs, prepareApprovedSpecContext, checkSpecDrift } = require("../packages/spec-engine/src/brownfield");
 const { createPlan } = require("../packages/planning-engine/src/planning");
@@ -32,7 +32,7 @@ function fixture(t) {
     non_goals: ["Borrowing and member administration are not included."],
     actors: [{ id: "ACT-001", name: "Library reader", goal: "Discover a book in the public catalog." }],
     use_cases: [{
-      id: "UC-001", title: "Search the public library catalog", actor: "ACT-001",
+      id: "UC-001", slug: "catalog-search", title: "Search the public library catalog", actor: "ACT-001",
       goal: "Find a book without registering for a member account.",
       dependencies: [], open_questions: [], basis: "documented",
       trigger: "The reader submits a catalog search.",
@@ -60,8 +60,8 @@ function resolve(root, slug) {
 
 test("one workspace links real artifacts and exposes clarification before approval", (t) => {
   const { root, slug, result } = fixture(t);
-  assert.equal(result.path, `specs/${slug}/spec.md`);
-  assert.equal(result.workspacePath, "specs/README.md");
+  assert.equal(result.path, `docs/specifications/proposed/${slug}/spec.md`);
+  assert.equal(result.workspacePath, "docs/specifications/README.md");
   assert.equal(featureStatus(root, slug).next, "clarify");
   assert.throws(() => approve(root, slug, "specification"), /Resolve open decisions/);
   const next = resolve(root, slug);
@@ -70,26 +70,26 @@ test("one workspace links real artifacts and exposes clarification before approv
   assert.throws(() => approveStage(root, { slug, stage: "plan", reviewer: "Owner", confirmSha256: "0".repeat(64) }), /Approve specification/);
   assert.equal(approve(root, slug, "specification").next, "author-plan");
   const created = createPlan(root, { slug, title: "Public catalog architecture" });
-  assert.deepEqual(created.files, [`specs/${slug}/plan.md`]);
+  assert.deepEqual(created.files, [`${workspace(slug, root)}/plan.md`]);
   assert.throws(() => approve(root, slug, "plan"), /substantive.*without placeholders/);
-  fs.writeFileSync(path.join(root, `specs/${slug}/plan.md`),
+  fs.writeFileSync(path.join(root, `${workspace(slug, root)}/plan.md`),
     "# Catalog design\n\nImplement [the behavior](spec.md), specifically UC-001, with an anonymous local catalog search. Keep member administration excluded. Validate public access with an automated request test.\n");
   assert.equal(approve(root, slug, "plan").next, "author-tasks");
-  fs.writeFileSync(path.join(root, `specs/${slug}/tasks.md`),
+  fs.writeFileSync(path.join(root, `${workspace(slug, root)}/tasks.md`),
     "# Catalog tasks\n\nFollow [the specification](spec.md) and [the technical plan](plan.md).\n\n- [ ] T1: Implement the anonymous UC-001 search handler; no prerequisites.\n- [ ] T2: Test anonymous UC-001 access and no-results behavior; depends on T1.\n");
   const ready = approve(root, slug, "tasks");
   assert.equal(ready.status, "ready-for-implementation");
   assert.equal(ready.implementation_verified, false);
-  const history = path.join(root, `specs/${slug}/reviews`);
+  const history = path.join(root, `${workspace(slug, root)}/reviews`);
   assert.equal(fs.readdirSync(history).length, 3);
   const snapshots = fs.readdirSync(history).map((name) => fs.readFileSync(path.join(history, name), "utf8"));
   assert.ok(snapshots.some((content) => content.includes("Display the title and author")));
-  fs.appendFileSync(path.join(root, `specs/${slug}/plan.md`), "\nChange the storage decision after review.\n");
+  fs.appendFileSync(path.join(root, `${workspace(slug, root)}/plan.md`), "\nChange the storage decision after review.\n");
   assert.equal(featureStatus(root, slug).reviews.plan.approved, false);
   assert.equal(featureStatus(root, slug).reviews.tasks.approved, false);
   assert.equal(featureStatus(root, slug).reviews.specification.approved, true);
   assert.deepEqual(fs.readdirSync(history).map((name) => fs.readFileSync(path.join(history, name), "utf8")), snapshots);
-  const index = fs.readFileSync(path.join(root, "specs/README.md"), "utf8");
+  const index = fs.readFileSync(path.join(root, "docs/specifications/README.md"), "utf8");
   assert.match(index, /public-catalog\/spec\.md/);
   assert.match(index, /NOT verified or delivered/);
 });
@@ -108,7 +108,7 @@ test("canonical approvals bind cases and decisions, and remain normative when so
   assert.equal(listBrownfieldSpecs(root).filter((entry) => entry.kind === "canonical-functional").length, 1);
   assert.match(prepareApprovedSpecContext(root, { approved_specs: approved }).content, /Source drift: drifted/);
   assert.equal(checkSpecDrift(root).drifted, 1);
-  fs.appendFileSync(path.join(root, `specs/${slug}/UC-001.md`), "\nOwner changes after review.\n");
+  fs.appendFileSync(path.join(root, `${workspace(slug, root)}/catalog-search.md`), "\nOwner changes after review.\n");
   assert.throws(() => prepareApprovedSpecContext(root, { approved_specs: approved }), /approval changed/);
 });
 
@@ -138,11 +138,11 @@ test("missing canonical approval blocks planning and execution before SDK constr
 
 test("navigation preserves owner edits and manual drafts stay visibly unvalidated", (t) => {
   const { root } = fixture(t);
-  const index = path.join(root, "specs/README.md");
+  const index = path.join(root, "docs/specifications/README.md");
   fs.appendFileSync(index, "\nOwner-maintained links.\n");
   assert.equal(refreshWorkspaceIndex(root).status, "updated-preserving-owner-readme");
   assert.match(fs.readFileSync(index, "utf8"), /Owner-maintained links/);
-  assert.match(fs.readFileSync(path.join(root, "specs/MCPEE.md"), "utf8"), /public-catalog/);
+  assert.match(fs.readFileSync(path.join(root, "docs/specifications/MCPEE.md"), "utf8"), /public-catalog/);
   createPlan(root, { slug: "manual-feature", title: "Manual draft without authoring" });
   const manual = listFeatures(root).find((feature) => feature.id === "manual-feature");
   assert.equal(manual.status, "unvalidated-manual-draft");
@@ -151,7 +151,7 @@ test("navigation preserves owner edits and manual drafts stay visibly unvalidate
 
 test("owner edits to the decision register are never overwritten by automatic resolution", (t) => {
   const { root, slug } = fixture(t);
-  const file = path.join(root, `specs/${slug}/decisions.md`);
+  const file = path.join(root, `${workspace(slug, root)}/decisions.md`);
   fs.appendFileSync(file, "\nAn owner-added constraint must be preserved.\n");
   assert.throws(() => resolve(root, slug), /owner edits/);
   assert.match(fs.readFileSync(file, "utf8"), /owner-added constraint/);
@@ -170,7 +170,7 @@ test("manual imports cannot bypass phase approval or start a model", async (t) =
 
 test("migration copies atomic drafts with working links, preserves originals and never transfers approval", (t) => {
   const { root, slug, result } = fixture(t);
-  const canonical = path.join(root, `specs/${slug}`);
+  const canonical = path.join(root, workspace(slug, root));
   const manifest = JSON.parse(fs.readFileSync(path.join(root, result.manifestPath)));
   const old = `docs/specifications/${slug}`;
   fs.mkdirSync(path.join(root, old), { recursive: true });
@@ -182,7 +182,7 @@ test("migration copies atomic drafts with working links, preserves originals and
   manifest.cases[0].path = `${old}/UC-001.md`;
   manifest.cases[0].sha256 = digest(caseContent);
   fs.writeFileSync(path.join(root, old, "manifest.json"), JSON.stringify(manifest));
-  for (const name of ["spec.md", "UC-001.md", "manifest.json", "decisions.json", "decisions.md", "lifecycle.json"]) {
+  for (const name of ["spec.md", "catalog-search.md", "manifest.json", "decisions.json", "decisions.md", "lifecycle.json"]) {
     fs.unlinkSync(path.join(canonical, name));
   }
   fs.rmdirSync(canonical);

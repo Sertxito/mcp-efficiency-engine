@@ -9,9 +9,156 @@ const { recordEvent, redact } = require("../../core/src/telemetry");
 const { McpServer } = require("@modelcontextprotocol/sdk/server/mcp.js");
 const { StdioServerTransport } = require("@modelcontextprotocol/sdk/server/stdio.js");
 const { z } = require("zod");
+const { renameAtomicSync } = require("../../core/src/atomic-file");
 
 const MAX_APPROVAL_BYTES = 64 * 1024;
 const MAX_PROCESS_OUTPUT_BYTES = 4 * 1024 * 1024;
+const RUN_STATE_DIRECTORY = ".mcpee/state/runs";
+const runProgressSchema = z.object({
+  stage: z.enum(["specification", "plan", "tasks", "indexing", "brownfield"]),
+  status: z.enum(["authoring", "repairing", "validated", "indexing"]),
+  attempt: z.number().int().min(1).max(3), updated_at: z.string(),
+  trace_id: z.string().uuid(),
+  completed: z.number().int().nonnegative().optional(),
+  total: z.number().int().positive().max(5000).optional(),
+  scope: z.string().regex(/^brownfield-[a-z0-9-]+$/).max(150).optional(),
+  failed: z.number().int().nonnegative().optional(),
+  active: z.number().int().nonnegative().optional(),
+  pending: z.number().int().nonnegative().optional(),
+  concurrency: z.number().int().min(0).max(10).optional(),
+  elapsed_ms: z.number().int().nonnegative().optional(),
+  last_activity_at: z.string().optional(),
+}).strict().refine(progress => progress.stage !== "brownfield" ||
+  progress.completed !== undefined && progress.total !== undefined &&
+  progress.completed <= progress.total && progress.scope !== undefined &&
+  (progress.failed === undefined || progress.completed + progress.failed <= progress.total),
+"Brownfield progress requires a bounded scope count and current scope.");
+const runStateSchema = z.object({
+  schema_version: z.literal(1), generated_by: z.literal("mcpee"),
+  run_id: z.string().uuid(), owner_pid: z.number().int().positive(),
+  child_pid: z.number().int().positive().nullable(),
+  started_at: z.number().int().nonnegative(), updated_at: z.number().int().nonnegative(),
+  task_sha256: z.string().regex(/^[a-f0-9]{64}$/),
+  trace_id: z.string().uuid().nullable(),
+  status: z.enum(["running", "cancelling", "completed", "failed", "cancelled"]),
+  progress: runProgressSchema.nullable(),
+  result: z.object({
+    isError: z.boolean(),
+    content: z.array(z.object({ type: z.literal("text"), text: z.string() }).strict()).min(1),
+  }).strict().nullable(),
+}).strict().refine(state => ["running", "cancelling"].includes(state.status)
+  ? state.result === null : state.result !== null &&
+    state.result.isError === (state.status !== "completed"), "Run status must agree with its terminal result.");
+
+function runStateDirectory(root, create = false) {
+  let current = root;
+  for (const segment of RUN_STATE_DIRECTORY.split("/")) {
+    current = path.join(current, segment);
+    if (create && !fsExists(current)) {
+      try { fs.mkdirSync(current); }
+      catch (error) { if (error.code !== "EEXIST") throw error; }
+    }
+    if (fsExists(current) && (!fs.lstatSync(current).isDirectory() || fs.lstatSync(current).isSymbolicLink())) {
+      throw new Error("MCPEE run state must use real project-local directories, not symbolic links.");
+    }
+  }
+  return current;
+}
+
+function readRunState(root, runId) {
+  if (!z.string().uuid().safeParse(runId).success) throw new Error("Invalid MCPEE run_id.");
+  const filename = path.join(runStateDirectory(root), `${runId}.json`);
+  if (!fsExists(filename)) return null;
+  const stat = fs.lstatSync(filename);
+  if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 24 * 1024 * 1024) {
+    throw new Error("MCPEE run state is not a bounded regular file.");
+  }
+  const state = runStateSchema.parse(JSON.parse(fs.readFileSync(filename, "utf8")));
+  if (state.run_id !== runId) throw new Error("MCPEE run state identifier does not match its filename.");
+  return state;
+}
+
+function writeRunState(root, state) {
+  const content = `${JSON.stringify(runStateSchema.parse(redact(state)), null, 2)}\n`;
+  if (Buffer.byteLength(content) > 24 * 1024 * 1024) throw new Error("MCPEE run state exceeded its size limit.");
+  const directory = runStateDirectory(root, true);
+  const filename = path.join(directory, `${state.run_id}.json`);
+  if (fsExists(filename) && fs.lstatSync(filename).isSymbolicLink()) throw new Error("Refusing to replace linked MCPEE run state.");
+  const temporary = path.join(directory, `${state.run_id}.${crypto.randomUUID()}.tmp`);
+  try {
+    fs.writeFileSync(temporary, content, { flag: "wx", mode: 0o600 });
+    renameAtomicSync(temporary, filename);
+  } finally {
+    if (fsExists(temporary)) fs.unlinkSync(temporary);
+  }
+}
+
+function processIsAlive(pid) {
+  if (!pid) return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    if (error.code === "ESRCH") return false;
+    if (error.code === "EPERM") return true;
+    throw error;
+  }
+}
+
+function admitRun(root, task) {
+  const directory = runStateDirectory(root, true);
+  const lock = path.join(directory, "admission.lock");
+  let descriptor;
+  try {
+    descriptor = fs.openSync(lock, "wx", 0o600);
+  } catch (error) {
+    if (error.code === "EEXIST") {
+      return { blocked: "MCPEE run admission is locked by another server. Retry status instead of starting work. If the lock survives a crash, inspect owner/process and run journals before explicitly removing admission.lock; no stale lock is silently stolen." };
+    }
+    throw error;
+  }
+  try {
+    fs.writeFileSync(descriptor, JSON.stringify({ generated_by: "mcpee", owner_pid: process.pid, created_at: new Date().toISOString() }));
+    for (const name of fs.readdirSync(directory).filter(name => name.endsWith(".json"))) {
+      const state = readRunState(root, name.slice(0, -5));
+      if (!state.result && (processIsAlive(state.owner_pid) || processIsAlive(state.child_pid))) {
+        return { blocked: `An MCPEE execution may still be active (${state.run_id}). Retrieve its durable status and inspect its owning server; no duplicate work was started.` };
+      }
+    }
+    const state = {
+      schema_version: 1, generated_by: "mcpee", run_id: crypto.randomUUID(), owner_pid: process.pid, child_pid: null,
+      started_at: Date.now(), updated_at: Date.now(),
+      task_sha256: crypto.createHash("sha256").update(task).digest("hex"),
+      trace_id: crypto.randomUUID(), status: "running", progress: null, result: null,
+    };
+    writeRunState(root, state);
+    return { state };
+  } finally {
+    fs.closeSync(descriptor);
+    fs.unlinkSync(lock);
+  }
+}
+
+function persistedRunResult(state, cancel) {
+  if (state.result) return state.result;
+  const ownerAlive = processIsAlive(state.owner_pid);
+  const childAlive = processIsAlive(state.child_pid);
+  return {
+    isError: !ownerAlive || cancel,
+    content: [{ type: "text", text: JSON.stringify({
+      status: ownerAlive ? state.status : "interrupted",
+      run_id: state.run_id, trace_id: state.trace_id,
+      elapsed_ms: Math.max(0, (ownerAlive ? Date.now() : state.updated_at) - state.started_at),
+      progress: state.progress, owner_alive: ownerAlive, child_may_be_running: childAlive,
+      poll_after_ms: ownerAlive ? 20_000 : null,
+      next_action: cancel
+        ? "This server does not own the live execution and cannot safely cancel it. Use its owning MCP server; no PID was killed and no task was replayed."
+        : ownerAlive
+        ? "Retrieve this same run_id after poll_after_ms. Another server owns the execution; no duplicate task was started."
+        : "The owning server stopped before a terminal result was persisted. Inspect this trace and changed files, and recover saved authoring candidates with mcpee specs recover. Do not claim completion or automatically replay the task.",
+    }) }],
+  };
+}
 
 function approvalMessage(kind, details) {
   if (kind === "project-data-transfer") {
@@ -163,6 +310,10 @@ function runCopilotCli({
   signal,
   traceId,
   parentEventId,
+  onProgress,
+  onStarted,
+  feature,
+  through,
 }) {
   const cliEntrypoint = path.join(packageRoot, "packages", "cli", "bin", "mcpee.js");
   const marker = `__MCPEE_CHAT_RESULT_${crypto.randomBytes(16).toString("hex")}__`;
@@ -171,6 +322,7 @@ function runCopilotCli({
   let cancellation;
   let cancellationTimer;
   let broker;
+  let progressFailure;
 
   return (async () => {
     broker = await createApprovalBroker(approve);
@@ -179,6 +331,7 @@ function runCopilotCli({
       MCPEE_APPROVAL_BROKER_URL: broker.url,
       MCPEE_APPROVAL_BROKER_TOKEN: broker.token,
       MCPEE_CHAT_RESULT_MARKER: marker,
+      MCPEE_MCP_TASK_AUTHORIZED: "1",
       MCPEE_TRACE_ID: effectiveTraceId,
       MCPEE_PARENT_EVENT_ID: parentEventId,
     };
@@ -187,12 +340,33 @@ function runCopilotCli({
       "run",
       "--project", projectRoot,
       "--task", task,
+      ...(through ? ["--feature", feature, "--through", through] : []),
       "--chat-json",
     ], {
       cwd: projectRoot,
       env: environment,
       stdio: ["ignore", "pipe", "pipe", "ipc"],
       windowsHide: true,
+    });
+    child.on("message", (message) => {
+      if (message?.type !== "mcpee-authoring-progress") return;
+      const progress = runProgressSchema.safeParse({
+        stage: message.stage, status: message.status, attempt: message.attempt,
+        updated_at: new Date().toISOString(), trace_id: effectiveTraceId,
+        ...(message.stage === "brownfield" ? {
+          completed: message.completed, total: message.total, scope: message.scope,
+          failed: message.failed, active: message.active, pending: message.pending,
+          concurrency: message.concurrency,
+          elapsed_ms: message.elapsed_ms, last_activity_at: message.last_activity_at,
+        } : {}),
+      });
+      if (!progress.success) return;
+      try {
+        onProgress?.(progress.data);
+      } catch (error) {
+        progressFailure = error;
+        child.kill();
+      }
     });
     const output = await new Promise((resolve, reject) => {
       const stdout = [];
@@ -210,12 +384,19 @@ function runCopilotCli({
       collect(child.stdout, stdout);
       collect(child.stderr, stderr);
       child.once("error", reject);
-      child.once("close", (code, childSignal) => resolve({
+      child.once("close", (code, childSignal) => progressFailure ? reject(progressFailure) : resolve({
         code,
         signal: childSignal,
         stdout: Buffer.concat(stdout).toString("utf8"),
         stderr: Buffer.concat(stderr).toString("utf8"),
       }));
+      try {
+        onStarted?.(child.pid || null);
+      } catch (error) {
+        child.kill();
+        reject(error);
+        return;
+      }
       if (signal) {
         cancellation = () => {
           if (typeof child.send !== "function" || !child.connected) {
@@ -265,14 +446,14 @@ function createRunToolHandler(options) {
   const spawnProcess = options.spawnProcess || spawn;
   const runs = new Map();
 
-  const execute = async ({ task }, extra = {}) => {
+  const execute = async ({ task, feature, through }, extra = {}) => {
     if (!fsExists(path.join(projectRoot, ".mcpee", "state", "project.json"))) {
       return {
         isError: true,
         content: [{ type: "text", text: "This workspace is not initialized with MCPEE. Run `mcpee init` and retry." }],
       };
     }
-    const traceId = crypto.randomUUID();
+    const traceId = runs.get(extra.runId)?.state.trace_id || crypto.randomUUID();
     const startedAt = Date.now();
     const startedEvent = recordEvent(projectRoot, {
       source: "mcpee-mcp-server",
@@ -307,11 +488,30 @@ function createRunToolHandler(options) {
         projectRoot,
         packageRoot,
         task,
+        feature,
+        through,
         approve,
         spawnProcess,
         signal,
         traceId,
         parentEventId: startedEvent.event_id,
+        onStarted: (pid) => {
+          const run = runs.get(extra.runId);
+          if (run) {
+            run.state.child_pid = pid;
+            run.state.updated_at = Date.now();
+            writeRunState(projectRoot, run.state);
+          }
+        },
+        onProgress: (progress) => {
+          const run = runs.get(extra.runId);
+          if (run) {
+            run.progress = { ...progress, trace_id: traceId };
+            run.state.progress = run.progress;
+            run.state.updated_at = Date.now();
+            writeRunState(projectRoot, run.state);
+          }
+        },
       });
       recordEvent(projectRoot, {
         source: "mcpee-mcp-server",
@@ -345,7 +545,11 @@ function createRunToolHandler(options) {
     };
   };
 
-  return async ({ task, run_id: runId, cancel = false }, extra = {}) => {
+  return async ({ task, feature, through, run_id: runId, cancel = false }, extra = {}) => {
+    if (Boolean(feature) !== Boolean(through) || through && (!task || runId ||
+        !["tasks", "verification"].includes(through) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(feature))) {
+      return { isError: true, content: [{ type: "text", text: "Lifecycle execution requires task, feature slug and through=tasks|verification together; status requests cannot start a lifecycle." }] };
+    }
     if ((task && runId) || (!task && !runId) || (cancel && !runId)) {
       return { isError: true, content: [{ type: "text", text: "Provide either task to start a run or run_id to retrieve it; cancellation requires run_id." }] };
     }
@@ -353,36 +557,63 @@ function createRunToolHandler(options) {
     if (runId) {
       run = runs.get(runId);
       if (!run) {
+        const state = readRunState(projectRoot, runId);
+        if (state) return persistedRunResult(state, cancel);
         return { isError: true, content: [{ type: "text", text: "Unknown MCPEE run_id. The server may have restarted; do not silently rerun the task." }] };
       }
     } else {
+      if (!fsExists(path.join(projectRoot, ".mcpee", "state", "project.json"))) {
+        return { isError: true, content: [{ type: "text", text: "This workspace is not initialized with MCPEE. Run `mcpee init` and retry." }] };
+      }
       const active = [...runs].find(([, entry]) => !entry.result);
       if (active) {
         return { isError: true, content: [{ type: "text", text: `An MCPEE run is already active (${active[0]}). Retrieve that run_id rather than starting duplicate work.` }] };
       }
+      const admission = admitRun(projectRoot, task);
+      if (admission.blocked) return { isError: true, content: [{ type: "text", text: admission.blocked }] };
       for (const [id, entry] of runs) {
         if (entry.result) runs.delete(id);
       }
-      runId = crypto.randomUUID();
-      run = { controller: new AbortController(), result: null };
+      const state = admission.state;
+      runId = state.run_id;
+      run = { controller: new AbortController(), result: null, startedAt: state.started_at, progress: null, state };
       runs.set(runId, run);
-      run.promise = execute({ task }, {
+      run.promise = execute({ task, feature, through }, {
         ...extra,
         signal: run.controller.signal,
         runId,
       }).then((result) => {
-        run.result = result;
         return result;
       }, (error) => {
         const result = {
           isError: true,
           content: [{ type: "text", text: `MCPEE execution failed: ${error.message}` }],
         };
-        run.result = result;
         return result;
+      }).then((result) => {
+        run.state.result = redact(result);
+        run.state.status = run.controller.signal.aborted ? "cancelled" : result.isError ? "failed" : "completed";
+        run.state.updated_at = Date.now();
+        try {
+          writeRunState(projectRoot, run.state);
+        } catch (error) {
+          run.result = { isError: true, content: [{ type: "text", text:
+            `MCPEE finished execution but could not persist its terminal state: ${redact(error.message)}. Do not report durable completion; inspect local run reports and repair the state directory before starting more work.` }] };
+          recordEvent(projectRoot, { source: "mcpee-mcp-server", event_name: "mcp.run.persistence.failed",
+            trace_id: run.state.trace_id, attributes: { run_id: runId, error: error.message } });
+          return run.result;
+        }
+        run.result = run.state.result;
+        return run.result;
       });
     }
-    if (cancel) run.controller.abort(new Error("MCPEE run cancelled by the host."));
+    if (run.result) return run.result;
+    if (cancel) {
+      run.state.status = "cancelling";
+      run.state.updated_at = Date.now();
+      writeRunState(projectRoot, run.state);
+      run.controller.abort(new Error("MCPEE run cancelled by the host."));
+    }
     let timer;
     const onAbort = () => run.controller.abort(extra.signal.reason);
     if (extra.signal?.aborted) onAbort();
@@ -398,7 +629,10 @@ function createRunToolHandler(options) {
               text: JSON.stringify({
                 status: cancel ? "cancelling" : "running",
                 run_id: runId,
-                next_action: "Call mcpee_run_status with this run_id. Keep retrieving this same run until its final result. Do not restart the task, report completion, or ask the user to poll.",
+                elapsed_ms: Math.max(0, Date.now() - run.startedAt),
+                progress: run.progress,
+                poll_after_ms: 20_000,
+                next_action: "Wait poll_after_ms before retrieving mcpee_run_status with this same run_id. Running alone is not evidence of progress; inspect the reported phase and telemetry if unchanged. Do not restart the task or report completion without a final result.",
               }),
             }],
           }), 20_000);
@@ -445,16 +679,18 @@ function createMcpServer(options) {
     ].join(" "),
     inputSchema: {
       task: z.string().trim().min(1).max(8000).describe("Start a new task, preserving necessary constraints."),
+      feature: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional().describe("Canonical feature slug; required with through."),
+      through: z.enum(["tasks", "verification"]).optional().describe("Explicitly execute validated specification/plan/tasks phases through tasks or implementation checks. Requires feature. Stops on genuine decisions, drift or failures; never proves product acceptance."),
     },
     annotations: {
       readOnlyHint: false,
       destructiveHint: false,
       openWorldHint: true,
     },
-  }, ({ task }, extra = {}) => runHandler({ task }, extra));
+  }, ({ task, feature, through }, extra = {}) => runHandler({ task, feature, through }, extra));
   server.registerTool("mcpee_run_status", {
     title: "Check MCPEE run status",
-    description: "Retrieve the current result of an existing MCPEE run by run_id. This only checks local run state; it does not start, cancel, or modify the run.",
+    description: "Retrieve current progress or the persisted result of an existing MCPEE run by run_id, including after a server restart. A dead owner without a final result is interrupted, not successful; inspect its trace and saved authoring candidates instead of replaying the task. This only reads local run state; it does not start, cancel, or modify the run.",
     inputSchema: {
       run_id: z.string().uuid().describe("Existing MCPEE run identifier returned by mcpee_run."),
     },

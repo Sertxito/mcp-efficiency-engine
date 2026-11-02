@@ -8,13 +8,14 @@ action, automatic validation after changes and a full local audit trail.
 - **Works with what you have.** Existing codebase or empty folder: MCPEE
   detects which one it is and configures itself. There is no mode to choose.
 - **Local-first.** Indexes, graphs, memory and telemetry stay in your project.
-  Context is sent to Copilot only after you approve it.
+  Context is sent to Copilot only with authorization: the MCP task invocation
+  grants initial transfer; direct terminal execution asks explicitly.
 - **Approvals where they matter.** Context transfer and risky actions require
   approval; ordinary task-scoped project edits do not prompt per file.
   Existing user files are never overwritten.
 
 npm package: **`mcp-efficiency-engine`** · commands: `mcpee` (or
-`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.43)
+`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.44)
 
 ## Requirements
 
@@ -32,12 +33,12 @@ Full details: [Getting started → Requirements](docs/GETTING-STARTED.md#require
 **1. Install**
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.43
+npm install --global mcp-efficiency-engine@0.1.44
 ```
 
 If npm blocks the native `koffi` dependency, add `--allow-scripts=koffi`
 (only that dependency is allowed). Prefer no global install? Use
-`npx --package=mcp-efficiency-engine@0.1.43 mcpee init --project <path>`.
+`npx --package=mcp-efficiency-engine@0.1.44 mcpee init --project <path>`.
 
 **2. Initialize your project**
 
@@ -91,7 +92,7 @@ Run it after editing code or documents outside Copilot.
 
 | Your project | MCPEE treats it as | What you get |
 |---|---|---|
-| Has source code or an application `package.json` | **Brownfield** | Full local catalog, task-selected stack guidance, static evidence inventories and validation workflows built from existing checks. |
+| Has source code or an application `package.json` | **Brownfield** | Local document retrieval, code/document graphs and source-bound functional proposals, plus the full catalog and existing-check validation workflows. |
 | Has no code yet | **Greenfield** | Full local catalog, with relevant specialists selected per task rather than every asset added to the prompt. Specifications start from your product sources; `--agents` can explicitly narrow installation. |
 
 Installing MCPEE as the only dependency does not make an empty project brownfield.
@@ -103,15 +104,35 @@ yet."** The internal executor must deliver concrete actors, use cases, flows,
 alternatives, business rules and acceptance criteria. MCPEE checks the structure,
 exact source quotes and declared section coverage, then saves a readable draft
 index and **one self-contained document per use case** under
-`specs/<feature>/`. Start at **`specs/README.md`** rather than internal folders.
+`docs/specifications/<state>/<feature>/`. Start at **`docs/README.md`**,
+then **`docs/specifications/README.md`**, rather than internal folders.
 Each case states one actor goal, flows, rules, acceptance
 criteria, source citations, prerequisite cases and unresolved decisions.
 Empty templates do not count as success. These
 checks do not certify semantic correctness or replace owner review.
 
-**Brownfield next steps:** review the detected stack (`mcpee explain`), use the
-evidence inventory to draft and review functional behavior in the same canonical
-workspace (`mcpee specs status` / `specs approve`). `specs ratify` remains
+**Brownfield result:** `init` synchronizes local knowledge and graphs, then
+automatically authors source-bound functional proposals with Copilot under
+`docs/specifications/proposed/`, combining code with related original documents.
+Requesting brownfield authorizes Copilot quota use and selected-source transfer,
+not requirement approval or implementation. Use `init --prepare-only` for
+local-only setup. `mcpee brownfield` resumes missing scopes, preserving current
+results. Domains are split into bounded extraction units with exact line ranges;
+related documentation informs each unit without requiring its entire coverage again.
+Large projects can take hours. Automatic parallelism starts one model session per
+ten pending units, rounded up and capped at ten, excluding reusable and blocked
+units. Use `--concurrency 1..10` to override it. Progress is reported every 30
+seconds. Scope failures retain evidence and do not block
+the others; partial results are never reported as complete.
+All domains use the same queue; `--last-domain <domain>` is an optional owner choice.
+Inspect exact scopes with `mcpee specs scopes --json` and review
+functional behavior in the same canonical workspace (`mcpee specs status`).
+After all scopes are authored, run `mcpee specs reconcile --json` to produce a
+hash-linked cross-scope review matrix; it surfaces candidates but never
+replaces semantic owner review.
+New runtime-authored specifications advance
+after source-bound validation; `specs approve` is retained for explicit reviews.
+`specs ratify` remains
 available for historical static proposals; it is not an extra greenfield gate.
 Check that a validation workflow
 exists for your stack (`mcpee quality`).
@@ -122,9 +143,13 @@ the project documentation; stop at atomic use-case specifications, do not
 implement." Without named source paths, all indexed product documents are
 selected, not just keyword search matches. Missing conversion or exceeded
 input limits block the request explicitly rather than dropping requirements.
-Then use `mcpee specs status` to clarify decisions and explicitly approve the
-specification, technical plan and tasks in order. All live together under
-`specs/<feature>/`; old discovery proposals remain evidence, not a second
+Then use `mcpee specs status` to inspect validated specification, technical plan
+and task phases. Advance automatically when checks pass; request human input
+only for unresolved contradictions, decisions or risky actions. All live together under
+`docs/specifications/`, physically moving through `proposed/`, `reviewed/` and
+`approved/`. Only explicit approval or implemented-and-currently-verified
+behavior establishes a source of truth; automatic structural validation does
+not. Old discovery proposals remain evidence under `docs/generated/`, not a second
 greenfield approval workflow. Implement with Copilot, add a
 test script, and re-run `mcpee init` once code exists so MCPEE detects the new
 stack and generates validation.
@@ -137,8 +162,8 @@ Step-by-step guide for both paths: [Getting started](docs/GETTING-STARTED.md).
 |---|---|---|
 | Context | Indexes code and documents locally, builds code and evidence graphs, and sends Copilot only cited excerpts. | [Knowledge](docs/KNOWLEDGE.md) |
 | Specialists | Installs role agents, skills, workflows and stack-specific instructions selected from your project. | [Catalog](docs/CATALOG.md) |
-| Specifications | One `specs/README.md` entry point, feature specifications/cases/decisions/plans/tasks together, explicit review gates; historical evidence and approvals preserved. | [Specifications](docs/BROWNFIELD-SPECS.md) |
-| Permissions | Read-only tools run freely. Context transfer and every state-changing action need explicit approval, enforced by an MCP approval broker and a `preToolUse` hook. | [Copilot execution](docs/COPILOT-EXECUTION.md) |
+| Specifications | One canonical workspace for greenfield and brownfield, automatically validated phase gates, persisted repair drafts, shared graph/retrieval inventory; human review history preserved. | [Specifications](docs/BROWNFIELD-SPECS.md) |
+| Permissions | The MCP task invocation authorizes initial context; ordinary scoped edits and validated phases need no second prompt. Risky actions remain explicitly gated; direct CLI transfer still asks. | [Copilot execution](docs/COPILOT-EXECUTION.md) |
 | Verification | After a change, MCPEE syncs knowledge, runs your declared validation workflow and refreshes documentation only if it passes. | [Quality](docs/QUALITY-AND-EVALUATION.md) |
 | Evidence | Records traces, approvals and outcomes locally, with JSON, OTLP and HTML review views. | [Observability](docs/OBSERVABILITY.md) |
 
