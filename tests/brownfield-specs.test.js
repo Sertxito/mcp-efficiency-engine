@@ -615,7 +615,7 @@ test("executor receives actual approved content and refuses path-only or stale a
       async stop() {},
       async createSession() {
         return {
-          sessionId: "approved-spec-fixture",
+          sessionId: "20000000-0000-4000-8000-000000000001",
           async sendAndWait(message) {
             prompt = message.prompt;
             return { data: { content: "Read the approved contract." } };

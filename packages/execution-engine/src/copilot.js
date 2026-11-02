@@ -8,8 +8,9 @@ const { recordEvent, redact, withTelemetryContext } = require("../../core/src/te
 const { analyzeImpacts } = require("../../knowledge-engine/src/unified");
 const { invokeTool } = require("../../tool-manager/src/tools");
 const { WALL_TIMEOUT_MS, createExecutionDeadline } = require("./execution-deadline");
-const { prepareApprovedSpecContext } = require("../../spec-engine/src/brownfield");
-const { isSpecificationTask, prepareFunctionalSources, functionalPrompt, publishFunctionalSpec } = require("../../spec-engine/src/functional");
+const { prepareApprovedSpecContext, projectPath, ensureDirectory } = require("../../spec-engine/src/brownfield");
+const { isSpecificationTask, prepareFunctionalSources, functionalPrompt, validateFunctionalSpec, publishFunctionalSpec } = require("../../spec-engine/src/functional");
+const { phasePrompt, validatePhase, publishPhase } = require("../../spec-engine/src/phases");
 
 const MAX_CONTEXT_PACKAGE_BYTES = 2 * 1024 * 1024;
 const SENSITIVE_SOURCE = /(?:^|\/)(?:\.env(?:\..*)?|\.ssh|\.aws|\.azure|\.gnupg|\.kube|\.docker|\.npmrc|\.pypirc|\.netrc|secrets?|credentials?|certificates?|private|id_(?:rsa|dsa|ecdsa|ed25519)|private[-_.]?keys?)(?:\/|$)|\.(?:pem|key|p12|pfx|keystore)$/i;
@@ -185,6 +186,7 @@ function createCopilotHooks(projectRoot, options = {}) {
         taskScopedWrites: true,
         projectRoot,
         task: options.task,
+        validationCommands: options.validationCommands,
       });
       if (options.specificationAuthoring &&
           (assessment.decision !== "allow" || isFileMutationCall(input) ||
@@ -377,7 +379,9 @@ function createPermissionRequestHandler(projectRoot, options = {}) {
   return async (request, invocation) => {
     const policyManagedHook = request.kind === "hook" &&
       typeof request.toolName === "string";
-    const approved = policyManagedHook || interactive &&
+    const plannedValidation = request.kind === "shell" && !request.requestSandboxBypass &&
+      options.validationCommands?.includes(request.fullCommandText?.trim());
+    const approved = policyManagedHook || plannedValidation || interactive &&
       typeof options.approvePermission === "function" &&
       await options.approvePermission(request, describePermissionRequest(request));
     recordEvent(projectRoot, {
@@ -385,7 +389,7 @@ function createPermissionRequestHandler(projectRoot, options = {}) {
       session_id: invocation.sessionId,
       attributes: {
         kind: request.kind,
-        decision: policyManagedHook
+        decision: policyManagedHook || plannedValidation
           ? "policy-approved"
           : approved ? "approved-once" : interactive ? "rejected" : "no-interactive-review",
       },
@@ -468,6 +472,10 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
   }
 
   const root = path.resolve(projectRoot);
+  const authoringScope = require("../../spec-engine/src/scopes").validateSpecificationScopeTask(root, task);
+  if (JSON.stringify(authoringScope) !== JSON.stringify(plan.authoring_scope || null)) {
+    throw new Error("Brownfield authoring scope differs from the routed context; route the current exported task before execution.");
+  }
   const workspace = plan.specification_workspace;
   const requiredStage = { plan: "specification", tasks: "plan", implementation: "tasks" }[workspace?.requested_stage];
   if (requiredStage && workspace.requires_feature_selection) {
@@ -481,7 +489,7 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
       }
       const current = featureStatus(root, feature.id);
       if (current.drift.length || !current.reviews[requiredStage].approved) {
-        throw new Error(`Specification phase blocked: ${feature.id} needs current owner approval of ${requiredStage} before ${workspace.requested_stage}. No paid SDK session was started.`);
+        throw new Error(`Specification phase blocked: ${feature.id} needs current validation or owner approval of ${requiredStage} before ${workspace.requested_stage}. No paid SDK session was started.`);
       }
     }
   }
@@ -495,20 +503,51 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
   const conversationContext = Array.isArray(options.conversationContext)
     ? options.conversationContext
     : [];
-  const specificationSources = plan.functional_specification || isSpecificationTask(task)
+  const specificationSources = plan.functional_specification ||
+      (!["plan", "tasks", "implementation"].includes(workspace?.requested_stage) && isSpecificationTask(task))
     ? prepareFunctionalSources(root, collectContextFiles(root, plan.functional_specification
       ? { ...plan, knowledge_graph: [] } : plan)) : null;
-  const prompt = createPrompt(task, plan, contextPackage, conversationContext, specificationSources);
+  const phaseAuthoring = !specificationSources && ["plan", "tasks"].includes(workspace?.requested_stage) &&
+    workspace.features?.length ? { stage: workspace.requested_stage, slug: workspace.features[0].id } : null;
+  if (workspace?.requested_stage === "implementation" && workspace.features?.length === 1 &&
+      fs.existsSync(projectPath(root, `specs/${workspace.features[0].id}/plan.json`)) &&
+      !fs.existsSync(projectPath(root, `.mcpee/workflows/${plan.workflow.id}.json`))) {
+    options = { ...options, validationCommands: require("../../spec-engine/src/phases")
+      .prepareImplementationValidation(root, workspace.features[0].id).commands };
+  }
+  if (phaseAuthoring && workspace.features.length !== 1) {
+    throw new Error("Structured phase authoring requires exactly one canonical feature.");
+  }
+  if (phaseAuthoring?.stage === "tasks" &&
+      !fs.existsSync(projectPath(root, `specs/${phaseAuthoring.slug}/plan.json`))) {
+    throw new Error("Structured tasks require a source-bound plan.json, not only a manual planning template. Reconcile the technical plan before starting a paid session.");
+  }
+  const prompt = [createPrompt(task, plan, contextPackage, conversationContext, specificationSources),
+    ...(phaseAuthoring ? [phasePrompt(root, phaseAuthoring.slug, phaseAuthoring.stage)] : [])].join("\n\n");
   const taskHash = crypto.createHash("sha256").update(task).digest("hex");
+  const promptHash = crypto.createHash("sha256").update(prompt).digest("hex");
+  const model = options.model || "auto";
+  const executionFingerprint = crypto.createHash("sha256").update(JSON.stringify({
+    task_sha256: taskHash, workflow_id: plan.workflow.id, agent_id: plan.agent.id,
+    prompt_sha256: promptHash, model,
+  })).digest("hex");
   const startedAt = Date.now();
   const traceId = options.traceId || process.env.MCPEE_TRACE_ID || crypto.randomUUID();
   return withTelemetryContext({ trace_id: traceId }, async () => {
     const { CopilotClient } = require("../runtime/copilot-sdk.cjs");
+    const recoverable = require("./recoverable-sessions");
     const client = options.clientFactory
       ? options.clientFactory({ workingDirectory: root })
       : new CopilotClient({ workingDirectory: root });
+    const resumeLease = options.resumeSessionId
+      ? recoverable.acquireSession(root, options.resumeSessionId, {
+        task, workflow_id: plan.workflow.id, agent_id: plan.agent.id,
+        prompt_sha256: promptHash, model,
+      })
+      : null;
     let session;
     let executionStartedEvent;
+    let sessionRecord = resumeLease || null;
     const deadline = createExecutionDeadline();
     const approvalOptions = { ...options };
     for (const name of ["approveTool", "approvePermission"]) {
@@ -516,7 +555,7 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
         approvalOptions[name] = (...args) => deadline.waitForApproval(() => options[name](...args));
       }
     }
-    const changedPaths = new Set();
+    const changedPaths = new Set(resumeLease?.record.changed_paths || []);
     const usage = {
       calls: 0,
       input_tokens: 0,
@@ -534,11 +573,14 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
       if (typeof client.getAuthStatus === "function") {
         const auth = await client.getAuthStatus();
         if (!auth.isAuthenticated) {
-          throw new Error("GitHub Copilot is not authenticated. Sign in to Copilot before running MCPEE.");
+          recordEvent(root, { event_name: "copilot.authentication.failed",
+            attributes: { authenticated: false, auth_type: auth.authType || null,
+              reason: auth.statusMessage || "No runtime authentication diagnostic provided." } });
+          throw new Error(`GitHub Copilot is not authenticated. Sign in to Copilot before running MCPEE.${auth.statusMessage ? ` Runtime diagnostic: ${redact(auth.statusMessage)}` : ""}`);
         }
       }
-      session = await client.createSession({
-        model: options.model || "auto",
+      const sessionConfig = {
+        ...(!resumeLease ? { model } : {}),
         workingDirectory: root,
         availableTools: ["builtin:*"],
         customAgentsLocalOnly: true,
@@ -546,7 +588,7 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
         hooks: createCopilotHooks(root, {
           ...approvalOptions,
           task,
-          specificationAuthoring: Boolean(specificationSources),
+          specificationAuthoring: Boolean(specificationSources || phaseAuthoring),
           changedPaths,
           getExecutionEventId: () => executionStartedEvent?.event_id || null,
         }),
@@ -561,7 +603,15 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
             "The user's task authorizes ordinary, task-scoped local file creation and edits; do not ask for approval separately for each requested file. Ask for approval before destructive actions, dependency changes, sensitive or operational configuration, broad architectural rewrites/migrations, permission changes, deployment, publication, or external data transfer. The pre-tool hook enforces these boundaries. The initial context approval does not authorize additional transfers or high-impact actions.",
           ].join("\n\n"),
         },
-      });
+      };
+      session = resumeLease
+        ? await client.resumeSession(options.resumeSessionId, {
+          ...sessionConfig, continuePendingWork: false,
+        })
+        : await client.createSession(sessionConfig);
+      if (resumeLease && session.sessionId !== options.resumeSessionId) {
+        throw new Error("The Copilot SDK resumed a different session than the explicitly requested session.");
+      }
       executionStartedEvent = recordEvent(root, {
         event_name: "copilot.execution.started",
         session_id: session.sessionId,
@@ -569,7 +619,9 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
           task_sha256: taskHash,
           workflow: plan.workflow.id,
           agent: plan.agent.id,
-          model: options.model || "auto",
+          model,
+          resumed: Boolean(resumeLease),
+          ...(resumeLease ? { resume_attempt: resumeLease.record.attempts } : {}),
           context_mode: contextPackage?.kind === "grounded"
             ? "grounded-local-evidence"
             : contextPackage?.kind === "specifications" ? "approved-specifications"
@@ -578,7 +630,7 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
           context_estimated_tokens: contextPackage?.estimatedTokens ?? null,
           context_bytes: contextPackage?.byteLength || 0,
           context_source_count: contextPackage?.files.length || 0,
-          prompt_sha256: crypto.createHash("sha256").update(prompt).digest("hex"),
+          prompt_sha256: promptHash,
           prompt_bytes: Buffer.byteLength(prompt, "utf8"),
           prompt_estimated_tokens: Math.ceil(prompt.length / 4),
           estimate_method: "characters-divided-by-four; not a tokenizer or billing measurement",
@@ -607,6 +659,14 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
           },
         },
       });
+      if (!resumeLease) {
+        sessionRecord = recoverable.createSessionRecord(root, {
+          session_id: session.sessionId, task_sha256: taskHash,
+          execution_sha256: executionFingerprint, workflow_id: plan.workflow.id,
+          agent_id: plan.agent.id, model, trace_id: traceId,
+          changed_paths: [...changedPaths],
+        });
+      }
       if (typeof session.on === "function") {
         session.on((sdkEvent) => {
           const eventType = typeof sdkEvent?.type === "string" ? sdkEvent.type : "event";
@@ -711,15 +771,66 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
       const executionTimeoutMs = WALL_TIMEOUT_MS;
       let response;
       let onAbort;
+      let content;
+      let authoringEvidence = null;
       try {
         const executionDeadline = deadline.start();
-        const pendingResponse = session.sendAndWait({ prompt }, executionTimeoutMs);
         const cancellation = new Promise((resolve, reject) => {
           onAbort = () => reject(options.signal.reason);
           if (options.signal?.aborted) onAbort();
           else options.signal?.addEventListener("abort", onAbort, { once: true });
         });
-        response = await Promise.race([pendingResponse, cancellation, executionDeadline]);
+        let currentPrompt = prompt;
+        const stage = specificationSources ? "specification" : phaseAuthoring?.stage;
+        if (stage) {
+          authoringEvidence = `.mcpee/reports/authoring/${crypto.randomUUID()}`;
+          ensureDirectory(root, authoringEvidence);
+        }
+        for (let attempt = 1; attempt <= (stage ? 3 : 1); attempt++) {
+          if (stage) options.onProgress?.({ stage, attempt, status: attempt === 1 ? "authoring" : "repairing" });
+          const submittedPrompt = resumeLease
+            ? `Continue the interrupted MCPEE task below in this existing session. First inspect the current project state and the preceding conversation. Do not replay completed tool calls or overwrite completed work. Continue only the remaining work, preserving the original scope and constraints. If the state is ambiguous or an earlier operation may have succeeded, stop and report that uncertainty instead of repeating it.\n\nOriginal task SHA-256: ${taskHash}\nOriginal task:\n${task}`
+            : currentPrompt;
+          response = await Promise.race([
+            session.sendAndWait({ prompt: submittedPrompt }, executionTimeoutMs), cancellation, executionDeadline,
+          ]);
+          content = response?.data?.content;
+          if (typeof content !== "string") throw new Error("Copilot session completed without an assistant message.");
+          options.signal?.throwIfAborted();
+          if (!stage) break;
+          const responsePath = `${authoringEvidence}/${stage}-${attempt}.txt`;
+          fs.writeFileSync(projectPath(root, responsePath), content, { flag: "wx" });
+          let diagnostic = null;
+          try {
+            if (specificationSources) validateFunctionalSpec(root, content, specificationSources);
+            else validatePhase(root, phaseAuthoring.slug, stage, content);
+          } catch (error) {
+            diagnostic = error;
+          }
+          const state = { generated_by: "mcpee", trace_id: traceId, session_id: session.sessionId,
+            stage, attempt, response_path: responsePath, status: diagnostic ? "invalid" : "validated",
+            response_sha256: crypto.createHash("sha256").update(content).digest("hex"),
+            feature: phaseAuthoring?.slug || null,
+            source_snapshot: specificationSources?.map(({ lines, ...source }) => source) || null,
+            upstream_reviews: phaseAuthoring ? workspace.features[0].reviews : null,
+            error: diagnostic?.message || null };
+          fs.writeFileSync(projectPath(root, `${authoringEvidence}/${stage}-${attempt}.json`),
+            `${JSON.stringify(state, null, 2)}\n`, { flag: "wx" });
+          recordEvent(root, { event_name: "copilot.authoring.validated", session_id: session.sessionId,
+            attributes: { stage, attempt, status: state.status, evidence_path: responsePath,
+              ...(diagnostic ? { error: diagnostic.message } : {}) } });
+          if (!diagnostic) options.onProgress?.({ stage, attempt, status: "validated" });
+          if (!diagnostic) break;
+          const { sourceDrift, featureStatus } = require("../../spec-engine/src/lifecycle");
+          if (specificationSources && sourceDrift(root, { sources: specificationSources }).length ||
+              phaseAuthoring && featureStatus(root, phaseAuthoring.slug).drift.length) {
+            throw new Error(`Source drift prevents repair; preserve the draft and synchronize the changed evidence. Drafts: ${authoringEvidence}`, { cause: diagnostic });
+          }
+          if (attempt === 3) throw new Error(`Structured ${stage} failed after 3 bounded attempts. Drafts and diagnostics: ${authoringEvidence}. ${diagnostic.message}`, { cause: diagnostic });
+          currentPrompt = `Repair the previous ${stage} JSON in this same session; return the complete corrected JSON only. The complete previous candidate is saved at ${responsePath}; read it if needed rather than losing its valid content. Do not regenerate from scratch, rerun sync, modify source files or claim successful validation. Preserve grounded content and correct every reported error. Sources and digests remain those in the original prompt.\n\nExact validator diagnostic:\n${diagnostic.message}`;
+          recordEvent(root, { event_name: "copilot.authoring.repair.requested", session_id: session.sessionId,
+            attributes: { stage, next_attempt: attempt + 1 }, payload: { prompt: currentPrompt } });
+        }
       } catch (error) {
         if (options.signal?.aborted || error.code === "MCPEE_EXECUTION_TIMEOUT" ||
             error.message === `Timeout after ${executionTimeoutMs}ms waiting for session.idle`) {
@@ -737,7 +848,6 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
         deadline.dispose();
         if (onAbort) options.signal?.removeEventListener("abort", onAbort);
       }
-      const content = response?.data?.content;
       if (typeof content !== "string") {
         throw new Error("Copilot session completed without an assistant message.");
       }
@@ -749,7 +859,13 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
         payload: { content },
       });
       options.signal?.throwIfAborted();
-      const specification = specificationSources ? publishFunctionalSpec(root, content, specificationSources) : null;
+      const specification = specificationSources ? publishFunctionalSpec(root, content, specificationSources, { automatic: true }) : null;
+      const phase = phaseAuthoring ? publishPhase(root, phaseAuthoring.slug, phaseAuthoring.stage, content) : null;
+      if (phase) {
+        for (const file of phase.paths) changedPaths.add(file);
+        changedPaths.add(`specs/${phaseAuthoring.slug}/lifecycle.json`);
+        changedPaths.add("specs/README.md");
+      }
       if (specification) {
         changedPaths.add(specification.path);
         changedPaths.add(specification.manifestPath);
@@ -757,10 +873,21 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
         changedPaths.add(`${path.posix.dirname(specification.path)}/decisions.json`);
         changedPaths.add(`${path.posix.dirname(specification.path)}/decisions.md`);
         changedPaths.add(`${path.posix.dirname(specification.path)}/lifecycle.json`);
+        changedPaths.add(`${path.posix.dirname(specification.path)}/specification.json`);
         for (const casePath of specification.casePaths) changedPaths.add(casePath);
         for (const review of specification.reviews) {
           if (review.status === "draft-filled-for-review") changedPaths.add(review.path);
         }
+      }
+      if (specification || phase) {
+        options.onProgress?.({ stage: "indexing", attempt: 1, status: "indexing" });
+        const indexing = require("../../source-engine/src/sync").syncProject(root, {
+          generateDocumentation: false, tools: [], graphify: { installed: false },
+        });
+        recordEvent(root, { event_name: "copilot.authoring.indexed", session_id: session.sessionId,
+          attributes: { retrieval: "lexical", graph: "unified", inventory: "knowledge/traceability/source-manifest.json",
+            failed_sources: indexing.counts.failed } });
+        if (indexing.counts.failed) throw new Error("Canonical publication persisted but indexing failed for some sources; inspect sync evidence before continuing.");
       }
       recordEvent(root, {
         event_name: "copilot.execution.completed",
@@ -781,22 +908,32 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
           models: [...usage.models],
         },
       });
+      if (sessionRecord) recoverable.updateSession(sessionRecord, "completed", {
+        changed_paths: [...changedPaths],
+        response_sha256: crypto.createHash("sha256").update(content).digest("hex"),
+      });
       return {
         sessionId: session.sessionId,
         content: specification
-          ? `${specification.path}\n\n${specification.content}\nStructural validation passed; human review required. Deferred/out-of-scope sections: ${specification.deferredSections}. Open decisions: ${specification.unresolvedDecisions}.\nAtomic use-case documents: ${JSON.stringify(specification.casePaths)}\nReview proposals (not approved): ${JSON.stringify(specification.reviews)}`
-          : content,
+          ? `${specification.path}\n\n${specification.content}\nSource-bound validation passed. Next: ${specification.lifecycle.next}. Phase progression is automatic when no decisions remain. Deferred/out-of-scope sections: ${specification.deferredSections}. Open decisions: ${specification.unresolvedDecisions}.\nAtomic use-case documents: ${JSON.stringify(specification.casePaths)}\nAuthoring evidence: ${authoringEvidence}`
+          : phase ? `${phase.paths.join("\n")}\nNext: ${phase.status.next}. Machine validation is not implementation or product acceptance.\nAuthoring evidence: ${authoringEvidence}` : content,
         changedPaths: [...changedPaths].sort(),
+        ...(authoringEvidence ? { authoringEvidence } : {}),
+        ...(phase ? { phase: { stage: phaseAuthoring.stage, ...phase } } : {}),
         ...(specification ? { specification: {
           path: specification.path, useCaseCount: specification.useCaseCount,
           deferredSections: specification.deferredSections, status: "draft-structurally-validated",
           reviews: specification.reviews,
           casePaths: specification.casePaths, manifestPath: specification.manifestPath,
           workspacePath: specification.workspacePath,
+          next: specification.lifecycle.next, advancement: specification.lifecycle.advancement,
           unresolvedDecisions: specification.unresolvedDecisions,
         } } : {}),
       };
     } catch (error) {
+      if (sessionRecord) recoverable.updateSession(sessionRecord, "interrupted", {
+        changed_paths: [...changedPaths], error: error.message,
+      });
       recordEvent(root, {
         event_name: "copilot.execution.completed",
         session_id: session?.sessionId || null,
@@ -823,7 +960,11 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
       try {
         if (session) await session.disconnect();
       } finally {
-        await client.stop();
+        try {
+          await client.stop();
+        } finally {
+          resumeLease?.release();
+        }
       }
     }
   });

@@ -90,7 +90,7 @@ function prepareFunctionalSources(root, files) {
     const filename = projectPath(root, file);
     bytes += fs.statSync(filename).size;
     if (bytes > 2 * 1024 * 1024) {
-      throw new Error("Functional specification sources exceed the 2 MiB limit. Narrow the task to one product area before starting a paid execution.");
+      throw Object.assign(new Error("Functional specification sources exceed the 2 MiB limit. Narrow the task to one product area before starting a paid execution."), { code: "MCPEE_SPEC_SOURCE_BYTES" });
     }
     const buffer = fs.readFileSync(filename);
     if (buffer.includes(0)) throw new Error(`Functional specification blocked: ${file} is not readable text; convert it before authoring.`);
@@ -98,16 +98,26 @@ function prepareFunctionalSources(root, files) {
     const lines = contents.split(/\r?\n/);
     const allHeadings = /\.mdx?$/i.test(file)
       ? lines.flatMap((line, index) => {
-        const heading = line.match(/^(#{1,2})\s+(.+?)\s*#*\s*$/);
+        const heading = line.match(/^(#{1,6})\s+(.+?)\s*#*\s*$/);
         return heading ? [{ line: index + 1, title: heading[2], level: heading[1].length }] : [];
       }) : [];
     const topLevel = allHeadings.filter(({ level }) => level === 1);
-    const headings = topLevel.length > 1 ? topLevel
+    let headings = topLevel.length > 1 ? topLevel
       : allHeadings.some(({ level }) => level === 2) ? allHeadings.filter(({ level }) => level === 2) : topLevel;
-    return { path: file, sha256: digest(buffer), headings, lines, ...original };
+    if (!/\.mdx?$/i.test(file)) {
+      const { codeSymbolEvidence } = require("../../source-engine/src/sync");
+      headings = [...new Map([{ line: 1, title: file, level: 1 },
+        ...codeSymbolEvidence(contents, "source-code").map((symbol) =>
+          ({ line: symbol.line, title: symbol.name, level: 2 }))]
+        .map((section) => [section.line, section])).values()].sort((a, b) => a.line - b.line);
+    }
+    return { path: file, sha256: digest(buffer), headings, sections: allHeadings, lines, ...original };
   });
   if (!sources.length) {
     throw new Error("Functional specification blocked: no product sources selected. Add or explicitly name the requirements document for greenfield, or the relevant application sources for brownfield; MCPEE configuration is not product evidence.");
+  }
+  if (sources.reduce((total, source) => total + Math.max(1, source.headings.length), 0) > 1000) {
+    throw Object.assign(new Error("Functional specification scope exceeds 1000 source sections. Select one bounded product area; no code or documentation sections were silently discarded."), { code: "MCPEE_SPEC_SOURCE_SECTIONS" });
   }
   return sources;
 }
@@ -120,6 +130,8 @@ function functionalPrompt(sources, mode) {
     "Complete the documentation-to-specification process: establish product scope and non-goals, identify actors and outcomes, decompose independent actor goals into atomic use cases, derive their detailed behavior, and account for source coverage and unresolved decisions. Do not stop at an inventory or high-level journey summary. Each case must have exactly one business goal; split independently useful actions into different cases rather than bundling them because they share a page. Record prerequisite case IDs as dependencies, not navigation links. Distinguish shared product constraints from individual behavior. Missing visual references are an explicit gap, not assets claimed to exist or an excuse to omit documented functional behavior.",
     "Use concrete business actors, goals, triggers, numbered flows, alternatives, postconditions, business rules and observable Given/When/Then criteria. Do not provide generic valid/invalid-input scenarios. Keep uncertain rules as open questions; label proposed behavior. Brownfield observations are not automatically desired behavior.",
     "Every use case needs an exact source-line quote. Evidence proves provenance, not semantic correctness. Account for EVERY supplied top-level source section in coverage, including its subsections, using its exact path and line. Mark covered only with related use-case IDs; deferred or out-of-scope requires a concrete reason. Do not hide omissions by calling a partial draft exhaustive.",
+    "The source headings array lists mandatory coverage entries. Additional subsection entries may use exact lines from sections; do not invent heading lines. When only one subsection is in scope, map that subsection and explain the excluded remainder in the parent entry. Use coverage reasons, not specification summary or open questions, to report authoring mechanics.",
+    "coverage.status allows exactly covered, deferred and out-of-scope. For brownfield, account for every selected code, test, configuration and contract section, not just documentation. Describe observed behavior separately from documented intent using basis; contradictions belong in open_questions, never silently prefer code or prose.",
     "IDs use ACT-001 for actors and UC-001 for use cases. Keep the slug descriptive and stable; existing different files are preserved, not overwritten. If blocked by missing or contradictory sources, explain the blocker instead of fabricating this object; validation will report the task incomplete.",
     JSON.stringify({
       language: "en",
@@ -146,9 +158,11 @@ function functionalPrompt(sources, mode) {
       open_questions: ["A specific unresolved decision; use an empty array if none."],
       coverage: [{ path: "Selected source path", line: 1, status: "covered", use_cases: ["UC-001"], reason: "How the use case addresses this source section." }],
     }),
+    "Machine schema (additional provenance, placeholder and dependency checks also apply):",
+    JSON.stringify(z.toJSONSchema(schema, { unrepresentable: "any" })),
     "Selected sources and required section coverage (read source files for their full content):",
     JSON.stringify(sources.map(({ lines, ...source }) => source)),
-    "Structural validation and quote matching do not certify business completeness or correctness; the result remains a draft for human review.",
+    "Structural validation and quote matching do not certify business completeness or correctness. MCPEE advances phases automatically when source-bound validations pass and no decisions remain; unresolved contradictions and risky actions still need human input.",
   ].join("\n\n");
 }
 
@@ -196,34 +210,40 @@ function validateFunctionalSpec(root, response, sources) {
   };
   for (const id of cases) visit(id);
   const covered = new Set();
+  const coverageErrors = [];
   for (const section of document.coverage) {
     const source = byPath.get(section.path);
     if (!source || (source.headings.length
-      ? !source.headings.some(({ line }) => line === section.line) : section.line !== 1)) {
-      throw new Error(`Unknown source section in coverage: ${section.path}:${section.line}`);
+      ? ![...source.headings, ...(source.sections || [])].some(({ line }) => line === section.line) : section.line !== 1)) {
+      coverageErrors.push(`Unknown source section in coverage: ${section.path}:${section.line}`);
+      continue;
     }
     const key = `${section.path}:${section.line}`;
-    if (covered.has(key)) throw new Error(`Duplicate source section in coverage: ${key}`);
+    if (covered.has(key)) coverageErrors.push(`Duplicate source section in coverage: ${key}`);
     covered.add(key);
     if (section.use_cases.some((id) => !cases.has(id)) ||
         (section.status === "covered" && !section.use_cases.length)) {
-      throw new Error(`Invalid use-case mapping for source section: ${key}`);
+      coverageErrors.push(`Invalid use-case mapping for source section: ${key}`);
+      continue;
     }
     if (section.status === "covered") {
-      const end = source.headings.find(({ line }) => line > section.line)?.line || source.lines.length + 1;
+      const boundaries = source.headings.some(heading => heading.line === section.line)
+        ? source.headings : source.sections || source.headings;
+      const end = boundaries.find(({ line }) => line > section.line)?.line || source.lines.length + 1;
       if (!section.use_cases.some((id) => document.use_cases.find((item) => item.id === id).evidence
         .some((reference) => reference.path === section.path && reference.line >= section.line && reference.line < end))) {
-        throw new Error(`Unsupported covered section: ${key}; a mapped use case needs evidence inside that section.`);
+        coverageErrors.push(`Unsupported covered section: ${key}; a mapped use case needs evidence inside that section.`);
       }
     }
   }
   for (const source of sources) {
     for (const { line } of source.headings.length ? source.headings : [{ line: 1 }]) {
       if (!covered.has(`${source.path}:${line}`)) {
-        throw new Error(`Functional specification incomplete: missing section coverage for ${source.path}:${line}`);
+        coverageErrors.push(`Functional specification incomplete: missing section coverage for ${source.path}:${line}`);
       }
     }
   }
+  if (coverageErrors.length) throw new Error(coverageErrors.join("\n"));
   return document;
 }
 
@@ -233,9 +253,9 @@ function renderFunctionalSpec(document, sources, { from, atomicCase = null } = {
   const numbered = (values) => values.map((value, index) => `${index + 1}. ${value}`).join("\n");
   const sourceLink = (file, line) => `[${file}:${line}](${path.posix.relative(path.posix.dirname(from || `${workspace(document.slug)}/spec.md`), file).split("/").map(encodeURIComponent).join("/")}#L${line})`;
   return [
-    "<!-- MCPEE functional specification draft; human review required -->",
+    "<!-- MCPEE functional specification; validation and review evidence in lifecycle.json -->",
     `# ${document.title}`, "",
-    label("> Draft, not approved. Structural checks are not a semantic review.", "> Borrador no aprobado. La validacion estructural no sustituye la revision funcional."),
+    label("> Source-grounded specification. Structural checks are not product acceptance; see lifecycle.json for current validation and review.", "> Especificacion trazable. La validacion estructural no demuestra aceptacion del producto; consulta lifecycle.json para validacion y revision actuales."),
     "", document.summary, "", `## ${label("Scope", "Alcance")}`, bullet(document.scope),
     "", `## ${label("Non-goals", "Fuera de alcance")}`, bullet(document.non_goals),
     "", `## ${label("Actors", "Actores")}`,
@@ -276,9 +296,13 @@ function renderFunctionalSpec(document, sources, { from, atomicCase = null } = {
   ].join("\n");
 }
 
-function publishFunctionalSpec(root, response, sources) {
+function publishFunctionalSpec(root, response, sources, options = {}) {
   const document = validateFunctionalSpec(root, response, sources);
   const directory = workspace(document.slug);
+  const lifecyclePath = `${directory}/lifecycle.json`;
+  const existingLifecycle = fs.existsSync(projectPath(root, lifecyclePath))
+    ? JSON.parse(fs.readFileSync(projectPath(root, lifecyclePath), "utf8")) : null;
+  const automatic = options.automatic ?? existingLifecycle?.advancement === "validated";
   const relative = `${directory}/spec.md`;
   const caseFiles = document.use_cases.map((useCase) => {
     const file = `${directory}/${useCase.id}.md`;
@@ -303,9 +327,11 @@ function publishFunctionalSpec(root, response, sources) {
   const manifestPath = `${directory}/manifest.json`;
   const manifest = {
     schema_version: 1, generated_by: "mcpee", kind: "atomic-functional-specifications",
-    status: "draft-structurally-validated", review_required: true,
-    semantic_atomicity: "requires-human-review; one file is not proof of one business goal",
+    status: "draft-structurally-validated", review_required: !automatic,
+    semantic_atomicity: "not-proven-by-structural-validation; one file is not proof of one business goal",
     index: relative,
+    ...(automatic ? { document: `${directory}/specification.json`, advancement: "validated",
+      index_sha256: digest(content), document_sha256: digest(`${JSON.stringify(document, null, 2)}\n`) } : {}),
     sources: sources.map(({ lines, ...source }) => source),
     cases: caseFiles.map((file, index) => ({
       id: document.use_cases[index].id, goal: document.use_cases[index].goal,
@@ -321,11 +347,21 @@ function publishFunctionalSpec(root, response, sources) {
   };
   const decisions = decisionDocument(document);
   const outputs = [...caseFiles, { path: manifestPath, content: `${JSON.stringify(manifest, null, 2)}\n` }, { path: relative, content },
-    { path: `${directory}/lifecycle.json`, content: `${JSON.stringify({ generated_by: "mcpee", approvals: {} }, null, 2)}\n` },
+    { path: `${directory}/lifecycle.json`, content: `${JSON.stringify({ generated_by: "mcpee", approvals: {},
+      ...(automatic ? { advancement: "validated" } : {}) }, null, 2)}\n` },
     { path: `${directory}/decisions.json`, content: `${JSON.stringify(decisions, null, 2)}\n` },
     { path: `${directory}/decisions.md`, content: renderDecisions(decisions) }];
+  if (automatic) outputs.push({ path: `${directory}/specification.json`,
+    content: `${JSON.stringify(document, null, 2)}\n` });
   for (const file of outputs) {
     const filename = projectPath(root, file.path);
+    if (file.path === lifecyclePath && existingLifecycle) {
+      if (existingLifecycle.generated_by !== "mcpee" || !existingLifecycle.approvals ||
+          (existingLifecycle.advancement === "validated") !== automatic) {
+        throw new Error("Existing lifecycle policy conflicts with publication; preserve its validation and review history.");
+      }
+      continue;
+    }
     if (fs.existsSync(filename) && fs.readFileSync(filename, "utf8") !== file.content) {
       throw new Error(`Functional specification not saved: ${file.path} already exists with different content. Preserve it and choose a new descriptive revision slug.`);
     }
@@ -344,10 +380,12 @@ function publishFunctionalSpec(root, response, sources) {
     for (const filename of created.reverse()) fs.unlinkSync(filename);
     throw error;
   }
-  const reviews = completeReviewProposals(root, document, sources, relative);
+  const reviews = automatic ? [] : completeReviewProposals(root, document, sources, relative);
+  if (automatic) require("./lifecycle").advanceValidatedStages(root, document.slug);
   const navigation = refreshWorkspaceIndex(root);
   return {
     path: relative, content, reviews, casePaths: caseFiles.map((file) => file.path), manifestPath,
+    lifecycle: require("./lifecycle").featureStatus(root, document.slug),
     workspacePath: navigation.path,
     useCaseCount: document.use_cases.length, deferredSections: manifest.deferred_sections, unresolvedDecisions: unresolved,
   };

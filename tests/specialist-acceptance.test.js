@@ -56,6 +56,8 @@ function trialFixture(t) {
       attributes: { content_sha256: hash(response) } },
     { event_name: "copilot.execution.completed", session_id: "fixture-session",
       attributes: { task_sha256: hash(task), outcome: "success" } },
+    { event_name: "copilot.execution.started", session_id: "fixture-session",
+      attributes: { agent: scenario.agent, task_sha256: hash(task) } },
   ];
   write(root, ".mcpee/telemetry/events/copilot.jsonl", events.map(event => JSON.stringify(event)).join("\n"));
   const input = {
@@ -68,6 +70,10 @@ function trialFixture(t) {
         reviewer: "fixture-reviewer",
         ratings: Object.keys(suite.review_criteria).map(criterion => ({
           criterion, rating: 2, note: "Synthetic reader test, no competence claim.",
+          evidence: ["candidate.cjs"],
+        })),
+        outcome_ratings: scenario.outcomes.map((outcome, index) => ({
+          index, outcome, rating: 2, note: "Synthetic outcome mapping, no competence claim.",
           evidence: ["candidate.cjs"],
         })),
       },
@@ -124,7 +130,107 @@ test("one verified synthetic trial cannot imply complete specialist coverage", t
   const report = buildSpecialistAcceptance(root, "results.json");
   assert.equal(report.status, "incomplete");
   assert.equal(report.summary.passed, 1);
+  assert.equal(report.summary.verified_outcomes, 3);
+  assert.equal(report.summary.unverified_outcomes, report.summary.required_outcome_checks - 3);
   assert.equal(report.summary.not_run, report.summary.required_trials - 1);
+});
+
+test("absent semantic review is explicit insufficient verification, not a forced approval or pass", t => {
+  const f = trialFixture(t);
+  delete f.input.trials[0].review;
+  f.save();
+  const result = buildSpecialistAcceptance(f.root, "results.json");
+  assert.equal(result.summary.awaiting_verification, 1);
+  assert.equal(result.summary.passed, 0);
+  assert.equal(result.status, "incomplete");
+  f.input.trials[0].automatic_review = { oracle: "accept-everything" };
+  f.save();
+  assert.throws(() => buildSpecialistAcceptance(f.root, "results.json"), /Unsupported automatic/);
+});
+
+test("automatic Node review binds real unchanged ten-test oracles, baseline failure and candidate success", t => {
+  const f = trialFixture(t);
+  const packaged = path.resolve(__dirname, "../templates/specialist-acceptance/node-bounded-operation");
+  const candidate = `
+exports.mapBounded = async (items, limit, worker, { signal } = {}) => {
+  if (!Number.isInteger(limit) || limit < 1) throw new RangeError("limit");
+  signal?.throwIfAborted();
+  const result = new Array(items.length);
+  let cursor = 0, stopped = false;
+  async function consume() {
+    while (!stopped) {
+      try {
+        signal?.throwIfAborted();
+        const index = cursor++;
+        if (index >= items.length) return;
+        result[index] = await worker(items[index], index, signal);
+      } catch (error) {
+        stopped = true;
+        throw error;
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, consume));
+  return result;
+};`;
+  const env = { ...process.env };
+  delete env.NODE_TEST_CONTEXT;
+  const record = (directory, worker, id) => {
+    write(f.root, `${directory}/worker.cjs`, worker);
+    write(f.root, `${directory}/checks.cjs`, fs.readFileSync(path.join(packaged, "checks.cjs"), "utf8"));
+    const started = Date.now();
+    const output = spawnSync(process.execPath, ["--test", "--test-reporter=tap", "checks.cjs"], {
+      cwd: path.join(f.root, directory), env, encoding: "utf8", timeout: 15000,
+    });
+    assert.equal(output.error, undefined, output.stderr);
+    const report = {
+      schema_version: 1, generated_by: "mcpee", id, task: f.validation.task,
+      status: output.status === 0 ? "passed" : "failed",
+      evidence: sourceEvidence(f.root, ["response.txt", `${directory}/worker.cjs`, `${directory}/checks.cjs`]),
+      checks: [{ tool: "node", args: ["--test", "--test-reporter=tap", "checks.cjs"], cwd: directory,
+        status: output.status === 0 ? "passed" : "failed", exit_code: output.status,
+        stdout_tail: output.stdout.slice(-2048), timeout_ms: 15000, duration_ms: Date.now() - started }],
+    };
+    write(f.root, `.mcpee/reports/evaluations/${id}.json`, report);
+    return report;
+  };
+  const baselineId = crypto.randomUUID();
+  assert.equal(record("baseline", fs.readFileSync(path.join(packaged, "worker.cjs"), "utf8"), baselineId).status, "failed");
+  const evaluated = record("candidate", candidate, f.validationId);
+  assert.equal(evaluated.status, "passed");
+  const trial = f.input.trials[0];
+  delete trial.review;
+  trial.automatic_review = { oracle: "node-bounded-operation-v1", baseline_validation_id: baselineId };
+  f.events[1].attributes.changed_paths = ["candidate/worker.cjs"];
+  write(f.root, ".mcpee/telemetry/events/copilot.jsonl", f.events.map(event => JSON.stringify(event)).join("\n"));
+  f.save();
+  let result = buildSpecialistAcceptance(f.root, "results.json");
+  assert.equal(result.summary.automatically_verified, 1);
+  assert.equal(result.summary.verified_outcomes, 3);
+  assert.equal(result.summary.passed, 1);
+  assert.equal(result.status, "incomplete", "one fixture does not certify the suite");
+  assert.equal(result.scenarios.find(item => item.id === trial.scenario_id).trials[1].reviewer, null);
+  const reportPath = `.mcpee/reports/evaluations/${f.validationId}.json`;
+  for (const mutate of [
+    report => { report.checks[0].args.push("--test-name-pattern=normal"); },
+    report => { report.checks[0].stdout_tail = ""; },
+    report => { report.checks[0].stdout_tail = "# tests 10\n# pass 10\n# fail 0\n# skipped 1\n# cancelled 0\n"; },
+    report => { report.checks[0].duration_ms = 15000; },
+  ]) {
+    const changed = structuredClone(evaluated);
+    mutate(changed);
+    write(f.root, reportPath, changed);
+    assert.throws(() => buildSpecialistAcceptance(f.root, "results.json"), /Automatic/);
+  }
+  write(f.root, reportPath, evaluated);
+  f.events[1].attributes.changed_paths.push("unrelated.cjs");
+  write(f.root, ".mcpee/telemetry/events/copilot.jsonl", f.events.map(event => JSON.stringify(event)).join("\n"));
+  assert.equal(buildSpecialistAcceptance(f.root, "results.json").summary.failed, 1);
+  delete f.events[1].attributes.changed_paths;
+  write(f.root, ".mcpee/telemetry/events/copilot.jsonl", f.events.map(event => JSON.stringify(event)).join("\n"));
+  assert.equal(buildSpecialistAcceptance(f.root, "results.json").summary.awaiting_verification, 1);
+  write(f.root, "baseline/worker.cjs", candidate);
+  assert.throws(() => buildSpecialistAcceptance(f.root, "results.json"), /evidence changed/);
 });
 
 test("partial review or failed/blocked checks never pass acceptance", t => {
@@ -133,6 +239,11 @@ test("partial review or failed/blocked checks never pass acceptance", t => {
   fixture.save();
   assert.equal(buildSpecialistAcceptance(fixture.root, "results.json").summary.failed, 1);
   fixture.input.trials[0].review.ratings[0].rating = 2;
+  fixture.save();
+  fixture.input.trials[0].review.outcome_ratings[0].rating = 1;
+  fixture.save();
+  assert.equal(buildSpecialistAcceptance(fixture.root, "results.json").summary.failed, 1);
+  fixture.input.trials[0].review.outcome_ratings[0].rating = 2;
   fixture.save();
   for (const status of ["failed", "blocked", "skipped"]) {
     fixture.validation.checks[0].status = status;
@@ -153,6 +264,10 @@ test("acceptance rejects stale digests, reused trials, unknown scenarios and mis
     input => { input.trials[0].review.ratings.pop(); },
     input => { input.trials[0].review.ratings[0].criterion = "not-a-criterion"; },
     input => { input.trials[0].review.ratings[0].evidence = ["not-validated.txt"]; },
+    input => { input.trials[0].review.outcome_ratings.pop(); },
+    input => { input.trials[0].review.outcome_ratings[0].outcome = "invented outcome"; },
+    input => { input.trials[0].review.outcome_ratings[0].evidence = ["not-validated.txt"]; },
+    input => { input.trials[0].review.outcome_ratings[1].index = 0; },
     input => { input.trials[0].environment.runtime = ""; },
     input => { input.trials[0].response = "..\\outside.txt"; },
   ];
@@ -193,7 +308,17 @@ test("CLI lists honest incomplete status and exports tasks without initializatio
     "--scenario", "node-bounded-operation", "--variant", "failure", "--project", root,
     "--json"], { encoding: "utf8", timeout: 30_000 });
   assert.equal(task.status, 0, task.stderr);
-  assert.match(JSON.parse(task.stdout).task, /Acceptance: node-bounded-operation\/failure/);
+  const exported = JSON.parse(task.stdout);
+  assert.match(exported.task, /Acceptance: node-bounded-operation\/failure/);
+  for (const [directory, spec] of Object.entries(exported.evaluation_specs)) {
+    assert.equal(spec.task, exported.task);
+    assert.equal(spec.checks[0].cwd, directory);
+    assert.deepEqual(spec.checks[0].args, ["--test", "--test-reporter=tap", "checks.cjs"]);
+    assert.ok(spec.evidence.includes(`${directory}/worker.cjs`));
+    assert.ok(spec.evidence.includes(`${directory}/checks.cjs`));
+  }
+  assert.ok(exported.evaluation_specs.candidate.evidence.includes("response.txt"));
+  assert.deepEqual(fs.readdirSync(root), [], "export does not run or write preparation artifacts");
   const invalid = spawnSync(process.execPath, [cli, "evaluate", "--suite", "unknown",
     "--project", root], { encoding: "utf8", timeout: 30_000 });
   assert.notEqual(invalid.status, 0);

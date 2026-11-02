@@ -6,6 +6,7 @@ const path = require("node:path");
 const { readCatalog } = require("../../copilot-renderer/src/render");
 const { readProjectFile } = require("./asset-evaluation");
 const { readTrialEvents } = require("./specialist-acceptance");
+const { inspectAuditOracles } = require("./audit-oracles");
 
 const DIRECTORY = path.resolve(__dirname, "../../../templates/specialist-acceptance");
 const VARIANTS = ["positive", "negative", "insufficient"];
@@ -16,6 +17,7 @@ const strings = value => Array.isArray(value) && value.every(nonempty);
 function loadAuditSuite() {
   const positiveBytes = fs.readFileSync(path.join(DIRECTORY, "audit-fixtures.json"));
   const controlBytes = fs.readFileSync(path.join(DIRECTORY, "audit-controls.json"));
+  const oracleBytes = fs.readFileSync(require.resolve("./audit-oracles"));
   const positive = JSON.parse(positiveBytes);
   const controls = JSON.parse(controlBytes);
   const { catalog, digest } = readCatalog();
@@ -70,9 +72,13 @@ function loadAuditSuite() {
       new Set(scenarios.map(item => item.guide)).size !== catalog.technical_guidance.length) {
     throw new Error("Audit controls must cover every technical guide exactly once.");
   }
+  const technology_oracles = inspectAuditOracles(scenarios);
   return {
     id: "specialist-audit", variants: VARIANTS, scenarios,
-    suite_sha256: hash(Buffer.concat([positiveBytes, Buffer.from("\n"), controlBytes])),
+    technology_oracles,
+    suite_sha256: hash(Buffer.concat([positiveBytes, Buffer.from("\n"), controlBytes,
+      Buffer.from("\n"), oracleBytes])),
+    oracle_sha256: hash(oracleBytes),
     catalog_sha256: digest,
   };
 }
@@ -227,17 +233,31 @@ function buildAuditAcceptance(projectRoot, resultsPath = null) {
       if (!Array.isArray(changedPaths) || changedPaths.some(file => typeof file !== "string")) {
         throw new Error("Audit execution requires valid changed-path evidence.");
       }
-      const review = reviewAuditResponse(sample, response, trial.review);
+      const automaticControl = !trial.review && trial.variant === "negative";
+      const review = trial.review ? reviewAuditResponse(sample, response, trial.review) : {
+        passed: automaticControl && response.findings.length === 0,
+        findings: response.findings.length, unsupported_findings: 0, duplicate_findings: 0,
+        expected_defects: sample.expected.length, detected_defects: 0,
+        missed_defects: sample.expected.length,
+        required_unknowns: (sample.required_unknowns || []).length, acknowledged_unknowns: 0,
+      };
       const scopeViolation = session.some(event =>
         (["copilot.tool.requested", "copilot.tool.authorization", "copilot.sdk.tool.execution_start"]
           .includes(event.event_name) && !["view", "glob", "grep", "rg"].includes(event.tool_name)) ||
         event.event_name === "copilot.permission.decision");
+      const executionSafe = completion.outcome === "success" && changedPaths.length === 0 && !scopeViolation;
+      const definiteFailure = !executionSafe || !trial.review &&
+        (trial.variant !== "positive" && response.findings.length > 0 ||
+          trial.variant === "positive" && response.findings.length === 0);
       observations.set(key, {
         scenario_id: scenario.id, variant: trial.variant, session_id: trial.session_id,
-        status: review.passed && completion.outcome === "success" &&
-          changedPaths.length === 0 && !scopeViolation ? "passed" : "failed",
+        status: definiteFailure ? "failed" : !trial.review && !automaticControl
+          ? "awaiting-verification" : review.passed && executionSafe ? "passed" : "failed",
         ...review, response_sha256: hash(bytes), task_sha256: hash(task),
-        reviewer: trial.review.reviewer, scope_violation: scopeViolation,
+        reviewer: trial.review?.reviewer || null,
+        verification_method: trial.review ? "explicit-technical-review" : automaticControl
+          ? "automatic-negative-control" : "semantic-evidence-required",
+        scope_violation: scopeViolation,
         changed_paths: changedPaths, execution_outcome: completion.outcome,
       });
       sessions.add(trial.session_id);
@@ -250,7 +270,8 @@ function buildAuditAcceptance(projectRoot, resultsPath = null) {
     }),
   }));
   const trials = scenarios.flatMap(scenario => scenario.trials);
-  const reviewed = trials.filter(trial => trial.status !== "not-run");
+  const reviewed = trials.filter(trial => trial.status !== "not-run" &&
+    trial.verification_method !== "semantic-evidence-required");
   const sum = key => reviewed.reduce((total, trial) => total + trial[key], 0);
   const controls = reviewed.filter(trial => trial.variant !== "positive");
   const positives = reviewed.filter(trial => trial.variant === "positive");
@@ -265,6 +286,9 @@ function buildAuditAcceptance(projectRoot, resultsPath = null) {
       passed: trials.filter(trial => trial.status === "passed").length,
       failed: trials.filter(trial => trial.status === "failed").length,
       not_run: trials.filter(trial => trial.status === "not-run").length,
+      awaiting_verification: trials.filter(trial => trial.status === "awaiting-verification").length,
+      automatically_verified: trials.filter(trial => trial.status === "passed" &&
+        trial.verification_method === "automatic-negative-control").length,
       positive_trials_reviewed: positives.length, control_trials_reviewed: controls.length,
       findings: sum("findings"), unsupported_findings: sum("unsupported_findings"),
       duplicate_findings: sum("duplicate_findings"),
@@ -274,12 +298,21 @@ function buildAuditAcceptance(projectRoot, resultsPath = null) {
       seeded_defect_recall: ratio(sum("detected_defects"), sum("expected_defects")),
       unsupported_finding_share: ratio(sum("unsupported_findings"), sum("findings")),
       control_alarm_rate: ratio(controls.filter(trial => trial.findings > 0).length, controls.length),
+      technology_oracles: suite.scenarios.length,
+      oracle_seeded_findings: Object.values(suite.technology_oracles)
+        .reduce((total, item) => total + item.findings, 0),
+      oracle_negative_controls: Object.values(suite.technology_oracles)
+        .filter(item => item.negative_clean).length,
+      oracle_insufficient_controls: Object.values(suite.technology_oracles)
+        .filter(item => item.insufficient_abstention).length,
     },
     scenarios,
+    technology_oracles: suite.technology_oracles,
     limitations: [
       "Static synthetic audit acceptance is separate from implementation/runtime specialist-core acceptance.",
       "An empty response is not a pass: positive cases require mapped defects; insufficient cases require source-reviewed evidence gaps.",
-      "Reviewer classifications are explicit local assertions, not an automated semantic grader or independent certification.",
+      "Negative controls automatically verify no findings plus recorded read-only scope. Positive findings and insufficient-evidence reasoning still need semantic verification, not keyword matching.",
+      "Missing semantic verification remains awaiting-verification. Reviewer classifications are local assertions, not independent certification.",
       "Null rates mean no reviewed denominator. Control alarm rate counts cases, not findings; it is not a population false-positive estimate.",
       "Unexpected supported findings in a control fail the trial too: review the fixture before declaring a false positive.",
       "No model, tool or command runs during report inspection. Missing trials remain not-run.",

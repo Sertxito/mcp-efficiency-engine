@@ -17,6 +17,14 @@ public static class Application
             options.UseSqlite(builder.Configuration.GetConnectionString("Orders") ?? "Data Source=orders.db"));
         builder.Services.AddScoped<OrderQuery>();
         var app = builder.Build();
+        app.UseExceptionHandler(errorApp => errorApp.Run(async context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            context.Response.ContentType = "application/problem+json";
+            await context.Response.WriteAsync(
+                """{"type":"about:blank","title":"An unexpected error occurred.","status":500}""",
+                context.RequestAborted);
+        }));
         app.MapGet("/orders", async (HttpContext http, OrderQuery query, string? status,
             int page = 1, int size = 20, CancellationToken ct = default) =>
         {

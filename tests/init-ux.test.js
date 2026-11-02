@@ -180,8 +180,52 @@ test("interactive init defaults to the full catalog, preserves explicit agents a
     const result = spawnSync(process.execPath, ["-e", script], { encoding: "utf8", timeout: 30_000 });
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, explicit ? /Capabilities configured: architecture, backend, orchestrator/ : /Capabilities configured: .*performance-forensics/);
+    assert.doesNotMatch(result.stdout, /Brownfield authoring scopes:/,
+      "greenfield initialization does not prepare brownfield scopes");
     assert.match(result.stdout + result.stderr, ready ? /SETUP COMPLETE/ : /SETUP INCOMPLETE/);
     assert.doesNotMatch(result.stdout, /Agent IDs \(comma|Type "approve"|Optional local semantic embeddings:/);
     }
   }
+});
+
+test("brownfield init prepares source-bound scopes and the same command remains rerunnable", () => {
+  const cli = path.resolve(__dirname, "../packages/cli/src/cli");
+  const tools = path.resolve(__dirname, "../packages/tool-manager/src/tools");
+  const graph = path.resolve(__dirname, "../packages/knowledge-engine/src/codegraph");
+  const result = spawnSync(process.execPath, ["-e", `
+    const assert=require('node:assert/strict');
+    const fs=require('node:fs');
+    const os=require('node:os');
+    const path=require('node:path');
+    const root=fs.mkdtempSync(path.join(os.tmpdir(),'mcpee-init-brownfield-scopes-'));
+    fs.mkdirSync(path.join(root,'src/modules/orders'),{recursive:true});
+    fs.mkdirSync(path.join(root,'tests/modules/orders'),{recursive:true});
+    fs.writeFileSync(path.join(root,'src/modules/orders/query.js'),"function queryOrders() { return []; }\\n");
+    fs.writeFileSync(path.join(root,'tests/modules/orders/query.test.js'),"test('returns orders', () => {});\\n");
+    fs.mkdirSync(path.join(root,'docs'),{recursive:true});
+    fs.writeFileSync(path.join(root,'docs/policy.md'),"# Orders\\n\\nReaders may inspect submitted orders.\\n");
+    require(${JSON.stringify(tools)}).installCatalogTools=async()=>({results:[],latestLts:null});
+    require(${JSON.stringify(graph)}).updateCodeGraph=()=>({
+      status:'ready',operation:'fixture',summary:{file_count:2,node_count:2,edge_count:1},
+      mcp:{status:'configured',file:'.mcp.json'}
+    });
+    const {run}=require(${JSON.stringify(cli)});
+    run(['init','--project',root,'--agents','backend','--skip-tool-install','--embeddings','none'])
+      .then(async code=>{
+        assert.equal(code,0);
+        const scopes=await run(['specs','scopes','--project',root,'--json']);
+        assert.equal(scopes,0);
+        const report=require(${JSON.stringify(path.resolve(__dirname, "../packages/spec-engine/src/scopes"))})
+          .buildSpecificationScopes(root);
+        assert.equal(report.status,'planned');
+        assert.ok(report.scopes.some(scope=>scope.sources.some(source=>source.path==='src/modules/orders/query.js')));
+        assert.ok(report.scopes.some(scope=>scope.sources.some(source=>source.path==='tests/modules/orders/query.test.js')));
+      })
+      .catch(error=>{console.error(error);process.exitCode=1})
+      .finally(()=>fs.rmSync(root,{recursive:true,force:true}));
+  `], { encoding: "utf8", timeout: 60_000 });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Brownfield authoring scopes: planned/);
+  assert.match(result.stdout, /mcpee specs scopes --json/);
+  assert.match(result.stdout, /SETUP COMPLETE/);
 });

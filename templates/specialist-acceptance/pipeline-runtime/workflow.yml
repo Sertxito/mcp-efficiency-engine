@@ -1,0 +1,31 @@
+name: Bounded pull request artifact
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      artifact-id: ${{ steps.archive.outputs.artifact-id }}
+    steps:
+      - name: Prepare local report
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: printf '%s\n' "$PR_TITLE" > report.txt
+      - uses: actions/upload-artifact@v4
+        id: archive
+        with:
+          name: report
+          path: report.txt
+  consume:
+    needs: [buid]
+    if: ${{ success() && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    env:
+      ARTIFACT_ID: ${{ needs.build.outputs.artifact-id }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: report
+      - run: test -s report.txt

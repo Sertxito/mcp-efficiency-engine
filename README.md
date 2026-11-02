@@ -8,7 +8,8 @@ action, automatic validation after changes and a full local audit trail.
 - **Works with what you have.** Existing codebase or empty folder: MCPEE
   detects which one it is and configures itself. There is no mode to choose.
 - **Local-first.** Indexes, graphs, memory and telemetry stay in your project.
-  Context is sent to Copilot only after you approve it.
+  Context is sent to Copilot only with authorization: the MCP task invocation
+  grants initial transfer; direct terminal execution asks explicitly.
 - **Approvals where they matter.** Context transfer and risky actions require
   approval; ordinary task-scoped project edits do not prompt per file.
   Existing user files are never overwritten.
@@ -91,7 +92,7 @@ Run it after editing code or documents outside Copilot.
 
 | Your project | MCPEE treats it as | What you get |
 |---|---|---|
-| Has source code or an application `package.json` | **Brownfield** | Full local catalog, task-selected stack guidance, static evidence inventories and validation workflows built from existing checks. |
+| Has source code or an application `package.json` | **Brownfield** | Full local catalog, task-selected stack guidance, static evidence inventories, bounded specification-authoring scopes and validation workflows built from existing checks. |
 | Has no code yet | **Greenfield** | Full local catalog, with relevant specialists selected per task rather than every asset added to the prompt. Specifications start from your product sources; `--agents` can explicitly narrow installation. |
 
 Installing MCPEE as the only dependency does not make an empty project brownfield.
@@ -109,9 +110,16 @@ criteria, source citations, prerequisite cases and unresolved decisions.
 Empty templates do not count as success. These
 checks do not certify semantic correctness or replace owner review.
 
-**Brownfield next steps:** review the detected stack (`mcpee explain`), use the
-evidence inventory to draft and review functional behavior in the same canonical
-workspace (`mcpee specs status` / `specs approve`). `specs ratify` remains
+**Brownfield next steps:** `init` prepares source-bound authoring scopes after
+sync; inspect or regenerate their exact tasks at any time with
+`mcpee specs scopes --json`. Then use the evidence inventory to draft and review
+functional behavior in the same canonical workspace (`mcpee specs status`).
+After all scopes are authored, run `mcpee specs reconcile --json` to produce a
+hash-linked cross-scope review matrix; it surfaces candidates but never
+replaces semantic owner review.
+New runtime-authored specifications advance
+after source-bound validation; `specs approve` is retained for explicit reviews.
+`specs ratify` remains
 available for historical static proposals; it is not an extra greenfield gate.
 Check that a validation workflow
 exists for your stack (`mcpee quality`).
@@ -122,8 +130,9 @@ the project documentation; stop at atomic use-case specifications, do not
 implement." Without named source paths, all indexed product documents are
 selected, not just keyword search matches. Missing conversion or exceeded
 input limits block the request explicitly rather than dropping requirements.
-Then use `mcpee specs status` to clarify decisions and explicitly approve the
-specification, technical plan and tasks in order. All live together under
+Then use `mcpee specs status` to inspect validated specification, technical plan
+and task phases. Advance automatically when checks pass; request human input
+only for unresolved contradictions, decisions or risky actions. All live together under
 `specs/<feature>/`; old discovery proposals remain evidence, not a second
 greenfield approval workflow. Implement with Copilot, add a
 test script, and re-run `mcpee init` once code exists so MCPEE detects the new
@@ -137,8 +146,8 @@ Step-by-step guide for both paths: [Getting started](docs/GETTING-STARTED.md).
 |---|---|---|
 | Context | Indexes code and documents locally, builds code and evidence graphs, and sends Copilot only cited excerpts. | [Knowledge](docs/KNOWLEDGE.md) |
 | Specialists | Installs role agents, skills, workflows and stack-specific instructions selected from your project. | [Catalog](docs/CATALOG.md) |
-| Specifications | One `specs/README.md` entry point, feature specifications/cases/decisions/plans/tasks together, explicit review gates; historical evidence and approvals preserved. | [Specifications](docs/BROWNFIELD-SPECS.md) |
-| Permissions | Read-only tools run freely. Context transfer and every state-changing action need explicit approval, enforced by an MCP approval broker and a `preToolUse` hook. | [Copilot execution](docs/COPILOT-EXECUTION.md) |
+| Specifications | One canonical workspace for greenfield and brownfield, automatically validated phase gates, persisted repair drafts, shared graph/retrieval inventory; human review history preserved. | [Specifications](docs/BROWNFIELD-SPECS.md) |
+| Permissions | The MCP task invocation authorizes initial context; ordinary scoped edits and validated phases need no second prompt. Risky actions remain explicitly gated; direct CLI transfer still asks. | [Copilot execution](docs/COPILOT-EXECUTION.md) |
 | Verification | After a change, MCPEE syncs knowledge, runs your declared validation workflow and refreshes documentation only if it passes. | [Quality](docs/QUALITY-AND-EVALUATION.md) |
 | Evidence | Records traces, approvals and outcomes locally, with JSON, OTLP and HTML review views. | [Observability](docs/OBSERVABILITY.md) |
 

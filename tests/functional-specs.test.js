@@ -262,7 +262,7 @@ test("a non-League greenfield routes and executes through independent case files
       async start() {}, async stop() {},
       async createSession() {
         return {
-          sessionId: "library-atomic-fixture",
+          sessionId: "20000000-0000-4000-8000-000000000004",
           async sendAndWait({ prompt }) {
             assert.match(prompt, /one independent Markdown specification per use case/);
             assert.match(prompt, /one business goal|exactly one business goal/);
@@ -360,14 +360,16 @@ test("the executor persists a validated deliverable and fails instead of reporti
   const { root, file } = fixture();
   let response = "Static discovery completed.";
   let prompt;
+  const prompts = [];
   let disconnected = 0;
+  let sessionCount = 0;
   const client = {
     async start() {},
     async stop() {},
     async createSession() {
       return {
-        sessionId: "functional-fixture",
-        async sendAndWait(message) { prompt = message.prompt; return { data: { content: response } }; },
+        sessionId: `20000000-0000-4000-8000-${String(++sessionCount).padStart(12, "0")}`,
+        async sendAndWait(message) { prompt = message.prompt; prompts.push(prompt); return { data: { content: response } }; },
         async disconnect() { disconnected += 1; },
       };
     },
@@ -375,8 +377,10 @@ test("the executor persists a validated deliverable and fails instead of reporti
   const plan = { workflow: { id: "refine-backlog" }, agent: { id: "product" }, knowledge: [{ source_path: file }] };
   await assert.rejects(runCopilotTask(root, "Draft functional specifications", plan,
     { approved: true, clientFactory: () => client }), /specification incomplete/);
-  assert.match(prompt, /Static discovery is an evidence inventory, NOT the requested deliverable/);
-  assert.match(prompt, /Do not implement application code/);
+  assert.match(prompts[0], /Static discovery is an evidence inventory, NOT the requested deliverable/);
+  assert.match(prompts[0], /Do not implement application code/);
+  assert.equal(prompts.length, 3);
+  assert.match(prompt, /Exact validator diagnostic/);
   response = JSON.stringify(draft(file));
   const result = await runCopilotTask(root, "Draft functional specifications", plan,
     { approved: true, clientFactory: () => client });
@@ -385,7 +389,7 @@ test("the executor persists a validated deliverable and fails instead of reporti
   const directory = path.posix.dirname(result.specification.path);
   assert.deepEqual(result.changedPaths, [result.specification.path, result.specification.manifestPath,
     result.specification.workspacePath, `${directory}/decisions.json`, `${directory}/decisions.md`,
-    `${directory}/lifecycle.json`, ...result.specification.casePaths].sort());
+    `${directory}/lifecycle.json`, `${directory}/specification.json`, ...result.specification.casePaths].sort());
   assert.match(fs.readFileSync(path.join(root, result.specification.casePaths[0]), "utf8"), /Registration remains closed|registration remains closed/);
 });
 

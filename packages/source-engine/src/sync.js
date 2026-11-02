@@ -10,6 +10,7 @@ const { generateProjectDocumentation } = require("../../documentation-engine/src
 const { buildUnifiedGraph } = require("../../knowledge-engine/src/unified");
 const { updateGraphifyGraph } = require("../../knowledge-engine/src/graphify");
 const { discoverBrownfieldSpec, isScaffolding } = require("../../spec-engine/src/brownfield");
+const { canonicalArtifacts } = require("../../spec-engine/src/lifecycle");
 
 const PROCESSOR_CATALOG_PATH = path.join(__dirname, "../../../catalog/source-processors/processors.json");
 const DEFAULT_IGNORES = new Set([
@@ -146,6 +147,7 @@ function classifySource(relative) {
   if (/(^|\/)(adr|adrs|decisions)(\/|$)|(^|[-_])(adr|decision)([-_.]|$)/.test(normalized)) return "decisions";
   if (/(^|\/)(logs?|telemetry)(\/|$)|\.(log|jsonl|ndjson)$/.test(normalized)) return "logs";
   if (/openapi|swagger|\.proto$|\.graphql$|\.gql$/.test(normalized)) return "api-contracts";
+  if (/^specs\/(?:approved\/)?[^/]+\/(?:spec|specification|plan|tasks|manifest|decisions|uc-\d{3})\.(?:md|json)$/.test(normalized)) return "documentation";
   if (/(^|\/)(\.github\/workflows|\.gitlab-ci|\.circleci|azure-pipelines|jenkinsfile)/.test(normalized)) return "pipelines";
   if (/(^|\/)(test|tests|spec|specs)(\/|$)|\.(test|spec)\.[^.]+$|\.tests\.ps1$/.test(normalized) ||
       /^test_.+\.py$|^.+_test\.py$|^.+tests?\.cs$/.test(name)) return "tests";
@@ -279,8 +281,8 @@ function headings(text) {
 
 function codeSymbolEvidence(text, category) {
   if (category !== "source-code" && category !== "tests") return [];
-  const pattern = /^\s*(?:export\s+)?(?:async\s+)?(?:function|class|interface|type|enum|def|func|struct|trait)\s+([A-Za-z_$][\w$]*)/gm;
-  return [...text.matchAll(pattern)].slice(0, 500).map((match) => ({
+  const pattern = /^[ \t]*(?:export[ \t]+)?(?:async[ \t]+)?(?:function|class|interface|type|enum|def|func|struct|trait)[ \t]+([A-Za-z_$][\w$]*)/gm;
+  return [...text.matchAll(pattern)].map((match) => ({
     name: match[1],
     line: text.slice(0, match.index).split("\n").length,
   }));
@@ -413,6 +415,7 @@ function derivedArtifactsAreCurrent(projectRoot, source, previous, digest, paths
     metadata.source_path === source.path &&
     metadata.category === source.category &&
     metadata.processor === source.processor &&
+    (!["source-code", "tests"].includes(source.category) || metadata.symbol_extraction_version === 2) &&
     metadata.sha256 === digest &&
     metadata.normalized_sha256 === sha256(normalized) &&
     traceability.generated_by === "mcpee" &&
@@ -452,6 +455,8 @@ function cleanupStaleArtifacts(projectRoot, previousSources, currentPaths) {
 function collectSources(projectRoot, config) {
   const sources = new Map();
   const project = path.resolve(projectRoot);
+  const canonical = canonicalArtifacts(projectRoot);
+  const canonicalPaths = new Set(canonical.map((artifact) => artifact.path));
   for (const configuredRoot of config.sourceRoots) {
     const absoluteRoot = path.resolve(project, configuredRoot);
     if (absoluteRoot !== project && !absoluteRoot.startsWith(`${project}${path.sep}`)) {
@@ -467,7 +472,9 @@ function collectSources(projectRoot, config) {
         const relative = relativePath(project, absolute);
         if (matchesIgnore(relative, entry.name, config.ignore)) continue;
         if (entry.isSymbolicLink()) continue;
-        if (relative.startsWith("specs/") && isScaffolding(project, relative)) continue;
+        if (relative.startsWith("specs/") && isScaffolding(project, relative) &&
+            !canonicalPaths.has(relative) && !entry.isDirectory()) continue;
+        if (/^specs\/[^/]+\/reviews(?:\/|$)/.test(relative)) continue;
         if (entry.isDirectory()) {
           visit(absolute);
           continue;
@@ -488,6 +495,14 @@ function collectSources(projectRoot, config) {
     }
     visit(absoluteRoot);
   }
+  for (const artifact of canonical) {
+    const absolute = path.join(project, artifact.path);
+    assertNoSymlinkAncestors(project, absolute);
+    const stat = fs.statSync(absolute);
+    sources.set(artifact.path, { ...artifact, category: "documentation",
+      processor: processorFor("documentation"), size_bytes: stat.size,
+      modified_at: stat.mtime.toISOString() });
+  }
   return [...sources.values()].sort((a, b) => a.path.localeCompare(b.path));
 }
 
@@ -504,7 +519,7 @@ function processSource(projectRoot, source, previous, tools) {
   const paths = outputPaths(id);
   const digest = sha256(buffer);
   if (derivedArtifactsAreCurrent(projectRoot, source, previous, digest, paths)) {
-    return { ...previous, status: "unchanged", modified_at: source.modified_at };
+    return { ...previous, ...source, status: "unchanged", modified_at: source.modified_at };
   }
   let decoded = safeSourceText(buffer);
   let toolUsed = null;
@@ -574,6 +589,7 @@ function processSource(projectRoot, source, previous, tools) {
     lines: sanitizedText.length ? sanitizedText.split("\n").length : 0,
     headings: headings(sanitizedText),
     symbols: extractedSymbols.map((symbol) => symbol.name),
+    ...(["source-code", "tests"].includes(source.category) ? { symbol_extraction_version: 2 } : {}),
     ...(extractedSymbols.length
       ? { symbol_locations: extractedSymbols }
       : {}),
@@ -654,6 +670,8 @@ function buildLexicalIndex(projectRoot, processed) {
       modified_at: source.modified_at || null,
       normalized_path: source.normalized_path,
       sha256: source.sha256,
+      ...(source.authority ? { authority: source.authority, feature: source.feature,
+        feature_status: source.feature_status } : {}),
     });
     for (const [term, frequency] of terms) {
       if (!postings[term]) postings[term] = [];
@@ -853,4 +871,4 @@ function searchKnowledgeVector(projectRoot, query, limit = 10) {
     .slice(0, limit);
 }
 
-module.exports = { syncProject, searchKnowledge, searchKnowledgeVector, parseConfig, classifySource };
+module.exports = { syncProject, searchKnowledge, searchKnowledgeVector, parseConfig, classifySource, codeSymbolEvidence };

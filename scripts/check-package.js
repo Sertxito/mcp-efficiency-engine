@@ -17,11 +17,17 @@ if (!npmCli || !fs.existsSync(npmCli)) {
 }
 
 function runNpm(args, cwd = packageRoot) {
+  const env = { ...process.env };
+  // npm run propagates allow-scripts as an option rejected by consumer installs and audits.
+  for (const key of Object.keys(env)) {
+    if (/^npm_config_allow_scripts$/i.test(key)) delete env[key];
+  }
   return execFileSync(process.execPath, [npmCli, ...args], {
     cwd,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "inherit"],
     timeout: 120_000,
+    env,
   });
 }
 
@@ -74,6 +80,11 @@ try {
     filePath.startsWith("knowledge/") ||
     filePath.startsWith("docs/generated/") ||
     /^templates\/specialist-acceptance\/.*\/(?:bin|obj)\//.test(filePath) ||
+    /^templates\/specialist-acceptance\/.*\/(?:node_modules|dist|__pycache__)\//.test(filePath) ||
+    /^templates\/specialist-acceptance\/frontend-runtime\/[^/]+\/src\/(?:control|mutant|mutation)\./.test(filePath) ||
+    /^templates\/specialist-acceptance\/.*\.py[co]$/.test(filePath) ||
+    /^templates\/specialist-acceptance\/.*\/\.terraform\//.test(filePath) ||
+    /^templates\/specialist-acceptance\/.*\.tfstate(?:\.|$)/.test(filePath) ||
     /(?:^|\/)\.env(?:\.|$)/.test(filePath));
   assert.deepEqual(unexpected, [], `Unexpected files in npm package:\n${unexpected.join("\n")}`);
   const metadata = require(path.join(packageRoot, "package.json"));
@@ -91,8 +102,30 @@ try {
     "templates/specialist-acceptance/node-bounded-operation/checks.cjs",
     "templates/specialist-acceptance/audit-fixtures.json",
     "templates/specialist-acceptance/audit-controls.json",
+    "packages/evaluation-engine/src/behavioral-oracles.js",
+    "templates/specialist-acceptance/python-resource-lifetime/worker.py",
+    "templates/specialist-acceptance/python-resource-lifetime/checks.py",
+    "templates/specialist-acceptance/sql-result-semantics/checks.py",
+    "templates/specialist-acceptance/sql-result-semantics/eligible.sql",
+    "templates/specialist-acceptance/sql-result-semantics/totals.sql",
+    "templates/specialist-acceptance/sql-result-semantics/page.sql",
+    "templates/specialist-acceptance/terraform-local-lifecycle/main.tf",
+    "templates/specialist-acceptance/terraform-local-lifecycle/contract.tf",
+    "templates/specialist-acceptance/terraform-local-lifecycle/cli.tfrc",
+    "templates/specialist-acceptance/terraform-local-lifecycle/run-oracle.cjs",
+    "templates/specialist-acceptance/terraform-local-lifecycle/tests/identity.tftest.hcl",
+    "templates/specialist-acceptance/terraform-local-lifecycle/tests/invalid.tftest.hcl",
+    "templates/specialist-acceptance/terraform-local-lifecycle/tests/normal.tftest.hcl",
+    "templates/specialist-acceptance/terraform-local-lifecycle/tests/update.tftest.hcl",
   ]) {
     assert.ok(packagedFiles.has(required), `Missing specialist acceptance asset: ${required}`);
+  }
+  const nativeSuite = require("../packages/evaluation-engine/src/behavioral-oracles").loadBehavioralOracles();
+  for (const oracle of nativeSuite.oracles) {
+    for (const file of oracle.files) {
+      const required = `templates/specialist-acceptance/${oracle.fixture}/${file.path}`;
+      assert.ok(packagedFiles.has(required), `Missing native oracle evidence asset: ${required}`);
+    }
   }
 
   const archiveRoot = path.join(tempRoot, "archive");
@@ -221,6 +254,15 @@ try {
   assert.equal(auditReport.summary.required_trials, 42);
   assert.equal(auditReport.summary.not_run, 42);
   assert.equal(auditReport.summary.control_alarm_rate, null);
+  const nativeInspection = spawnSync(process.execPath, [
+    installedCli, "evaluate", "--suite", "technology-runtime", "--json",
+  ], { cwd: consumerRoot, encoding: "utf8", timeout: 30_000 });
+  assert.equal(nativeInspection.status, 2, nativeInspection.stderr);
+  const nativeReport = JSON.parse(nativeInspection.stdout);
+  assert.equal(nativeReport.summary.technologies, catalog.technical_guidance.length);
+  assert.equal(nativeReport.summary.specialist_trials_certified, 0);
+  assert.equal(nativeReport.summary.checked_fixtures, 0);
+  assert.equal(nativeReport.summary.not_run, nativeReport.summary.native_oracles);
   const initOutput = execFileSync(process.execPath, [
     installedCli,
     "init",

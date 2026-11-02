@@ -11,7 +11,7 @@ runtime. Do not edit the packaged fixture in place.
 
 - `worker.cjs` deliberately ignores concurrency and cancellation.
 - `checks.cjs` tests output order, actual bounded parallelism, failure propagation,
-  stop-scheduling behavior, cancellation and invalid limits.
+  stop-scheduling behavior, cancellation, invalid limits and abort-listener cleanup.
 - Run `node --test checks.cjs` from the copied directory. The initial version
   **must fail**. After the specialist repairs only the implementation, it must
   pass unchanged; preserve the initial failure and candidate diff as evidence.
@@ -25,6 +25,77 @@ Review cleanup and failure behavior as well as the checks. This small fixture
 does not establish general Node competency or cover server/stream/package work.
 The suite's other scenarios need suitable pinned project fixtures and meaningful
 checks; absent fixtures/tools are recorded as not run, never simulated passes.
+
+Automatic acceptance is available for this bounded behavior oracle: keep the
+unchanged failing baseline separate from the repaired candidate and run both
+with the exported JSON evaluation specs. The reader verifies the exact packaged
+checker, completed ten-test TAP results, explicit outcome-to-test mappings,
+current evidence hashes and recorded scope. It does not require a human rating
+for those checks or invent one.
+See the acceptance protocol for `automatic_review` and its limits.
+
+## Native technology runtime inventory
+
+`mcpee evaluate --suite technology-runtime --json` inventories every technical
+guide, reporting executable native fixtures separately from missing fixtures
+and from the static probes below. Export exact baseline/candidate evaluation
+specs using `--scenario <oracle-id> --variant baseline|candidate`; run them in
+separate disposable copies using ordinary evaluation approvals. See the
+[acceptance protocol](../../docs/SPECIALIST-ACCEPTANCE.md#inspect-and-export)
+for the results manifest and evidence rules.
+
+The [Python resource-lifetime fixture](python-resource-lifetime/README.md)
+executes seven native asyncio tests with Python >=3.11. It tests cancellation,
+bounded admission, error propagation, ordered results and owned-resource cleanup.
+It does not prove real filesystem behavior, package installation, typing,
+multiple Python versions or every broad Python specialist outcome.
+
+The [SQL result-semantics fixture](sql-result-semantics/README.md) runs seven
+real SQLite checks for nullable anti-joins, outer joins, duplicate order amounts
+and keyset pagination. It is not SQL Server plan/performance or migration
+acceptance and does not replace that specialist scenario.
+
+The [frontend runtime fixtures](frontend-runtime/README.md) compile actual
+TypeScript and execute pinned Angular, React and Vue framework APIs, DOM
+integration, lifecycle/request cleanup and server rendering. Their local
+dependency manifests and locks are part of immutable evaluation evidence.
+They do not replace real-browser, accessibility, hydration or production checks.
+
+The [.NET API/data fixture](dotnet-api-data-change/README.md) runs native
+ASP.NET/EF Core checks against SQLite for HTTP contracts, scoped DI, relational
+queries, cancellation, controlled overlapping writes and failure recovery.
+It is not a production database, load test or SQL Server acceptance.
+
+The [Terraform local-lifecycle fixture](terraform-local-lifecycle/README.md)
+runs nine native Terraform 1.14.0 checks using only the built-in `terraform_data`
+provider. It detects unstable resource identities and unintended replacements,
+and verifies outputs, empty input and input validation without cloud resources
+or credentials. Remote backends, real providers and deployments remain untested.
+
+Successful baseline/candidate pairs are `checked-fixture`, never general
+specialist acceptance. Missing runtime tools and missing native fixtures remain
+visible gaps; the inventory does not run or install anything.
+
+The [pipeline native-tool fixture](pipeline-runtime/README.md) runs checksum-pinned
+actionlint over real GitHub Actions YAML, graph and expression contracts, plus
+linter-known script interpolation hazards. It is **static native-tool validation**,
+not a remote CI execution, expression evaluator, artifact transfer or release gate.
+
+The [AWS SDK fixture](aws-sdk-runtime/README.md) executes the actual pinned SDK
+against controlled transport for pagination, stable aggregation, cancellation,
+error propagation and owned/borrowed client cleanup. No AWS service, IAM or
+deployed workload was verified.
+
+The [Azure/Bicep fixtures](azure-bicep-runtime/README.md) execute pinned Azure
+Storage SDK paging/retry/error/cancellation over controlled transport, and the
+actual Bicep compiler with emitted ARM storage-setting/output assertions.
+These are separate local contracts, not actual Azure service or deployment
+acceptance. Preserve the other oracle's candidate file when evaluating either.
+
+The [Cosmos SDK fixture](cosmos-sdk-runtime/README.md) runs pinned SDK requests
+against controlled loopback HTTP for partition-key routing, continuation,
+cancellation and response/error handling. It does not validate Cosmos service
+partition placement, RU charges, consistency, an emulator or production behavior.
 
 ## Technology entry-audit probes
 

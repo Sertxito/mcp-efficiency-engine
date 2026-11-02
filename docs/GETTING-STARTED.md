@@ -102,7 +102,11 @@ never overwrites user-owned files. In one run it:
 5. Performs the first local knowledge sync: source index, unified evidence
    graph, CodeGraph index and, when installed, the Graphify AST graph. It also
    writes evidence maps to `docs/generated/`.
-6. Creates brownfield specification proposals when there is source evidence.
+6. For brownfield projects, creates static evidence proposals and prepares
+   bounded, source-hash-bound functional specification scopes from code, tests,
+   documents and configuration. Scope preparation runs no model and does not
+   approve or author functional requirements. `mcpee specs scopes --json`
+   prints the exact tasks again at any time after syncing.
 7. Generates validation workflow specs from the checks it can find (see
    [Quality and evaluation](QUALITY-AND-EVALUATION.md#generated-validation-workflows)).
    No check is executed during setup.
@@ -116,8 +120,8 @@ never overwrites user-owned files. In one run it:
    MCPEE. No VSIX and no `@mcpee` mention are needed.
 
 The summary printed at the end reports the detected stack, provisioned
-capabilities, each tool's status, sync counts, brownfield proposals, generated
-validation checks and graph sizes. Read any warning: it names exactly what is
+capabilities, each tool's status, sync counts, brownfield proposals and authoring
+scopes, generated validation checks and graph sizes. Read any warning: it names exactly what is
 incomplete. Capability configuration is reported separately from harness
 readiness. The last status is `SETUP COMPLETE` or `SETUP INCOMPLETE`; the latter
 returns a nonzero exit code and tells you to resolve blockers and rerun `init`.
@@ -154,8 +158,9 @@ selected capabilities at any time.
 ## Brownfield: existing code
 
 1. **Initialize.** Run `mcpee init --project <path>` and approve the tool
-   downloads. One run performs the full extraction; no extra discovery command
-   is needed.
+   downloads. One run performs static evidence discovery and prepares bounded
+   authoring scopes; it does not call a model or claim the functional
+   specifications have already been authored.
 2. **Review what was detected.** Check the stack line in the summary, or run
    `mcpee explain`. Adjust the selection with `mcpee capabilities list` and
    `mcpee capabilities install|remove <id>`.
@@ -164,6 +169,10 @@ selected capabilities at any time.
    candidate domain, cite their sources and list positive, negative and
    boundary test-case candidates. They are evidence, **not approved
    requirements**.
+   The same init summary also shows brownfield authoring scope IDs and limits.
+   Retrieve the exact source-bound tasks at any time with
+   `mcpee specs scopes --json`. After a source change, run `mcpee sync` and
+   regenerate scopes before authoring; stale tasks are rejected.
 4. **Ratify what is correct.** After reviewing a proposal, approve its exact
    content:
 
@@ -368,7 +377,7 @@ No agents, workflows, tool downloads or model calls are executed by this command
 | `knowledge/` | Optional extra source folders by category plus normalized, extracted and traceability artifacts |
 | `docs/generated/` | Source-linked evidence maps refreshed by `sync` |
 | `specs/README.md` | Single human entry point: features, status, next step and links to sources/maps/history |
-| `specs/<feature>/` | Functional `spec.md`, `UC-###.md`, decisions and reviews; technical `plan.md` and `tasks.md` in the same workspace |
+| `specs/<feature>/` | Canonical functional `spec.md`, `UC-###.md`, `specification.json`, manifest and decisions; validated `plan.md`/`plan.json`, `tasks.md`/`tasks.json`, lifecycle and review evidence |
 | `docs/specifications/`, `specs/approved/`, `.mcpee/planning/` | Historical drafts/approvals/plans, preserved for compatibility; `specs migrate` safely copies supported drafts without approving them |
 
 Existing user files at generated paths are never overwritten. Stale generated

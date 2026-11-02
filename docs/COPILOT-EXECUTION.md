@@ -83,6 +83,20 @@ use an interactive terminal prompt for approvals. Options:
 | `--ground-context` | Default: retrieve a compact, cited evidence pack. |
 | `--no-ground-context` | Send no retrieved context. |
 | `--pack-context` | Package routing evidence with the local Repomix instead. |
+| `--resume-session <uuid>` | Explicitly resume an interrupted SDK conversation for the same task, after the prior executor has exited. |
+
+An interrupted run prints its SDK session UUID. Recovery is an explicit new
+command, not automatic: repeat the exact original `--task` and the same model
+and context options. MCPEE re-routes and re-authorizes context transfer, then
+checks the task, selected route, model and complete prompt/context fingerprint
+against the local journal before calling `resumeSession`. A mismatch, a live
+owner, a completed session, or an active recovery lock stops the operation.
+The resumed SDK session does not continue pending tool calls automatically;
+MCPEE reinstalls the current hooks and permissions and asks Copilot to inspect
+the current project state before continuing. If prior effects are ambiguous,
+the session must stop for manual inspection rather than repeat them.
+Resumption cannot establish whether an earlier external side effect succeeded;
+inspect that system before authorizing a retry.
 
 ## Request lifecycle
 
@@ -116,8 +130,18 @@ approvals remain mandatory. Adding application code restores code-index checks.
    session, validation, documentation and telemetry evidence, never from
    Copilot's self-reported checklist.
 
-Approved specifications from `specs/approved/` are included before the
-transfer approval in every context mode.
+Validated canonical specifications from `specs/<feature>/`, and compatible
+historical contracts from `specs/approved/`, are included before context
+authorization in every context mode. Canonical phase prerequisites are rechecked
+before SDK construction. Specification, plan and task authors return structured
+JSON in a read-only session; MCPEE validates, persists and indexes it. Routine
+phase validation requires no human approval. Contradictions, open decisions and
+risky actions still block explicitly. Invalid structured output has at most two
+same-session repairs; candidates and diagnostics are persisted and the original
+active/wall deadline remains in force.
+While a structured task is running, MCP status exposes its elapsed time,
+current authoring/repair/indexing phase and attempt number, with a polling delay.
+An unchanged `running` status is not evidence that useful work is progressing.
 
 ## Context sent to Copilot
 
@@ -190,6 +214,54 @@ If Copilot changes files, MCPEE:
    step;
 3. refreshes generated documentation only if that workflow passes.
 
+Structured specification, plan and task authoring instead records source-bound
+schema/provenance validation and refreshed canonical Markdown. It does not
+require an application workflow or claim application tests ran.
+
+Canonical implementation routes to `deliver-feature`. If its declared workflow
+is absent, MCPEE builds a digest-bound validation workflow from the current
+validated plan/tasks for exact `node --test <planned-path>.test.js|cjs|mjs`
+commands. These task-linked local checks need no additional approval; shell
+composition, unplanned files, sandbox bypass and other commands remain outside
+this allowance. Other check commands require an explicit workflow under the
+normal approval policy. Persisted evaluation and telemetry bind results to the
+specification, plan and task digests; a phase change during checks rejects
+verification. Passing these checks is not production or full product acceptance.
+
+Plan risk gates must identify a concrete `approval_action` such as deployment,
+publication, migration or a dependency/permission change. A disclaimer that
+local tests do not prove production acceptance is not an approval gate.
+Canonical JSON/Markdown reconciliation tolerates line-ending and final-newline
+formatting only; substantive owner edits still block advancement.
+
+### Explicit multi-phase execution
+
+Use `mcpee run --task "<original request and constraints>" --feature <slug>
+--through tasks|verification`, or the MCP `mcpee_run` arguments `feature`
+and `through`, to request a bounded canonical lifecycle. Neither option is
+enabled implicitly for ordinary single-phase tasks. MCPEE creates a missing
+specification, then authors only missing plan/tasks phases and, when explicitly
+requested, implements and verifies. Existing validated phases are not
+regenerated. The same procedure works for document-led greenfield and
+evidence-led brownfield sources.
+
+The original constraints accompany every phase. Each phase has its own normal
+bounded executor and approval policy; the chain has at most four phase
+executions, with no repeated phase after failure or lack of advancement.
+Decisions, manual drafts, drift and missing verification stop the chain.
+`.mcpee/reports/lifecycles/<id>.json` records phase outcomes and the endpoint,
+without storing raw task text. Interrupted chains are not automatically resumed.
+
+Successful canonical checks persist `specs/<feature>/verification.json`:
+each use case links tasks, check IDs and implementation paths, with canonical
+phase digests, evaluation report hash and all evaluated file hashes.
+`specs status` reports implementation checks as verified only while those
+hashes remain current; changes to code, requirements, tasks or report invalidate
+the evidence. The graph/retrieval inventory includes this canonical record.
+This proves execution of mapped technical checks, not semantic completeness
+of every acceptance criterion. The next action becomes
+`review-product-acceptance`, never an invented production approval.
+
 If the spec is missing or validation fails, MCPEE reports the incomplete state
 and leaves generated documentation untouched. Failed or blocked checks create
 approval-gated follow-up tasks (see
@@ -214,8 +286,28 @@ sync and validation before reporting the run as failed.
   `mcpee_run_status({run_id: "..."})` tool until the final response arrives,
   instead of starting the task again or repeatedly invoking a mutating tool.
   Polling is not accepted by `mcpee_run`; cancellation uses the separate
-  `mcpee_run_cancel({run_id: "..."})` tool. Runs are held by the local MCP
-  server; after a restart an unknown ID is reported, not replayed.
+  `mcpee_run_cancel({run_id: "..."})` tool. The server atomically persists
+  redacted results, task hashes, trace IDs, last authoring progress and owning
+  process IDs under `.mcpee/state/runs/<run-id>.json`. Terminal results remain
+  retrievable after restart and after later tasks; raw task text and broker
+  credentials are not stored in these snapshots.
+- A dead owning server without a persisted terminal result is reported as
+  `interrupted`, never completed or automatically replayed. Inspect its trace,
+  changed files and saved candidates; `mcpee specs recover` can restore a
+  validated candidate. A recorded SDK session can be resumed only with the
+  explicit `mcpee run --resume-session <uuid> --task "<same request>"` command
+  described above. A child
+  process may still be running: the new server reports that possibility and
+  refuses duplicate work while either recorded process is live. It cannot
+  safely cancel a process owned by another server, so it never kills that PID.
+  PID liveness is conservative, not proof of process identity or ownership.
+  Status retrieval does not rewrite snapshots. IDs from before this journal
+  existed still report unknown; MCPEE does not invent their results.
+- Independent servers use an exclusive project-local `admission.lock` while
+  checking live journals and persisting the initial run state, before spawning.
+  A crash during that short admission window may leave a lock; inspect its
+  owner and journals before explicitly removing it. MCPEE never steals a lock
+  or kills a recorded PID to conceal uncertain state.
 - Each routing plan includes the project stack detected from manifests and
   source files, plus code languages without a matching catalog guide. The
   executor performs one focused discovery pass, uses an installed specialist

@@ -11,16 +11,29 @@ written to `specs/MCPEE.md`; the CLI prints the actual entry-point path.
 
 New functional deliverables live in `specs/<feature>/`: `spec.md`, independent
 `UC-###.md` files, `decisions.md` (readable) and `decisions.json` (owner-decision
-records), `manifest.json` (source/case provenance) and `lifecycle.json` (reviews).
-Technical `plan.md` and checkable `tasks.md` are authored in the same directory,
-not parallel document trees. A generated template is explicitly unreviewed.
+records), `specification.json` (validated structured input), `manifest.json`
+(source/case provenance) and `lifecycle.json` (machine validation and reviews).
+Technical `plan.md`/`plan.json` and checkable `tasks.md`/`tasks.json` are authored
+in the same directory, not parallel document trees. The JSON and Markdown are
+one source-bound artifact pair, not independent contracts. Owner edits are
+preserved and disagreements block advancement rather than being overwritten.
 
 `mcpee specs status [--slug <feature>]` reports the next phase and exact review
-digests. Resolve questions with `specs decide`, then explicitly approve
-`specification`, `plan` and `tasks` in that order using `specs approve`.
+digests. New runtime-authored features use `advancement: validated`: specification,
+plan and task checks advance phases automatically without a separate approval
+prompt. Machine validation is labeled separately from human review. Resolve
+source contradictions and open specification decisions with `specs decide`.
+High-impact technical decisions and open phase questions block the plan/tasks
+handoff visibly (`clarify-phase`); reconcile the documented decision or explicitly
+review its exact digest. Manual and migrated drafts retain their explicit review
+policy; `specs approve` remains available for those and optional human review.
 Planning/execution requests routed to a canonical feature recheck the required
 approval before creating an SDK session. With multiple canonical features,
 name the feature. Ordinary review/status commands do not call a model.
+For an automatically validated feature, request "Create plan for `<feature>`",
+then "Create tasks for `<feature>`" through the task tool. `plan create` is a
+manual template helper, not a substitute for structured technical authoring;
+it refuses to insert an empty planning template into an automatic workspace.
 
 Reviews bind the actual case documents and decisions, not only an index link.
 Editing upstream artifacts invalidates downstream approvals. Source drift
@@ -36,8 +49,25 @@ An edited atomic case is not silently reconciled against an old manifest.
 
 This adopts staged specification-driven work, not Spec Kit installation,
 command compatibility or automatic execution of all its stages. The authoring
-run still stops at the requested phase; semantic review and approval remain
-human responsibilities.
+run still stops at the requested phase. Machine validation is not proof of
+semantic correctness, successful implementation or product acceptance.
+
+## One canonical graph and retrieval corpus
+
+`specs/<feature>/` is the final workspace for both paths. A shared canonical
+artifact inventory includes the specification, atomic cases, manifest,
+decisions and available plans/tasks. Sync includes these artifacts even when
+`knowledge.sourceRoots` only covers application directories. The source
+manifest supplies the same source ID, path, SHA-256 and canonical authority to
+the unified graph, lexical index and embedding chunks. Runtime authoring
+refreshes the unified graph and lexical index after publication; it does not
+claim that embeddings were generated. Existing local embeddings are refreshed
+by the normal embedding command and stale chunks are not treated as fresh.
+
+Canonical artifacts, review snapshots, lifecycle state and historical discovery
+trees are not reingested as original product evidence in the next specification
+extraction. Original code and documentation retain their provenance; a
+canonical requirement does not rewrite conflicting observed behavior.
 
 ## Static evidence discovery
 
@@ -49,6 +79,41 @@ does not execute tests, infer business intent, send source content to a model,
 or declare observed code to be desired behavior.
 
 ## Functional authoring versus static inventory
+
+### Large brownfield preparation
+
+`mcpee init` runs this preparation after its initial sync for brownfield
+projects. Run `mcpee specs scopes --json` any time after sync to regenerate and
+inspect the exact bounded authoring tasks without a model call or source write.
+The planner reuses the existing inferred
+path-domain grouping and accounts for every source in the inventory as planned,
+blocked or explicitly excluded. It includes code, tests, documents and config,
+not only the first retrieved sources. Stale source hashes and invalid paths fail
+explicitly. Processing failures remain visible; logs, generated harness artifacts
+and prior canonical specifications are listed as excluded, not silently lost.
+
+Each exported task names all selected sources and a stable source-bound slug for
+the shared `specs/<scope>/` workspace. Scopes fit 20 files, 2 MiB, 1000 mandatory
+source sections and the router's 10000-character task limit. A single oversized
+source remains blocked with an explicit split action; no section is silently
+cut. Exit 2 signals blocked sources even when other tasks are prepared.
+
+Execute each exact exported task through normal `mcpee run`/`mcpee_run`; it still
+rechecks the scope digest and exact task against the current inventory before
+paid execution. Changing a source and synchronizing does not authorize reuse of
+an old task: export current scopes again. It validates the canonical specification. These
+are preparation scopes, not authored specifications or certified business
+boundaries. After authoring, run `mcpee specs reconcile --json`. The command
+checks the current scope and artifact hashes, builds a case/source matrix,
+reports exact duplicate-goal and shared-evidence candidates, links source-level
+contradiction candidates, and maps current graph imports/tests across scopes.
+Its report is stored at `.mcpee/state/specification-reconciliation.json`.
+Technical imports are not business prerequisites; textual matches are not
+proof of duplicates or contradictions. The result always requires owner review
+and never approves requirements or grants product acceptance. Missing scope
+specifications, stale artifacts, or a stale graph remain explicitly incomplete
+or blocked. This does not bypass approval for real decisions or authorize
+implementation, and is separate from greenfield document authoring.
 
 Static discovery is not a functional specification. In Copilot Chat, request
 "Draft functional specifications from `<indexed product sources>`; do not
@@ -82,8 +147,10 @@ Then request the greenfield process, stopping at atomic use-case specifications:
 
 1. **Verify inputs.** Inventory the indexed product documents, their conversion
    state and hashes. Explicit source paths restrict the requested scope;
-   otherwise include all product business, architecture, documentation,
-   contract and decision sources. Do not silently use the first five search
+   otherwise include all eligible product code, tests, configuration,
+   infrastructure, business, architecture, documentation, contract and
+   decision sources. Code declarations and non-Markdown files require explicit
+   source-section coverage too. Do not silently use the first five search
    results. Unconverted/failed documents in scope block authoring before
    model execution. More than 100 documents or 2 MiB of source text requires an
    explicitly narrower scope.
@@ -99,10 +166,11 @@ Then request the greenfield process, stopping at atomic use-case specifications:
 5. **Validate and persist.** Check structure, case references, quotes, hashes
    and declared source-section coverage, then save the index and individual
    documents. Atomic files and a complete source mapping are not proof of
-   semantic atomicity or completeness; a human must review the decomposition.
-6. **Hand off for review.** Present unresolved decisions and deferred sections.
-   Fill matching source-bound review proposals without approving requirements
-   or starting implementation.
+   semantic atomicity or completeness.
+6. **Hand off transparently.** Present unresolved decisions and deferred
+   sections. When no decisions remain, record automated validation and allow
+   technical planning without a second approval. Do not create parallel legacy
+   review proposals or start implementation during specification authoring.
 
 These are authoring stages within one bounded model attempt, not a claim that
 several independent specialist agents executed. The executor remains read-only;
@@ -110,21 +178,34 @@ MCPEE performs validated artifact persistence. A documentation-only authoring
 request does not query or require an application CodeGraph index. Plain npm-init
 metadata also does not by itself establish an application implementation.
 
-## Draft review handoff
+## Legacy draft review handoff
 
 Matching source-bound discovery proposals have their empty behavior and
 acceptance prompts filled from the validated cases, without manual copying.
 The executor returns their paths and current review digests. Existing reviewed
-text is preserved; no approval happens automatically. A case citing sources
+text is preserved. This compatibility handoff is for the manual publication
+API, not the new autonomous runtime path. A case citing sources
 outside a proposal is not copied into it: cross-domain approval needs a
 deliberately reviewed evidence boundary, not an unbound requirement.
 
 Missing sources fail before the SDK starts. Invalid output or sources changing
 during execution fail the run rather than reporting template generation as a
-completed specification. There is one authoring attempt per run, not an
-automatic paid repair loop. These structural and provenance checks cannot
+completed specification. The executor saves each response and exact validation
+diagnostic under `.mcpee/reports/authoring/<run>/`, then permits at most two
+repairs in the same SDK session, within the original execution deadline.
+It never repeats sync or starts a new session for a repair. Source drift,
+publication conflicts and exhausted attempts fail explicitly; candidates remain
+available instead of being lost between runs. These structural and provenance checks cannot
 prove semantic completeness, correctness, runtime behavior or owner approval.
 Source sections marked deferred remain visible review gaps.
+Recover a persisted response without another model run using
+`mcpee specs recover --candidate .mcpee/reports/authoring/<run>/specification-3.txt`.
+An optional `--source <original-path>` restricts recovery to a source already
+present in the recorded snapshot. Recovery checks the response checksum,
+source hashes and current canonical phase digests; changed evidence, missing
+checksums or conflicting owner edits fail explicitly. Recovery publishes
+validated artifacts and refreshes graph/lexical inventories, not an in-flight
+SDK session or a vector embedding index.
 Converted Office/PDF/image sources use their current indexed normalized text
 for line citations; both that text and the original source hash are rechecked
 before saving. Missing or stale document conversion blocks authoring before

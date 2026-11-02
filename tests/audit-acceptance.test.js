@@ -87,6 +87,11 @@ function recordedTrials(t, selection) {
 test("all technology probes have safe-code and missing-evidence controls with hidden oracles", t => {
   const suite = loadAuditSuite();
   assert.equal(suite.scenarios.length, 14);
+  assert.equal(Object.keys(suite.technology_oracles).length, 14);
+  assert.equal(Object.values(suite.technology_oracles).reduce((sum, item) => sum + item.findings, 0), 28);
+  assert.ok(Object.values(suite.technology_oracles).every(item =>
+    item.negative_clean && item.insufficient_abstention));
+  assert.match(suite.oracle_sha256, /^[a-f0-9]{64}$/);
   for (const scenario of suite.scenarios) {
     for (const variant of suite.variants) {
       const sample = scenario.variants[variant];
@@ -104,6 +109,10 @@ test("all technology probes have safe-code and missing-evidence controls with hi
   const root = project(t);
   const report = buildAuditAcceptance(root);
   assert.equal(report.summary.required_trials, 42);
+  assert.equal(report.summary.technology_oracles, 14);
+  assert.equal(report.summary.oracle_seeded_findings, 28);
+  assert.equal(report.summary.oracle_negative_controls, 14);
+  assert.equal(report.summary.oracle_insufficient_controls, 14);
   assert.equal(report.summary.not_run, 42);
   assert.equal(report.summary.control_alarm_rate, null);
   assert.equal(report.summary.seeded_defect_recall, null);
@@ -124,6 +133,25 @@ test("silence cannot pass a positive probe and boilerplate unknowns cannot pass 
   assert.equal(insufficient.acknowledged_unknowns, 0);
   const negative = reviewAuditResponse(scenario.variants.negative, empty, reviewFor({ expected: [] }, empty));
   assert.equal(negative.passed, true);
+});
+
+test("negative controls verify automatically while semantic cases stay explicitly unverified", t => {
+  const f = recordedTrials(t, suite => suite.variants.map(variant => [suite.scenarios[0], variant]));
+  for (const trial of f.input.trials) delete trial.review;
+  f.save();
+  let report = buildAuditAcceptance(f.root, "results.json");
+  assert.equal(report.summary.automatically_verified, 1);
+  assert.equal(report.summary.awaiting_verification, 2);
+  assert.equal(report.summary.reviewed_trials, 1);
+  assert.equal(report.summary.seeded_defect_recall, null, "unreviewed positive output cannot inflate recall");
+  const negative = f.input.trials.find(trial => trial.variant === "negative");
+  const completion = f.events.find(event => event.session_id === negative.session_id &&
+    event.event_name === "copilot.execution.completed");
+  completion.attributes.changed_paths = ["forbidden-edit.txt"];
+  f.save();
+  report = buildAuditAcceptance(f.root, "results.json");
+  assert.equal(report.summary.failed, 1);
+  assert.equal(report.summary.automatically_verified, 0);
 });
 
 test("unsupported corrections, duplicate findings and even disputed control oracles fail", () => {
@@ -277,6 +305,8 @@ test("installed-style CLI exports a blind exact task and reports no unrun contro
   const inspected = run([]);
   assert.equal(inspected.status, 2, inspected.stderr);
   assert.equal(JSON.parse(inspected.stdout).summary.not_run, 42);
+  assert.equal(JSON.parse(inspected.stdout).summary.technology_oracles, 14);
+  assert.equal(JSON.parse(inspected.stdout).summary.oracle_seeded_findings, 28);
   const exported = run(["--scenario", "node-entry", "--variant", "negative"]);
   assert.equal(exported.status, 0, exported.stderr);
   assert.equal(JSON.parse(exported.stdout).task, auditTask(loadAuditSuite().scenarios[2], "negative").task);

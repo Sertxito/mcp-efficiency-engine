@@ -1,0 +1,25 @@
+{
+  "id": "cosmos-sdk-runtime",
+  "guide": "cosmos-engineering",
+  "checks": [
+    "write-partition-key-routing",
+    "point-read-partition-key-routing",
+    "continuation-pagination",
+    "request-cancellation",
+    "point-read-not-found-response",
+    "query-error-propagation"
+  ],
+  "files": {
+    "immutable": [
+      "README.md",
+      "checks.cjs",
+      "oracle.json",
+      "package-lock.json",
+      "package.json",
+      "run-oracle.cjs"
+    ],
+    "mutable": [
+      "solution.cjs"
+    ]
+  }
+}

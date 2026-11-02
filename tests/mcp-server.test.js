@@ -1,7 +1,7 @@
 "use strict";
 
 const assert = require("node:assert/strict");
-const { spawn } = require("node:child_process");
+const { spawn, spawnSync } = require("node:child_process");
 const { EventEmitter } = require("node:events");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -20,6 +20,239 @@ const {
   requestApprovalFromMcp,
   runCopilotCli,
 } = require("../packages/mcp-server/src/server");
+
+function durableFixture(t, { failure = false, beforeClose } = {}) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "mcpee-durable-run-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  fs.mkdirSync(path.join(root, ".mcpee", "state"), { recursive: true });
+  fs.writeFileSync(path.join(root, ".mcpee", "state", "project.json"), "{}\n");
+  let starts = 0;
+  const options = {
+    projectRoot: root, packageRoot: path.resolve(__dirname, ".."),
+    spawnProcess: (_command, _args, options) => {
+      starts++;
+      const stateFile = fs.readdirSync(path.join(root, ".mcpee/state/runs")).find(name => name.endsWith(".json"));
+      const state = JSON.parse(fs.readFileSync(path.join(root, ".mcpee/state/runs", stateFile), "utf8"));
+      assert.equal(state.status, "running", "The journal must exist before execution starts");
+      assert.equal(state.result, null);
+      assert.equal(Object.hasOwn(state, "task"), false);
+      const child = new EventEmitter();
+      child.stdout = new PassThrough();
+      child.stderr = new PassThrough();
+      child.kill = () => { setImmediate(() => child.emit("close", null, "SIGTERM")); };
+      setImmediate(() => {
+        child.emit("message", { type: "mcpee-authoring-progress", stage: "plan", status: "validated", attempt: 1 });
+        child.stdout.end(`${options.env.MCPEE_CHAT_RESULT_MARKER}${JSON.stringify({
+          content: `Preserved ${failure ? "failed" : "completed"} result Bearer ${"a".repeat(30)}`,
+        })}\n`);
+        child.stderr.end(failure ? "Real validation failed." : "");
+        beforeClose?.(path.join(root, ".mcpee/state/runs", stateFile));
+        child.emit("close", failure ? 1 : 0, null);
+      });
+      return child;
+    },
+  };
+  const snapshot = () => {
+    const directory = path.join(root, ".mcpee/state/runs");
+    const file = path.join(directory, fs.readdirSync(directory).find(name => name.endsWith(".json")));
+    return { file, state: JSON.parse(fs.readFileSync(file, "utf8")) };
+  };
+  return { root, options, snapshot, starts: () => starts };
+}
+
+test("MCP preserves redacted success and failure results across handler restart and subsequent tasks", async t => {
+  for (const failure of [false, true]) {
+    const fixture = durableFixture(t, { failure });
+    const handler = createRunToolHandler(fixture.options);
+    const result = await handler({ task: "Inspect the current canonical plan" });
+    const { state, file } = fixture.snapshot();
+    assert.equal(state.status, failure ? "failed" : "completed");
+    assert.equal(state.progress.stage, "plan");
+    assert.equal(state.progress.attempt, 1);
+    assert.equal(result.isError, failure);
+    assert.ok(state.trace_id);
+    assert.ok(!fs.readFileSync(file, "utf8").includes("a".repeat(30)));
+    await handler({ task: "Inspect another explicitly requested plan" });
+    const restarted = createRunToolHandler(fixture.options);
+    const before = fs.readFileSync(file, "utf8");
+    assert.deepEqual(await restarted({ run_id: state.run_id }), result);
+    assert.deepEqual(await restarted({ run_id: state.run_id, cancel: true }), result);
+    assert.equal(fs.readFileSync(file, "utf8"), before, "Status retrieval must not modify persisted evidence");
+    assert.equal(fixture.starts(), 2, "Retrieving results must never invoke the CLI");
+  }
+});
+
+test("MCP reports a dead-owner interruption with last progress, without replay or false completion", async t => {
+  const fixture = durableFixture(t);
+  await createRunToolHandler(fixture.options)({ task: "Inspect canonical source evidence" });
+  const { state, file } = fixture.snapshot();
+  const exited = spawnSync(process.execPath, ["-e", ""], { windowsHide: true });
+  assert.equal(exited.status, 0);
+  state.owner_pid = exited.pid;
+  state.status = "running";
+  state.result = null;
+  fs.writeFileSync(file, JSON.stringify(state));
+  const before = fs.readFileSync(file, "utf8");
+  const restarted = createRunToolHandler(fixture.options);
+  const result = await restarted({ run_id: state.run_id });
+  const interrupted = JSON.parse(result.content[0].text);
+  assert.equal(result.isError, true);
+  assert.equal(interrupted.status, "interrupted");
+  assert.equal(interrupted.owner_alive, false);
+  assert.equal(interrupted.progress.stage, "plan");
+  assert.equal(interrupted.trace_id, state.trace_id);
+  assert.match(interrupted.next_action, /specs recover/);
+  assert.equal(interrupted.poll_after_ms, null);
+  assert.equal(fs.readFileSync(file, "utf8"), before);
+  assert.equal(fixture.starts(), 1);
+});
+
+test("MCP does not duplicate or kill an execution owned by another live handler or an orphaned child", async t => {
+  const fixture = durableFixture(t);
+  await createRunToolHandler(fixture.options)({ task: "Inspect canonical source evidence" });
+  const { state, file } = fixture.snapshot();
+  state.status = "running";
+  state.result = null;
+  state.owner_pid = process.pid;
+  fs.writeFileSync(file, JSON.stringify(state));
+  const restarted = createRunToolHandler(fixture.options);
+  const status = await restarted({ run_id: state.run_id });
+  assert.equal(JSON.parse(status.content[0].text).status, "running");
+  assert.equal(status.isError, false);
+  const denied = await restarted({ run_id: state.run_id, cancel: true });
+  assert.equal(denied.isError, true);
+  assert.match(JSON.parse(denied.content[0].text).next_action, /cannot safely cancel/);
+  assert.equal((await restarted({ task: "Do not duplicate an active execution" })).isError, true);
+  const exited = spawnSync(process.execPath, ["-e", ""], { windowsHide: true });
+  state.owner_pid = exited.pid;
+  state.child_pid = process.pid;
+  fs.writeFileSync(file, JSON.stringify(state));
+  const orphaned = await restarted({ run_id: state.run_id });
+  assert.equal(JSON.parse(orphaned.content[0].text).child_may_be_running, true);
+  assert.equal((await restarted({ task: "Do not duplicate an orphaned execution" })).isError, true);
+  assert.equal(fixture.starts(), 1);
+});
+
+test("MCP rejects corrupt, mismatched and escaping durable run state before any execution", async t => {
+  const fixture = durableFixture(t);
+  await createRunToolHandler(fixture.options)({ task: "Inspect canonical source evidence" });
+  const { state, file } = fixture.snapshot();
+  const restarted = createRunToolHandler(fixture.options);
+  await assert.rejects(restarted({ run_id: "..\\project" }), /Invalid MCPEE run_id/);
+  fs.writeFileSync(file, "{bad json");
+  await assert.rejects(restarted({ run_id: state.run_id }), SyntaxError);
+  await assert.rejects(restarted({ task: "Do not execute with corrupt state" }), SyntaxError);
+  const mismatched = { ...state, run_id: require("node:crypto").randomUUID() };
+  fs.writeFileSync(file, JSON.stringify(mismatched));
+  await assert.rejects(restarted({ run_id: state.run_id }), /identifier does not match/);
+  fs.writeFileSync(file, JSON.stringify({ ...state, status: "running" }));
+  await assert.rejects(restarted({ run_id: state.run_id }), /terminal result/);
+  assert.equal(fixture.starts(), 1);
+});
+
+test("MCP run journals refuse linked state directories without writing outside the project", async t => {
+  const fixture = durableFixture(t);
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), "mcpee-run-junction-"));
+  t.after(() => fs.rmSync(outside, { recursive: true, force: true }));
+  fs.symlinkSync(outside, path.join(fixture.root, ".mcpee/state/runs"), process.platform === "win32" ? "junction" : "dir");
+  await assert.rejects(createRunToolHandler(fixture.options)({ task: "Inspect only" }), /symbolic links/);
+  assert.deepEqual(fs.readdirSync(outside), []);
+  assert.equal(fixture.starts(), 0);
+});
+
+test("MCP surfaces terminal persistence failure instead of claiming durable completion", async t => {
+  const fixture = durableFixture(t, { beforeClose: file => {
+    fs.renameSync(file, `${file}.preserved`);
+    fs.mkdirSync(file);
+  } });
+  const handler = createRunToolHandler(fixture.options);
+  const result = await handler({ task: "Inspect the canonical plan without changes" });
+  assert.equal(result.isError, true);
+  assert.match(result.content[0].text, /could not persist its terminal state/);
+  assert.match(result.content[0].text, /Do not report durable completion/);
+  const event = readEvents(fixture.root).find(event => event.event_name === "mcp.run.persistence.failed");
+  assert.ok(event);
+  assert.deepEqual(await handler({ run_id: event.attributes.run_id }), result);
+  assert.equal(fixture.starts(), 1);
+});
+
+test("MCP atomically admits only one execution from simultaneous independent server processes", async t => {
+  const fixture = durableFixture(t);
+  const modulePath = path.resolve(__dirname, "../packages/mcp-server/src/server.js");
+  const script = `
+    const {createRunToolHandler}=require(${JSON.stringify(modulePath)});
+    const {EventEmitter}=require('node:events');
+    const {PassThrough}=require('node:stream');
+    const handler=createRunToolHandler({
+      projectRoot:${JSON.stringify(fixture.root)}, packageRoot:${JSON.stringify(path.resolve(__dirname, ".."))},
+      spawnProcess:(_command,_args,options)=>{
+        console.log('SPAWNED');
+        const child=new EventEmitter(); child.stdout=new PassThrough(); child.stderr=new PassThrough();
+        child.kill=()=>true;
+        setTimeout(()=>{child.stdout.end(options.env.MCPEE_CHAT_RESULT_MARKER+JSON.stringify({content:'Verified'})+'\\n');child.stderr.end();child.emit('close',0,null);},1500);
+        return child;
+      }
+    });
+    console.log('READY');
+    process.stdin.once('data',()=>handler({task:'Inspect only'}).then(result=>{console.log(JSON.stringify(result));process.stdin.destroy();},error=>{console.error(error);process.exitCode=1;process.stdin.destroy();}));
+  `;
+  const processes = [0, 1].map(() => {
+    const child = spawn(process.execPath, ["-e", script], { stdio: ["pipe", "pipe", "pipe"], windowsHide: true });
+    let output = "", error = "";
+    const ready = new Promise(resolve => child.stdout.on("data", chunk => {
+      output += chunk;
+      if (output.includes("READY")) resolve();
+    }));
+    child.stderr.on("data", chunk => { error += chunk; });
+    const done = new Promise((resolve, reject) => {
+      child.once("error", reject);
+      child.once("close", code => code === 0 ? resolve(output) : reject(new Error(error)));
+    });
+    return { child, ready, done };
+  });
+  await Promise.all(processes.map(process => process.ready));
+  processes.forEach(process => process.child.stdin.end("begin"));
+  const outputs = await Promise.all(processes.map(process => process.done));
+  assert.equal(outputs.filter(output => output.includes("SPAWNED")).length, 1);
+  assert.equal(outputs.filter(output => output.includes('"isError":true')).length, 1);
+  assert.ok(outputs.some(output => /admission is locked|may still be active/.test(output)));
+  assert.equal(fs.readdirSync(path.join(fixture.root, ".mcpee/state/runs")).filter(name => name.endsWith(".json")).length, 1);
+  assert.equal(fs.existsSync(path.join(fixture.root, ".mcpee/state/runs/admission.lock")), false);
+});
+
+test("MCP reports an abandoned admission lock without stealing it or spawning work", async t => {
+  const fixture = durableFixture(t);
+  const directory = path.join(fixture.root, ".mcpee/state/runs");
+  fs.mkdirSync(directory);
+  const lock = path.join(directory, "admission.lock");
+  fs.writeFileSync(lock, "interrupted admission evidence");
+  const result = await createRunToolHandler(fixture.options)({ task: "Inspect only" });
+  assert.equal(result.isError, true);
+  assert.match(result.content[0].text, /no stale lock is silently stolen/);
+  assert.equal(fs.readFileSync(lock, "utf8"), "interrupted admission evidence");
+  assert.equal(fixture.starts(), 0);
+});
+
+test("MCP requires an explicit lifecycle endpoint and forwards it to the CLI without default chaining", async t => {
+  const fixture = durableFixture(t);
+  let args;
+  const spawnProcess = fixture.options.spawnProcess;
+  fixture.options.spawnProcess = (command, arguments_, options) => {
+    args = arguments_;
+    return spawnProcess(command, arguments_, options);
+  };
+  const handler = createRunToolHandler(fixture.options);
+  assert.equal((await handler({ task: "Build catalog", through: "verification" })).isError, true);
+  assert.equal((await handler({ task: "Build catalog", feature: "public-catalog" })).isError, true);
+  assert.equal((await handler({ task: "Build catalog", feature: "../outside", through: "tasks" })).isError, true);
+  assert.equal(fixture.starts(), 0);
+  await handler({ task: "Build catalog", feature: "public-catalog", through: "tasks" });
+  assert.equal(args[args.indexOf("--feature") + 1], "public-catalog");
+  assert.equal(args[args.indexOf("--through") + 1], "tasks");
+  await handler({ task: "Inspect catalog" });
+  assert.ok(!args.includes("--through"));
+  assert.ok(!args.includes("--feature"));
+});
 
 test("MCP elicitation gates transfer and per-action approval, failing closed when unavailable", async () => {
   const requests = [];
@@ -150,6 +383,7 @@ test("MCP task tool invokes the MCPEE CLI and returns only its marked response",
   assert.equal(spawnOptions.options.cwd, projectRoot);
   assert.ok(spawnOptions.options.env.MCPEE_APPROVAL_BROKER_URL.startsWith("http://127.0.0.1:"));
   assert.ok(spawnOptions.options.env.MCPEE_APPROVAL_BROKER_TOKEN);
+  assert.equal(spawnOptions.options.env.MCPEE_MCP_TASK_AUTHORIZED, "1");
   assert.ok(spawnOptions.options.env.MCPEE_TRACE_ID);
   assert.ok(spawnOptions.options.env.MCPEE_PARENT_EVENT_ID);
   const telemetry = readEvents(projectRoot);
@@ -210,7 +444,7 @@ test("MCP server advertises the task tool to ordinary host clients", async (t) =
   const tools = await client.listTools();
   const runTool = tools.tools.find((tool) => tool.name === "mcpee_run");
   assert.ok(runTool);
-  assert.deepEqual(Object.keys(runTool.inputSchema.properties), ["task"]);
+  assert.deepEqual(Object.keys(runTool.inputSchema.properties), ["task", "feature", "through"]);
   assert.deepEqual(runTool.inputSchema.required, ["task"]);
   const statusTool = tools.tools.find((tool) => tool.name === "mcpee_run_status");
   assert.ok(statusTool);
@@ -236,6 +470,8 @@ test("MCP server advertises the task tool to ordinary host clients", async (t) =
         const child = new EventEmitter();
         child.stdout = new PassThrough();
         child.stderr = new PassThrough();
+        setImmediate(() => child.emit("message", { type: "mcpee-authoring-progress",
+          stage: "specification", attempt: 2, status: "repairing" }));
         const timer = setTimeout(() => {
           child.stdout.end(`${options.env.MCPEE_CHAT_RESULT_MARKER}${JSON.stringify({ content: "Verified inspection result" })}\n`);
           child.emit("close", 0, null);
@@ -258,7 +494,12 @@ test("MCP server advertises the task tool to ordinary host clients", async (t) =
     const pending = JSON.parse(first.content[0].text);
     assert.equal(pending.status, "running");
     assert.match(pending.run_id, /^[a-f0-9-]{36}$/);
-    assert.equal(pending.next_action.startsWith("Call mcpee_run_status"), true);
+    assert.match(pending.next_action, /Wait poll_after_ms/);
+    assert.equal(pending.poll_after_ms, 20_000);
+    assert.ok(pending.elapsed_ms >= 20_000);
+    assert.equal(pending.progress.stage, "specification");
+    assert.equal(pending.progress.status, "repairing");
+    assert.equal(pending.progress.attempt, 2);
     const invalidPoll = await client.callTool({
       name: "mcpee_run", arguments: { run_id: pending.run_id },
     });

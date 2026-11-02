@@ -1,0 +1,10 @@
+{
+  "name": "mcpee-aws-sdk-runtime-oracle",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "engines": { "node": ">=24.0.0" },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "3.1161.0"
+  }
+}

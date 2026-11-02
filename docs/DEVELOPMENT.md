@@ -11,6 +11,7 @@ the repository root:
 ```sh
 npm run build:runtime             # bundle the pinned SDK JavaScript before direct CLI/tests
 npm test                          # node --test
+npm test -- --test-concurrency=4  # complete suite with bounded parallelism on shared hosts
 npm run audit:dependencies        # fail on any currently reported dependency advisory
 npm run pack:check                # verify the packed npm tarball end to end
 npm run docs:check-links          # local Markdown links, anchors and guide metadata
@@ -41,6 +42,22 @@ npm run init                      # initialize this repository with MCPEE
   plus the scope, version and review metadata of technical guides.
 - `docs:check-official-links` checks HTTP reachability of official guide URLs,
   not the technical correctness of those pages.
+- Native oracle regressions additionally use Python >=3.11 (asyncio/SQLite),
+  .NET 10 (ASP.NET/EF Core), Terraform 1.14.0 on `PATH` (built-in local provider
+  only), pinned Angular/React/Vue/TypeScript, AWS, Azure and Cosmos SDK dependencies,
+  a pinned Bicep compiler, plus checksum-pinned actionlint for GitHub Actions
+  native static diagnostics.
+  Framework and .NET controllers restore/build in disposable copies; a package
+  cache or registry access is required. Missing optional runtimes are explicit
+  skips, while restore/build failures with an available runtime fail the test.
+  Passing these bounded baseline/control/mutation checks is not broad technology
+  or model acceptance; see [Specialist acceptance](SPECIALIST-ACCEPTANCE.md).
+  On shared hosts, bound test concurrency: native restores/builds can otherwise
+  starve unrelated short-lived process-startup checks. The unbounded launcher
+  test can hit its five-second deadline under contention; a bounded passing run
+  does not establish that startup deadline under unbounded load.
+  SDK fixture transports are controlled test boundaries, not live service
+  acceptance. Native actionlint diagnostics are not an observed remote CI run.
 - Tool version probes default to three seconds. npm gets ten seconds; packaged
   Python and Node tools get thirty seconds for cold starts. Callers can supply
   a specific timeout.

@@ -130,6 +130,9 @@ function createPlan(projectRoot, { slug: rawSlug, title: rawTitle }) {
   const canonical = fs.existsSync(path.join(directory, "manifest.json"));
   if (canonical) {
     const status = require("../../spec-engine/src/lifecycle").featureStatus(root, slug);
+    if (status.advancement === "validated") {
+      throw new Error(`This canonical feature uses structured plan authoring, not an empty template. Run mcpee run --task "Create plan for ${slug}" after specification validation.`);
+    }
     if (!status.reviews.specification.approved) throw new Error("Approve the functional specification before creating its technical plan.");
   }
   const files = canonical ? [["plan.md", deliveryPlan]] : [["spec.md", specification], ["plan.md", deliveryPlan]];

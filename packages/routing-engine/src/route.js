@@ -55,15 +55,15 @@ function scoreKeywords(text, keywords) {
   return { score, matches };
 }
 
-function selectTaskKnowledge(projectRoot, task, limit) {
+function selectTaskKnowledge(projectRoot, task, limit, specificationTask = isSpecificationTask(task)) {
   const index = JSON.parse(fs.readFileSync(path.join(projectRoot, ".mcpee/indexes/knowledge-index.json"), "utf8"));
   const text = task.replace(/\\/g, "/");
   const explicit = index.documents.filter(document => {
     const escaped = document.source_path.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    return new RegExp(`(^|[\\s\`"'([{])(?:\\./)?${escaped}(?=$|[\\s\`"'\\])},;:!?])`,
+    return new RegExp(`(^|[\\s\`"'([{])(?:\\./)?${escaped}(?=$|[\\s\`"'\\])},;:!?]|\\.(?=$|\\s))`,
       process.platform === "win32" ? "i" : "").test(text);
   }).map(document => ({ ...document, selection: "explicit-task-path" }));
-  if (isSpecificationTask(task)) {
+  if (specificationTask) {
     const manifestPath = path.join(projectRoot, "knowledge/traceability/source-manifest.json");
     const manifest = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, "utf8")) : null;
     if (!manifest || manifest.generated_by !== "mcpee" || !Array.isArray(manifest.sources)) {
@@ -71,11 +71,11 @@ function selectTaskKnowledge(projectRoot, task, limit) {
     }
     const namedSources = manifest.sources.filter((source) => {
       const escaped = source.path.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      return new RegExp(`(^|[\\s\`"'([{])(?:\\./)?${escaped}(?=$|[\\s\`"'\\])},;:!?])`,
+      return new RegExp(`(^|[\\s\`"'([{])(?:\\./)?${escaped}(?=$|[\\s\`"'\\])},;:!?]|\\.(?=$|\\s))`,
         process.platform === "win32" ? "i" : "").test(text);
     });
     const candidates = namedSources.length ? namedSources : manifest.sources.filter((source) =>
-      ["business", "architecture", "documentation", "api-contracts", "decisions", "office-documents"].includes(source.category) &&
+      source.category !== "logs" &&
       !source.path.startsWith("docs/specifications/") &&
       !source.path.startsWith("specs/approved/") &&
       !isScaffolding(projectRoot, source.path));
@@ -106,6 +106,7 @@ function selectTaskKnowledge(projectRoot, task, limit) {
 
 function routeTask(projectRoot, task, options = {}) {
   const normalizedTask = validateTask(task);
+  const authoringScope = require("../../spec-engine/src/scopes").validateSpecificationScopeTask(projectRoot, task);
   const limit = options.limit ?? 5;
   if (!Number.isInteger(limit) || limit < 1 || limit > 20) throw new Error("Route context limit must be between 1 and 20");
   const catalog = observeLayer(projectRoot, "catalog", () => readInstalledCatalog(projectRoot),
@@ -128,16 +129,23 @@ function routeTask(projectRoot, task, options = {}) {
     ? workflowScores.find((route) => route.workflow === "database-change-with-baseline" && route.score > 0 && route.score === selected.score)
     : null;
   if (databaseRecoveryRoute) selected = databaseRecoveryRoute;
-  const specificationTask = isSpecificationTask(task);
   const features = listFeatures(projectRoot);
   const namedFeatures = features.filter((feature) => new RegExp(`(^|[^a-z0-9-])${feature.id}(?=$|[^a-z0-9-])`, "i").test(task));
-  const activeFeatures = namedFeatures.length ? namedFeatures : features.length === 1 ? features : [];
+  let activeFeatures = namedFeatures.length ? namedFeatures : features.length === 1 ? features : [];
   const actionable = normalize(task).replace(/\b(?:do not implement|don't implement|sin implementar|no implementar|no implementes)\b/g, "");
-  const requestedStage = specificationTask ? "specification"
+  const explicitPhase = activeFeatures.length ? actionable.match(/^\s*(?:please\s+)?(?:create|generate|write|crea\w*|genera\w*|prepara\w*)\s+(?:(?:el|un|the|a|an)\s+)?(?:(?:technical|tecnico)\s+)?(plan|tasks|tareas)\b/)?.[1] : null;
+  const explicitImplementation = activeFeatures.length && /^\s*(?:please\s+)?(?:implement\w*|programa\w*|build)\b/.test(actionable);
+  const specificationTask = isSpecificationTask(task) && !explicitPhase && !explicitImplementation;
+  const requestedStage = explicitPhase ? (explicitPhase === "tareas" ? "tasks" : explicitPhase)
+    : explicitImplementation ? "implementation" : specificationTask ? "specification"
     : /\b(?:tasks|tareas)\b/.test(actionable) && /\b(?:create|generate|write|genera\w*|crea\w*|prepara\w*)\b/.test(actionable) ? "tasks"
     : /\b(?:plan|planifica\w*)\b/.test(actionable) && (/\b(?:create|generate|write|genera\w*|crea\w*|prepara\w*|planifica\w*)\b/.test(actionable) || /^(?:please\s+)?plan\b/.test(actionable)) ? "plan"
     : /\b(?:implement|implementa|implementar|implementad|implementes|programa|programar)\b|\bbuild\s+(?:a|an|the|this)\b/.test(actionable) ? "implementation"
     : "review";
+  if (["plan", "tasks", "implementation"].includes(requestedStage)) {
+    activeFeatures = activeFeatures.map(feature => feature.advancement === "validated"
+      ? require("../../spec-engine/src/lifecycle").advanceValidatedStages(projectRoot, feature.id) : feature);
+  }
   if (specificationTask) {
     const specificationRoute = workflowScores.find((route) => route.workflow === "refine-backlog") ||
       workflowScores.find((route) => route.workflow === "understand-project");
@@ -147,6 +155,10 @@ function routeTask(projectRoot, task, options = {}) {
     const phaseWorkflow = requestedStage === "plan" ? "change-architecture" : "refine-backlog";
     const phaseRoute = workflowScores.find((route) => route.workflow === phaseWorkflow);
     if (phaseRoute) selected = { ...phaseRoute, score: 1, matches: [`specification-phase-${requestedStage}`] };
+  } else if (activeFeatures.length && requestedStage === "implementation") {
+    const deliveryRoute = workflowScores.find(route => route.workflow === "deliver-feature");
+    if (!deliveryRoute) throw new Error("Canonical implementation requires the deliver-feature workflow.");
+    selected = { ...deliveryRoute, score: 1, matches: ["specification-phase-implementation"] };
   }
   const specialistScores = rules.specialists.map((specialist, index) => ({
     ...specialist,
@@ -165,6 +177,7 @@ function routeTask(projectRoot, task, options = {}) {
   const agentId = specificationTask && catalog.agents.some((agent) => agent.id === "product") ? "product"
     : specificationTask ? "orchestrator"
     : databaseRecoveryRoute ? "database"
+    : selected.workflow === "evaluate-agent-assets" ? selected.agent
     : specialistScores[0]?.score > 0
     ? specialistScores[0].agent
     : preferredProjectAgent ||
@@ -178,7 +191,7 @@ function routeTask(projectRoot, task, options = {}) {
     source_path: sourcePath,
     guidance: sourceBody(sourcePath, `agents/${agent.id}`),
   }));
-  const skillIds = [...new Set([...selected.skills, ...agent.skills,
+  const skillIds = [...new Set([...selected.skills, ...workflow.skills, ...agent.skills,
     ...(specificationTask ? ["requirements-discovery"] : [])])];
   const skills = skillIds.map((id) => {
     const skill = catalog.skills.find((item) => item.id === id);
@@ -186,6 +199,7 @@ function routeTask(projectRoot, task, options = {}) {
     return {
       id: skill.id,
       description: skill.description,
+      procedure: skill.procedure || [],
       guidance: skill.source_path ? sourceBody(skill.source_path, `skills/${skill.id}`) : null,
     };
   });
@@ -255,7 +269,7 @@ function routeTask(projectRoot, task, options = {}) {
   let knowledge = [];
   const knowledgeIndex = path.join(projectRoot, ".mcpee/indexes/knowledge-index.json");
   if (fs.existsSync(knowledgeIndex)) {
-    knowledge = observeLayer(projectRoot, "knowledge.lexical", () => selectTaskKnowledge(projectRoot, task, limit),
+    knowledge = observeLayer(projectRoot, "knowledge.lexical", () => selectTaskKnowledge(projectRoot, task, limit, specificationTask),
       result => ({ consulted: true, retrieval: "lexical", selected_count: result.length,
         explicit_source_count: result.filter(item => item.selection === "explicit-task-path").length,
         selected_sources: result.map(item => item.source_path) })).map((result) => ({
@@ -296,16 +310,21 @@ function routeTask(projectRoot, task, options = {}) {
     : [];
   const codeGraphState = readCodeGraphState(projectRoot);
   const documentationOnly = catalog.project_stack?.has_code_signals === false;
-  if (codeGraphState?.status !== "ready" && !documentationOnly) {
+  const structuredAuthoring = specificationTask || activeFeatures.length > 0 && ["plan", "tasks"].includes(requestedStage);
+  const skipCodeGraph = documentationOnly || structuredAuthoring;
+  if (codeGraphState?.status !== "ready" && !skipCodeGraph) {
     recordEvent(projectRoot, { event_name: "context.layer.completed",
       attributes: { layer: "graph.codegraph", consulted: false, outcome: "failure", reason: "Required local CodeGraph index is not ready." } });
     throw new Error("CodeGraph is required for routing but its local index is not ready; run mcpee init or mcpee sync.");
   }
-  const codeGraphMatches = !documentationOnly
+  const codeGraphMatches = !skipCodeGraph
     ? observeLayer(projectRoot, "graph.codegraph", () => searchCodeGraph(projectRoot, task, limit),
       result => ({ consulted: true, selected_count: result.length })) : [];
   if (documentationOnly) recordEvent(projectRoot, { event_name: "context.layer.completed",
     attributes: { layer: "graph.codegraph", consulted: false, outcome: "not-applicable", reason: "This project has no application code to search; documentation-only discovery and architecture do not require a code index." } });
+  else if (structuredAuthoring) recordEvent(projectRoot, { event_name: "context.layer.completed",
+    attributes: { layer: "graph.codegraph", consulted: false, outcome: "not-applicable",
+      reason: "Read-only specification/plan/task authoring uses the current source inventory and unified evidence graph; implementation still requires CodeGraph." } });
   const graphifyState = readGraphifyState(projectRoot);
   const graphifyMatches = graphifyState?.status === "ready"
     ? observeLayer(projectRoot, "graph.graphify", () => searchGraphify(projectRoot, task, limit),
@@ -349,6 +368,7 @@ function routeTask(projectRoot, task, options = {}) {
     project_stack: catalog.project_stack,
     specification_workspace: { path: "specs/README.md", requested_stage: requestedStage,
       features: activeFeatures, requires_feature_selection: features.length > 1 && !namedFeatures.length },
+    ...(authoringScope ? { authoring_scope: authoringScope } : {}),
     ...(specificationTask ? { functional_specification: {
       mode: /\bgreenfield\b/i.test(task) ? "greenfield"
         : /\bbrownfield\b/i.test(task) ? "brownfield"
@@ -395,7 +415,8 @@ function routeTask(projectRoot, task, options = {}) {
         ...(bundle_sha256 ? { bundle_sha256 } : {}) })),
     knowledge_graph_status: {
       unified: unifiedGraphStatus,
-      codegraph: documentationOnly ? "not-applicable-documentation-only" : codeGraphState.status,
+      codegraph: documentationOnly ? "not-applicable-documentation-only"
+        : structuredAuthoring ? "not-applicable-structured-authoring" : codeGraphState.status,
       graphify: graphifyState?.status || "not-synchronized",
     },
     impact_preflight: impactPreflight,

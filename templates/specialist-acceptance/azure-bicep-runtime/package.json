@@ -1,0 +1,17 @@
+{
+  "name": "mcpee-azure-bicep-native-oracles",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "test:azure": "node run-oracle.cjs azure",
+    "test:bicep": "node run-oracle.cjs bicep"
+  },
+  "dependencies": {
+    "@azure/core-rest-pipeline": "1.25.0",
+    "@azure/storage-blob": "12.34.0"
+  }
+}

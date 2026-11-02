@@ -1688,7 +1688,7 @@ test("Copilot execution requires transfer approval without per-file prompts", as
     async createSession(config) {
       clientConfig = config;
       return {
-        sessionId: "copilot-test-session",
+        sessionId: "10000000-0000-4000-8000-000000000001",
         on(handler) {
           this.sdkEventHandler = handler;
         },
@@ -1728,21 +1728,21 @@ test("Copilot execution requires transfer approval without per-file prompts", as
           });
           const readDecision = await config.hooks.onPreToolUse(
             { toolName: "read_file", toolCallId: "read-call-1", toolArgs: { path: "README.md" } },
-            { sessionId: "copilot-test-session" },
+            { sessionId: "10000000-0000-4000-8000-000000000001" },
           );
           const writeDecision = await config.hooks.onPreToolUse(
             { toolName: "edit", toolCallId: "write-call-1", toolArgs: { fileName: "src/example.js", content: "const localCapture = true; API_TOKEN=placeholder" } },
-            { sessionId: "copilot-test-session" },
+            { sessionId: "10000000-0000-4000-8000-000000000001" },
           );
           assert.equal(readDecision.permissionDecision, "allow");
           assert.equal(writeDecision.permissionDecision, "allow");
           await config.hooks.onPostToolUse(
             { toolName: "edit", toolCallId: "write-call-1", toolArgs: { fileName: "src/example.js", content: "const localCapture = true; API_TOKEN=placeholder" } },
-            { sessionId: "copilot-test-session" },
+            { sessionId: "10000000-0000-4000-8000-000000000001" },
           );
           const permissionDecision = await config.onPermissionRequest(
             { kind: "shell", fullCommandText: "npm install", intention: "Install a package" },
-            { sessionId: "copilot-test-session" },
+            { sessionId: "10000000-0000-4000-8000-000000000001" },
           );
           assert.deepEqual(permissionDecision, { kind: "approved" });
           return { data: { content: "Copilot completed the task." } };
@@ -1781,7 +1781,7 @@ test("Copilot execution requires transfer approval without per-file prompts", as
     clientFactory: () => client,
   });
 
-  assert.equal(result.sessionId, "copilot-test-session");
+  assert.equal(result.sessionId, "10000000-0000-4000-8000-000000000001");
   assert.equal(result.content, "Copilot completed the task.");
   assert.deepEqual(result.changedPaths, ["src/example.js"]);
   assert.match(promptText, /MCPEE routing plan/);
@@ -1880,7 +1880,9 @@ test("Copilot execution aborts timed-out work and preserves timeout and cleanup 
       async start() {},
       async createSession() {
         return {
-          sessionId: `timeout-${abortFails}`,
+          sessionId: abortFails
+            ? "40000000-0000-4000-8000-000000000003"
+            : "40000000-0000-4000-8000-000000000002",
           async sendAndWait(message, timeoutMs) {
             assert.equal(typeof message.prompt, "string");
             assert.equal(timeoutMs, 1_800_000);
@@ -1911,7 +1913,9 @@ test("Copilot execution aborts timed-out work and preserves timeout and cleanup 
     assert.deepEqual(calls, ["abort", "disconnect", "stop"]);
     const completion = readEvents(root).find((event) =>
       event.event_name === "copilot.execution.completed" &&
-      event.session_id === `timeout-${abortFails}`);
+      event.session_id === (abortFails
+        ? "40000000-0000-4000-8000-000000000003"
+        : "40000000-0000-4000-8000-000000000002"));
     assert.equal(completion.attributes.outcome, "failure");
     assert.match(completion.attributes.error, /Timeout after 1800000ms/);
     if (abortFails) assert.match(completion.attributes.error, /abort unavailable/);
@@ -1929,7 +1933,7 @@ test("Copilot execution cancels the SDK before disconnecting when its host cance
     async getAuthStatus() { return { isAuthenticated: true }; },
     async createSession() {
       return {
-        sessionId: "host-cancelled-session",
+        sessionId: "10000000-0000-4000-8000-000000000002",
         async sendAndWait() {
           controller.abort(cancellation);
           return new Promise(() => {});
@@ -1982,11 +1986,11 @@ test("Copilot failure telemetry preserves file mutations for post-change recover
     async start() {},
     async createSession(config) {
       return {
-        sessionId: "failed-copilot-session",
+        sessionId: "10000000-0000-4000-8000-000000000003",
         async sendAndWait() {
           await config.hooks.onPostToolUse(
             { toolName: "edit_file", toolArgs: { fileName: "src/app.js" } },
-            { sessionId: "failed-copilot-session" },
+            { sessionId: "10000000-0000-4000-8000-000000000003" },
           );
           throw new Error("session ended unexpectedly");
         },
@@ -2002,9 +2006,75 @@ test("Copilot failure telemetry preserves file mutations for post-change recover
   }), /session ended unexpectedly/);
   const completion = readEvents(root).find((event) =>
     event.event_name === "copilot.execution.completed" &&
-    event.session_id === "failed-copilot-session");
+    event.session_id === "10000000-0000-4000-8000-000000000003");
   assert.equal(completion.attributes.outcome, "failure");
   assert.deepEqual(completion.attributes.changed_paths, ["src/app.js"]);
+});
+
+test("Copilot resumes an interrupted SDK session without replaying pending work", async () => {
+  const root = temporaryProject();
+  initializeProject(root);
+  const sessionId = "40000000-0000-4000-8000-000000000001";
+  const plan = { workflow: { id: "resolve-bug" }, agent: { id: "debugger" } };
+  const firstClient = {
+    async start() {},
+    async createSession(config) {
+      return {
+        sessionId,
+        async sendAndWait() {
+          await config.hooks.onPostToolUse(
+            { toolName: "edit_file", toolArgs: { fileName: "src/first.js" } },
+            { sessionId },
+          );
+          throw new Error("SDK process interrupted");
+        },
+        async disconnect() {},
+      };
+    },
+    async stop() {},
+  };
+  await assert.rejects(runCopilotTask(root, "Inspect and update the service", plan, {
+    approved: true, clientFactory: () => firstClient,
+  }), /SDK process interrupted/);
+
+  const journalPath = path.join(root, ".mcpee/state/resumable-sessions", `${sessionId}.json`);
+  const interrupted = JSON.parse(fs.readFileSync(journalPath, "utf8"));
+  assert.equal(interrupted.status, "interrupted");
+  assert.deepEqual(interrupted.changed_paths, ["src/first.js"]);
+  let resumedPrompt;
+  let resumeConfig;
+  const resumedClient = {
+    async start() {},
+    async createSession() { assert.fail("Recovery must resume, not create a replacement session"); },
+    async resumeSession(id, config) {
+      assert.equal(id, sessionId);
+      resumeConfig = config;
+      return {
+        sessionId,
+        async sendAndWait(message) {
+          resumedPrompt = message.prompt;
+          await config.hooks.onPostToolUse(
+            { toolName: "edit_file", toolArgs: { fileName: "src/second.js" } },
+            { sessionId },
+          );
+          return { data: { content: "Finished the remaining work." } };
+        },
+        async disconnect() {},
+      };
+    },
+    async stop() {},
+  };
+  const resumed = await runCopilotTask(root, "Inspect and update the service", plan, {
+    approved: true, resumeSessionId: sessionId, clientFactory: () => resumedClient,
+  });
+  assert.equal(resumeConfig.continuePendingWork, false);
+  assert.equal(typeof resumeConfig.hooks.onPreToolUse, "function");
+  assert.match(resumedPrompt, /Continue the interrupted MCPEE task/);
+  assert.deepEqual(resumed.changedPaths, ["src/first.js", "src/second.js"]);
+  const completed = JSON.parse(fs.readFileSync(journalPath, "utf8"));
+  assert.equal(completed.status, "completed");
+  assert.equal(completed.attempts, 1);
+  assert.deepEqual(completed.changed_paths, ["src/first.js", "src/second.js"]);
 });
 
 test("Copilot allows task-scoped local edits when impact evidence is unavailable", async () => {
@@ -2016,11 +2086,11 @@ test("Copilot allows task-scoped local edits when impact evidence is unavailable
     async start() {},
     async createSession(config) {
       return {
-        sessionId: "copilot-impact-test-session",
+        sessionId: "10000000-0000-4000-8000-000000000004",
         async sendAndWait() {
           decision = await config.hooks.onPreToolUse(
             { toolName: "edit_file", toolArgs: { fileName: "src/app.js", content: "updated" } },
-            { sessionId: "copilot-impact-test-session" },
+            { sessionId: "10000000-0000-4000-8000-000000000004" },
           );
           return { data: { content: "done" } };
         },
@@ -2132,24 +2202,24 @@ test("Copilot reports impact evidence without blocking scoped edits to existing 
     async start() {},
     async createSession(config) {
       return {
-        sessionId: "copilot-exact-impact-session",
+        sessionId: "10000000-0000-4000-8000-000000000005",
         async sendAndWait() {
           decisions.push(await config.hooks.onPreToolUse(
             { toolName: "apply_patch", toolArgs: "*** Begin Patch\n*** Update File: src/indexed.js\n@@\n-export const value = 1;\n+export const value = 2;\n*** End Patch\n" },
-            { sessionId: "copilot-exact-impact-session" },
+            { sessionId: "10000000-0000-4000-8000-000000000005" },
           ));
           decisions.push(await config.hooks.onPreToolUse(
             { toolName: "edit_file", toolArgs: { fileName: "src/unindexed.js" } },
-            { sessionId: "copilot-exact-impact-session" },
+            { sessionId: "10000000-0000-4000-8000-000000000005" },
           ));
           decisions.push(await config.hooks.onPreToolUse(
             { toolName: "edit_file", toolArgs: { content: "no target path" } },
-            { sessionId: "copilot-exact-impact-session" },
+            { sessionId: "10000000-0000-4000-8000-000000000005" },
           ));
           fs.appendFileSync(path.join(root, "src/indexed.js"), "// source changed after sync\n");
           decisions.push(await config.hooks.onPreToolUse(
             { toolName: "edit_file", toolArgs: { fileName: "src/indexed.js" } },
-            { sessionId: "copilot-exact-impact-session" },
+            { sessionId: "10000000-0000-4000-8000-000000000005" },
           ));
           return { data: { content: "done" } };
         },
@@ -2277,11 +2347,11 @@ test("Copilot permission requests fail closed without an interactive approval ch
     async start() {},
     async createSession(config) {
       return {
-        sessionId: "noninteractive-session",
+        sessionId: "10000000-0000-4000-8000-000000000006",
         async sendAndWait() {
           const toolDecision = await config.hooks.onPreToolUse(
             { toolName: "edit_file", toolArgs: { path: "README.md" } },
-            { sessionId: "noninteractive-session" },
+            { sessionId: "10000000-0000-4000-8000-000000000006" },
           );
           assert.equal(toolDecision.permissionDecision, "deny");
           permissionDecision = await config.onPermissionRequest(
