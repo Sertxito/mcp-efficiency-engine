@@ -28,6 +28,21 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Install pinned Bicep for native acceptance
+        shell: pwsh
+        run: |
+          $asset = if ($IsWindows) { "bicep-win-x64.exe" } else { "bicep-linux-x64" }
+          $executable = Join-Path $env:RUNNER_TEMP $asset
+          Invoke-WebRequest "https://github.com/Azure/bicep/releases/download/v0.39.26/$asset" -OutFile $executable
+          if (-not $IsWindows) {
+            & chmod +x $executable
+            if ($LASTEXITCODE -ne 0) { throw "Cannot enable the pinned Bicep executable." }
+          }
+          $version = & $executable --version
+          if ($LASTEXITCODE -ne 0 -or $version -notmatch '^Bicep CLI version 0\.39\.26\b') {
+            throw "Pinned Bicep verification failed: $version"
+          }
+          "MCPEE_BICEP_PATH=$executable" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Test runtime and catalog
         run: npm test
       - name: Audit dependency advisories

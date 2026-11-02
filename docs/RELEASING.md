@@ -112,6 +112,9 @@ tests remain mocked and do not spend model quota.
 4. Review the exact Git diff and npm file manifest. Do not commit local tool
    installations, credentials, traces, private project fixtures or derived
    knowledge. The MIT license must remain in the tarball.
+   CI downloads Bicep 0.39.26 to the runner's temporary directory and passes its
+   explicit path to native acceptance tests. A different preinstalled version
+   is not accepted as equivalent evidence; no cloud deployment is performed.
 5. Open a PR against `main`. The existing branch protection requires a PR;
    do not bypass it. Both operating-system CI jobs must pass before merging.
 
