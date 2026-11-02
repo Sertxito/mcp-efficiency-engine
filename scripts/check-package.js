@@ -284,7 +284,7 @@ try {
   fs.writeFileSync(path.join(projectRoot, "app.js"), "module.exports = () => 'consumer application';\n");
   const codeInitOutput = execFileSync(process.execPath, [
     installedCli, "init", "--project", projectRoot,
-    "--skip-tool-install", "--embeddings", "none",
+    "--skip-tool-install", "--embeddings", "none", "--prepare-only",
   ], {
     cwd: consumerRoot,
     encoding: "utf8",

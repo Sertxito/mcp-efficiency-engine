@@ -2,21 +2,53 @@
 
 ## Start here: one product workspace
 
-Open `specs/README.md` in an initialized project. It links current features,
+Open `docs/README.md` in an initialized project, then `docs/specifications/README.md`. They link current features,
 their review status and next action, source documents, automatic project maps
 and historical material. You should not need to navigate internal JSON or
 snapshot directories to find your functional specifications.
 If that entry already has owner edits, it is preserved and navigation is
-written to `specs/MCPEE.md`; the CLI prints the actual entry-point path.
+written to the adjacent `MCPEE.md`; the CLI prints the actual entry-point path.
 
-New functional deliverables live in `specs/<feature>/`: `spec.md`, independent
-`UC-###.md` files, `decisions.md` (readable) and `decisions.json` (owner-decision
+All user-facing documentation lives in `docs/`. Functional deliverables live in
+`docs/specifications/<state>/<feature>/`, where state is `proposed`, `reviewed`
+or `approved`: `spec.md`, independent
+`<case-slug>.md` files, `decisions.md` (readable) and `decisions.json` (owner-decision
 records), `specification.json` (validated structured input), `manifest.json`
 (source/case provenance) and `lifecycle.json` (machine validation and reviews).
 Technical `plan.md`/`plan.json` and checkable `tasks.md`/`tasks.json` are authored
 in the same directory, not parallel document trees. The JSON and Markdown are
 one source-bound artifact pair, not independent contracts. Owner edits are
 preserved and disagreements block advancement rather than being overwritten.
+
+### Names and navigation
+
+The same layout and naming apply whether sources are documents (greenfield)
+or an existing application (brownfield). Use short, stable capability names,
+not descriptions: for example `docs/specifications/proposed/about-us/about-us-staff.md`
+and the adjacent `about-us-ambassador.md`. Prefer 2-4 lowercase kebab-case words;
+new explicit feature and case names allow at most 64 characters and 8 words.
+Do not include origin prefixes, `part-1`, snapshot hashes, or `UC-001` in public
+names. Reserved workspace/Windows filenames and name collisions are rejected,
+not silently fixed with numbers or hashes.
+
+The author supplies each use case's `slug`; `UC-###` remains its stable internal
+reference for coverage, dependencies and verification. Older responses without
+case slugs derive bounded descriptive filenames from titles. Existing canonical
+`UC-###.md` files and approvals remain readable and are not renamed silently.
+`docs/specifications/README.md` lists atomic specifications directly, with links,
+capability, state, authority and implementation verification; feature overviews,
+plans and decisions are linked separately.
+An empty index explicitly says that no functional specs have been authored.
+Automatic inventories live in `docs/generated/specification-evidence/`. They are
+extraction evidence, never atomic product specs or automatic sources of truth.
+
+The whole feature bundle moves physically between state directories without
+changing feature/case names. `mcpee specs review --slug <feature> --reviewer <owner>
+--confirm-sha256 <digest>` records review without approval. Explicit specification
+approval, or implementation with current passing recorded checks, promotes the
+bundle to `approved/` and establishes authority. Reviewed is not approved.
+Stale implementation evidence removes verification-derived authority; an explicit
+approved specification remains normative despite application-source drift.
 
 `mcpee specs status [--slug <feature>]` reports the next phase and exact review
 digests. New runtime-authored features use `advancement: validated`: specification,
@@ -41,11 +73,14 @@ blocks new approval/execution but does not erase the normative approved contract
 Ready-for-implementation never means implemented, tested or accepted by users;
 run actual project checks and review their evidence separately.
 
-Run `mcpee specs migrate` once for older projects: supported atomic bundles are
-copied with rebased links and no transferred approval. Manual/monolithic drafts
-are copied as explicitly unvalidated drafts. Originals, old approved contracts
-and internal discovery history remain untouched and linked for provenance.
-An edited atomic case is not silently reconciled against an old manifest.
+Run `mcpee specs migrate` for older projects. Legacy root `specs/` bundles move
+into the appropriate document state with rebased links, preserved review history
+and audited before/after hashes. Machine-only validation becomes reviewed, not
+approved. Manual drafts remain unvalidated. Legacy ratified contracts and
+internal extraction inventories move under `docs/` without inventing approval.
+Older pre-workspace drafts already under `docs/specifications/` are imported
+without transferring approval and their originals remain for provenance.
+Conflicting content and edited cases are never silently overwritten.
 
 This adopts staged specification-driven work, not Spec Kit installation,
 command compatibility or automatic execution of all its stages. The authoring
@@ -54,12 +89,13 @@ semantic correctness, successful implementation or product acceptance.
 
 ## One canonical graph and retrieval corpus
 
-`specs/<feature>/` is the final workspace for both paths. A shared canonical
+`docs/specifications/<state>/<feature>/` is the workspace for both paths. A shared canonical
 artifact inventory includes the specification, atomic cases, manifest,
 decisions and available plans/tasks. Sync includes these artifacts even when
 `knowledge.sourceRoots` only covers application directories. The source
 manifest supplies the same source ID, path, SHA-256 and canonical authority to
-the unified graph, lexical index and embedding chunks. Runtime authoring
+the unified graph, lexical index and embedding chunks. Draft and approved
+specification authority are distinct; indexing a draft does not approve it. Runtime authoring
 refreshes the unified graph and lexical index after publication; it does not
 claim that embeddings were generated. Existing local embeddings are refreshed
 by the normal embedding command and stale chunks are not treated as fresh.
@@ -78,6 +114,90 @@ validation/route/authorization declarations, and declared test names. It
 does not execute tests, infer business intent, send source content to a model,
 or declare observed code to be desired behavior.
 
+## Complete brownfield
+
+`mcpee init` on an existing application, `mcpee brownfield`, or a whole-project
+request such as "Run brownfield" completes local source conversion/retrieval,
+code/document graph synchronization and Copilot functional proposal authoring.
+MarkItDown converts supported binary inputs; local lexical retrieval remains
+available without embeddings. Related original documents are selected alongside
+code, not replaced by generated inventories. Every original document also has
+its own primary coverage units; bounded contextual omissions are recorded.
+Only primary ranges require section coverage in a unit. Related documentation
+is interpretation/contradiction context, not a requirement to specify an entire
+transversal document for every code domain. All cited context still requires
+an exact quote in its selected range and unchanged original/normalized hashes.
+
+Requesting complete brownfield authorizes the Copilot source transfer and quota
+use without an additional authoring confirmation. Tool installations and risky
+actions retain their existing approvals. `init --prepare-only` is the explicit
+local-only alternative; it does not claim complete brownfield.
+
+Every successfully authored scope produces descriptive, source-bound atomic
+files in `docs/specifications/proposed/`. Machine validation checks their
+structure and provenance but does not mark them reviewed or approved in this
+onboarding flow. Contradictions and missing intent remain open questions.
+The batch persists progress under `.mcpee/reports/brownfield/`; a failed scope
+records its error, SDK session and saved candidate directory, then independent
+scopes continue. Successful scopes keep their proposals. A later request reuses current verified artifacts and
+continues missing scopes; it never silently overwrites edits or spends quota
+again for already current scopes. A project lock prevents duplicate batches.
+Final source-bound reconciliation is required before reporting completion.
+Large projects can take hours; the CLI warns before authoring and reports
+counts, elapsed time and last observed phase activity every 30 seconds. A
+heartbeat proves the batch is alive, not that the model made useful progress.
+The default `--concurrency auto` chooses one read-only model session per ten
+pending extraction units, rounded up and capped at ten. Reusable proposals and
+blocked units do not increase that count; more than 100 pending units uses ten
+sessions, and a fully reusable batch starts none. `--concurrency 1..10` overrides
+the automatic choice to bound quota usage. This is a startup choice, not
+continuous autoscaling; provider limits may prevent proportional speedups.
+Publication and indexing run synchronously in the owning
+process, not competing file-writing workers. Naming conflicts preserve both
+the original artifacts and failed candidate evidence, never overwrite a spec.
+The planner reads the lexical index once per preparation rather than once per
+unit. Within a batch, routing and execution reuse prepared scopes while the
+inventory, source/normalized-file metadata and lexical index remain unchanged.
+Changes invalidate preparation, and selected source hashes are still checked
+before execution/publication. No preparation cache persists across batches.
+All domains use the same queue by default. Only for explicit owner priorities,
+use `mcpee brownfield --concurrency 4 --last-domain reporting` to process other
+domains first; deferred domains start only after all other workers have drained.
+There is no automatic retry loop. Per-session deadlines and bounded repairs
+remain enforced. An extraction/validation failure, timeout or source conversion
+failure cannot stop eligible independent scopes. Host cancellation, broken
+shared infrastructure or inability to persist evidence still stops safely.
+Any failed scope, blocked source or incomplete reconciliation produces a
+`partial` report and nonzero exit, never complete or approved status.
+Original-document retrieval is filtered before ranking so newly generated
+proposals cannot displace the input documents or change remaining scope tasks.
+Host cancellation stops the batch and preserves completed proposals. Recovery
+of a saved onboarding candidate retains its complete scope and proposed state;
+it does not automatically advance it to reviewed or approved.
+For proposals, a wrong evidence line can be mechanically reconciled only when
+the unchanged exact quote occurs at one unique line in the selected source.
+The original response and hash remain in execution evidence; the manifest
+records the old/new coordinates and quote hash. Missing or ambiguous quotes
+still fail validation, with all invalid citations reported together.
+Unsupported covered sections report their exact inclusive line range:
+evidence elsewhere in the file is insufficient. Technical-only imports or
+scaffolding may be explicitly out-of-scope with a reason, never silently
+treated as covered business behavior.
+For an interrupted SDK session, `mcpee brownfield --resume-session <uuid>`
+resumes only its exact unchanged scope, using its saved conversation and
+diagnostic; later scopes continue normally. Already published scopes cannot be
+resumed as paid work. Bounded repair attempts continue receiving new diagnostics.
+Graph refresh timestamps are excluded from resume identity, but source hashes,
+task, model, route and all other context remain bound. Older sessions require
+their hash-verified original prompt evidence for this compatibility check.
+Exact authoring scopes use their selected code and document sources, not
+unrelated globally ranked graph hits. This keeps generated proposals and graph
+refreshes from changing a scope's model context. Graphs remain available for
+reconciliation and implementation. An older interrupted session with genuinely
+different context is rejected; start a fresh scope execution rather than
+silently rebasing its saved conversation.
+This is extraction/authoring completeness, not semantic or product certification.
+
 ## Functional authoring versus static inventory
 
 ### Large brownfield preparation
@@ -92,11 +212,33 @@ not only the first retrieved sources. Stale source hashes and invalid paths fail
 explicitly. Processing failures remain visible; logs, generated harness artifacts
 and prior canonical specifications are listed as excluded, not silently lost.
 
-Each exported task names all selected sources and a stable source-bound slug for
-the shared `specs/<scope>/` workspace. Scopes fit 20 files, 2 MiB, 1000 mandatory
-source sections and the router's 10000-character task limit. A single oversized
-source remains blocked with an explicit split action; no section is silently
-cut. Exit 2 signals blocked sources even when other tasks are prepared.
+Each exported task names all selected sources and an internal source-bound scope
+ID. The author chooses descriptive feature/case names for the shared
+`docs/specifications/<state>/<feature>/<case-slug>.md` workspace, independent of that ID. Reconciliation
+binds the scope through provenance and exact source hashes, not public filenames;
+multiple matching specifications are reported as ambiguous, never picked silently.
+Each extraction unit fits four primary files, 24 KiB of primary text and twelve
+primary sections; related excerpts share a separate 12 KiB context budget.
+Large sources are split into contiguous, nonoverlapping numbered line ranges.
+The planner verifies that every line of every planned original source belongs
+to exactly one primary unit. Unit boundaries are mechanical, not certified
+business capabilities; cross-unit prerequisites remain questions for reconciliation.
+Numbered verbatim excerpts, roles and mandatory section boundaries are supplied
+before generation, avoiding a separate full-file discovery pass for each unit.
+
+The router's 10000-character task limit and existing per-source safety checks
+(2 MiB / 1000 sections) still apply. A source exceeding those checks, or a single
+line exceeding the unit byte budget, remains explicitly blocked with a split
+action; it is never truncated. Exit 2 signals blocked sources even when other
+tasks are prepared.
+
+Every successful unit is published and checkpointed independently through the
+same authoring/validation/recovery engine. A later run retries only missing or
+failed units. Unchanged, structurally valid legacy whole-domain proposals may
+cover several new units without regeneration; their original sources and all
+artifact hashes are checked first. Edited or ambiguous prior work blocks reuse,
+not overwrites. Reconciliation counts a reused case file once even when it
+covers multiple units, and preserves graph links to all applicable units.
 
 Execute each exact exported task through normal `mcpee run`/`mcpee_run`; it still
 rechecks the scope digest and exact task against the current inventory before
@@ -127,8 +269,8 @@ draft. MCPEE validates non-empty actors, use cases, main flows, alternatives,
 postconditions, rules, Given/When/Then criteria and exact source-line quotes.
 Each supplied top-level source section must be mapped to use cases or explicitly
 deferred/excluded with a reason. The checked draft is rendered as readable
-Markdown as an index under `specs/<descriptive-slug>/spec.md`, with
-one self-contained `specs/<descriptive-slug>/UC-001.md` file per
+Markdown as an index under `docs/specifications/<state>/<descriptive-slug>/spec.md`, with
+one self-contained `<case-slug>.md` file per
 case and a machine-readable `manifest.json`. The index links to all cases.
 Each case has one explicit actor goal, local decisions still open, and
 prerequisite case references; missing, self-referencing or cyclic dependencies
@@ -195,8 +337,28 @@ diagnostic under `.mcpee/reports/authoring/<run>/`, then permits at most two
 repairs in the same SDK session, within the original execution deadline.
 It never repeats sync or starts a new session for a repair. Source drift,
 publication conflicts and exhausted attempts fail explicitly; candidates remain
-available instead of being lost between runs. These structural and provenance checks cannot
+available instead of being lost between runs. Proposal-only sessions receive the
+exact source contract and policy context, not implementation-only stack evidence,
+technical guides or impact-graph inventories. Required section ranges are supplied
+before generation: a covered section needs a mapped case with an exact quote
+inside that section, not elsewhere in the file.
+
+For a parseable proposal, repairs may return
+`{"replacements":[{"path":"/coverage/0/status","value":"covered"}]}`
+using JSON Pointer paths to existing fields or array indices. Replace the smallest
+affected field; replacing an array can add or remove its elements. MCPEE applies
+only the explicitly supplied replacements and runs the full schema, source,
+coverage and dependency checks again. It does not infer a replacement or silently
+downgrade coverage. Complete corrected JSON remains accepted; an initial malformed
+candidate still needs complete JSON. Expanded candidates retain the normal recovery
+path; original model repair responses and their hashes are saved separately in
+the same execution evidence directory. Repairs retain the original deadline.
+These structural and provenance checks cannot
 prove semantic completeness, correctness, runtime behavior or owner approval.
+Specification, plan and task prose share placeholder detection that preserves
+ordinary Spanish words such as `todo` and `método` and explicit discussion of
+unfinished source behavior. Literal evidence quotes may contain source comments
+such as `TODO`; they must still match the unchanged source at the cited line.
 Source sections marked deferred remain visible review gaps.
 Recover a persisted response without another model run using
 `mcpee specs recover --candidate .mcpee/reports/authoring/<run>/specification-3.txt`.
@@ -219,9 +381,9 @@ observations contribute cases. A source without those facts has zero extracted
 test cases, not four purported business cases.
 
 `mcpee init` creates the first local proposals under
-`.mcpee/specs/proposed/` after the initial source sync when eligible sources
-exist. Drafts and extraction evidence stay in MCPEE-managed state until a
-reviewer ratifies one. Later source changes are reported as drift; neither
+`docs/generated/specification-evidence/` after the initial source sync when eligible sources
+exist. Inventories remain nonauthoritative evidence until a reviewer ratifies
+a completed behavior contract. Later source changes are reported as drift; neither
 `sync` nor `specs discover` rewrites an existing proposal or an approved
 specification. A changed source snapshot produces a new proposal with a
 different snapshot-based ID. Earlier drafts and monolithic baselines remain
@@ -272,7 +434,7 @@ MCPEE as its only dependency does not change that. Start with written requiremen
    observable outcomes, non-goals and unresolved decisions.
 3. Run `mcpee sync --project <path>`, then request a functional draft in Copilot
    using the requirements document's exact path. Review the readable document
-   in `specs/<feature>/`, not just the static inventory. Review the
+   in `docs/specifications/<state>/<feature>/`, not just the static inventory. Review the
    automatically filled matching proposals and their returned digests.
 4. Ratify the exact reviewed digest using the normal explicit reviewer command.
    Routing includes the approved contract in subsequent execution context.
@@ -298,7 +460,7 @@ review and executable checks; a `current` hash result is not compliance proof.
 ## Readable domain review
 
 `specs discover` prints an entry-point Markdown index under
-`.mcpee/specs/reviews/<snapshot>/index.md`. Open that index rather than the JSON
+`docs/generated/specification-evidence/reviews/<snapshot>/index.md`. Open that index rather than the JSON
 manifest. It links to one navigation page per candidate domain and then to
 small review documents with:
 
@@ -469,7 +631,7 @@ canonical workspace instead of duplicating owner review here.
 
 1. Open the index printed by discovery and choose a domain/part.
    Run `mcpee specs list` to find its current SHA-256.
-2. Review `.mcpee/specs/proposed/<id>.md` and the linked case catalog. Replace the
+2. Review `docs/generated/specification-evidence/<id>.md` and the linked case catalog. Replace the
    behavior and acceptance-criteria prompts with owner-confirmed, testable
    statements; record unresolved questions and relevant check results.
 3. Run `mcpee specs ratify --slug <id> --reviewer "<name>" --confirm-sha256 <digest>`.
@@ -479,7 +641,7 @@ canonical workspace instead of duplicating owner review here.
    the evidence/case records; editing generated case pages or removing source
    references from their manifest cannot bypass the review.
 4. Approved specifications and their source-hash manifest are created
-   exclusively under `specs/approved/<id>/`. Existing files are never
+   exclusively under `docs/specifications/approved/<id>/`. Existing files are never
    overwritten. The complete case catalog is copied alongside the approved
    spec, with working links. `mcpee specs drift` checks current proposals and approvals
    against current on-disk source hashes; it never repairs or rewrites them.

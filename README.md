@@ -15,7 +15,7 @@ action, automatic validation after changes and a full local audit trail.
   Existing user files are never overwritten.
 
 npm package: **`mcp-efficiency-engine`** · commands: `mcpee` (or
-`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.43)
+`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.44)
 
 ## Requirements
 
@@ -33,12 +33,12 @@ Full details: [Getting started → Requirements](docs/GETTING-STARTED.md#require
 **1. Install**
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.43
+npm install --global mcp-efficiency-engine@0.1.44
 ```
 
 If npm blocks the native `koffi` dependency, add `--allow-scripts=koffi`
 (only that dependency is allowed). Prefer no global install? Use
-`npx --package=mcp-efficiency-engine@0.1.43 mcpee init --project <path>`.
+`npx --package=mcp-efficiency-engine@0.1.44 mcpee init --project <path>`.
 
 **2. Initialize your project**
 
@@ -92,7 +92,7 @@ Run it after editing code or documents outside Copilot.
 
 | Your project | MCPEE treats it as | What you get |
 |---|---|---|
-| Has source code or an application `package.json` | **Brownfield** | Full local catalog, task-selected stack guidance, static evidence inventories, bounded specification-authoring scopes and validation workflows built from existing checks. |
+| Has source code or an application `package.json` | **Brownfield** | Local document retrieval, code/document graphs and source-bound functional proposals, plus the full catalog and existing-check validation workflows. |
 | Has no code yet | **Greenfield** | Full local catalog, with relevant specialists selected per task rather than every asset added to the prompt. Specifications start from your product sources; `--agents` can explicitly narrow installation. |
 
 Installing MCPEE as the only dependency does not make an empty project brownfield.
@@ -104,15 +104,28 @@ yet."** The internal executor must deliver concrete actors, use cases, flows,
 alternatives, business rules and acceptance criteria. MCPEE checks the structure,
 exact source quotes and declared section coverage, then saves a readable draft
 index and **one self-contained document per use case** under
-`specs/<feature>/`. Start at **`specs/README.md`** rather than internal folders.
+`docs/specifications/<state>/<feature>/`. Start at **`docs/README.md`**,
+then **`docs/specifications/README.md`**, rather than internal folders.
 Each case states one actor goal, flows, rules, acceptance
 criteria, source citations, prerequisite cases and unresolved decisions.
 Empty templates do not count as success. These
 checks do not certify semantic correctness or replace owner review.
 
-**Brownfield next steps:** `init` prepares source-bound authoring scopes after
-sync; inspect or regenerate their exact tasks at any time with
-`mcpee specs scopes --json`. Then use the evidence inventory to draft and review
+**Brownfield result:** `init` synchronizes local knowledge and graphs, then
+automatically authors source-bound functional proposals with Copilot under
+`docs/specifications/proposed/`, combining code with related original documents.
+Requesting brownfield authorizes Copilot quota use and selected-source transfer,
+not requirement approval or implementation. Use `init --prepare-only` for
+local-only setup. `mcpee brownfield` resumes missing scopes, preserving current
+results. Domains are split into bounded extraction units with exact line ranges;
+related documentation informs each unit without requiring its entire coverage again.
+Large projects can take hours. Automatic parallelism starts one model session per
+ten pending units, rounded up and capped at ten, excluding reusable and blocked
+units. Use `--concurrency 1..10` to override it. Progress is reported every 30
+seconds. Scope failures retain evidence and do not block
+the others; partial results are never reported as complete.
+All domains use the same queue; `--last-domain <domain>` is an optional owner choice.
+Inspect exact scopes with `mcpee specs scopes --json` and review
 functional behavior in the same canonical workspace (`mcpee specs status`).
 After all scopes are authored, run `mcpee specs reconcile --json` to produce a
 hash-linked cross-scope review matrix; it surfaces candidates but never
@@ -133,7 +146,10 @@ input limits block the request explicitly rather than dropping requirements.
 Then use `mcpee specs status` to inspect validated specification, technical plan
 and task phases. Advance automatically when checks pass; request human input
 only for unresolved contradictions, decisions or risky actions. All live together under
-`specs/<feature>/`; old discovery proposals remain evidence, not a second
+`docs/specifications/`, physically moving through `proposed/`, `reviewed/` and
+`approved/`. Only explicit approval or implemented-and-currently-verified
+behavior establishes a source of truth; automatic structural validation does
+not. Old discovery proposals remain evidence under `docs/generated/`, not a second
 greenfield approval workflow. Implement with Copilot, add a
 test script, and re-run `mcpee init` once code exists so MCPEE detects the new
 stack and generates validation.

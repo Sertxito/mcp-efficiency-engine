@@ -304,7 +304,7 @@ function routeTask(projectRoot, task, options = {}) {
     }));
   const unifiedGraphPath = path.join(projectRoot, GRAPH_PATH);
   const unifiedGraphStatus = fs.existsSync(unifiedGraphPath) ? "ready" : "not-synchronized";
-  const unifiedMatches = fs.existsSync(unifiedGraphPath)
+  const unifiedMatches = !authoringScope && fs.existsSync(unifiedGraphPath)
     ? observeLayer(projectRoot, "graph.unified", () => searchUnifiedGraph(projectRoot, task, limit),
       result => ({ consulted: true, selected_count: result.length })).map((match) => ({ ...match, graph: "unified" }))
     : [];
@@ -326,7 +326,7 @@ function routeTask(projectRoot, task, options = {}) {
     attributes: { layer: "graph.codegraph", consulted: false, outcome: "not-applicable",
       reason: "Read-only specification/plan/task authoring uses the current source inventory and unified evidence graph; implementation still requires CodeGraph." } });
   const graphifyState = readGraphifyState(projectRoot);
-  const graphifyMatches = graphifyState?.status === "ready"
+  const graphifyMatches = !authoringScope && graphifyState?.status === "ready"
     ? observeLayer(projectRoot, "graph.graphify", () => searchGraphify(projectRoot, task, limit),
       result => ({ consulted: true, selected_count: result.length }))
     : [];
@@ -334,7 +334,10 @@ function routeTask(projectRoot, task, options = {}) {
     ["graph.unified", unifiedGraphStatus === "ready"],
     ["graph.graphify", graphifyState?.status === "ready"],
   ]) {
-    if (!ready) recordEvent(projectRoot, { event_name: "context.layer.completed",
+    if (authoringScope) recordEvent(projectRoot, { event_name: "context.layer.completed",
+      attributes: { layer, consulted: false, outcome: "not-applicable",
+        reason: "Exact source-bound specification scopes exclude unrelated ranked graph context; graphs remain available for reconciliation and implementation." } });
+    else if (!ready) recordEvent(projectRoot, { event_name: "context.layer.completed",
       attributes: { layer, consulted: false, outcome: "unavailable", reason: "Local graph is not ready." } });
   }
   const knowledgeGraph = [
@@ -366,7 +369,7 @@ function routeTask(projectRoot, task, options = {}) {
       execution_stages: EXECUTION_STAGES,
     },
     project_stack: catalog.project_stack,
-    specification_workspace: { path: "specs/README.md", requested_stage: requestedStage,
+    specification_workspace: { path: require("../../spec-engine/src/lifecycle").navigationTarget(projectRoot), requested_stage: requestedStage,
       features: activeFeatures, requires_feature_selection: features.length > 1 && !namedFeatures.length },
     ...(authoringScope ? { authoring_scope: authoringScope } : {}),
     ...(specificationTask ? { functional_specification: {

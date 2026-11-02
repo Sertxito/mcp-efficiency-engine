@@ -14,6 +14,25 @@ const { renameAtomicSync } = require("../../core/src/atomic-file");
 const MAX_APPROVAL_BYTES = 64 * 1024;
 const MAX_PROCESS_OUTPUT_BYTES = 4 * 1024 * 1024;
 const RUN_STATE_DIRECTORY = ".mcpee/state/runs";
+const runProgressSchema = z.object({
+  stage: z.enum(["specification", "plan", "tasks", "indexing", "brownfield"]),
+  status: z.enum(["authoring", "repairing", "validated", "indexing"]),
+  attempt: z.number().int().min(1).max(3), updated_at: z.string(),
+  trace_id: z.string().uuid(),
+  completed: z.number().int().nonnegative().optional(),
+  total: z.number().int().positive().max(5000).optional(),
+  scope: z.string().regex(/^brownfield-[a-z0-9-]+$/).max(150).optional(),
+  failed: z.number().int().nonnegative().optional(),
+  active: z.number().int().nonnegative().optional(),
+  pending: z.number().int().nonnegative().optional(),
+  concurrency: z.number().int().min(0).max(10).optional(),
+  elapsed_ms: z.number().int().nonnegative().optional(),
+  last_activity_at: z.string().optional(),
+}).strict().refine(progress => progress.stage !== "brownfield" ||
+  progress.completed !== undefined && progress.total !== undefined &&
+  progress.completed <= progress.total && progress.scope !== undefined &&
+  (progress.failed === undefined || progress.completed + progress.failed <= progress.total),
+"Brownfield progress requires a bounded scope count and current scope.");
 const runStateSchema = z.object({
   schema_version: z.literal(1), generated_by: z.literal("mcpee"),
   run_id: z.string().uuid(), owner_pid: z.number().int().positive(),
@@ -22,12 +41,7 @@ const runStateSchema = z.object({
   task_sha256: z.string().regex(/^[a-f0-9]{64}$/),
   trace_id: z.string().uuid().nullable(),
   status: z.enum(["running", "cancelling", "completed", "failed", "cancelled"]),
-  progress: z.object({
-    stage: z.enum(["specification", "plan", "tasks", "indexing"]),
-    status: z.enum(["authoring", "repairing", "validated", "indexing"]),
-    attempt: z.number().int().min(1).max(3), updated_at: z.string(),
-    trace_id: z.string().uuid(),
-  }).strict().nullable(),
+  progress: runProgressSchema.nullable(),
   result: z.object({
     isError: z.boolean(),
     content: z.array(z.object({ type: z.literal("text"), text: z.string() }).strict()).min(1),
@@ -335,13 +349,20 @@ function runCopilotCli({
       windowsHide: true,
     });
     child.on("message", (message) => {
-      if (message?.type !== "mcpee-authoring-progress" ||
-          !["specification", "plan", "tasks", "indexing"].includes(message.stage) ||
-          !["authoring", "repairing", "validated", "indexing"].includes(message.status) ||
-          !Number.isInteger(message.attempt) || message.attempt < 1 || message.attempt > 3) return;
+      if (message?.type !== "mcpee-authoring-progress") return;
+      const progress = runProgressSchema.safeParse({
+        stage: message.stage, status: message.status, attempt: message.attempt,
+        updated_at: new Date().toISOString(), trace_id: effectiveTraceId,
+        ...(message.stage === "brownfield" ? {
+          completed: message.completed, total: message.total, scope: message.scope,
+          failed: message.failed, active: message.active, pending: message.pending,
+          concurrency: message.concurrency,
+          elapsed_ms: message.elapsed_ms, last_activity_at: message.last_activity_at,
+        } : {}),
+      });
+      if (!progress.success) return;
       try {
-        onProgress?.({ stage: message.stage, status: message.status, attempt: message.attempt,
-          updated_at: new Date().toISOString() });
+        onProgress?.(progress.data);
       } catch (error) {
         progressFailure = error;
         child.kill();

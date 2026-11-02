@@ -130,7 +130,7 @@ approvals remain mandatory. Adding application code restores code-index checks.
    session, validation, documentation and telemetry evidence, never from
    Copilot's self-reported checklist.
 
-Validated canonical specifications from `specs/<feature>/`, and compatible
+Validated canonical specifications from `docs/specifications/<state>/<feature>/`, and compatible
 historical contracts from `specs/approved/`, are included before context
 authorization in every context mode. Canonical phase prerequisites are rechecked
 before SDK construction. Specification, plan and task authors return structured
@@ -252,7 +252,8 @@ Decisions, manual drafts, drift and missing verification stop the chain.
 `.mcpee/reports/lifecycles/<id>.json` records phase outcomes and the endpoint,
 without storing raw task text. Interrupted chains are not automatically resumed.
 
-Successful canonical checks persist `specs/<feature>/verification.json`:
+Successful canonical checks persist `docs/specifications/approved/<feature>/verification.json`
+and promote the bundle to that physical state with verification-derived authority:
 each use case links tasks, check IDs and implementation paths, with canonical
 phase digests, evaluation report hash and all evaluated file hashes.
 `specs status` reports implementation checks as verified only while those

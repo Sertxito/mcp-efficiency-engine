@@ -5,9 +5,11 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { renameAtomicSync } = require("../../core/src/atomic-file");
 const { readProjectFile } = require("../../evaluation-engine/src/asset-evaluation");
-const { buildSpecificationScopes } = require("./scopes");
+const { buildSpecificationScopes, scopeCoveredByManifest } = require("./scopes");
 const { projectPath, ensureDirectory } = require("./brownfield");
 const { GRAPH_PATH } = require("../../knowledge-engine/src/unified");
+const { listFeatures, readFeature, workspace } = require("./lifecycle");
+const { caseFileName } = require("./naming");
 
 const MAX_FILE_BYTES = 16 * 1024 * 1024;
 const REPORT_PATH = ".mcpee/state/specification-reconciliation.json";
@@ -33,8 +35,25 @@ function currentSourceDigest(root, source) {
   return fs.existsSync(filename) && hash(fs.readFileSync(filename)) === expected;
 }
 
-function inspectScope(root, scope) {
-  const directory = `specs/${scope.id}`;
+function sourceSet(sources) {
+  return JSON.stringify(sources.map(source => ({
+    path: source.original_path || source.path,
+    sha256: source.original_sha256 || source.sha256,
+  })).sort((left, right) => left.path.localeCompare(right.path)));
+}
+
+function inspectScope(root, scope, features) {
+  const matches = features.filter(({ directory, manifest }) =>
+    directory === `specs/${scope.id}` || manifest.authoring_scope?.id === scope.id ||
+    !scope.unit_version && sourceSet(manifest.sources) === sourceSet(scope.sources) ||
+    scope.unit_version === 2 && !manifest.authoring_scope?.unit_version && scopeCoveredByManifest(scope, manifest));
+  if (matches.length > 1) {
+    return { scope_id: scope.id, domain: scope.domain, grouping: scope.grouping,
+      source_snapshot_sha256: scope.source_snapshot_sha256,
+      status: "ambiguous-specification", cases: [],
+      issues: [{ type: "multiple-specifications-for-scope", paths: matches.map(item => item.directory) }] };
+  }
+  const directory = matches[0]?.directory || workspace(scope.id, root);
   const manifestPath = `${directory}/manifest.json`;
   if (!fs.existsSync(projectPath(root, manifestPath))) {
     return { scope_id: scope.id, domain: scope.domain, grouping: scope.grouping,
@@ -53,15 +72,24 @@ function inspectScope(root, scope) {
       issues: [{ type: "invalid-specification-manifest" }] };
   }
   const issues = [];
-  const expectedSources = scope.sources.map(source => ({
+  const expectedSources = [...scope.sources, ...scope.context_sources].map(source => ({
     path: source.path, sha256: source.sha256,
   })).sort((left, right) => left.path.localeCompare(right.path));
   const authoredSources = manifest.sources.map(source => ({
     path: source.original_path || source.path,
     sha256: source.original_sha256 || source.sha256,
   })).sort((left, right) => left.path.localeCompare(right.path));
-  if (JSON.stringify(expectedSources) !== JSON.stringify(authoredSources)) {
+  const legacy = scope.unit_version === 2 && !manifest.authoring_scope?.unit_version && scopeCoveredByManifest(scope, manifest);
+  if (!legacy && JSON.stringify(expectedSources) !== JSON.stringify(authoredSources)) {
     issues.push({ type: "source-scope-mismatch" });
+  }
+  if (scope.unit_version === 2 && !legacy &&
+      (JSON.stringify(manifest.authoring_scope?.source_selections) !== JSON.stringify(scope.source_selections) ||
+      JSON.stringify(manifest.sources.map(source => ({
+        path: source.original_path || source.path, sha256: source.original_sha256 || source.sha256,
+        role: source.coverage_role, ranges: source.selected_ranges,
+      }))) !== JSON.stringify(scope.source_selections))) {
+    issues.push({ type: "source-selection-mismatch" });
   }
   if (manifest.sources.some(source => !currentSourceDigest(root, source))) {
     issues.push({ type: "source-drift" });
@@ -71,7 +99,7 @@ function inspectScope(root, scope) {
   const document = documentResult.value;
   if (hash(index) !== manifest.index_sha256 ||
       hash(documentResult.bytes) !== manifest.document_sha256 ||
-      document.slug !== scope.id || !Array.isArray(document.use_cases) ||
+      path.posix.basename(directory) !== document.slug || !Array.isArray(document.use_cases) ||
       document.use_cases.length !== manifest.cases.length) {
     issues.push({ type: "specification-artifact-drift" });
   }
@@ -79,7 +107,8 @@ function inspectScope(root, scope) {
   const cases = [];
   for (const useCase of document.use_cases || []) {
     const item = manifestCases.get(useCase.id);
-    if (!item || item.path !== `${directory}/${useCase.id}.md` ||
+    if (!item || (item.path !== `${directory}/${useCase.id}.md` &&
+        item.path !== `${directory}/${caseFileName(useCase)}`) ||
         !/^[a-f0-9]{64}$/.test(item.sha256 || "")) {
       issues.push({ type: "invalid-case-manifest", case_id: useCase.id });
       continue;
@@ -128,28 +157,37 @@ function graphReconciliation(root, scopes, sourceHashes) {
   if (!graphCurrent) return {
     status: "stale", sha256: hash(bytes), cross_scope_source_dependencies: [], contradiction_candidates: [],
   };
-  const scopeBySource = new Map(scopes.flatMap(scope =>
-    scope.sources.map(source => [source.path, scope.id])));
+  const scopeBySource = new Map();
+  for (const scope of scopes) {
+    for (const source of scope.sources) {
+      const entries = scopeBySource.get(source.path) || [];
+      entries.push({ scope_id: scope.id, ranges: source.ranges });
+      scopeBySource.set(source.path, entries);
+    }
+  }
   const nodeScope = new Map([...nodes.values()].flatMap(node => {
-    const scope = scopeBySource.get(node.source_path);
-    return scope ? [[node.id, { scope_id: scope, source_path: node.source_path }]] : [];
+    const entries = scopeBySource.get(node.source_path);
+    return entries ? [[node.id, entries.map(item => ({ ...item, source_path: node.source_path }))]] : [];
   }));
   const crossScope = graph.edges.flatMap(edge => {
     if (!["imports_source", "tests_source"].includes(edge.type)) return [];
     const from = nodeScope.get(edge.from), to = nodeScope.get(edge.to);
-    if (!from || !to || from.scope_id === to.scope_id) return [];
-    return [{
-      from_scope: from.scope_id, to_scope: to.scope_id, type: edge.type,
-      source_path: from.source_path, target_path: to.source_path,
+    if (!from || !to) return [];
+    return from.flatMap(origin => to.filter(target => origin.scope_id !== target.scope_id).map(target => ({
+      from_scope: origin.scope_id, to_scope: target.scope_id, type: edge.type,
+      source_path: origin.source_path, target_path: target.source_path,
       evidence: edge.evidence || null,
-    }];
+    })));
   });
   const contradictions = graph.findings.filter(finding =>
     finding.type === "conflicting_source_claims").flatMap(finding => {
-    const claims = (finding.claims || []).map(claim => ({
-      scope_id: scopeBySource.get(claim.source_path) || null,
-      source_path: claim.source_path, line: claim.line, quote: claim.quote,
-    }));
+    const claims = (finding.claims || []).flatMap(claim => {
+      const entries = (scopeBySource.get(claim.source_path) || []).filter(item =>
+        !item.ranges || item.ranges.some(range => claim.line >= range.start_line && claim.line <= range.end_line));
+      return (entries.length ? entries : [{ scope_id: null }]).map(item => ({
+        scope_id: item.scope_id, source_path: claim.source_path, line: claim.line, quote: claim.quote,
+      }));
+    });
     const scopeIds = [...new Set(claims.map(claim => claim.scope_id).filter(Boolean))].sort();
     return scopeIds.length > 1 ? [{
       type: "source-claim-conflict-candidate", finding_id: finding.id,
@@ -166,8 +204,13 @@ function graphReconciliation(root, scopes, sourceHashes) {
 function buildSpecificationReconciliation(projectRoot) {
   const root = path.resolve(projectRoot);
   const planning = buildSpecificationScopes(root);
-  const scopeMatrix = planning.scopes.map(scope => inspectScope(root, scope));
-  const cases = scopeMatrix.flatMap(scope => scope.cases);
+  const features = listFeatures(root).filter(feature => feature.status !== "unvalidated-manual-draft")
+    .map(feature => readFeature(root, feature.id));
+  const scopeMatrix = planning.scopes.map(scope => inspectScope(root, scope, features));
+  const distinctFeatures = [...new Map(scopeMatrix.filter(scope => scope.manifest_path)
+    .map(scope => [scope.manifest_path, scope])).values()];
+  const cases = [...new Map(scopeMatrix.flatMap(scope => scope.cases)
+    .map(item => [item.case_file, item])).values()];
   const goals = new Map();
   for (const item of cases) {
     const key = normalizedText(item.goal);
@@ -229,7 +272,7 @@ function buildSpecificationReconciliation(projectRoot) {
       blocked_sources: planning.summary.blocked_sources,
       excluded_sources: planning.summary.excluded_sources,
       cases: cases.length,
-      unresolved_decisions: scopeMatrix.reduce((total, scope) => total + (scope.unresolved_decisions || 0), 0),
+      unresolved_decisions: distinctFeatures.reduce((total, scope) => total + (scope.unresolved_decisions || 0), 0),
       duplicate_candidates: duplicateCandidates.length,
       shared_evidence_candidates: sharedEvidenceCandidates.length,
       cross_scope_source_dependencies: graph.cross_scope_source_dependencies.length,

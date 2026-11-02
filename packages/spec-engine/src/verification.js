@@ -96,12 +96,14 @@ function recordImplementationVerification(root, slug, canonical, reportPath) {
     attributes: { feature: slug, report: reportPath, evaluation_id: record.evaluation_id,
       scope: record.scope, use_case_count: record.use_cases.length, product_acceptance: record.product_acceptance },
   });
+  require("./relocation").relocateFeature(root, slug, "approved");
   refreshWorkspaceIndex(root);
   const indexing = require("../../source-engine/src/sync").syncProject(root, {
     generateDocumentation: false, tools: [], graphify: { installed: false },
   });
   if (indexing.counts.failed) throw new Error("Verification persisted but canonical retrieval indexing failed; inspect sync evidence.");
-  return record;
+  const { directory: currentDirectory } = readFeature(root, slug);
+  return schema.parse(JSON.parse(fs.readFileSync(projectPath(root, `${currentDirectory}/verification.json`), "utf8")));
 }
 
 module.exports = { implementationStatus, recordImplementationVerification };

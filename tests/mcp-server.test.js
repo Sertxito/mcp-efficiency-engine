@@ -596,6 +596,43 @@ test("MCP cancellation asks the CLI to stop its SDK before forcing process termi
   assert.match(result.text, /cancelled/);
 });
 
+test("MCP forwards validated whole-brownfield scope progress without accepting invalid counts", async () => {
+  const progress = [];
+  const result = await runCopilotCli({
+    projectRoot: os.tmpdir(), packageRoot: path.resolve(__dirname, ".."),
+    task: "Run brownfield", approve: async () => false,
+    onProgress: update => progress.push(update),
+    spawnProcess: (_command, _args, options) => {
+      const child = new EventEmitter();
+      child.stdout = new PassThrough();
+      child.stderr = new PassThrough();
+      child.kill = () => assert.fail("Valid brownfield progress must not stop the batch.");
+      setImmediate(() => {
+        const message = { type: "mcpee-authoring-progress", stage: "brownfield",
+          status: "authoring", attempt: 1, completed: 3, total: 58, scope: "brownfield-about-us-123abc",
+          failed: 1, active: 2, pending: 52, concurrency: 6,
+          elapsed_ms: 3600000, last_activity_at: "2026-11-02T14:00:00Z" };
+        child.emit("message", { ...message, completed: 59 });
+        child.emit("message", { ...message, concurrency: 11 });
+        child.emit("message", message);
+        child.stdout.end(`${options.env.MCPEE_CHAT_RESULT_MARKER}${JSON.stringify({ content: "Brownfield completed" })}\n`);
+        child.emit("close", 0, null);
+      });
+      return child;
+    },
+  });
+  assert.equal(result.isError, false);
+  assert.equal(progress.length, 1);
+  assert.equal(progress[0].stage, "brownfield");
+  assert.equal(progress[0].completed, 3);
+  assert.equal(progress[0].total, 58);
+  assert.equal(progress[0].scope, "brownfield-about-us-123abc");
+  assert.equal(progress[0].failed, 1);
+  assert.equal(progress[0].active, 2);
+  assert.equal(progress[0].concurrency, 6);
+  assert.equal(progress[0].elapsed_ms, 3600000);
+});
+
 test("project-generated MCP launcher loads the installed server and exposes its tool", async (t) => {
   const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), "mcpee-mcp-launcher-"));
   t.after(() => fs.rmSync(projectRoot, { recursive: true, force: true }));

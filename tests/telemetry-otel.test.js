@@ -6,8 +6,35 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const { execFileSync } = require("node:child_process");
-const { redact, recordEvent, readEvents, observeLayer, withTelemetryContext, evaluateTelemetryIntegrity } = require("../packages/core/src/telemetry");
+const { redact, recordEvent, readEvents, observeLayer, withTelemetryContext, evaluateTelemetryIntegrity, pruneExpiredTelemetry } = require("../packages/core/src/telemetry");
 const { buildOtlpTraceExport, writeLocalOtlpExport } = require("../packages/core/src/otel");
+
+test("telemetry reads and prunes incrementally across UTF-8 chunk boundaries without whole-file strings", t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "mcpee-streaming-telemetry-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const current = recordEvent(root, { event_name: "streaming.current", payload: { text: "original" } });
+  const file = path.join(root, ".mcpee/telemetry/events/copilot.jsonl");
+  const expired = { ...current, event_id: "expired", timestamp: "2000-01-01T00:00:00.000Z" };
+  const before = JSON.stringify({ ...current, payload: { text: "" } });
+  const offset = Buffer.byteLength(before.slice(0, before.indexOf('"text":""') + 8));
+  const value = "x".repeat(65535 - offset) + "\u00e1\ud83d\ude00" + "y".repeat(70000);
+  const retained = { ...current, payload: { text: value } };
+  fs.writeFileSync(file, `${JSON.stringify(retained)}\r\n\n${JSON.stringify(expired)}\r\n`);
+  const originalRead = fs.readFileSync;
+  const mockedRead = t.mock.method(fs, "readFileSync", function (filename, ...args) {
+    assert.notEqual(filename, file, "Telemetry must not load the complete file into one string.");
+    return originalRead.call(this, filename, ...args);
+  });
+  assert.equal(pruneExpiredTelemetry(root), 1);
+  assert.deepEqual(readEvents(root), [retained]);
+  assert.equal(evaluateTelemetryIntegrity(root).status, "passed");
+  mockedRead.mock.restore();
+  const valid = fs.readFileSync(file, "utf8");
+  fs.appendFileSync(file, "{broken");
+  assert.throws(() => pruneExpiredTelemetry(root), /Invalid telemetry JSONL.*:2:/);
+  assert.equal(fs.readFileSync(file, "utf8"), valid + "{broken");
+  assert.equal(fs.readdirSync(path.dirname(file)).some(name => name.endsWith(".tmp")), false);
+});
 
 test("redaction preserves only numeric telemetry measures, never token-shaped credentials", () => {
   const metrics = {

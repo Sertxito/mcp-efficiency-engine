@@ -10,7 +10,7 @@ const { initializeProject } = require("../packages/core/src/project");
 const { syncProject, searchKnowledge } = require("../packages/source-engine/src/sync");
 const { prepareFunctionalSources, publishFunctionalSpec, validateFunctionalSpec } = require("../packages/spec-engine/src/functional");
 const { prepareApprovedSpecContext } = require("../packages/spec-engine/src/brownfield");
-const { featureStatus, canonicalArtifacts, advanceValidatedStages, resolveDecision } = require("../packages/spec-engine/src/lifecycle");
+const { featureStatus, canonicalArtifacts, advanceValidatedStages, resolveDecision, workspace } = require("../packages/spec-engine/src/lifecycle");
 const { validatePhase, publishPhase, renderPhase, recoverAuthoring, prepareImplementationValidation } = require("../packages/spec-engine/src/phases");
 const { routeTask } = require("../packages/routing-engine/src/route");
 const { runCopilotTask } = require("../packages/execution-engine/src/copilot");
@@ -50,7 +50,7 @@ function fixture({ brownfield = false, question = false } = {}) {
     non_goals: ["Private account management and lending are outside this feature."],
     actors: [{ id: "ACT-001", name: "Library reader", goal: "Find matching books in the public catalog." }],
     use_cases: [{
-      id: "UC-001", title: "Search the public book catalog", actor: "ACT-001",
+      id: "UC-001", slug: "catalog-search", title: "Search the public book catalog", actor: "ACT-001",
       basis: brownfield ? "observed" : "documented",
       goal: "Find books matching a title without authenticating.",
       dependencies: [], open_questions: [],
@@ -94,20 +94,26 @@ function tasks(root) {
     tasks: [{ ...task, id: "TASK-002", description: "Verify anonymous title search and its empty response.",
       paths: ["tests/catalog.test.js"], depends_on: ["TASK-001"] }, task], open_questions: [] };
 }
-async function execute(root, task, plan, responses, prompts = []) {
+async function execute(root, task, plan, responses, prompts = [], options = {}) {
   let sends = 0;
+  const session = sessionId => ({
+    sessionId,
+    async sendAndWait({ prompt }) {
+      prompts.push(prompt);
+      assert.ok(sends < responses.length, "No unbounded or duplicate generation");
+      return { data: { content: JSON.stringify(responses[sends++]) } };
+    },
+    async disconnect() {},
+  });
   return runCopilotTask(root, task, plan, {
+    ...options,
     approved: true, contextPackage: prepareApprovedSpecContext(root, plan),
     clientFactory: () => ({
       async start() {}, async stop() {},
       async createSession() {
-        return { sessionId: `20000000-0000-4000-8000-${String(++executionSessionCount).padStart(12, "0")}`,
-          async sendAndWait({ prompt }) {
-            prompts.push(prompt);
-            assert.ok(sends < responses.length, "No unbounded or duplicate generation");
-            return { data: { content: JSON.stringify(responses[sends++]) } };
-          }, async disconnect() {} };
+        return session(`20000000-0000-4000-8000-${String(++executionSessionCount).padStart(12, "0")}`);
       },
+      async resumeSession(sessionId) { return session(sessionId); },
     }),
   });
 }
@@ -128,18 +134,18 @@ test("greenfield and brownfield use identical validated final artifacts and cove
     assert.equal(featureStatus(root, document.slug).reviews.specification.validation, "machine-validated");
     assert.equal(featureStatus(root, document.slug).next, "author-plan");
     assert.throws(() => createPlan(root, { slug: document.slug, title: "Catalog plan" }), /structured plan authoring/);
-    assert.equal(fs.existsSync(path.join(root, "specs", document.slug, "plan.md")), false);
+    assert.equal(fs.existsSync(path.join(root, workspace(document.slug, root), "plan.md")), false);
     publishPhase(root, document.slug, "plan", JSON.stringify(technicalPlan(root)));
     assert.equal(featureStatus(root, document.slug).next, "author-tasks");
     publishPhase(root, document.slug, "tasks", JSON.stringify(tasks(root)));
     const status = featureStatus(root, document.slug);
     assert.equal(status.next, "implement-and-verify");
     assert.equal(status.implementation_verified, false);
-    const markdown = fs.readFileSync(path.join(root, "specs", document.slug, "tasks.md"), "utf8");
+    const markdown = fs.readFileSync(path.join(root, workspace(document.slug, root), "tasks.md"), "utf8");
     assert.ok(markdown.indexOf("**TASK-001**") < markdown.indexOf("**TASK-002**"));
-    for (const name of ["spec.md", "UC-001.md", "specification.json", "manifest.json", "decisions.json",
+    for (const name of ["spec.md", "catalog-search.md", "specification.json", "manifest.json", "decisions.json",
       "decisions.md", "lifecycle.json", "plan.md", "plan.json", "tasks.md", "tasks.json"]) {
-      assert.ok(fs.existsSync(path.join(root, "specs", document.slug, name)), name);
+      assert.ok(fs.existsSync(path.join(root, workspace(document.slug, root), name)), name);
     }
   }
 });
@@ -159,7 +165,7 @@ test("graph, lexical and embedding chunks share canonical identity and hashes, e
     assert.equal(node.sha256, artifact.sha256);
     assert.equal(lexical.sha256, artifact.sha256);
     assert.equal(node.source_id, lexical.source_id);
-    assert.equal(node.authority, "canonical-specification");
+    assert.equal(node.authority, "draft-specification");
     for (const chunk of chunkDocument(root, lexical)) {
       assert.equal(chunk.source_id, lexical.source_id);
       assert.equal(chunk.source_sha256, node.sha256);
@@ -167,10 +173,10 @@ test("graph, lexical and embedding chunks share canonical identity and hashes, e
     }
   }
   assert.ok(searchKnowledge(root, "Anonymous public catalog design", 100)
-    .some(item => item.source_path === "specs/public-catalog/plan.md"));
+    .some(item => item.source_path === `${workspace("public-catalog", root)}/plan.md`));
   assert.ok(!index.documents.some(item => /\/reviews\/|lifecycle\.json$/.test(item.source_path)));
   const rerouted = routeTask(root, "Draft greenfield functional specifications");
-  assert.ok(!rerouted.knowledge.some(item => item.source_path.startsWith("specs/")));
+  assert.ok(!rerouted.knowledge.some(item => item.source_path.startsWith("docs/specifications/")));
 });
 
 test("unresolved decisions block automation; explicit resolution advances without a second approval", () => {
@@ -194,7 +200,7 @@ test("invalid references, omitted cases, cyclic dependencies and owner edits nev
   const invalid = technicalPlan(root);
   invalid.design[0].use_cases = ["UC-099"];
   assert.throws(() => publishPhase(root, document.slug, "plan", JSON.stringify(invalid)), /Unknown use case/);
-  assert.equal(fs.existsSync(path.join(root, "specs", document.slug, "plan.md")), false);
+  assert.equal(fs.existsSync(path.join(root, workspace(document.slug, root), "plan.md")), false);
   publishPhase(root, document.slug, "plan", JSON.stringify(technicalPlan(root)));
   const cyclic = tasks(root);
   cyclic.tasks[1].depends_on = ["TASK-002"];
@@ -202,7 +208,7 @@ test("invalid references, omitted cases, cyclic dependencies and owner edits nev
   const stale = tasks(root);
   stale.plan_sha256 = "a".repeat(64);
   assert.throws(() => validatePhase(root, document.slug, "tasks", JSON.stringify(stale)), /current validated plan/);
-  fs.appendFileSync(path.join(root, "specs", document.slug, "spec.md"), "\nOwner clarification changes the product contract.\n");
+  fs.appendFileSync(path.join(root, workspace(document.slug, root), "spec.md"), "\nOwner clarification changes the product contract.\n");
   assert.throws(() => advanceValidatedStages(root, document.slug), /Canonical specification changed/);
   assert.equal(featureStatus(root, document.slug).reviews.plan.approved, false);
 });
@@ -219,10 +225,10 @@ test("the executor repairs invalid JSON in one session then publishes and indexe
   assert.equal(attempts.length, 4);
   assert.equal(read(root, `${result.authoringEvidence}/specification-1.json`).status, "invalid");
   assert.equal(read(root, `${result.authoringEvidence}/specification-1.json`).source_snapshot[0].sha256,
-    read(root, "specs/public-catalog/manifest.json").sources[0].sha256);
+    read(root, `${workspace("public-catalog", root)}/manifest.json`).sources[0].sha256);
   assert.equal(read(root, `${result.authoringEvidence}/specification-2.json`).status, "validated");
   assert.ok(searchKnowledge(root, "Public catalog specifications", 100)
-    .some(item => item.source_path === "specs/public-catalog/spec.md"));
+    .some(item => item.source_path === `${workspace("public-catalog", root)}/spec.md`));
   const planRoute = routeTask(root, "Create plan for public-catalog");
   const phase = await execute(root, "Create plan for public-catalog", planRoute, [technicalPlan(root)]);
   assert.equal(phase.phase.status.next, "author-tasks");
@@ -231,8 +237,140 @@ test("the executor repairs invalid JSON in one session then publishes and indexe
   assert.equal(delivery.phase.status.next, "implement-and-verify");
   assert.equal(delivery.phase.status.implementation_verified, false);
   assert.ok(searchKnowledge(root, "Anonymous catalog implementation tasks", 100)
-    .some(item => item.source_path === "specs/public-catalog/tasks.md"),
+    .some(item => item.source_path === `${workspace("public-catalog", root)}/tasks.md`),
   JSON.stringify(read(root, ".mcpee/indexes/knowledge-index.json").documents.map(item => item.source_path)));
+});
+
+test("onboarding reconciles exact citation coordinates without another model call and preserves the original response", async () => {
+  const { root, document, plan } = fixture();
+  document.use_cases[0].evidence[0].line = 1;
+  const prompts = [];
+  const result = await execute(root, "Draft greenfield functional specifications", plan,
+    [document], prompts, { proposalOnly: true });
+  assert.equal(prompts.length, 1);
+  const candidate = `${result.authoringEvidence}/specification-1.txt`;
+  assert.equal(JSON.parse(fs.readFileSync(path.join(root, candidate), "utf8")).use_cases[0].evidence[0].line, 1);
+  const metadata = read(root, `${result.authoringEvidence}/specification-1.json`);
+  assert.equal(metadata.citation_corrections[0].line, 4);
+  assert.notEqual(metadata.publication_sha256, metadata.response_sha256);
+  assert.equal(featureStatus(root, document.slug).document_state, "proposed");
+  assert.equal(read(root, result.specification.manifestPath).citation_corrections.length, 1);
+  const recovered = recoverAuthoring(root, candidate);
+  assert.equal(recovered.result.lifecycle.document_state, "proposed");
+});
+
+test("bounded units use the normal executor, persist selected evidence and recover without another generation", async () => {
+  const { root, file, document } = fixture();
+  const { buildSpecificationScopes } = require("../packages/spec-engine/src/scopes");
+  const scope = buildSpecificationScopes(root).scopes.find(item => item.sources.some(source => source.path === file));
+  assert.ok(scope);
+  const prompts = [];
+  document.coverage.unshift({ path: file, line: 1, status: "out-of-scope", use_cases: [],
+    reason: "The document heading identifies the catalog, not an independently executable requirement." });
+  const result = await execute(root, scope.task, routeTask(root, scope.task), [document], prompts, { proposalOnly: true });
+  assert.equal(prompts.length, 1);
+  assert.match(prompts[0], /4: Readers search the public catalog without authentication/);
+  const metadataPath = `${result.authoringEvidence}/specification-1.json`;
+  const metadata = read(root, metadataPath);
+  assert.equal(metadata.authoring_scope.unit_version, 2);
+  assert.equal(metadata.source_snapshot[0].coverage_role, "primary");
+  assert.deepEqual(metadata.source_snapshot[0].selected_ranges, scope.source_selections[0].ranges);
+  assert.equal(recoverAuthoring(root, metadata.response_path).result.lifecycle.document_state, "proposed");
+  metadata.source_snapshot[0].coverage_role = "context";
+  fs.writeFileSync(path.join(root, metadataPath), JSON.stringify(metadata));
+  assert.throws(() => recoverAuthoring(root, metadata.response_path), /Recovery sources do not match/);
+});
+
+test("specification, plan and task authoring share Spanish-safe placeholder checks", () => {
+  const { root, document, sources } = fixture();
+  publishFunctionalSpec(root, JSON.stringify(document), sources, { automatic: true });
+  const plan = technicalPlan(root);
+  plan.design[0].description = "El método de búsqueda conserva todo el contrato del catálogo público.";
+  validatePhase(root, document.slug, "plan", JSON.stringify(plan));
+  const invalid = structuredClone(plan);
+  invalid.design[0].description = "TODO: definir el método de búsqueda.";
+  assert.throws(() => validatePhase(root, document.slug, "plan", JSON.stringify(invalid)), /Concrete phase content/);
+  publishPhase(root, document.slug, "plan", JSON.stringify(plan));
+  const taskDocument = tasks(root);
+  taskDocument.tasks[0].description = "Verificar que el método devuelve todo el listado público esperado.";
+  validatePhase(root, document.slug, "tasks", JSON.stringify(taskDocument));
+  taskDocument.tasks[0].description = "TBD completar pruebas de búsqueda.";
+  assert.throws(() => validatePhase(root, document.slug, "tasks", JSON.stringify(taskDocument)), /Concrete phase content/);
+});
+
+test("proposal prompts exclude implementation-only context while preserving policy and exact coverage", async () => {
+  const { root, document, plan } = fixture();
+  const irrelevant = "unrelated-stack-and-graph-evidence-".repeat(12000);
+  plan.project_stack = { ...plan.project_stack, unrelated: irrelevant };
+  plan.impact_preflight = { unrelated: irrelevant };
+  plan.technical_guidance = [{ id: "implementation-only", content: irrelevant }];
+  const prompts = [];
+  await execute(root, "Draft greenfield functional specifications", plan,
+    [document], prompts, { proposalOnly: true });
+  assert.equal(prompts.length, 1);
+  assert.ok(Buffer.byteLength(prompts[0]) < 25000, Buffer.byteLength(prompts[0]));
+  assert.doesNotMatch(prompts[0], /unrelated-stack-and-graph-evidence/);
+  assert.match(prompts[0], /policy_controls/);
+  assert.match(prompts[0], /Selected sources and required section coverage/);
+  assert.match(prompts[0], /end_line/);
+  assert.equal(featureStatus(root, document.slug).authoritative, false);
+  assert.equal(featureStatus(root, document.slug).document_state, "proposed");
+});
+
+test("proposal repairs publish a fully validated expanded candidate and preserve the original small model response", async () => {
+  const { root, document, plan } = fixture();
+  const invalid = structuredClone(document);
+  invalid.coverage[0].status = "complete";
+  const replacement = { replacements: [{ path: "/coverage/0/status", value: "covered" }] };
+  const prompts = [];
+  const result = await execute(root, "Draft greenfield functional specifications", plan,
+    [invalid, replacement], prompts, { proposalOnly: true });
+  assert.equal(prompts.length, 2);
+  assert.match(prompts[1], /RFC 6901 JSON Pointer/);
+  const metadata = read(root, `${result.authoringEvidence}/specification-2.json`);
+  assert.deepEqual(read(root, metadata.response_path), document);
+  assert.deepEqual(read(root, metadata.model_response_path), replacement);
+  assert.notEqual(metadata.model_response_sha256, metadata.response_sha256);
+  assert.equal(metadata.repair_base_sha256,
+    crypto.createHash("sha256").update(JSON.stringify(invalid)).digest("hex"));
+  assert.ok(JSON.stringify(replacement).length < JSON.stringify(document).length / 10);
+  assert.equal(featureStatus(root, document.slug).authoritative, false);
+  assert.equal(recoverAuthoring(root, metadata.response_path).result.lifecycle.document_state, "proposed");
+});
+
+test("malformed replacement paths retain diagnostics and do not discard the last complete repair base", async () => {
+  const { root, document, plan } = fixture();
+  const invalid = structuredClone(document);
+  invalid.coverage[0].status = "complete";
+  const prompts = [];
+  const result = await execute(root, "Draft greenfield functional specifications", plan,
+    [invalid, { replacements: [{ path: "/use_cases/99/evidence", value: [] }] },
+      { replacements: [{ path: "/coverage/0/status", value: "covered" }] }],
+    prompts, { proposalOnly: true });
+  assert.equal(prompts.length, 3);
+  assert.match(prompts[2], /specification-1\.txt/);
+  assert.match(prompts[2], /Repair must replace an existing own field/);
+  assert.equal(read(root, `${result.authoringEvidence}/specification-2.json`).status, "invalid");
+  assert.deepEqual(read(root, `${result.authoringEvidence}/specification-3.txt`), document);
+});
+
+test("resumed structured authoring receives the recorded failure first and fresh repair diagnostics on later attempts", async () => {
+  const { root, document, plan } = fixture();
+  const task = "Draft greenfield functional specifications";
+  const invalid = structuredClone(document);
+  invalid.coverage[0].status = "complete";
+  await assert.rejects(execute(root, task, plan, [invalid, invalid, invalid]), /3 bounded attempts/);
+  const sessionDirectory = path.join(root, ".mcpee/state/resumable-sessions");
+  const sessionId = fs.readdirSync(sessionDirectory).find(file => file.endsWith(".json")).slice(0, -5);
+  const prompts = [];
+  const result = await execute(root, task, plan, [invalid, document], prompts, { resumeSessionId: sessionId });
+  assert.equal(result.sessionId, sessionId);
+  assert.equal(prompts.length, 2);
+  assert.match(prompts[0], /Continue the interrupted MCPEE task/);
+  assert.match(prompts[0], /Last persisted failure:/);
+  assert.match(prompts[0], /3 bounded attempts/);
+  assert.match(prompts[1], /^Repair the previous specification JSON/);
+  assert.match(prompts[1], /Exact validator diagnostic:/);
 });
 
 test("source drift saves the candidate and stops before spending another repair attempt", async () => {
@@ -252,7 +390,7 @@ test("source drift saves the candidate and stops before spending another repair 
     }),
   }), /Source drift prevents repair/);
   assert.equal(sends, 1);
-  assert.equal(fs.existsSync(path.join(root, "specs", document.slug, "spec.md")), false);
+  assert.equal(fs.existsSync(path.join(root, workspace(document.slug, root), "spec.md")), false);
   const attemptsRoot = path.join(root, ".mcpee", "reports", "authoring");
   const [attempt] = fs.readdirSync(attemptsRoot);
   assert.equal(fs.readdirSync(path.join(attemptsRoot, attempt)).length, 2);
@@ -262,7 +400,7 @@ test("tasks retain actual use-case prerequisites, not merely an acyclic task lis
   const { root, file, document } = fixture();
   fs.appendFileSync(path.join(root, file), "\n## Details\nReaders open details for a matching book title.\n");
   const details = structuredClone(document.use_cases[0]);
-  Object.assign(details, { id: "UC-002", title: "Read matching book details",
+  Object.assign(details, { id: "UC-002", slug: "book-details", title: "Read matching book details",
     goal: "Understand the details of a book found in the public catalog.",
     trigger: "The reader selects a matching book title.",
     preconditions: ["A public catalog search has returned a matching book title."],
@@ -348,9 +486,9 @@ test("only an actual typed risky action creates a plan approval gate; Markdown n
   assert.throws(() => validatePhase(root, document.slug, "plan", JSON.stringify(plan)), /actual typed risky action/);
   plan.risks[0].requires_approval = false;
   publishPhase(root, document.slug, "plan", JSON.stringify(plan));
-  fs.writeFileSync(path.join(root, "specs/public-catalog/plan.md"), renderPhase("plan", plan).trimEnd().replace(/\n/g, "\r\n"));
+  fs.writeFileSync(path.join(root, `${workspace("public-catalog", root)}/plan.md`), renderPhase("plan", plan).trimEnd().replace(/\n/g, "\r\n"));
   assert.equal(advanceValidatedStages(root, document.slug).reviews.plan.validation, "machine-validated");
-  fs.appendFileSync(path.join(root, "specs/public-catalog/plan.md"), "\nOwner changes the actual implementation contract.\n");
+  fs.appendFileSync(path.join(root, `${workspace("public-catalog", root)}/plan.md`), "\nOwner changes the actual implementation contract.\n");
   assert.throws(() => advanceValidatedStages(root, document.slug), /JSON and Markdown disagree/);
   const risky = fixture();
   publishFunctionalSpec(risky.root, JSON.stringify(risky.document), risky.sources, { automatic: true });
@@ -386,10 +524,34 @@ test("saved candidate recovery requires exact checksum, original scope and uncha
   save();
   const recovered = recoverAuthoring(root, candidate, [file]);
   assert.equal(recovered.result.lifecycle.next, "author-plan");
-  const canonical = path.join(root, "specs/public-catalog/spec.md");
+  const canonical = path.join(root, `${workspace("public-catalog", root)}/spec.md`);
   fs.appendFileSync(canonical, "\nOwner contract change.\n");
   assert.throws(() => recoverAuthoring(root, candidate, [file]), /conflict|changed|exists|different|reconcile/i);
   assert.match(fs.readFileSync(canonical, "utf8"), /Owner contract change/);
+});
+
+test("recovering a brownfield onboarding candidate preserves its exact scope and proposed state", () => {
+  const { root, document, file } = fixture();
+  const { buildSpecificationScopes, validateSpecificationScopeTask, prepareScopeSources } = require("../packages/spec-engine/src/scopes");
+  const scope = buildSpecificationScopes(root).scopes.find(scope => scope.sources.some(source => source.path === file));
+  document.coverage.unshift({ path: file, line: 1, status: "out-of-scope", use_cases: [],
+    reason: "The document title identifies the catalog; it adds no independent requirement." });
+  const candidate = ".mcpee/reports/authoring/abcdef02/specification-1.txt";
+  const response = JSON.stringify(document);
+  fs.mkdirSync(path.dirname(path.join(root, candidate)), { recursive: true });
+  fs.writeFileSync(path.join(root, candidate), response);
+  const metadata = { generated_by: "mcpee", stage: "specification", response_path: candidate,
+    response_sha256: crypto.createHash("sha256").update(response).digest("hex"),
+    source_snapshot: prepareScopeSources(root, scope).map(({ lines, ...source }) => source),
+    proposal_only: true, authoring_scope: validateSpecificationScopeTask(root, scope.task),
+    authoring_task: scope.task };
+  fs.writeFileSync(path.join(root, candidate.replace(".txt", ".json")), JSON.stringify(metadata));
+  assert.throws(() => recoverAuthoring(root, candidate, [file]), /complete original authoring scope/);
+  const recovered = recoverAuthoring(root, candidate);
+  assert.equal(recovered.result.lifecycle.document_state, "proposed");
+  assert.equal(recovered.result.lifecycle.authoritative, false);
+  assert.equal(recovered.result.lifecycle.reviews.specification.approved, false);
+  assert.deepEqual(read(root, recovered.result.manifestPath).authoring_scope, metadata.authoring_scope);
 });
 
 test("canonical local implementation checks complete without a routed ingestion workflow or per-test approval", async () => {
@@ -437,9 +599,12 @@ test("canonical local implementation checks complete without a routed ingestion 
   assert.equal(exitCode, 0);
   assert.equal(validation.status, "passed");
   assert.equal(featureStatus(root, document.slug).implementation_verified, true);
+  assert.equal(featureStatus(root, document.slug).document_state, "approved");
+  assert.equal(featureStatus(root, document.slug).authority_basis, "implemented-and-verified");
+  assert.equal(fs.existsSync(path.join(root, "docs/specifications/reviewed/public-catalog")), false);
   assert.equal(featureStatus(root, document.slug).next, "review-product-acceptance");
   assert.equal(featureStatus(root, document.slug).implementation.product_acceptance, "not-verified");
-  const verification = read(root, "specs/public-catalog/verification.json");
+  const verification = read(root, `${workspace("public-catalog", root)}/verification.json`);
   assert.deepEqual(verification.use_cases[0].tasks.sort(), ["TASK-001", "TASK-002"]);
   assert.deepEqual(verification.use_cases[0].checks, ["CHECK-001"]);
   assert.ok(canonicalArtifacts(root).some(file => file.path.endsWith("/verification.json")));
@@ -448,7 +613,8 @@ test("canonical local implementation checks complete without a routed ingestion 
   report.checks[0].args = ["--version"];
   fs.writeFileSync(path.join(root, validation.report), JSON.stringify(report));
   assert.equal(featureStatus(root, document.slug).implementation_verified, false);
-  assert.throws(() => recordImplementationVerification(root, document.slug, canonical, validation.report), /exact canonical check/);
+  assert.throws(() => recordImplementationVerification(root, document.slug,
+    prepareImplementationValidation(root, document.slug), validation.report), /exact canonical check/);
   fs.writeFileSync(path.join(root, validation.report), originalReport);
   const done = await runSpecificationLifecycle(root, {
     slug: document.slug, task: "Implement the public catalog", through: "verification",
@@ -469,6 +635,7 @@ test("canonical local implementation checks complete without a routed ingestion 
   assert.equal(failed, 1);
   assert.equal(validation.status, "failed");
   assert.equal(featureStatus(root, document.slug).implementation_verified, false);
+  assert.equal(featureStatus(root, document.slug).authoritative, false);
   assert.equal(featureStatus(root, document.slug).implementation.status, "stale");
 });
 

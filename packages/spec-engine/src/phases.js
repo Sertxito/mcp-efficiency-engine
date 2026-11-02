@@ -6,9 +6,10 @@ const crypto = require("node:crypto");
 const { z } = require("zod");
 const { projectPath, ensureDirectory } = require("./brownfield");
 const { readFeature, featureStatus, currentDigest } = require("./lifecycle");
+const { hasAuthoringPlaceholder } = require("./authoring-text");
 
 const text = z.string().trim().min(8).max(4000).refine(value =>
-  !/\b(?:TODO|TBD|placeholder|lorem ipsum)\b|<!--/i.test(value), "Concrete phase content is required.");
+  !hasAuthoringPlaceholder(value), "Concrete phase content is required.");
 const caseId = z.string().regex(/^UC-\d{3}$/);
 const safePath = z.string().min(1).refine(value =>
   !/^[\\/]|^[A-Za-z]:|[\r\n\0]|\\/.test(value) &&
@@ -118,8 +119,8 @@ function validatePhase(root, slug, stage, response) {
   return document;
 }
 
-function renderPhase(stage, document) {
-  const link = id => `[${id}](${id}.md)`;
+function renderPhase(stage, document, cases = []) {
+  const link = id => `[${id}](${path.posix.basename(cases.find(item => item.id === id)?.path || `${id}.md`)})`;
   const orderedTasks = [];
   if (stage === "tasks") {
     const added = new Set();
@@ -167,15 +168,17 @@ function phasePrompt(root, slug, stage) {
     open_questions: [],
   };
   return [
-    `Author only the ${stage} phase for specs/${slug}/. Return one JSON object; MCPEE renders the canonical Markdown and manifest. Do not write files, implement code, execute commands or approve risky actions.`,
+    `Author only the ${stage} phase for ${readFeature(root, slug).directory}/. Return one JSON object; MCPEE renders the canonical Markdown and manifest. Do not write files, implement code, execute commands or approve risky actions.`,
     "Read every canonical use case and decisions.md. For tasks, read plan.md and plan.json. Account for every use case, keep exact current digests, concrete paths and checks, and acyclic dependencies. Commands are proposed verification, not evidence they ran. Do not invent answers to contradictory requirements; record open_questions. Only an actual risky action proposed by this plan may set requires_approval true, with a matching approval_action. Missing visual/runtime acceptance or a disclaimer that local tests are not production acceptance is not a human approval gate.",
     "Shape example, not a reference solution:", JSON.stringify(sample),
     "Machine schema:", JSON.stringify(z.toJSONSchema(stage === "plan" ? planSchema : tasksSchema, { unrepresentable: "any" })),
   ].join("\n\n");
 }
 
-function phaseMarkdownMatches(stage, document, markdown) {
-  return renderPhase(stage, document).trimEnd() === markdown.replace(/\r\n/g, "\n").trimEnd();
+function phaseMarkdownMatches(stage, document, markdown, cases = []) {
+  const actual = markdown.replace(/\r\n/g, "\n").trimEnd();
+  return renderPhase(stage, document, cases).trimEnd() === actual ||
+    renderPhase(stage, document).trimEnd() === actual;
 }
 
 function prepareImplementationValidation(root, slug) {
@@ -217,7 +220,7 @@ function publishPhase(root, slug, stage, response) {
   const document = validatePhase(root, slug, stage, response);
   const { directory } = readFeature(root, slug);
   const outputs = [{ path: `${directory}/${stage}.json`, content: `${JSON.stringify(document, null, 2)}\n` },
-    { path: `${directory}/${stage}.md`, content: renderPhase(stage, document) }];
+    { path: `${directory}/${stage}.md`, content: renderPhase(stage, document, readFeature(root, slug).manifest.cases) }];
   for (const file of outputs) {
     const filename = projectPath(root, file.path);
     if (fs.existsSync(filename) && fs.readFileSync(filename, "utf8") !== file.content) {
@@ -266,9 +269,29 @@ function recoverAuthoring(root, candidate, sourcePaths = []) {
     }
     const { sourceDrift } = require("./lifecycle");
     if (sourceDrift(root, { sources: selected }).length) throw new Error("Source drift blocks recovery; do not silently rebase the candidate.");
+    let authoringScope;
+    if (metadata.authoring_scope) {
+      authoringScope = require("./scopes").validateSpecificationScopeTask(root, metadata.authoring_task);
+      if (!authoringScope || JSON.stringify(authoringScope) !== JSON.stringify(metadata.authoring_scope) || sourcePaths.length) {
+        throw new Error("Scoped recovery requires the unchanged complete original authoring scope.");
+      }
+    }
     const { prepareFunctionalSources, publishFunctionalSpec } = require("./functional");
-    result = publishFunctionalSpec(root, response,
-      prepareFunctionalSources(root, selected.map(source => source.original_path || source.path)), { automatic: true });
+    const sources = authoringScope
+      ? require("./scopes").prepareScopeSources(root, authoringScope)
+      : prepareFunctionalSources(root, selected.map(source => source.original_path || source.path));
+    if (authoringScope) {
+      const identity = items => JSON.stringify(items.map(source => ({
+        path: source.path, sha256: source.sha256, original_path: source.original_path,
+        original_sha256: source.original_sha256,
+        coverage_role: source.coverage_role, selected_ranges: source.selected_ranges,
+      })).sort((a, b) => a.path.localeCompare(b.path)));
+      if (identity(selected) !== identity(sources)) throw new Error("Recovery sources do not match the complete current authoring scope.");
+    }
+    result = publishFunctionalSpec(root, response, sources, {
+      automatic: true, proposalOnly: metadata.proposal_only === true,
+      ...(authoringScope ? { authoringScope } : {}),
+    });
   } else if (["plan", "tasks"].includes(metadata.stage)) {
     if (sourcePaths.length) throw new Error("Plan/task recovery is bound to its canonical upstream phases, not alternate sources.");
     result = publishPhase(root, metadata.feature, metadata.stage, response);

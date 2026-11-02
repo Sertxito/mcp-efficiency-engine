@@ -2520,6 +2520,7 @@ test("sync detects tampered derived knowledge and rebuilds it from the unchanged
   fs.writeFileSync(source, "# Verified source\nThe original content is authoritative.\n");
 
   const initial = syncProject(root);
+  assert.ok(!initial.sources.some(entry => ["docs/README.md", "docs/specifications/README.md"].includes(entry.path)));
   const indexed = initial.sources.find((entry) => entry.path === sourcePath);
   assert.equal(indexed.status, "processed");
   const normalizedPath = path.join(root, indexed.normalized_path);
@@ -4362,7 +4363,7 @@ test("one init extracts brownfield implementation and assertions across arbitrar
     fs.writeFileSync(filename, content);
   }
   installFakeCodeGraph(root);
-  const args = [cli, "init", "--project", root, "--skip-tool-install", "--embeddings", "none"];
+  const args = [cli, "init", "--project", root, "--skip-tool-install", "--embeddings", "none", "--prepare-only"];
   const output = execFileSync(process.execPath, args, { encoding: "utf8" });
   assert.match(output, /Automatic brownfield extraction:/);
   assert.match(output, /No extra discovery command is needed/);
@@ -4509,7 +4510,7 @@ test("CLI supports init, doctor, tools, captured traces, memory, observe, knowle
     scripts: { test: "node --version", lint: "node --version" },
   }));
   installFakeCodeGraph(root);
-  const initOutput = execFileSync(process.execPath, [cli, "init", "--project", root, "--skip-tool-install"], { encoding: "utf8" });
+  const initOutput = execFileSync(process.execPath, [cli, "init", "--project", root, "--skip-tool-install", "--prepare-only"], { encoding: "utf8" });
   assert.match(initOutput, /Discovered \d+\/\d+ catalogued local tools/);
   assert.match(initOutput, /Initial local sync: \d+ source\(s\)/);
   assert.match(initOutput, /CodeGraph init completed/);

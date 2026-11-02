@@ -123,6 +123,10 @@ Reading rules for the library:
 - Detailed event records, including prompts, responses and available tool
   inputs and results, are kept locally for 30 days. They are pruned on
   telemetry reads and periodically on writes.
+- Retention and event parsing read JSONL incrementally, avoiding a single
+  whole-file string during long runs. Invalid records fail explicitly and
+  retention preserves the original file if validation fails. APIs returning
+  all events still require memory for their parsed results.
 - Aggregated observations and explicitly exported reports do not expire
   automatically.
 - Redaction removes common credential patterns and secret-like fields but

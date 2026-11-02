@@ -3,7 +3,7 @@
 const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
-const { redact } = require("../../core/src/telemetry");
+const { redact, readEvents } = require("../../core/src/telemetry");
 const { renameAtomicSync } = require("../../core/src/atomic-file");
 
 const DIRECTORY = ".mcpee/state/resumable-sessions";
@@ -11,6 +11,16 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 
 function hash(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
+}
+
+function promptIdentity(prompt) {
+  const marker = "MCPEE routing plan (context, not authorization to make changes):\n\n";
+  const start = prompt.indexOf(marker);
+  const end = prompt.indexOf("\n\nExecute the selected workflow", start + marker.length);
+  if (start < 0 || end < 0) return hash(prompt);
+  const context = JSON.parse(prompt.slice(start + marker.length, end));
+  for (const target of context.impact_preflight?.targets || []) delete target.generated_at;
+  return hash(prompt.slice(0, start + marker.length) + JSON.stringify(context) + prompt.slice(end));
 }
 
 function sessionFile(root, sessionId) {
@@ -148,9 +158,22 @@ function acquireSession(root, sessionId, input) {
       task_sha256: expectedTask, workflow_id: input.workflow_id, agent_id: input.agent_id,
       prompt_sha256: input.prompt_sha256, model: input.model,
     }));
-    if (record.task_sha256 !== expectedTask || record.execution_sha256 !== expectedExecution ||
-        record.workflow_id !== input.workflow_id || record.agent_id !== input.agent_id ||
-        record.model !== input.model) {
+    const sameTask = record.task_sha256 === expectedTask && record.workflow_id === input.workflow_id &&
+      record.agent_id === input.agent_id && record.model === input.model;
+    let sameExecution = record.execution_sha256 === expectedExecution;
+    if (sameTask && !sameExecution && typeof input.prompt === "string") {
+      const original = readEvents(root).find(event => event.event_name === "copilot.execution.started" &&
+        event.session_id === sessionId && event.trace_id === record.trace_id && typeof event.payload?.prompt === "string");
+      if (original) {
+        const originalExecution = hash(JSON.stringify({
+          task_sha256: expectedTask, workflow_id: input.workflow_id, agent_id: input.agent_id,
+          prompt_sha256: hash(original.payload.prompt), model: input.model,
+        }));
+        sameExecution = record.execution_sha256 === originalExecution &&
+          promptIdentity(original.payload.prompt) === input.prompt_sha256;
+      }
+    }
+    if (!sameTask || !sameExecution) {
       throw new Error("Resume task, route, model or selected context differs from the interrupted execution; no SDK session was resumed.");
     }
     record.status = "resuming";
@@ -184,5 +207,5 @@ function updateSession(lease, status, details = {}) {
 }
 
 module.exports = {
-  acquireSession, createSessionRecord, hash, updateSession,
+  acquireSession, createSessionRecord, hash, promptIdentity, updateSession, readSession,
 };

@@ -123,7 +123,7 @@ const PROJECT_VALIDATION_SCRIPTS = [
   ["build", "build"],
 ];
 const TELEMETRY_COMMANDS = new Set([
-  "evaluate", "workflow", "sync", "rebuild", "update", "learn", "tasks", "memory", "specs",
+  "evaluate", "workflow", "sync", "rebuild", "update", "learn", "tasks", "memory", "specs", "brownfield",
 ]);
 
 function optionValue(args, name, fallback = "") {
@@ -520,6 +520,7 @@ function printHelp() {
     "  skills     Report observed workflow evaluation outcomes for catalog skills",
     "  plan       Create or list durable project specifications and delivery plans",
     "  specs      Navigate specifications, clarify, approve phases, migrate drafts, and inspect evidence",
+    "  brownfield Sync local RAG/graphs and author all source-bound functional proposals with Copilot",
     "  evaluate   Execute local checks or evaluate an agent-asset response",
     "  workflow   Run a declared, project-local sequence of allowlisted checks",
     "  learn      Propose, inspect, and explicitly approve evaluated learning",
@@ -534,6 +535,7 @@ function printHelp() {
     "",
     "Options:",
     "  --project <path>  Project root (default: current directory)",
+    "  init --prepare-only  Prepare local tools/indexes without paid brownfield authoring",
     "  --session <id>    Filter traces by Copilot session",
     "  --event <name>    Filter traces by hook event",
     "  --show <id>       Print one complete sanitized event",
@@ -550,6 +552,7 @@ function printHelp() {
     "  specs scopes [--json] (read-only bounded brownfield authoring scopes)",
     "  specs reconcile [--json] (hash-linked brownfield cross-scope review matrix)",
     "  specs status [--slug <feature>] [--json] | specs migrate [--json]",
+    "  specs review --slug <feature> --reviewer <owner> --confirm-sha256 <digest>",
     "  specs decide --slug <feature> --id Q-001 --answer <decision> --reviewer <owner>",
     "  specs approve --slug <feature> --stage specification|plan|tasks --reviewer <owner> --confirm-sha256 <digest>",
     "  specs recover --candidate .mcpee/reports/authoring/<run>/<phase>-<attempt>.txt [--source <original-path>]",
@@ -884,7 +887,7 @@ async function refreshConfiguredEmbeddings(root) {
   return buildEmbeddingIndex(root, { profile, onProgress: reportEmbeddingProgress });
 }
 
-async function runSync(root) {
+async function runSync(root, { allowSourceFailures = false } = {}) {
   const statePath = path.join(root, ".mcpee", "state", "project.json");
   if (!fs.existsSync(statePath)) {
     process.stderr.write("[mcpee] Project is not initialized. Run mcpee init first.\n");
@@ -937,7 +940,7 @@ async function runSync(root) {
   } else {
     process.stderr.write(`[mcpee] CodeGraph sync failed: ${codeGraph.error}\n`);
   }
-  return result.counts.failed > 0 || !["ready", "not-applicable"].includes(codeGraph.status) || result.graphify.status === "failed" ? 1 : 0;
+  return (!allowSourceFailures && result.counts.failed > 0) || !["ready", "not-applicable"].includes(codeGraph.status) || result.graphify.status === "failed" ? 1 : 0;
 }
 
 function runSpecs(root, args) {
@@ -965,12 +968,16 @@ function runSpecs(root, args) {
     }
     return ["blocked", "incomplete"].includes(result.status) ? 2 : 0;
   }
-  if (["status", "approve", "decide", "migrate", "recover"].includes(action)) {
+  if (["status", "approve", "review", "decide", "migrate", "recover"].includes(action)) {
     const slug = optionValue(args, "--slug");
     if (action === "status") {
       result = slug ? listFeatures(root).find((feature) => feature.id === slug) || featureStatus(root, slug) : listFeatures(root);
     } else if (action === "migrate") {
       result = migrateDrafts(root);
+    } else if (action === "review") {
+      result = require("../../spec-engine/src/lifecycle").reviewSpecification(root, {
+        slug, reviewer: optionValue(args, "--reviewer"), confirmSha256: optionValue(args, "--confirm-sha256"),
+      });
     } else if (action === "approve") {
       result = approveStage(root, {
         slug, stage: optionValue(args, "--stage") || "specification",
@@ -1035,7 +1042,7 @@ function runSpecs(root, args) {
     process.stdout.write(`  reviewed proposal SHA-256=${result.proposalSha256}\n`);
     return 0;
   }
-  throw new Error("Use mcpee specs status|migrate|discover|scopes|list|drift; specs decide --slug <id> --id Q-001 --answer <text> --reviewer <owner>; specs approve --slug <id> --stage specification|plan|tasks --reviewer <owner> --confirm-sha256 <digest>; or legacy specs ratify.");
+  throw new Error("Use mcpee specs status|migrate|discover|scopes|list|drift; specs decide --slug <id> --id Q-001 --answer <text> --reviewer <owner>; specs review --slug <id> --reviewer <owner> --confirm-sha256 <digest>; specs approve --slug <id> --stage specification|plan|tasks --reviewer <owner> --confirm-sha256 <digest>; or legacy specs ratify.");
 }
 
 async function approveMaintenance(action, description) {
@@ -2109,7 +2116,7 @@ function runPlan(root, args) {
   const plan = createPlan(root, { slug, title });
   refreshWorkspaceIndex(root);
   process.stdout.write(`[mcpee] Created planning artifacts for ${plan.id}:\n${plan.files.map((file) => `  ${file}`).join("\n")}\n`);
-  process.stdout.write("[mcpee] Unreviewed template, not a completed plan. Start here: specs/README.md. Historical .mcpee/planning artifacts remain preserved.\n");
+  process.stdout.write("[mcpee] Unreviewed template, not a completed plan. Start here: docs/README.md. Historical .mcpee/planning artifacts remain preserved.\n");
   return 0;
 }
 
@@ -2549,6 +2556,16 @@ async function synchronizeAfterCopilotChanges(root, changedPaths, workflowId, op
 }
 
 async function runCopilotCommand(root, args) {
+  if (require("../../spec-engine/src/brownfield-authoring").isBrownfieldRequest(optionValue(args, "--task"))) {
+    const result = await runBrownfield(root, args);
+    if (args.includes("--chat-json")) {
+      if (!/^__MCPEE_CHAT_RESULT_[a-f0-9]{32}__$/.test(CHAT_RESULT_MARKER || "")) throw new Error("Invalid chat response marker.");
+      process.stdout.write(`${CHAT_RESULT_MARKER}${JSON.stringify({
+        content: `Brownfield ${result.status}. Completed scopes: ${result.summary?.completed || 0}; failed: ${result.summary?.failed || 0}; total: ${result.scopes?.length || 0}. Start at docs/README.md. Report: ${result.report || "see setup diagnostics"}. Specifications are proposals, not approved requirements.`,
+      })}\n`);
+    }
+    return result.exitCode;
+  }
   if (args.includes("--through")) {
     if (args.includes("--resume-session")) {
       process.stderr.write("[mcpee] --resume-session cannot be combined with --through; resume one interrupted SDK task at a time.\n");
@@ -2620,6 +2637,53 @@ async function runCopilotCommand(root, args) {
       }
     });
   });
+}
+
+async function runBrownfield(root, args, { prepared = false } = {}) {
+  const requestedConcurrency = optionValue(args, "--concurrency", "auto");
+  const concurrency = requestedConcurrency === "auto" ? "auto" : Number(requestedConcurrency);
+  const lastDomains = optionValue(args, "--last-domain", "").split(",").filter(Boolean);
+  require("../../spec-engine/src/brownfield-authoring").brownfieldConcurrency(0, concurrency);
+  process.stdout.write(`[mcpee] Large brownfield discovery can take hours; ${concurrency === "auto" ? "automatic parallelism, up to 10" : concurrency} concurrent authoring session(s). Scope failures retain evidence and the remaining scopes continue. A partial batch is not complete. Progress is reported every 30 seconds; activity alone does not prove progress.\n`);
+  if (!prepared) {
+    const code = await runSync(root, { allowSourceFailures: true });
+    if (code !== 0) return { status: "blocked", exitCode: code };
+    const codeGraph = readCodeGraphState(root);
+    if (codeGraph?.status !== "ready") throw new Error("Brownfield requires a healthy code graph; run mcpee init to resolve the reported tool/index blocker.");
+  }
+  process.stdout.write("[mcpee] Brownfield includes Copilot authoring of functional proposals from code plus related local documentation. This request authorizes source transfer and quota use, not implementation or approval.\n");
+  const cancellation = new AbortController();
+  const onHostMessage = message => {
+    if (message?.type === "mcpee.cancel") cancellation.abort(new Error("MCPEE execution was cancelled by the host."));
+  };
+  if (process.connected) process.on("message", onHostMessage);
+  try {
+    const result = await require("../../spec-engine/src/brownfield-authoring").authorBrownfield(root, {
+      authorized: true, model: optionValue(args, "--model", "auto"),
+      resumeSessionId: optionValue(args, "--resume-session"),
+      concurrency, lastDomains,
+      signal: cancellation.signal,
+      onProgress: progress => {
+        process.stdout.write(`[mcpee] Brownfield ${progress.event}: ${progress.scope}; completed=${progress.completed}/${progress.total} failed=${progress.failed} active=${progress.active} pending=${progress.pending} concurrency=${progress.concurrency} elapsed=${Math.round(progress.elapsed_ms / 1000)}s; last-activity=${progress.last_activity_at}; report=${progress.report}\n`);
+        if (progress.error) process.stderr.write(`[mcpee] Scope ${progress.scope}: ${progress.error}; evidence saved, continuing independent scopes.\n`);
+        if (process.connected && typeof process.send === "function") {
+          process.send({ type: "mcpee-authoring-progress", stage: "brownfield", status: "authoring", attempt: 1,
+            completed: progress.completed, total: progress.total, scope: progress.scope,
+            failed: progress.failed, active: progress.active, pending: progress.pending,
+            concurrency: progress.concurrency,
+            elapsed_ms: progress.elapsed_ms, last_activity_at: progress.last_activity_at });
+        }
+      },
+      onModelProgress: progress => {
+        if (process.connected && typeof process.send === "function") process.send({ type: "mcpee-authoring-progress", ...progress });
+      },
+    });
+    process.stdout.write(`[mcpee] Brownfield ${result.status}; scopes=${result.scopes.length}; report=${result.report}; authority not granted.\n`);
+    if (result.reason) process.stderr.write(`[mcpee] ${result.reason}\n`);
+    return result;
+  } finally {
+    if (process.connected) process.removeListener("message", onHostMessage);
+  }
 }
 
 async function runCopilotCommandInternal(root, args) {
@@ -3282,7 +3346,9 @@ async function runCommand(args) {
       for (const source of specificationScopes.blocked) {
         process.stderr.write(`[mcpee] Brownfield scope blocked: ${source.path} (${source.reason})${source.action ? ` - ${source.action}` : ""}\n`);
       }
-      process.stdout.write("[mcpee] No model was run and no functional specification was authored. Inspect exact tasks with `mcpee specs scopes --json`; rerun this command any time after syncing sources.\n");
+      process.stdout.write(rest.includes("--prepare-only")
+        ? "[mcpee] Local preparation only: no model was run and no functional specification was authored. Run mcpee brownfield to complete authoring.\n"
+        : "[mcpee] Local preparation finished; automatic brownfield proposal authoring follows after readiness checks.\n");
     }
     if (workflowSpecs.status === "ready") {
       const checks = workflowSpecs.checks.map((check) => `${check.tool}:${check.id}`).join(", ");
@@ -3318,8 +3384,8 @@ async function runCommand(args) {
       toolReport.tools,
     );
     if (workflowSpecs.status === "failed" ||
-        specificationScopes && specificationScopes.status !== "planned" ||
-        sync.counts.failed > 0 || sync.graphify.status === "failed" ||
+        specificationScopes && !specificationScopes.scopes.length ||
+        (sync.counts.failed > 0 && !specificationScopes?.scopes.length) || sync.graphify.status === "failed" ||
         toolFailures.length > 0 || !["ready", "not-applicable"].includes(codeGraph.status)) {
       process.stderr.write("[mcpee] SETUP INCOMPLETE - capabilities are configured, but the harness is not fully ready.\n");
       if (specificationScopes && specificationScopes.status !== "planned") {
@@ -3329,7 +3395,17 @@ async function runCommand(args) {
       process.stderr.write("[mcpee] Resolve the reported blockers, then rerun mcpee init; existing capability selections and user files are preserved.\n");
       return 1;
     }
-    process.stdout.write("[mcpee] SETUP COMPLETE - required tools and indexes are ready.\n");
+    if (specificationScopes && !rest.includes("--prepare-only")) {
+      const authored = await runBrownfield(root, rest, { prepared: true });
+      if (authored.exitCode !== 0) {
+        process.stderr.write(`[mcpee] BROWNFIELD INCOMPLETE - functional proposal authoring ${authored.status}; ${authored.report}.\n`);
+        return authored.exitCode;
+      }
+      process.stdout.write(`[mcpee] Brownfield complete: ${authored.scopes.length} source-bound scopes authored or preserved. Proposals: docs/specifications/proposed/; report=${authored.report}. No requirements were approved.\n`);
+    }
+    process.stdout.write(rest.includes("--prepare-only")
+      ? "[mcpee] LOCAL PREPARATION COMPLETE - tools and indexes are ready; functional brownfield authoring is pending.\n"
+      : "[mcpee] SETUP COMPLETE - required tools, indexes and requested functional proposals are ready.\n");
     return 0;
   }
   if (command === "trace") return runTrace(root, rest);
@@ -3337,6 +3413,7 @@ async function runCommand(args) {
   if (command === "impact") return runImpact(root, rest);
   if (command === "drift") return runDrift(root, rest);
   if (command === "specs") return runSpecs(root, rest);
+  if (command === "brownfield") return (await runBrownfield(root, rest)).exitCode;
   if (command === "tools") return runTools(root, rest);
   if (command === "cloud") return runCloud(root, rest);
   if (command === "telemetry") return runTelemetry(root, rest);

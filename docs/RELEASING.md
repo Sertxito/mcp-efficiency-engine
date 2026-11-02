@@ -5,12 +5,28 @@
 - Repository: <https://github.com/Sertxito/mcp-efficiency-engine>
 - npm package: `mcp-efficiency-engine`
 - Commands: `mcpee` and `mcp-efficiency-engine`
-- Current candidate: **0.1.43**, following published **0.1.42**
+- Current candidate: **0.1.44**, following published **0.1.43**
 - Runtime: Node.js **>=24**
 
 Keep the normal pre-1.0 version sequence until stable acceptance is complete.
 Do not label the target architecture fully implemented or promote to 1.0.0
 based only on passing automated tests.
+
+The 0.1.44 patch unifies greenfield and brownfield specification lifecycle,
+descriptive names and document-state navigation. It adds bounded, resumable
+brownfield extraction with primary/context ranges, recoverable JSON replacement
+repairs, Spanish-safe placeholder checks and streaming telemetry retention.
+Preparation shares lexical-index parsing and batch-local scope plans, with
+invalidation and source-integrity checks. Automatic concurrency selects one
+session per ten pending units, rounded up and capped at ten; explicit 1..10
+overrides remain available. Reused proposals do not inflate worker count.
+
+Greenfield/lifecycle behavior is covered by automated fixtures and installed
+package checks, not a new real-model greenfield certification. Real brownfield
+acceptance remains partial: new units have completed, but timeouts and
+descriptive-name conflicts still occur. Preserve their evidence; do not call
+this release complete project acceptance or promise proportional speedups.
+The ongoing acceptance project is not bundled or changed by publication.
 
 The 0.1.43 security patch updates vulnerable transitive dependencies and bundles
 the pinned SDK JavaScript without its vulnerable transitive Zod installation.
@@ -46,12 +62,15 @@ while routing only relevant guidance. Explicit agent selections and existing
 removals are preserved. Existing projects can approve `capabilities install all`
 to expand their local catalog; installation does not execute specialists.
 
-The human entry point is `specs/README.md` (or `specs/MCPEE.md` when preserving
-an owner-edited README). Functional specs, independent cases, decisions, plans,
-tasks and review snapshots share `specs/<feature>/`. Approval gates bind the
-reviewed artifacts and upstream phases; readiness is not implementation or
-verification. Legacy draft migration copies rather than deletes, rebases links
-and never transfers approval or invents atomic decomposition. Existing projects should
+The human entry point is `docs/README.md` (or adjacent `MCPEE.md` when preserving
+owner edits), with every specification indexed under `docs/specifications/`.
+Functional specs, independent cases, decisions, plans, tasks and review snapshots
+move together through `proposed`, `reviewed` and `approved` directories. Explicit
+approval or implemented-and-currently-verified behavior establishes authority;
+automatic structural validation does not. Legacy root-workspace migration
+rebases links and preserves existing reviews with audited hashes, without
+inventing authority or atomic decomposition. Older pre-workspace drafts are
+imported as unapproved copies. Existing projects should
 upgrade and run `mcpee update`, followed by `mcpee sync` to refresh detection
 and inventories. Old drafts and approved contracts are preserved.
 
@@ -118,8 +137,8 @@ After deployment, verify:
 
 ```sh
 npm view mcp-efficiency-engine version
-npm view mcp-efficiency-engine@0.1.39 bin engines dist.integrity --json
-npx --package=mcp-efficiency-engine@0.1.39 mcpee help
+npm view mcp-efficiency-engine@0.1.44 bin engines dist.integrity --json
+npx --package=mcp-efficiency-engine@0.1.44 mcpee help
 ```
 
 Also check the release workflow and GitHub Pages deployment. A failed

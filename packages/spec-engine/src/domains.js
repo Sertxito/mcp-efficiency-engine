@@ -307,7 +307,7 @@ function renderCasePages({ slug, cases, specPath, evidencePath, formatVersion = 
   return pages;
 }
 
-function renderDomainProposal({ slug, domain, part, parts, sources, cases, snapshotHash, specPath, evidencePath, marker }) {
+function renderDomainProposal({ slug, domain, part, parts, sources, cases, snapshotHash, specPath, evidencePath, marker, workspacePath = "docs/specifications/README.md" }) {
   const declared = cases.filter((item) => item.kind === "declared");
   const validations = cases.filter((item) => item.kind !== "declared" && item.title !== "Owner-confirmed normal behavior");
   const facts = sources.flatMap((source) => source.facts.map((fact) => ({ ...fact, source: source.path })));
@@ -324,7 +324,7 @@ function renderDomainProposal({ slug, domain, part, parts, sources, cases, snaps
     "",
     `**Scope:** ${sources.length} sources; ${declared.length} test declarations; ${facts.length} static observations.`,
     "Domain membership is a path/name-based inference, not a confirmed business boundary.",
-    "This static inventory is not a functional specification. Ask mcpee_run to draft a functional specification from the relevant product sources; the readable deliverable belongs under docs/specifications/.",
+    `This is generated extraction evidence, NOT an atomic functional specification. Start at [the project specification index](${path.posix.relative(path.posix.dirname(specPath), workspacePath)}). Both origins use docs/specifications/{proposed,reviewed,approved}/<feature>/<case-slug>.md, with short capability names such as about-us-staff. Only explicit approval or implemented-and-verified behavior establishes the source of truth. Do not promote this inventory by moving or renaming it.`,
     "",
     "## Intended behavior", "",
     "<!-- Replace this prompt with behavior confirmed by the accountable owner. -->",

@@ -20,12 +20,12 @@ function documentFor(scope, source) {
   }));
   return {
     language: "en", title: `Workflow for ${scope.domain}`,
-    slug: scope.id, summary: "A user completes a service request using the available workflow.",
+    slug: scope.domain, summary: "A user completes a service request using the available workflow.",
     scope: ["Users complete the supported request."],
     non_goals: ["Administrative configuration remains outside this workflow."],
     actors: [{ id: "ACT-001", name: "User", goal: "Complete the requested operation." }],
     use_cases: [{
-      id: "UC-001", title: `Complete the ${scope.domain} operation`,
+      id: "UC-001", slug: `${scope.domain}-request`, title: `Complete the ${scope.domain} operation`,
       actor: "ACT-001", goal: "A user completes a service request using the available workflow.",
       dependencies: [], open_questions: [], basis: "observed",
       trigger: "The user starts the operation.",
@@ -70,12 +70,16 @@ test("reconciliation persists a source-bound case matrix and flags candidates wi
 
   for (const scope of scopes) {
     const source = prepareFunctionalSources(root, scope.sources.map(item => item.path))[0];
-    publishFunctionalSpec(root, JSON.stringify(documentFor(scope, { ...source, root })), [source], { automatic: true });
+    publishFunctionalSpec(root, JSON.stringify(documentFor(scope, { ...source, root })), [source], {
+      automatic: true, authoringScope: { id: scope.id, source_snapshot_sha256: scope.source_snapshot_sha256 },
+    });
   }
   const report = buildSpecificationReconciliation(root);
   assert.equal(report.status, "review-required");
   assert.equal(report.summary.structurally_validated, 2);
   assert.equal(report.summary.cases, 2);
+  assert.deepEqual(report.scope_matrix.map(scope => scope.cases[0].case_file),
+    ["docs/specifications/reviewed/order/order-request.md", "docs/specifications/reviewed/payment/payment-request.md"]);
   assert.equal(report.summary.duplicate_candidates, 1);
   assert.equal(report.summary.cross_scope_source_dependencies, 1);
   assert.equal(report.review_gates.owner_review_required, true);
@@ -97,6 +101,48 @@ test("reconciliation persists a source-bound case matrix and flags candidates wi
   const stale = buildSpecificationReconciliation(root);
   assert.equal(stale.status, "blocked");
   assert.ok(stale.scope_matrix.some(scope => scope.issues.some(issue => issue.type === "case-artifact-drift")));
+});
+
+test("reconciliation resolves source-bound descriptive names without scope metadata and reports duplicates explicitly", t => {
+  const root = fixture(t);
+  const scope = buildSpecificationScopes(root).scopes[0];
+  const source = prepareFunctionalSources(root, scope.sources.map(item => item.path))[0];
+  const document = documentFor(scope, { ...source, root });
+  publishFunctionalSpec(root, JSON.stringify(document), [source], { automatic: true });
+  const report = buildSpecificationReconciliation(root);
+  assert.equal(report.summary.structurally_validated, 1);
+  assert.equal(report.scope_matrix[0].manifest_path, `docs/specifications/reviewed/${scope.domain}/manifest.json`);
+  document.slug = `${scope.domain}-revision`;
+  publishFunctionalSpec(root, JSON.stringify(document), [source], { automatic: true });
+  const ambiguous = buildSpecificationReconciliation(root);
+  assert.equal(ambiguous.status, "blocked");
+  assert.equal(ambiguous.scope_matrix[0].status, "ambiguous-specification");
+  assert.equal(ambiguous.scope_matrix[0].issues[0].type, "multiple-specifications-for-scope");
+});
+
+test("a legacy whole-source proposal covers multiple units without duplicating cases or decisions", t => {
+  const root = fixture(t);
+  const file = "src/modules/orders/index.js";
+  fs.appendFileSync(path.join(root, file), Array.from({ length: 14 }, (_, index) =>
+    `function orderStep${index}() { return ${index}; }\n`).join(""));
+  syncProject(root, { generateDocumentation: false, tools: [], graphify: { installed: false } });
+  const scopes = buildSpecificationScopes(root).scopes.filter(scope => scope.domain === "order");
+  assert.ok(scopes.length > 1);
+  const source = prepareFunctionalSources(root, [file])[0];
+  const document = documentFor(scopes[0], { ...source, root });
+  document.open_questions.push("Which owner approves exceptional orders?");
+  publishFunctionalSpec(root, JSON.stringify(document), [source], {
+    automatic: true, proposalOnly: true,
+    authoringScope: { id: "legacy-order", domain: "order" },
+  });
+  const report = buildSpecificationReconciliation(root);
+  assert.equal(report.summary.structurally_validated, scopes.length);
+  assert.equal(report.summary.cases, 1);
+  assert.equal(report.summary.unresolved_decisions, 1);
+  assert.equal(report.summary.duplicate_candidates, 0);
+  assert.ok(report.scope_matrix.filter(scope => scope.domain === "order")
+    .every(scope => scope.cases[0].case_file === report.scope_matrix[0].cases[0].case_file));
+  assert.equal(report.summary.cross_scope_source_dependencies, scopes.length);
 });
 
 test("reconciliation reports stale graphs and missing specifications instead of inferring dependencies", t => {

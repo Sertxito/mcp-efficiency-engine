@@ -147,7 +147,8 @@ function classifySource(relative) {
   if (/(^|\/)(adr|adrs|decisions)(\/|$)|(^|[-_])(adr|decision)([-_.]|$)/.test(normalized)) return "decisions";
   if (/(^|\/)(logs?|telemetry)(\/|$)|\.(log|jsonl|ndjson)$/.test(normalized)) return "logs";
   if (/openapi|swagger|\.proto$|\.graphql$|\.gql$/.test(normalized)) return "api-contracts";
-  if (/^specs\/(?:approved\/)?[^/]+\/(?:spec|specification|plan|tasks|manifest|decisions|uc-\d{3})\.(?:md|json)$/.test(normalized)) return "documentation";
+  if (normalized.startsWith("docs/specifications/") ||
+      /^specs\/(?:approved\/)?[^/]+\/(?:spec|specification|plan|tasks|manifest|decisions|uc-\d{3})\.(?:md|json)$/.test(normalized)) return "documentation";
   if (/(^|\/)(\.github\/workflows|\.gitlab-ci|\.circleci|azure-pipelines|jenkinsfile)/.test(normalized)) return "pipelines";
   if (/(^|\/)(test|tests|spec|specs)(\/|$)|\.(test|spec)\.[^.]+$|\.tests\.ps1$/.test(normalized) ||
       /^test_.+\.py$|^.+_test\.py$|^.+tests?\.cs$/.test(name)) return "tests";
@@ -472,9 +473,10 @@ function collectSources(projectRoot, config) {
         const relative = relativePath(project, absolute);
         if (matchesIgnore(relative, entry.name, config.ignore)) continue;
         if (entry.isSymbolicLink()) continue;
-        if (relative.startsWith("specs/") && isScaffolding(project, relative) &&
+        if (["docs/README.md", "docs/MCPEE.md"].includes(relative) && isScaffolding(project, relative)) continue;
+        if ((relative.startsWith("specs/") || relative.startsWith("docs/specifications/")) && isScaffolding(project, relative) &&
             !canonicalPaths.has(relative) && !entry.isDirectory()) continue;
-        if (/^specs\/[^/]+\/reviews(?:\/|$)/.test(relative)) continue;
+        if (/^(?:specs\/[^/]+|docs\/specifications\/(?:proposed|reviewed|approved)\/[^/]+)\/reviews(?:\/|$)/.test(relative)) continue;
         if (entry.isDirectory()) {
           visit(absolute);
           continue;
@@ -798,24 +800,41 @@ function syncProject(projectRoot, options = {}) {
   };
 }
 
-function searchKnowledge(projectRoot, query, limit = 10) {
+function searchKnowledge(projectRoot, query, limit = 10, { sourcePaths } = {}) {
+  validateSearchQuery(query, limit);
+  return createKnowledgeSearch(projectRoot, { sourcePaths })(query, limit);
+}
+
+function validateSearchQuery(query, limit) {
   if (typeof query !== "string" || query.trim().length === 0) throw new Error("Search query must not be empty");
   if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error("Search limit must be an integer between 1 and 100");
+}
+
+function createKnowledgeSearch(projectRoot, { sourcePaths } = {}) {
+  if (sourcePaths !== undefined && (!Array.isArray(sourcePaths) || sourcePaths.some(file => typeof file !== "string"))) {
+    throw new Error("Search source paths must be an array of project-relative paths");
+  }
   const indexPath = path.join(projectRoot, ".mcpee/indexes/knowledge-index.json");
   if (!fs.existsSync(indexPath)) throw new Error("Knowledge index is missing. Run mcpee sync first.");
   const index = JSON.parse(fs.readFileSync(indexPath, "utf8"));
-  const terms = tokenTerms(query).map(([term]) => term);
-  const scores = new Map();
-  for (const term of terms) {
-    for (const posting of Object.hasOwn(index.postings, term) ? index.postings[term] : []) {
-      scores.set(posting.source_id, (scores.get(posting.source_id) || 0) + posting.frequency);
+  const allowedPaths = sourcePaths === undefined ? null : new Set(sourcePaths);
+  const byId = new Map(index.documents.filter(document => !allowedPaths || allowedPaths.has(document.source_path))
+    .map(document => [document.source_id, document]));
+  return (query, limit = 10) => {
+    validateSearchQuery(query, limit);
+    const terms = tokenTerms(query).map(([term]) => term);
+    const scores = new Map();
+    for (const term of terms) {
+      for (const posting of Object.hasOwn(index.postings, term) ? index.postings[term] : []) {
+        if (!byId.has(posting.source_id)) continue;
+        scores.set(posting.source_id, (scores.get(posting.source_id) || 0) + posting.frequency);
+      }
     }
-  }
-  const byId = new Map(index.documents.map((document) => [document.source_id, document]));
-  return [...scores.entries()]
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .slice(0, limit)
-    .map(([id, score]) => ({ ...byId.get(id), score }));
+    return [...scores.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, limit)
+      .map(([id, score]) => ({ ...byId.get(id), score }));
+  };
 }
 
 function searchKnowledgeVector(projectRoot, query, limit = 10) {
@@ -871,4 +890,4 @@ function searchKnowledgeVector(projectRoot, query, limit = 10) {
     .slice(0, limit);
 }
 
-module.exports = { syncProject, searchKnowledge, searchKnowledgeVector, parseConfig, classifySource, codeSymbolEvidence };
+module.exports = { syncProject, searchKnowledge, createKnowledgeSearch, searchKnowledgeVector, parseConfig, classifySource, codeSymbolEvidence };

@@ -7,7 +7,7 @@ const os = require("node:os");
 const path = require("node:path");
 const test = require("node:test");
 const {
-  acquireSession, createSessionRecord, hash, updateSession,
+  acquireSession, createSessionRecord, hash, promptIdentity, updateSession,
 } = require("../packages/execution-engine/src/recoverable-sessions");
 
 const sessionId = "30000000-0000-4000-8000-000000000001";
@@ -31,6 +31,47 @@ function create(root) {
     ...route, trace_id: crypto.randomUUID(), changed_paths: [],
   });
 }
+
+function prompt(generatedAt, sourceHash = "a".repeat(64)) {
+  return "Task:\nInspect the service\n\nMCPEE routing plan (context, not authorization to make changes):\n\n" +
+    JSON.stringify({ impact_preflight: { targets: [{ generated_at: generatedAt, path: "src/app.js", sha256: sourceHash }] } }, null, 2) +
+    "\n\nExecute the selected workflow \"resolve-bug\".\n\nExact source content is unchanged.";
+}
+
+test("resume prompt identity ignores only graph refresh dates, not content or instructions", () => {
+  const original = prompt("2026-01-01");
+  assert.equal(promptIdentity(original), promptIdentity(prompt("2026-01-02")));
+  assert.notEqual(promptIdentity(original), promptIdentity(prompt("2026-01-02", "b".repeat(64))));
+  assert.notEqual(promptIdentity(original), promptIdentity(prompt("2026-01-02") + "\nChanged instructions."));
+  assert.equal(promptIdentity("ordinary prompt"), hash("ordinary prompt"));
+});
+
+test("legacy interrupted sessions resume across graph refresh only with hash-verified original prompt evidence", t => {
+  const root = project(t), original = prompt("2026-01-01");
+  const journal = createSessionRecord(root, {
+    session_id: sessionId, task_sha256: hash(task),
+    execution_sha256: hash(JSON.stringify({
+      task_sha256: hash(task), workflow_id: route.workflow_id, agent_id: route.agent_id,
+      prompt_sha256: hash(original), model: route.model,
+    })),
+    ...route, trace_id: crypto.randomUUID(),
+  });
+  updateSession(journal, "interrupted");
+  require("../packages/core/src/telemetry").recordEvent(root, {
+    event_name: "copilot.execution.started", trace_id: journal.record.trace_id, session_id: sessionId,
+    payload: { prompt: original },
+  });
+  const changed = prompt("2026-01-02", "b".repeat(64));
+  assert.throws(() => acquireSession(root, sessionId, {
+    task, ...route, prompt_sha256: promptIdentity(changed), prompt: changed,
+  }), /differs from the interrupted execution/);
+  const refreshed = prompt("2026-01-02");
+  const lease = acquireSession(root, sessionId, {
+    task, ...route, prompt_sha256: promptIdentity(refreshed), prompt: refreshed,
+  });
+  assert.equal(lease.record.status, "resuming");
+  lease.release();
+});
 
 test("resumable session journal records interruption, accumulates paths and closes on completion", t => {
   const root = project(t);

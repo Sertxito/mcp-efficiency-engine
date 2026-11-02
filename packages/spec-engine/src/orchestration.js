@@ -8,7 +8,6 @@ const { workspace, featureStatus } = require("./lifecycle");
 const { recordEvent } = require("../../core/src/telemetry");
 
 async function runSpecificationLifecycle(root, { slug, task, through, execute }) {
-  const directory = workspace(slug);
   if (!["tasks", "verification"].includes(through) || typeof task !== "string" || !task.trim() ||
       typeof execute !== "function") throw new Error("Lifecycle execution requires a feature, task and explicit tasks/verification endpoint.");
   const record = {
@@ -33,6 +32,7 @@ async function runSpecificationLifecycle(root, { slug, task, through, execute })
   const seen = new Set();
   try {
     for (let count = 0; count < 4; count++) {
+      const directory = workspace(slug, root);
       const present = fs.existsSync(projectPath(root, `${directory}/manifest.json`));
       if (!present && fs.existsSync(projectPath(root, `${directory}/spec.md`))) {
         throw new Error("Lifecycle cannot overwrite an existing manual draft; reconcile its canonical specification first.");
@@ -60,7 +60,7 @@ async function runSpecificationLifecycle(root, { slug, task, through, execute })
         implementation: `Implement ${slug} and execute its canonical verification checks.`,
       }[phase];
       const phaseTask = `${prefix}\nAuthoritative original request and constraints:\n${task}\n` +
-        `Use specs/${slug}/ as the canonical workspace. This invocation covers only ${phase}; do not execute other phases yourself. ` +
+        `Use ${directory}/ as the canonical workspace; resolve its current state from docs/specifications/README.md. This invocation covers only ${phase}; do not execute other phases yourself. ` +
         "Do not fabricate decisions, grant risky approvals, weaken requirements, deploy or publish. MCPEE controls validated advancement.";
       const entry = { phase, status: "running", started_at: new Date().toISOString() };
       record.phases.push(entry);

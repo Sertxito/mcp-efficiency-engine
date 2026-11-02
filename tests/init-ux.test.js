@@ -188,7 +188,47 @@ test("interactive init defaults to the full catalog, preserves explicit agents a
   }
 });
 
-test("brownfield init prepares source-bound scopes and the same command remains rerunnable", () => {
+test("brownfield init automatically invokes proposal authoring once after local preparation without another consent prompt", () => {
+  for (const complete of [true, false]) {
+  const cli = path.resolve(__dirname, "../packages/cli/src/cli");
+  const tools = path.resolve(__dirname, "../packages/tool-manager/src/tools");
+  const graph = path.resolve(__dirname, "../packages/knowledge-engine/src/codegraph");
+  const authoring = path.resolve(__dirname, "../packages/spec-engine/src/brownfield-authoring");
+  const result = spawnSync(process.execPath, ["-e", `
+    const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
+    const root=fs.mkdtempSync(path.join(os.tmpdir(),'mcpee-init-auto-brownfield-'));
+    fs.mkdirSync(path.join(root,'src'),{recursive:true});
+    fs.writeFileSync(path.join(root,'src/orders.js'),"function listOrders() { return []; }\\n");
+    fs.writeFileSync(path.join(root,'package.json'),JSON.stringify({name:'orders',scripts:{test:'node --version'}}));
+    require(${JSON.stringify(tools)}).installCatalogTools=async()=>({results:[]});
+    require(${JSON.stringify(graph)}).updateCodeGraph=()=>({status:'ready',operation:'fixture',summary:{},mcp:{status:'unchanged',file:'.mcp.json'}});
+    let calls=0;
+    require(${JSON.stringify(authoring)}).authorBrownfield=async(project,options)=>{
+      calls++;
+      assert.equal(project,root);
+      assert.equal(options.authorized,true);
+      assert.ok(fs.existsSync(path.join(root,'.mcpee/indexes/knowledge-index.json')));
+      assert.ok(fs.existsSync(path.join(root,'.mcpee/graphs/unified/graph.json')));
+      return {status:${JSON.stringify(complete ? "completed" : "blocked")},exitCode:${complete ? 0 : 1},scopes:[{id:'orders'}],report:'.mcpee/reports/brownfield/fixture.json'};
+    };
+    require(${JSON.stringify(cli)}).run(['init','--project',root,'--skip-tool-install','--embeddings','none'])
+      .then(code=>{assert.equal(code,${complete ? 0 : 1});assert.equal(calls,1);})
+      .catch(error=>{console.error(error);process.exitCode=1;})
+      .finally(()=>fs.rmSync(root,{recursive:true,force:true}));
+  `], { encoding: "utf8", timeout: 60000 });
+  assert.equal(result.status, 0, result.stderr);
+  if (complete) {
+    assert.match(result.stdout, /Brownfield complete:/);
+    assert.match(result.stdout, /SETUP COMPLETE/);
+  } else {
+    assert.match(result.stderr, /BROWNFIELD INCOMPLETE/);
+    assert.doesNotMatch(result.stdout, /SETUP COMPLETE|Brownfield complete:/);
+  }
+  assert.doesNotMatch(result.stdout, /Type "approve"|No model was run/);
+  }
+});
+
+test("prepare-only brownfield init prepares source-bound scopes without paid authoring", () => {
   const cli = path.resolve(__dirname, "../packages/cli/src/cli");
   const tools = path.resolve(__dirname, "../packages/tool-manager/src/tools");
   const graph = path.resolve(__dirname, "../packages/knowledge-engine/src/codegraph");
@@ -210,7 +250,7 @@ test("brownfield init prepares source-bound scopes and the same command remains 
       mcp:{status:'configured',file:'.mcp.json'}
     });
     const {run}=require(${JSON.stringify(cli)});
-    run(['init','--project',root,'--agents','backend','--skip-tool-install','--embeddings','none'])
+    run(['init','--project',root,'--agents','backend','--skip-tool-install','--embeddings','none','--prepare-only'])
       .then(async code=>{
         assert.equal(code,0);
         const scopes=await run(['specs','scopes','--project',root,'--json']);
@@ -226,6 +266,6 @@ test("brownfield init prepares source-bound scopes and the same command remains 
   `], { encoding: "utf8", timeout: 60_000 });
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /Brownfield authoring scopes: planned/);
-  assert.match(result.stdout, /mcpee specs scopes --json/);
-  assert.match(result.stdout, /SETUP COMPLETE/);
+  assert.match(result.stdout, /Run mcpee brownfield to complete authoring/);
+  assert.match(result.stdout, /LOCAL PREPARATION COMPLETE/);
 });
