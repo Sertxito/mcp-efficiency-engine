@@ -5,12 +5,21 @@
 - Repository: <https://github.com/Sertxito/mcp-efficiency-engine>
 - npm package: `mcp-efficiency-engine`
 - Commands: `mcpee` and `mcp-efficiency-engine`
-- Current candidate: **0.1.45**, following published **0.1.44**
+- Current candidate: **0.1.46**, following published **0.1.45**
 - Runtime: Node.js **>=24**
 
 Keep the normal pre-1.0 version sequence until stable acceptance is complete.
 Do not label the target architecture fully implemented or promote to 1.0.0
 based only on passing automated tests.
+
+The 0.1.46 patch asks for confirmation before replacing an existing plan or task
+pair. It archives the previous contents and review approvals under
+`.mcpee/reports/phase-revisions/`, bound to the exact candidate and current files.
+Changing a plan also archives its dependent tasks so they can be regenerated
+against the new plan. Refusal preserves the files and the saved authoring
+candidate; approval of replacement does not authorize risky actions or grant
+product acceptance. Canonical validation workflow collisions use a separate
+revision-specific path without discarding the earlier workflow.
 
 The 0.1.45 patch registers MCPEE independently of CodeGraph readiness, supports
 explicit portable or VS Code MCP configuration, and repairs registration on
@@ -158,8 +167,8 @@ After deployment, verify:
 
 ```sh
 npm view mcp-efficiency-engine version
-npm view mcp-efficiency-engine@0.1.45 bin engines dist.integrity --json
-npx --package=mcp-efficiency-engine@0.1.45 mcpee help
+npm view mcp-efficiency-engine@0.1.46 bin engines dist.integrity --json
+npx --package=mcp-efficiency-engine@0.1.46 mcpee help
 ```
 
 Also check the release workflow and GitHub Pages deployment. A failed

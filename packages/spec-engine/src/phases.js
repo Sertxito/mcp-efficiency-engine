@@ -7,6 +7,7 @@ const { z } = require("zod");
 const { projectPath, ensureDirectory } = require("./brownfield");
 const { readFeature, featureStatus, currentDigest } = require("./lifecycle");
 const { hasAuthoringPlaceholder } = require("./authoring-text");
+const { renameAtomicSync } = require("../../core/src/atomic-file");
 
 const text = z.string().trim().min(8).max(4000).refine(value =>
   !hasAuthoringPlaceholder(value), "Concrete phase content is required.");
@@ -216,36 +217,94 @@ function prepareImplementationValidation(root, slug) {
   };
 }
 
-function publishPhase(root, slug, stage, response) {
+function preparePhasePublication(root, slug, stage, response) {
   const document = validatePhase(root, slug, stage, response);
-  const { directory } = readFeature(root, slug);
+  const { directory, lifecycle } = readFeature(root, slug);
   const outputs = [{ path: `${directory}/${stage}.json`, content: `${JSON.stringify(document, null, 2)}\n` },
     { path: `${directory}/${stage}.md`, content: renderPhase(stage, document, readFeature(root, slug).manifest.cases) }];
-  for (const file of outputs) {
-    const filename = projectPath(root, file.path);
-    if (fs.existsSync(filename) && fs.readFileSync(filename, "utf8") !== file.content) {
-      throw new Error(`Phase conflict: ${file.path} already contains different work; preserve it and reconcile the revision.`);
-    }
+  const existing = outputs.filter(file => fs.existsSync(projectPath(root, file.path)))
+    .map(file => ({ path: file.path, content: fs.readFileSync(projectPath(root, file.path), "utf8") }));
+  const changed = existing.some(file => file.content !== outputs.find(output => output.path === file.path).content);
+  const downstream = changed && stage === "plan" ? ["tasks.json", "tasks.md"]
+    .map(file => `${directory}/${file}`).filter(file => fs.existsSync(projectPath(root, file)))
+    .map(file => ({ path: file, content: fs.readFileSync(projectPath(root, file), "utf8") })) : [];
+  const artifacts = [...existing, ...downstream];
+  const revision = changed ? {
+    feature: slug, stage, artifacts, approvals: lifecycle.approvals,
+    invalidated_paths: downstream.map(file => file.path),
+    sha256: crypto.createHash("sha256").update(JSON.stringify({ artifacts, outputs, approvals: lifecycle.approvals })).digest("hex"),
+  } : null;
+  return { directory, outputs, existing, revision };
+}
+
+async function publishPhaseWithApproval(root, slug, stage, response, approveRevision) {
+  const { revision } = preparePhasePublication(root, slug, stage, response);
+  if (revision && (typeof approveRevision !== "function" || !await approveRevision(revision))) {
+    throw new Error(`Phase revision was not approved; existing ${stage} files were preserved. Recover the saved candidate after reviewing the revision.`);
   }
+  return publishPhase(root, slug, stage, response, { confirmSha256: revision?.sha256 });
+}
+
+function publishPhase(root, slug, stage, response, { confirmSha256 } = {}) {
+  const { directory, outputs, existing, revision } = preparePhasePublication(root, slug, stage, response);
+  if (revision && confirmSha256 !== revision.sha256) {
+    throw new Error(`Phase conflict: ${stage} already contains different work; review the revision and confirm SHA-256 ${revision.sha256} before replacement.`);
+  }
+  if (!revision && confirmSha256) throw new Error("Phase revision changed after confirmation; review the current artifacts again.");
   ensureDirectory(root, directory);
   const created = [];
+  const replaced = [];
+  let revisionPath;
+  const replace = file => {
+    const temporary = projectPath(root, `${file.path}.${crypto.randomUUID()}.tmp`);
+    try {
+      fs.writeFileSync(temporary, file.content, { flag: "wx" });
+      renameAtomicSync(temporary, projectPath(root, file.path));
+    } finally {
+      if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
+    }
+  };
   try {
+    if (revision) {
+      ensureDirectory(root, ".mcpee/reports/phase-revisions");
+      revisionPath = `.mcpee/reports/phase-revisions/${crypto.randomUUID()}.json`;
+      fs.writeFileSync(projectPath(root, revisionPath), `${JSON.stringify({
+        generated_by: "mcpee", kind: "phase-revision", confirmed_at: new Date().toISOString(),
+        ...revision,
+      }, null, 2)}\n`, { flag: "wx" });
+    }
     for (const file of outputs) {
       const filename = projectPath(root, file.path);
       if (!fs.existsSync(filename)) {
         fs.writeFileSync(filename, file.content, { flag: "wx" });
         created.push(filename);
+      } else if (revision && fs.readFileSync(filename, "utf8") !== file.content) {
+        replace(file);
+        replaced.push(existing.find(previous => previous.path === file.path));
+      }
+    }
+    for (const file of revision?.artifacts || []) {
+      if (revision.invalidated_paths.includes(file.path)) {
+        fs.unlinkSync(projectPath(root, file.path));
+        replaced.push(file);
       }
     }
   } catch (error) {
-    for (const filename of created.reverse()) fs.unlinkSync(filename);
+    try {
+      for (const file of replaced.reverse()) replace(file);
+      for (const filename of created.reverse()) fs.unlinkSync(filename);
+      if (revisionPath) fs.unlinkSync(projectPath(root, revisionPath));
+    } catch (rollbackError) {
+      throw new AggregateError([error, rollbackError], `Phase revision failed and rollback was incomplete; preserve ${revisionPath} for recovery.`);
+    }
     throw error;
   }
   const status = require("./lifecycle").advanceValidatedStages(root, slug);
-  return { paths: outputs.map(file => file.path), status };
+  return { paths: [...outputs.map(file => file.path), ...(revision?.invalidated_paths || []),
+    ...(revisionPath ? [revisionPath] : [])], status, ...(revisionPath ? { revision: revisionPath } : {}) };
 }
 
-function recoverAuthoring(root, candidate, sourcePaths = []) {
+function recoverAuthoring(root, candidate, sourcePaths = [], { confirmSha256 } = {}) {
   if (typeof candidate !== "string" ||
       !/^\.mcpee\/reports\/authoring\/[a-f0-9-]+\/(?:specification|plan|tasks)-[1-3]\.txt$/.test(candidate)) {
     throw new Error("Recovery requires a persisted MCPEE authoring candidate path.");
@@ -294,7 +353,7 @@ function recoverAuthoring(root, candidate, sourcePaths = []) {
     });
   } else if (["plan", "tasks"].includes(metadata.stage)) {
     if (sourcePaths.length) throw new Error("Plan/task recovery is bound to its canonical upstream phases, not alternate sources.");
-    result = publishPhase(root, metadata.feature, metadata.stage, response);
+    result = publishPhase(root, metadata.feature, metadata.stage, response, { confirmSha256 });
   } else {
     throw new Error("Unsupported recovery phase.");
   }
@@ -309,4 +368,4 @@ function recoverAuthoring(root, candidate, sourcePaths = []) {
   return { candidate, stage: metadata.stage, result };
 }
 
-module.exports = { validatePhase, renderPhase, phasePrompt, publishPhase, recoverAuthoring, phaseMarkdownMatches, prepareImplementationValidation };
+module.exports = { validatePhase, renderPhase, phasePrompt, publishPhase, publishPhaseWithApproval, recoverAuthoring, phaseMarkdownMatches, prepareImplementationValidation };

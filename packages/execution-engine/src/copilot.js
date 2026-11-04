@@ -10,7 +10,7 @@ const { invokeTool } = require("../../tool-manager/src/tools");
 const { WALL_TIMEOUT_MS, createExecutionDeadline } = require("./execution-deadline");
 const { prepareApprovedSpecContext, projectPath, ensureDirectory } = require("../../spec-engine/src/brownfield");
 const { isSpecificationTask, prepareFunctionalSources, functionalPrompt, validateFunctionalSpec, publishFunctionalSpec } = require("../../spec-engine/src/functional");
-const { phasePrompt, validatePhase, publishPhase } = require("../../spec-engine/src/phases");
+const { phasePrompt, validatePhase, publishPhaseWithApproval } = require("../../spec-engine/src/phases");
 
 const MAX_CONTEXT_PACKAGE_BYTES = 2 * 1024 * 1024;
 const SENSITIVE_SOURCE = /(?:^|\/)(?:\.env(?:\..*)?|\.ssh|\.aws|\.azure|\.gnupg|\.kube|\.docker|\.npmrc|\.pypirc|\.netrc|secrets?|credentials?|certificates?|private|id_(?:rsa|dsa|ecdsa|ed25519)|private[-_.]?keys?)(?:\/|$)|\.(?:pem|key|p12|pfx|keystore)$/i;
@@ -937,7 +937,8 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
         proposalOnly: options.proposalOnly === true,
         citationCorrections: options.citationCorrections,
       }) : null;
-      const phase = phaseAuthoring ? publishPhase(root, phaseAuthoring.slug, phaseAuthoring.stage, content) : null;
+      const phase = phaseAuthoring ? await publishPhaseWithApproval(
+        root, phaseAuthoring.slug, phaseAuthoring.stage, content, options.approvePhaseRevision) : null;
       if (phase) {
         for (const file of phase.paths) changedPaths.add(file);
         changedPaths.add(`${require("../../spec-engine/src/lifecycle").workspace(phaseAuthoring.slug, root)}/lifecycle.json`);

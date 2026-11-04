@@ -36,7 +36,7 @@ guides.
 | `mcpee specs decide --slug <feature> --id Q-001 --answer <decision> --reviewer <owner>` | Record an explicit owner answer without rewriting the question. |
 | `mcpee specs approve --slug <feature> --stage specification\|plan\|tasks --reviewer <owner> --confirm-sha256 <digest>` | Approve the exact reviewed artifacts in order; never marks implementation verified. |
 | `mcpee specs migrate [--json]` | Move legacy root specs and inventories under `docs/` with rebased links and audited provenance; preserve existing authority, never invent it. Older pre-workspace drafts are imported as unapproved copies. |
-| `mcpee specs recover --candidate <project-relative-response.txt> [--source <original-path>]` | Validate a preserved authoring candidate and rebuild local indexes without calling a model. Requires the recorded response checksum and unchanged original source snapshot; never overwrites conflicting artifacts. |
+| `mcpee specs recover --candidate <project-relative-response.txt> [--source <original-path>] [--confirm-sha256 <revision-digest>]` | Validate a preserved authoring candidate and rebuild local indexes without calling a model. Requires the recorded response checksum and unchanged original source snapshot. Conflicting plan/task pairs require the exact revision digest and are archived before replacement; conflicting functional specifications remain protected. |
 
 ## Knowledge
 

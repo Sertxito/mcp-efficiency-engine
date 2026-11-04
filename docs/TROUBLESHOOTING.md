@@ -29,6 +29,22 @@ global install can report removed outputs (for example `.github/prompts` before
 earlier `init` stopped before indexing; rerun `mcpee init`, which keeps your
 capability selections.
 
+## An updated plan conflicts with the earlier revision
+
+From 0.1.46, structured plan/task authoring asks before replacing an existing
+canonical pair. Confirmation archives the old files and review approvals under
+`.mcpee/reports/phase-revisions/`. A revised plan also archives dependent tasks,
+which must be regenerated against its new digest. Refusing preserves both the
+existing files and the saved authoring response; no new model call is required
+to recover that response.
+
+For a previously blocked candidate, run
+`mcpee specs recover --candidate .mcpee/reports/authoring/<run>/plan-2.txt`.
+If it conflicts, inspect the candidate and the current canonical files, then
+repeat with `--confirm-sha256 <revision-digest>` from the diagnostic. The digest
+binds both revisions: changing either requires a fresh confirmation. Replacement
+does not approve product behavior, deployments or other risky actions.
+
 ## npm blocks the native SDK dependency
 
 If npm reports a blocked `koffi` install script, repeat the pinned installation
