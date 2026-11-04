@@ -74,6 +74,11 @@ test("documentation sync and doctor succeed without starting CodeGraph or erasin
   const before = fs.readFileSync(path.join(root, ".mcpee/state/codegraph.json"), "utf8");
   const result = updateCodeGraph(root, { documentationOnly: true, available: true, required: true });
   assert.equal(result.status, "not-applicable");
+  assert.equal(result.mcp.status, "configured");
+  assert.equal(result.mcp.file, ".mcp.json");
+  const mcpConfig = JSON.parse(fs.readFileSync(path.join(root, ".mcp.json"), "utf8"));
+  assert.ok(mcpConfig.mcpServers.mcpee);
+  assert.equal(mcpConfig.mcpServers["mcpee-codegraph"], undefined);
   const sync = spawnSync(process.execPath, [cli, "sync", "--project", root], { encoding: "utf8" });
   assert.equal(sync.status, 0, sync.stderr);
   assert.match(sync.stdout, /CodeGraph not applicable/);

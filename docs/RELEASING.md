@@ -5,12 +5,30 @@
 - Repository: <https://github.com/Sertxito/mcp-efficiency-engine>
 - npm package: `mcp-efficiency-engine`
 - Commands: `mcpee` and `mcp-efficiency-engine`
-- Current candidate: **0.1.44**, following published **0.1.43**
+- Current candidate: **0.1.45**, following published **0.1.44**
 - Runtime: Node.js **>=24**
 
 Keep the normal pre-1.0 version sequence until stable acceptance is complete.
 Do not label the target architecture fully implemented or promote to 1.0.0
 based only on passing automated tests.
+
+The 0.1.45 patch registers MCPEE independently of CodeGraph readiness, supports
+explicit portable or VS Code MCP configuration, and repairs registration on
+update without creating duplicate servers. Brownfield reconciliation loads
+before execution, the installed-package check requires that module, and unified
+graphs have a dedicated 64 MiB read limit (other JSON keeps its 16 MiB limit).
+Office extraction forces UTF-8 strict output and rejects replacement characters;
+sync retries damaged owned conversions without changing original sources or
+granting authority to earlier proposals.
+
+TR reached 304/304 structurally validated units while preserving prior proposals.
+Its last draft required an audited citation-only repair against an already
+damaged normalized source. That project-specific result is not catalogue-wide
+acceptance, semantic approval, or proof that model timeouts cannot recur.
+The UTF-8 prevention fix is covered by automated extraction tests and a separate
+read-only converter check; TR's reviewed evidence is not silently regenerated
+by publication. Greenfield coverage remains automated, not a new real-model
+certification. This remains a pre-1.0 reliability patch, not a stable 1.0 claim.
 
 The 0.1.44 patch unifies greenfield and brownfield specification lifecycle,
 descriptive names and document-state navigation. It adds bounded, resumable
@@ -140,8 +158,8 @@ After deployment, verify:
 
 ```sh
 npm view mcp-efficiency-engine version
-npm view mcp-efficiency-engine@0.1.44 bin engines dist.integrity --json
-npx --package=mcp-efficiency-engine@0.1.44 mcpee help
+npm view mcp-efficiency-engine@0.1.45 bin engines dist.integrity --json
+npx --package=mcp-efficiency-engine@0.1.45 mcpee help
 ```
 
 Also check the release workflow and GitHub Pages deployment. A failed

@@ -4225,6 +4225,15 @@ test("CodeGraph lifecycle builds and refreshes a project-local graph and exposes
   const requiredButUnavailable = updateCodeGraph(root, { available: false, required: true });
   assert.equal(requiredButUnavailable.status, "failed");
   assert.match(requiredButUnavailable.error, /CodeGraph is required/);
+  assert.equal(requiredButUnavailable.mcp.status, "configured");
+  assert.deepEqual(
+    JSON.parse(fs.readFileSync(path.join(root, ".mcp.json"), "utf8")).mcpServers.mcpee,
+    {
+      type: "stdio",
+      command: "node",
+      args: ["./.mcpee/runtime/mcp-server.cjs"],
+    },
+  );
   installFakeCodeGraph(root);
   const first = updateCodeGraph(root, { available: true, required: true });
   assert.equal(first.status, "ready");
@@ -4293,6 +4302,52 @@ test("CodeGraph MCP configuration preserves existing servers and refuses an owne
     command: "node",
     args: ["./.mcpee/runtime/mcp-server.cjs"],
   });
+});
+
+test("MCP configuration auto-detects an existing VS Code file and can select it explicitly", () => {
+  const root = temporaryProject();
+  const vscodePath = path.join(root, ".vscode/mcp.json");
+  fs.mkdirSync(path.dirname(vscodePath), { recursive: true });
+  fs.writeFileSync(vscodePath, JSON.stringify({
+    servers: { existing: { type: "stdio", command: "node", args: ["existing.js"] } },
+    inputs: [],
+  }));
+  const result = configureProjectMcp(root);
+  assert.deepEqual(result, { status: "configured", file: ".vscode/mcp.json", format: "vscode" });
+  const config = JSON.parse(fs.readFileSync(vscodePath, "utf8"));
+  assert.deepEqual(config.servers.existing.args, ["existing.js"]);
+  assert.deepEqual(config.servers.mcpee, {
+    type: "stdio",
+    command: "node",
+    args: ["./.mcpee/runtime/mcp-server.cjs"],
+  });
+  assert.equal(config.servers["mcpee-codegraph"], undefined);
+  assert.equal(fs.existsSync(path.join(root, ".mcp.json")), false);
+
+  const explicitRoot = temporaryProject();
+  const explicit = configureProjectMcp(explicitRoot, { format: "vscode" });
+  assert.deepEqual(explicit, { status: "configured", file: ".vscode/mcp.json", format: "vscode" });
+  assert.ok(fs.existsSync(path.join(explicitRoot, ".vscode/mcp.json")));
+});
+
+test("MCP config refuses duplicate MCPEE servers across portable and VS Code files", () => {
+  const root = temporaryProject();
+  assert.equal(configureProjectMcp(root).status, "configured");
+  const portablePath = path.join(root, ".mcp.json");
+  const vscodePath = path.join(root, ".vscode/mcp.json");
+  fs.mkdirSync(path.dirname(vscodePath), { recursive: true });
+  fs.writeFileSync(vscodePath, JSON.stringify({
+    servers: {
+      mcpee: { type: "stdio", command: "node", args: ["./.mcpee/runtime/mcp-server.cjs"] },
+    },
+  }));
+  const portableBefore = fs.readFileSync(portablePath, "utf8");
+  const vscodeBefore = fs.readFileSync(vscodePath, "utf8");
+  const result = configureProjectMcp(root);
+  assert.equal(result.status, "conflict");
+  assert.match(result.error, /both \.mcp\.json and \.vscode\/mcp\.json/);
+  assert.equal(fs.readFileSync(portablePath, "utf8"), portableBefore);
+  assert.equal(fs.readFileSync(vscodePath, "utf8"), vscodeBefore);
 });
 
 test("CodeGraph accepts equivalent host-resolved stdio paths without replacing host settings", () => {
@@ -4499,6 +4554,48 @@ test("business and architecture Office sources retain their domain category and 
     assert.equal(source.status, "requires-tool");
     assert.equal(source.required_tool, "markitdown");
   }
+});
+
+test("Office extraction forces UTF-8, refreshes damaged cached evidence and rejects replacement characters", () => {
+  const root = temporaryProject();
+  initializeProject(root);
+  const bin = path.join(root, ".mcpee/tools/python/markitdown", process.platform === "win32" ? "Scripts" : "bin");
+  fs.mkdirSync(bin, { recursive: true });
+  const executable = path.join(bin, process.platform === "win32" ? "markitdown.exe" : "markitdown");
+  fs.copyFileSync(process.execPath, executable);
+  fs.chmodSync(executable, 0o755);
+  const file = path.join(root, "knowledge/sources/business/requirements.docx");
+  const expected = "# Perfil\n\nDise\u00f1ar comunicaci\u00f3n p\u00fablica";
+  fs.writeFileSync(file, `if (process.env.PYTHONIOENCODING !== "utf-8:strict" || process.env.PYTHONUTF8 !== "1") process.exit(7); process.stdout.write(${JSON.stringify(expected)});`);
+  const options = { tools: [{ id: "markitdown", invokable: true }], graphify: { installed: false } };
+  const extract = () => syncProject(root, options).sources.find(source => source.path.endsWith("requirements.docx"));
+  const first = extract();
+  assert.equal(first.status, "processed");
+  const normalizedPath = path.join(root, first.normalized_path);
+  assert.ok(fs.readFileSync(normalizedPath, "utf8").includes(expected));
+  assert.equal(extract().status, "unchanged");
+
+  const damaged = fs.readFileSync(normalizedPath, "utf8").replace("\u00f1", "\uFFFD");
+  fs.writeFileSync(normalizedPath, damaged);
+  const digest = crypto.createHash("sha256").update(damaged).digest("hex");
+  const metadataPath = path.join(root, first.extracted_path);
+  const metadata = JSON.parse(fs.readFileSync(metadataPath, "utf8"));
+  metadata.normalized_sha256 = digest;
+  const metadataText = JSON.stringify(metadata);
+  fs.writeFileSync(metadataPath, metadataText);
+  const traceabilityPath = path.join(root, first.traceability_path);
+  const traceability = JSON.parse(fs.readFileSync(traceabilityPath, "utf8"));
+  traceability.derived.normalized_sha256 = digest;
+  traceability.derived.extracted_sha256 = crypto.createHash("sha256").update(metadataText).digest("hex");
+  fs.writeFileSync(traceabilityPath, JSON.stringify(traceability));
+  assert.equal(extract().status, "processed");
+  assert.ok(fs.readFileSync(normalizedPath, "utf8").includes(expected));
+
+  fs.writeFileSync(file, 'process.stdout.write("# Damaged\\n\\nDise\\uFFFDar");');
+  const failed = extract();
+  assert.equal(failed.status, "failed");
+  assert.match(failed.error, /Unicode replacement characters/);
+  assert.equal(fs.existsSync(normalizedPath), false);
 });
 
 test("CLI supports init, doctor, tools, captured traces, memory, observe, knowledge search, and sync", () => {

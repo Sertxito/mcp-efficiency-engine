@@ -164,10 +164,13 @@ test("interactive init defaults to the full catalog, preserves explicit agents a
         }]),true);
         return {results:[],latestLts:'v24.22.1'};
       };
-      require(${JSON.stringify(graph)}).updateCodeGraph=()=>(${JSON.stringify(ready
-        ? { status: "ready", operation: "fixture", summary: {}, mcp: { status: "configured", file: ".mcp.json" } }
-        : { status: "failed", error: "Fixture CodeGraph unavailable" })});
-      require(${JSON.stringify(cli)}).run(['init','--project',root,...${JSON.stringify(explicit ? ["--agents", "backend,architecture"] : [])}]).then(code=>{
+      require(${JSON.stringify(graph)}).updateCodeGraph=(_root,options)=>{
+        assert.equal(options.mcpConfigFormat,'vscode');
+        return ${JSON.stringify(ready
+          ? { status: "ready", operation: "fixture", summary: {}, mcp: { status: "configured", file: ".vscode/mcp.json", format: "vscode" } }
+          : { status: "failed", error: "Fixture CodeGraph unavailable" })};
+      };
+      require(${JSON.stringify(cli)}).run(['init','--project',root,'--mcp-config','vscode',...${JSON.stringify(explicit ? ["--agents", "backend,architecture"] : [])}]).then(code=>{
         assert.equal(code,${ready ? 0 : 1});
         assert.equal(menus,1);
         const state=JSON.parse(fs.readFileSync(path.join(root,'.mcpee/generated/project-capabilities.json'),'utf8'));
@@ -183,9 +186,35 @@ test("interactive init defaults to the full catalog, preserves explicit agents a
     assert.doesNotMatch(result.stdout, /Brownfield authoring scopes:/,
       "greenfield initialization does not prepare brownfield scopes");
     assert.match(result.stdout + result.stderr, ready ? /SETUP COMPLETE/ : /SETUP INCOMPLETE/);
+    if (ready) assert.match(result.stdout, /MCPEE MCP server configured in \.vscode\/mcp\.json \(vscode\)/);
     assert.doesNotMatch(result.stdout, /Agent IDs \(comma|Type "approve"|Optional local semantic embeddings:/);
     }
   }
+});
+
+test("init refuses setup complete when the project MCP server is missing", () => {
+  const cli = path.resolve(__dirname, "../packages/cli/src/cli");
+  const tools = path.resolve(__dirname, "../packages/tool-manager/src/tools");
+  const graph = path.resolve(__dirname, "../packages/knowledge-engine/src/codegraph");
+  const result = spawnSync(process.execPath, ["-e", `
+    const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
+    const root=fs.mkdtempSync(path.join(os.tmpdir(),'mcpee-init-missing-mcp-'));
+    require(${JSON.stringify(tools)}).installCatalogTools=async()=>({results:[]});
+    require(${JSON.stringify(tools)}).discoverTools=()=>({tools:[]});
+    require(${JSON.stringify(graph)}).updateCodeGraph=()=>({
+      status:'not-applicable',
+      reason:'No application code was detected.',
+      mcp:{status:'unavailable'},
+    });
+    require(${JSON.stringify(cli)}).run(['init','--project',root,'--skip-tool-install','--embeddings','none','--prepare-only'])
+      .then(code=>assert.equal(code,1))
+      .catch(error=>{console.error(error);process.exitCode=1;})
+      .finally(()=>fs.rmSync(root,{recursive:true,force:true}));
+  `], { encoding: "utf8", timeout: 60_000 });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stderr, /MCPEE MCP configuration is not ready/);
+  assert.match(result.stderr, /SETUP INCOMPLETE/);
+  assert.doesNotMatch(result.stdout, /SETUP COMPLETE/);
 });
 
 test("brownfield init automatically invokes proposal authoring once after local preparation without another consent prompt", () => {

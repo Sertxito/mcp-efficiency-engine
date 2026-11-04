@@ -9,6 +9,7 @@ const { buildSpecificationScopes, scopeCoveredByManifest, withSpecificationScope
 const { featureStatus, readFeature, refreshWorkspaceIndex } = require("./lifecycle");
 const { featureDirectories, SPEC_ROOT } = require("./storage");
 const { validateFunctionalSpec } = require("./functional");
+const { buildSpecificationReconciliation } = require("./reconciliation");
 
 const hash = value => crypto.createHash("sha256").update(value).digest("hex");
 const LOCK = ".mcpee/state/brownfield-authoring.lock";
@@ -293,7 +294,7 @@ async function authorBrownfieldBatch(root, options = {}) {
     await runGroup(pending.filter(scope => !lastDomains.includes(scope.domain)));
     await runGroup(pending.filter(scope => lastDomains.includes(scope.domain)));
     if (heartbeatError) throw heartbeatError;
-    const reconciliation = require("./reconciliation").buildSpecificationReconciliation(root);
+    const reconciliation = buildSpecificationReconciliation(root);
     record.reconciliation = { path: reconciliation.path, status: reconciliation.status, summary: reconciliation.summary };
     const incomplete = planning.blocked.length || record.summary.failed ||
       reconciliation.scope_matrix.some(scope => scope.status !== "source-bound-structurally-validated");
