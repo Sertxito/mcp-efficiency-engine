@@ -11,7 +11,7 @@ const { syncProject, searchKnowledge } = require("../packages/source-engine/src/
 const { prepareFunctionalSources, publishFunctionalSpec, validateFunctionalSpec } = require("../packages/spec-engine/src/functional");
 const { prepareApprovedSpecContext } = require("../packages/spec-engine/src/brownfield");
 const { featureStatus, canonicalArtifacts, advanceValidatedStages, resolveDecision, workspace } = require("../packages/spec-engine/src/lifecycle");
-const { validatePhase, publishPhase, renderPhase, recoverAuthoring, prepareImplementationValidation } = require("../packages/spec-engine/src/phases");
+const { validatePhase, publishPhase, publishPhaseWithApproval, renderPhase, recoverAuthoring, prepareImplementationValidation } = require("../packages/spec-engine/src/phases");
 const { routeTask } = require("../packages/routing-engine/src/route");
 const { runCopilotTask } = require("../packages/execution-engine/src/copilot");
 const { chunkDocument } = require("../packages/source-engine/src/embeddings");
@@ -192,6 +192,124 @@ test("unresolved decisions block automation; explicit resolution advances withou
   publishPhase(root, document.slug, "plan", JSON.stringify(risk));
   assert.equal(featureStatus(root, document.slug).next, "clarify-phase");
   assert.equal(featureStatus(root, document.slug).reviews.plan.approved, false);
+});
+
+test("phase revisions request confirmation, preserve history and invalidate dependent tasks", async () => {
+  const { root, sources, document } = fixture();
+  publishFunctionalSpec(root, JSON.stringify(document), sources, { automatic: true });
+  const original = technicalPlan(root);
+  original.open_questions = ["Which catalog availability policy should the implementation enforce?"];
+  publishPhase(root, document.slug, "plan", JSON.stringify(original));
+  const directory = workspace(document.slug, root);
+  const priorJson = fs.readFileSync(path.join(root, directory, "plan.json"), "utf8");
+  const priorMarkdown = fs.readFileSync(path.join(root, directory, "plan.md"), "utf8");
+  const candidate = technicalPlan(root);
+  candidate.design[0].description += " The owner selected the documented public availability policy.";
+  let confirmations = 0;
+  const task = "Create plan for public-catalog after resolving the open question";
+  const route = () => routeTask(root, task);
+  assert.equal(route().specification_workspace.requested_stage, "plan");
+  await assert.rejects(() => execute(root, task,
+    route(), [candidate], [], { approvePhaseRevision: async () => { confirmations++; return false; } }), /revision was not approved/);
+  assert.equal(confirmations, 1);
+  assert.equal(fs.readFileSync(path.join(root, directory, "plan.json"), "utf8"), priorJson);
+  assert.equal(fs.existsSync(path.join(root, ".mcpee/reports/phase-revisions")), false);
+  const updated = await execute(root, task,
+    route(), [candidate], [], { approvePhaseRevision: async revision => {
+      confirmations++;
+      assert.equal(revision.stage, "plan");
+      assert.deepEqual(revision.invalidated_paths, []);
+      return true;
+    } });
+  assert.equal(confirmations, 2);
+  assert.equal(updated.phase.status.next, "author-tasks");
+  const history = read(root, updated.phase.revision);
+  assert.equal(history.generated_by, "mcpee");
+  assert.equal(history.artifacts.find(file => file.path.endsWith("/plan.json")).content, priorJson);
+  assert.equal(history.artifacts.find(file => file.path.endsWith("/plan.md")).content, priorMarkdown);
+  publishPhase(root, document.slug, "tasks", JSON.stringify(tasks(root)));
+  const oldTasks = fs.readFileSync(path.join(root, directory, "tasks.json"), "utf8");
+  const revised = technicalPlan(root);
+  revised.design[0].description += " Return titles in a stable deterministic order.";
+  const revision = await publishPhaseWithApproval(root, document.slug, "plan", JSON.stringify(revised), async proposal => {
+    assert.deepEqual(proposal.invalidated_paths, [`${directory}/tasks.json`, `${directory}/tasks.md`]);
+    return true;
+  });
+  assert.equal(revision.status.next, "author-tasks");
+  assert.equal(featureStatus(root, document.slug).reviews.tasks.approved, false);
+  assert.equal(fs.existsSync(path.join(root, directory, "tasks.json")), false);
+  assert.equal(read(root, revision.revision).artifacts.find(file => file.path.endsWith("/tasks.json")).content, oldTasks);
+  publishPhase(root, document.slug, "tasks", JSON.stringify(tasks(root)));
+  assert.equal(featureStatus(root, document.slug).next, "implement-and-verify");
+  await publishPhaseWithApproval(root, document.slug, "plan", JSON.stringify(revised),
+    () => { assert.fail("Identical publication must not prompt again."); });
+});
+
+test("saved phase recovery confirms revisions without another model call and restores files on write failure", async t => {
+  const { root, sources, document } = fixture();
+  publishFunctionalSpec(root, JSON.stringify(document), sources, { automatic: true });
+  publishPhase(root, document.slug, "plan", JSON.stringify(technicalPlan(root)));
+  const directory = workspace(document.slug, root);
+  const previous = ["plan.json", "plan.md"].map(file => ({
+    path: `${directory}/${file}`, content: fs.readFileSync(path.join(root, directory, file), "utf8"),
+  }));
+  const revised = technicalPlan(root);
+  revised.design[0].description += " Preserve deterministic ordering for repeated searches.";
+  const candidate = ".mcpee/reports/authoring/abcdef01/plan-2.txt";
+  const response = JSON.stringify(revised);
+  fs.mkdirSync(path.dirname(path.join(root, candidate)), { recursive: true });
+  fs.writeFileSync(path.join(root, candidate), response);
+  fs.writeFileSync(path.join(root, candidate.replace(".txt", ".json")), JSON.stringify({
+    generated_by: "mcpee", stage: "plan", feature: document.slug, response_path: candidate,
+    response_sha256: crypto.createHash("sha256").update(response).digest("hex"),
+  }));
+  let confirmSha256;
+  assert.throws(() => recoverAuthoring(root, candidate), error => {
+    confirmSha256 = error.message.match(/confirm SHA-256 ([a-f0-9]{64})/)?.[1];
+    return Boolean(confirmSha256);
+  });
+  const rename = fs.renameSync;
+  let failed = false;
+  const mock = t.mock.method(fs, "renameSync", (from, to) => {
+    if (!failed && to === path.join(root, directory, "plan.md")) {
+      failed = true;
+      throw new Error("Injected phase publication failure");
+    }
+    return rename(from, to);
+  });
+  try {
+    assert.throws(() => recoverAuthoring(root, candidate, [], { confirmSha256 }), /Injected phase publication failure/);
+  } finally {
+    mock.mock.restore();
+  }
+  for (const file of previous) assert.equal(fs.readFileSync(path.join(root, file.path), "utf8"), file.content);
+  assert.deepEqual(fs.readdirSync(path.join(root, ".mcpee/reports/phase-revisions")), []);
+  const recovered = recoverAuthoring(root, candidate, [], { confirmSha256 });
+  assert.equal(recovered.result.status.next, "author-tasks");
+  assert.deepEqual(read(root, recovered.result.revision).artifacts, previous);
+  publishPhase(root, document.slug, "tasks", JSON.stringify(tasks(root)));
+  const changedTasks = tasks(root);
+  changedTasks.tasks[0].description += " Assert the deterministic ordering contract.";
+  const tasksRevision = await publishPhaseWithApproval(root, document.slug, "tasks",
+    JSON.stringify(changedTasks), async () => true);
+  assert.equal(tasksRevision.status.next, "implement-and-verify");
+  assert.equal(read(root, tasksRevision.revision).stage, "tasks");
+});
+
+test("phase revision confirmation is bound to the exact candidate and current owner files", async () => {
+  const { root, sources, document } = fixture();
+  publishFunctionalSpec(root, JSON.stringify(document), sources, { automatic: true });
+  publishPhase(root, document.slug, "plan", JSON.stringify(technicalPlan(root)));
+  const candidate = technicalPlan(root);
+  candidate.design[0].description += " Keep public catalog results consistently ordered.";
+  const filename = path.join(root, workspace(document.slug, root), "plan.md");
+  const ownerContent = fs.readFileSync(filename, "utf8") + "\nOwner: preserve this additional constraint.\n";
+  await assert.rejects(() => publishPhaseWithApproval(root, document.slug, "plan", JSON.stringify(candidate),
+    async () => { fs.writeFileSync(filename, ownerContent); return true; }), /Phase conflict/);
+  assert.equal(fs.readFileSync(filename, "utf8"), ownerContent);
+  assert.equal(fs.existsSync(path.join(root, ".mcpee/reports/phase-revisions")), false);
+  assert.throws(() => publishPhase(root, document.slug, "plan", JSON.stringify(candidate)), /confirm SHA-256/);
+  await assert.rejects(() => publishPhaseWithApproval(root, document.slug, "plan", JSON.stringify(candidate)), /not approved/);
 });
 
 test("invalid references, omitted cases, cyclic dependencies and owner edits never advance", () => {
@@ -552,6 +670,38 @@ test("recovering a brownfield onboarding candidate preserves its exact scope and
   assert.equal(recovered.result.lifecycle.authoritative, false);
   assert.equal(recovered.result.lifecycle.reviews.specification.approved, false);
   assert.deepEqual(read(root, recovered.result.manifestPath).authoring_scope, metadata.authoring_scope);
+});
+
+test("canonical validation plan revisions preserve prior workflow specs", async () => {
+  const { root, sources, document } = fixture();
+  publishFunctionalSpec(root, JSON.stringify(document), sources, { automatic: true });
+  publishPhase(root, document.slug, "plan", JSON.stringify(technicalPlan(root)));
+  publishPhase(root, document.slug, "tasks", JSON.stringify(tasks(root)));
+  const canonical = prepareImplementationValidation(root, document.slug);
+  const previousWorkflowPath = `.mcpee/workflows/${canonical.spec.workflow_id}-${canonical.tasks_sha256}.json`;
+  const previousWorkflow = { ...canonical.spec, task: "Verify the previous plan revision." };
+  fs.mkdirSync(path.dirname(path.join(root, previousWorkflowPath)), { recursive: true });
+  fs.writeFileSync(path.join(root, previousWorkflowPath), `${JSON.stringify(previousWorkflow, null, 2)}\n`);
+  let workflowUsed;
+  let validation;
+  const exitCode = await synchronizeAfterCopilotChanges(root, [], "ingest-knowledge", {
+    canonicalFeature: document.slug,
+    approveSync: async () => true,
+    syncProject: () => ({ counts: { failed: 0 }, graphify: { status: "not-installed" } }),
+    discoverTools: () => ({ tools: [] }),
+    updateCodeGraph: () => ({ status: "ready" }),
+    runWorkflow: async (_project, file) => {
+      workflowUsed = file;
+      return { status: "failed", id: crypto.randomUUID(), file: ".mcpee/reports/evaluations/failed.json" };
+    },
+    onValidation: result => { validation = result; },
+  });
+  const revision = crypto.createHash("sha256").update(JSON.stringify(canonical)).digest("hex");
+  assert.equal(exitCode, 1);
+  assert.equal(validation.status, "failed");
+  assert.equal(workflowUsed, `.mcpee/workflows/${canonical.spec.workflow_id}-${canonical.tasks_sha256}-${revision}.json`);
+  assert.deepEqual(read(root, previousWorkflowPath), previousWorkflow);
+  assert.deepEqual(read(root, workflowUsed), canonical.spec);
 });
 
 test("canonical local implementation checks complete without a routed ingestion workflow or per-test approval", async () => {

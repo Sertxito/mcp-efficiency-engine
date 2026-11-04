@@ -557,7 +557,7 @@ function printHelp() {
     "  specs review --slug <feature> --reviewer <owner> --confirm-sha256 <digest>",
     "  specs decide --slug <feature> --id Q-001 --answer <decision> --reviewer <owner>",
     "  specs approve --slug <feature> --stage specification|plan|tasks --reviewer <owner> --confirm-sha256 <digest>",
-    "  specs recover --candidate .mcpee/reports/authoring/<run>/<phase>-<attempt>.txt [--source <original-path>]",
+    "  specs recover --candidate .mcpee/reports/authoring/<run>/<phase>-<attempt>.txt [--source <original-path>] [--confirm-sha256 <revision-digest>]",
     "  specs ratify --slug <id> --reviewer <name> --confirm-sha256 <digest>",
     "  drift [--json]",
     "  tools list | tools validate [--tool <id> ...]",
@@ -988,7 +988,9 @@ function runSpecs(root, args) {
     } else if (action === "recover") {
       const sources = args.flatMap((value, index) => value === "--source" ? [args[index + 1]] : []);
       if (sources.some(value => !value || value.startsWith("--"))) throw new Error("--source requires an original project-relative source path.");
-      result = require("../../spec-engine/src/phases").recoverAuthoring(root, optionValue(args, "--candidate"), sources);
+      result = require("../../spec-engine/src/phases").recoverAuthoring(root, optionValue(args, "--candidate"), sources, {
+        confirmSha256: optionValue(args, "--confirm-sha256"),
+      });
     } else {
       result = resolveDecision(root, {
         slug, id: optionValue(args, "--id"), answer: optionValue(args, "--answer"), reviewer: optionValue(args, "--reviewer"),
@@ -2447,14 +2449,19 @@ async function synchronizeAfterCopilotChanges(root, changedPaths, workflowId, op
     onValidation({ status: "blocked", reason: "Post-change source, Graphify, or required CodeGraph synchronization failed." });
     return 1;
   }
-  const workflowSpec = canonicalValidation
+  let workflowSpec = canonicalValidation
     ? `.mcpee/workflows/${workflowId}-${canonicalValidation.tasks_sha256}.json`
     : `.mcpee/workflows/${workflowId}.json`;
   if (canonicalValidation) {
-    const filename = path.join(root, workflowSpec);
     const content = `${JSON.stringify(canonicalValidation.spec, null, 2)}\n`;
+    let filename = path.join(root, workflowSpec);
     if (fs.existsSync(filename) && fs.readFileSync(filename, "utf8") !== content) {
-      throw new Error("Canonical validation workflow conflicts with existing work; do not overwrite it.");
+      const revision = crypto.createHash("sha256").update(JSON.stringify(canonicalValidation)).digest("hex");
+      workflowSpec = `.mcpee/workflows/${workflowId}-${canonicalValidation.tasks_sha256}-${revision}.json`;
+      filename = path.join(root, workflowSpec);
+      if (fs.existsSync(filename) && fs.readFileSync(filename, "utf8") !== content) {
+        throw new Error("Canonical validation workflow revision conflicts with existing work; do not overwrite it.");
+      }
     }
     if (!fs.existsSync(filename)) fs.writeFileSync(filename, content, { flag: "wx" });
   }
@@ -2811,6 +2818,15 @@ async function runCopilotCommandInternal(root, args) {
       conversationContext,
       approvePermission: approveCopilotPermission,
       approveTool: (input, reason) => approveCopilotTool(input, reason, plan.impact_preflight),
+      approvePhaseRevision: revision => approveMaintenance("phase-revision", [
+        `Replace the existing ${revision.stage} for ${revision.feature} with the validated candidate?`,
+        "The previous files and review approvals will be archived in .mcpee/reports/phase-revisions/ before replacement.",
+        `Files preserved in history: ${revision.artifacts.map(file => file.path).join(", ")}.`,
+        ...(revision.invalidated_paths.length ? [
+          `Dependent tasks will be archived and removed from the canonical workspace so they can be regenerated against the new plan: ${revision.invalidated_paths.join(", ")}.`,
+        ] : []),
+        `Revision SHA-256: ${revision.sha256}. This confirms file replacement, not product approval or execution of risky actions.`,
+      ].join("\n")),
       onProgress: (progress) => {
         if (typeof process.send === "function" && process.connected) {
           process.send({ type: "mcpee-authoring-progress", ...progress }, (error) => {
