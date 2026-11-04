@@ -34,13 +34,13 @@ why MCPEE manages its own isolated Python runtime instead of requiring one.
 Global installation (recommended):
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.44
+npm install --global mcp-efficiency-engine@0.1.45
 ```
 
 Run a pinned version without installing globally:
 
 ```sh
-npx --package=mcp-efficiency-engine@0.1.44 mcpee init --project C:\path\to\project
+npx --package=mcp-efficiency-engine@0.1.45 mcpee init --project C:\path\to\project
 ```
 
 The npm package is `mcp-efficiency-engine`. It installs two equivalent
@@ -50,7 +50,7 @@ If npm reports that the Copilot SDK's native `koffi` dependency has a blocked
 install script, allow only that dependency:
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.44 --allow-scripts=koffi
+npm install --global mcp-efficiency-engine@0.1.45 --allow-scripts=koffi
 ```
 
 This does not enable install scripts globally. A successful `mcpee help`
@@ -64,7 +64,7 @@ another implementation is required.
 ## Initialize a project
 
 ```sh
-mcpee init --project C:\path\to\project
+mcpee init --project C:\path\to\project [--mcp-config auto|portable|vscode]
 ```
 
 `--project` defaults to the current directory. `init` is safe to repeat: it
@@ -120,9 +120,14 @@ never overwrites user-owned files. In one run it:
    `mcpee knowledge embeddings setup --profile bge-m3|light`.
    Each model download still requires its own approval. See
    [Knowledge and context](KNOWLEDGE.md#optional-semantic-embeddings).
-9. Registers the `mcpee_run` MCP tool and the CodeGraph MCP server in the
-   project `.mcp.json`, so ordinary Copilot Chat requests are routed through
-   MCPEE. No VSIX and no `@mcpee` mention are needed.
+9. Always registers the `mcpee_run` MCP tool, including in an empty
+   documentation-only Greenfield project. CodeGraph is registered only when
+   application code and its local tool are available. By default, MCPEE uses
+   portable `.mcp.json`; `--mcp-config vscode` selects VS Code's
+   `.vscode/mcp.json` format. `auto` reuses the sole existing project MCP
+   configuration, or chooses portable format when there is none. If both files
+   already contain MCPEE servers, setup stops rather than starting duplicates.
+   No VSIX and no `@mcpee` mention are needed.
 
 The summary printed at the end reports the detected stack, provisioned
 capabilities, each tool's status, sync counts, brownfield proposals and authoring
@@ -283,11 +288,11 @@ instructions route engineering requests to the project `mcpee_run` MCP tool.
 VS Code may ask once to trust the workspace or start the MCP server.
 
 Before the first request, run **Chat: Open Customizations**, select the active
-Copilot harness and open **MCP Servers**. Enable both `mcpee` and
-`mcpee-codegraph` for the intended project/workspace where that scope is
-available. A previous global disablement can apply to a newly initialized
-project. Starting a server from `.mcp.json` does not clear that preference.
-This is a first-use check, not a command to repeat for every request.
+Copilot harness and open **MCP Servers**. Enable `mcpee` and `mcpee-codegraph`
+when present, and accept any trust prompts. Enablement is separate from
+starting a server in the selected project MCP file; a previous global
+disablement can apply to a newly initialized project. This is a first-use
+check, not a command to repeat for every request.
 
 After upgrading MCPEE and running `mcpee update`, cancel a previously stalled
 turn and start a fresh chat so it uses the refreshed integration. Attach or
@@ -402,7 +407,7 @@ No agents, workflows, tool downloads or model calls are executed by this command
 | `.github/agents/`, `.github/skills/` | Rendered agent profiles, skill procedures and workflow skills (`/mcpee-<workflow>`, explicit invocation only; works in the Local and Copilot harnesses) |
 | `.github/instructions/` | Always-on policies and file-scoped technical guidance |
 | `.github/hooks/` | Approval and observability hook registration |
-| `.mcp.json` | Project MCP servers (`mcpee`, `mcpee-codegraph`); existing entries are preserved |
+| `.mcp.json` or `.vscode/mcp.json` | Selected project MCP config (`mcpee`, and `mcpee-codegraph` when applicable); existing entries are preserved and duplicate MCPEE registrations are rejected |
 | `knowledge/sources/` | Owner-supplied original inputs; normalized, extracted and traceability siblings support local retrieval |
 | `docs/README.md` | First place to look for project knowledge; links specifications and generated documentation |
 | `docs/generated/` | Source-linked evidence maps and `specification-evidence/` inventories, not automatic sources of truth |

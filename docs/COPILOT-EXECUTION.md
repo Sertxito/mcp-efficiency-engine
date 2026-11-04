@@ -46,16 +46,17 @@ enable the generated approval hook in hosts that support it, or use the
 host's tool-specific “always allow” control for these three MCPEE tools only.
 Do not enable global autoapproval to solve internal polling prompts.
 
-MCPEE adds its own stdio server and the CodeGraph server to the portable
-workspace `.mcp.json` read directly by Copilot harness sessions, without
-running CodeGraph's global agent installer or changing user-level settings.
-Existing MCP entries are preserved. Invalid configuration, or conflicting
-`mcpee-codegraph` or `mcpee` entries, are reported rather than overwritten.
-Host-normalized entries (`type: "stdio"`, equivalent absolute paths, host
-tool-selection metadata) are accepted without rewriting. Different commands,
-arguments or environment values still require you to resolve the conflict.
-Projects that still have these servers in `.vscode/mcp.json` should run VS
-Code's MCP migration once.
+MCPEE always registers its stdio server, including for documentation-only
+Greenfield projects; CodeGraph is added only when application code and its
+project-local tool are available. By default, the portable workspace
+`.mcp.json` is used for Copilot harness sessions. `mcpee init --mcp-config
+vscode` selects VS Code's `.vscode/mcp.json` format; `auto` reuses the sole
+existing project MCP config and otherwise chooses portable format. Existing
+MCP entries are preserved. If both files already contain MCPEE servers, or an
+owned server name has a different command, arguments or environment, setup
+stops rather than overwriting the entry or starting duplicates. Host-normalized
+entries (`type: "stdio"`, equivalent absolute paths, host tool-selection
+metadata) are accepted without rewriting.
 
 The MCPEE server uses the package location recorded by `mcpee init`; it does
 not download or install packages when Chat starts. The internal Copilot

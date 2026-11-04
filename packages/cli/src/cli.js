@@ -37,6 +37,7 @@ const {
   writeGeneratedJson,
 } = require("../../source-engine/src/embeddings");
 const {
+  configureProjectMcp,
   readCodeGraphState,
   searchCodeGraph,
   updateCodeGraph,
@@ -536,6 +537,7 @@ function printHelp() {
     "Options:",
     "  --project <path>  Project root (default: current directory)",
     "  init --prepare-only  Prepare local tools/indexes without paid brownfield authoring",
+    "  --mcp-config <auto|portable|vscode>  Select one project MCP config format (default: auto)",
     "  --session <id>    Filter traces by Copilot session",
     "  --event <name>    Filter traces by hook event",
     "  --show <id>       Print one complete sanitized event",
@@ -574,7 +576,7 @@ function printHelp() {
     "  tasks list | approve|reject|start <task-id> | complete <task-id> --evaluation <id>",
     "  route --task <request> [--json]",
     "  run --task <request> [--model <id>] [--resume-session <uuid>] [--pack-context | --no-ground-context] [--context-tokens <128..32000>]",
-    "  init [--agents <id,...|all|none>] [--skip-tool-install] [--embeddings none|light|bge-m3]",
+    "  init [--agents <id,...|all|none>] [--skip-tool-install] [--embeddings none|light|bge-m3] [--mcp-config auto|portable|vscode]",
     "  observe [--json] [--export <project-relative-json>] [--html <project-relative-html>]",
     "  view --html <project-relative-html> [--report <project-relative-json>]",
     "  trace [--trace-id <id> | --session <id>] [--event <name>] [--export <project-relative-json>]",
@@ -1243,7 +1245,7 @@ async function runRebuild(root) {
   return result.counts.failed > 0 || !["ready", "not-applicable"].includes(codeGraph.status) || result.graphify.status === "failed" ? 1 : 0;
 }
 
-async function runUpdate(root) {
+async function runUpdate(root, args = []) {
   if (!fs.existsSync(path.join(root, ".mcpee/state/project.json"))) {
     process.stderr.write("[mcpee] Project is not initialized. Run mcpee init first.\n");
     return 1;
@@ -1258,7 +1260,13 @@ async function runUpdate(root) {
     "Refresh MCPEE-managed project files and the rendered catalog from the currently installed MCPEE package. User-owned files are preserved. This does not update the MCPEE npm package or install external tools.",
   )) return 1;
   const result = initializeProject(root, { refreshRuntime, refreshApprovalHook });
+  const mcp = configureProjectMcp(root, { format: optionValue(args, "--mcp-config", "auto") });
+  if (!["configured", "unchanged"].includes(mcp.status)) {
+    process.stderr.write(`[mcpee] Project MCP configuration failed: ${mcp.error || mcp.status}\n`);
+    return 1;
+  }
   process.stdout.write(`[mcpee] Project integration refreshed from MCPEE ${require("../../../package.json").version}: created=${result.created.length}, updated=${result.updated.length}, preserved=${result.preserved.length}.\n`);
+  process.stdout.write(`[mcpee] MCPEE MCP server ${mcp.status} in ${mcp.file} (${mcp.format}).\n`);
   process.stdout.write("[mcpee] To update the MCPEE CLI package itself, use the package manager that installed it.\n");
   return 0;
 }
@@ -3278,6 +3286,7 @@ async function runCommand(args) {
       available: toolReport.tools.some((tool) => tool.id === "codegraph" && tool.available),
       required: true,
       documentationOnly: !detectProjectCapabilities(root, readCatalog().catalog).has_code_signals,
+      mcpConfigFormat: optionValue(rest, "--mcp-config", "auto"),
     });
     startStep(5, "Synchronizing local sources, evidence and documentation");
     const sync = syncProject(root);
@@ -3370,8 +3379,13 @@ async function runCommand(args) {
       process.stdout.write(`[mcpee] Graphify unavailable: ${sync.graphify.reason}\n`);
     }
     process.stdout.write(`[mcpee] Generated documentation: written=${sync.documentation.counts.written}, preserved=${sync.documentation.counts.preserved}.\n`);
+    if (codeGraph.mcp && ["configured", "unchanged"].includes(codeGraph.mcp.status)) {
+      process.stdout.write(`[mcpee] MCPEE MCP server ${codeGraph.mcp.status} in ${codeGraph.mcp.file} (${codeGraph.mcp.format}).\n`);
+    } else {
+      process.stderr.write(`[mcpee] MCPEE MCP configuration is not ready: ${codeGraph.mcp?.error || codeGraph.mcp?.status || "missing"}.\n`);
+    }
     if (codeGraph.status === "ready") {
-      process.stdout.write(`[mcpee] CodeGraph ${codeGraph.operation} completed: files=${codeGraph.summary.file_count ?? "unknown"} nodes=${codeGraph.summary.node_count ?? "unknown"} edges=${codeGraph.summary.edge_count ?? "unknown"}; MCP ${codeGraph.mcp.status} in ${codeGraph.mcp.file}.\n`);
+      process.stdout.write(`[mcpee] CodeGraph ${codeGraph.operation} completed: files=${codeGraph.summary.file_count ?? "unknown"} nodes=${codeGraph.summary.node_count ?? "unknown"} edges=${codeGraph.summary.edge_count ?? "unknown"}.\n`);
     } else if (codeGraph.status === "unavailable") {
       process.stderr.write("[mcpee] CodeGraph is required but the project-local tool is not installed.\n");
     } else if (codeGraph.status === "not-applicable") {
@@ -3383,10 +3397,11 @@ async function runCommand(args) {
       toolInstallation.results,
       toolReport.tools,
     );
+    const mcpReady = codeGraph.mcp && ["configured", "unchanged"].includes(codeGraph.mcp.status);
     if (workflowSpecs.status === "failed" ||
         specificationScopes && !specificationScopes.scopes.length ||
         (sync.counts.failed > 0 && !specificationScopes?.scopes.length) || sync.graphify.status === "failed" ||
-        toolFailures.length > 0 || !["ready", "not-applicable"].includes(codeGraph.status)) {
+        toolFailures.length > 0 || !["ready", "not-applicable"].includes(codeGraph.status) || !mcpReady) {
       process.stderr.write("[mcpee] SETUP INCOMPLETE - capabilities are configured, but the harness is not fully ready.\n");
       if (specificationScopes && specificationScopes.status !== "planned") {
         process.stderr.write("[mcpee] Brownfield specification scope preparation is incomplete; resolve blocked sources or add eligible product evidence before authoring.\n");
@@ -3432,7 +3447,7 @@ async function runCommand(args) {
   if (command === "run") return await runCopilotCommand(root, rest);
   if (command === "explain") return runExplain(root, rest);
   if (command === "rebuild") return await runRebuild(root);
-  if (command === "update") return await runUpdate(root);
+  if (command === "update") return await runUpdate(root, rest);
   if (command === "clean") return await runClean(root);
   if (command === "observe") return runObserve(root, rest);
   if (command === "view") {

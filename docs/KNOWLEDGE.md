@@ -45,6 +45,11 @@ until the preflight is ready.
 - Converts PDF and Office files with the isolated MarkItDown installation. If
   it is missing, those files are inventoried as requiring the tool, never
   silently discarded.
+- Forces UTF-8 strict output for MarkItDown, including redirected Windows
+  output. Converted documents containing Unicode replacement characters fail
+  explicitly rather than becoming citation evidence. Damaged MCPEE-owned cached
+  conversions are retried on sync; changed normalized hashes make older
+  proposals stale and require review, never automatic approval.
 - Applies heuristic redaction to normalized content; treat it as project data.
 
 **Multiple repositories.** One MCPEE workspace can include several nested

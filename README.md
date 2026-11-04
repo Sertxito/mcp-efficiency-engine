@@ -15,7 +15,7 @@ action, automatic validation after changes and a full local audit trail.
   Existing user files are never overwritten.
 
 npm package: **`mcp-efficiency-engine`** · commands: `mcpee` (or
-`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.44)
+`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.45)
 
 ## Requirements
 
@@ -33,17 +33,17 @@ Full details: [Getting started → Requirements](docs/GETTING-STARTED.md#require
 **1. Install**
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.44
+npm install --global mcp-efficiency-engine@0.1.45
 ```
 
 If npm blocks the native `koffi` dependency, add `--allow-scripts=koffi`
 (only that dependency is allowed). Prefer no global install? Use
-`npx --package=mcp-efficiency-engine@0.1.44 mcpee init --project <path>`.
+`npx --package=mcp-efficiency-engine@0.1.45 mcpee init --project <path>`.
 
 **2. Initialize your project**
 
 ```sh
-mcpee init --project C:\path\to\project
+mcpee init --project C:\path\to\project [--mcp-config auto|portable|vscode]
 ```
 
 Approve the tool downloads when asked. CodeGraph is included in the bundle,
@@ -60,10 +60,11 @@ not CodeGraph health, to validate this work.
 
 Before the first request, run **Chat: Open Customizations** in VS Code, select
 the active Copilot harness and open **MCP Servers**. Enable `mcpee` and
-`mcpee-codegraph` for the project and accept any trust prompts. Enablement is
-separate from starting a server in `.mcp.json`; a previous global disablement
-can keep an installed server unavailable. This is a setup check, not a step
-to repeat before every request.
+`mcpee-codegraph` when present and accept any trust prompts. Enablement is
+separate from starting a server in the selected project MCP configuration
+(`.mcp.json` by default, or `.vscode/mcp.json` when selected); a previous
+global disablement can keep an installed server unavailable. This is a setup
+check, not a step to repeat before every request.
 
 Open the project in VS Code and ask Copilot Chat as usual, for example
 *"Add input validation to the orders endpoint"*. MCPEE routes the request,

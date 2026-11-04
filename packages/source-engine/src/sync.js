@@ -401,6 +401,7 @@ function derivedArtifactsAreCurrent(projectRoot, source, previous, digest, paths
     if (!fs.existsSync(absolute) || !isOwnedOutput(absolute, kind)) return false;
   }
   const normalized = fs.readFileSync(path.join(projectRoot, paths.normalized_path), "utf8");
+  if (source.processor === "office-documents" && normalized.includes("\uFFFD")) return false;
   const extractedText = fs.readFileSync(path.join(projectRoot, paths.extracted_path), "utf8");
   const traceabilityText = fs.readFileSync(path.join(projectRoot, paths.traceability_path), "utf8");
   let metadata;
@@ -538,7 +539,10 @@ function processSource(projectRoot, source, previous, tools) {
         ...(tool?.available ? { reason: "installed as a shell wrapper that MCPEE will not launch" } : {}),
       };
     }
-    const result = invokeTool(projectRoot, "markitdown", [absoluteSource], { timeoutMs: 30_000 });
+    const result = invokeTool(projectRoot, "markitdown", [absoluteSource], {
+      timeoutMs: 30_000,
+      env: { PYTHONIOENCODING: "utf-8:strict", PYTHONUTF8: "1" },
+    });
     if (result.status !== "success") {
       removePreviousOutputs(projectRoot, previous);
       return {
@@ -555,6 +559,16 @@ function processSource(projectRoot, source, previous, tools) {
         ...source,
         status: "failed",
         error: "markitdown completed without producing Markdown on stdout",
+        bytes: buffer.length,
+        sha256: digest,
+      };
+    }
+    if (result.stdout.includes("\uFFFD")) {
+      removePreviousOutputs(projectRoot, previous);
+      return {
+        ...source,
+        status: "failed",
+        error: "markitdown produced Unicode replacement characters; repair the document or converter encoding before using it as citation evidence.",
         bytes: buffer.length,
         sha256: digest,
       };

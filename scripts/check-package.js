@@ -103,6 +103,7 @@ try {
     "templates/specialist-acceptance/audit-fixtures.json",
     "templates/specialist-acceptance/audit-controls.json",
     "packages/evaluation-engine/src/behavioral-oracles.js",
+    "packages/spec-engine/src/reconciliation.js",
     "templates/specialist-acceptance/python-resource-lifetime/worker.py",
     "templates/specialist-acceptance/python-resource-lifetime/checks.py",
     "templates/specialist-acceptance/sql-result-semantics/checks.py",
@@ -158,6 +159,9 @@ try {
     "mcpee.js",
   );
   const installedRequire = createRequire(path.join(consumerRoot, "node_modules", metadata.name, "package.json"));
+  const installedBrownfieldAuthoring = installedRequire("./packages/spec-engine/src/brownfield-authoring.js");
+  assert.equal(typeof installedBrownfieldAuthoring.authorBrownfield, "function");
+  assert.equal(typeof installedBrownfieldAuthoring.brownfieldConcurrency, "function");
   assert.throws(() => installedRequire.resolve("@github/copilot-sdk"), { code: "MODULE_NOT_FOUND" },
     "Consumers must not install the SDK's vulnerable transitive dependency tree");
   assert.equal(installedRequire("zod/package.json").version, metadata.dependencies.zod);

@@ -157,3 +157,16 @@ test("reconciliation reports stale graphs and missing specifications instead of 
   assert.equal(stale.summary.missing_specifications, 2);
   assert.equal(stale.summary.cross_scope_source_dependencies, 0);
 });
+
+test("reconciliation accepts unified graphs larger than the project JSON limit", t => {
+  const root = fixture(t);
+  const graphPath = path.join(root, GRAPH_PATH);
+  const graph = JSON.parse(fs.readFileSync(graphPath, "utf8"));
+  graph.padding = "x".repeat(16 * 1024 * 1024);
+  fs.writeFileSync(graphPath, JSON.stringify(graph));
+
+  const report = buildSpecificationReconciliation(root);
+  assert.equal(report.graph.status, "current");
+  assert.ok(report.graph.sha256);
+  assert.equal(report.summary.missing_specifications, 2);
+});

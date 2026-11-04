@@ -7,10 +7,14 @@ const { invokeTool } = require("../../tool-manager/src/tools");
 const { recordEvent } = require("../../core/src/telemetry");
 
 const STATE_FILE = ".mcpee/state/codegraph.json";
-const MCP_CONFIG_FILE = ".mcp.json";
+const MCP_CONFIGS = {
+  portable: { file: ".mcp.json", serversKey: "mcpServers" },
+  vscode: { file: ".vscode/mcp.json", serversKey: "servers" },
+};
 const GRAPH_DIRECTORY = ".codegraph";
 const SERVER_NAME = "mcpee-codegraph";
 const CODEGRAPH_PACKAGE = "@colbymchenry/codegraph";
+const MANAGED_SERVER_NAMES = [SERVER_NAME, "mcpee"];
 const CODEGRAPH_ENV = {
   CODEGRAPH_NO_DOWNLOAD: "1",
   CODEGRAPH_NO_UPDATE_CHECK: "1",
@@ -22,7 +26,7 @@ function assertNoSymlink(root, relativePath) {
   for (const part of relativePath.split(/[\\/]/).filter(Boolean)) {
     current = path.join(current, part);
     if (fs.existsSync(current) && fs.lstatSync(current).isSymbolicLink()) {
-      throw new Error(`Refusing to access MCPEE CodeGraph path through symbolic link: ${current}`);
+      throw new Error(`Refusing to access MCPEE-managed path through symbolic link: ${current}`);
     }
   }
 }
@@ -121,54 +125,88 @@ function sameServerConfiguration(root, name, current, desired) {
 }
 
 function configureProjectMcp(projectRoot, options = {}) {
-  if (!options.available) return { status: "unavailable" };
   const root = path.resolve(projectRoot);
-  assertNoSymlink(root, MCP_CONFIG_FILE);
-  const configPath = path.join(root, MCP_CONFIG_FILE);
-  let config = { mcpServers: {} };
-  if (fs.existsSync(configPath)) {
+  const requestedFormat = options.format || "auto";
+  if (!["auto", ...Object.keys(MCP_CONFIGS)].includes(requestedFormat)) {
+    return {
+      status: "failed",
+      error: `MCP config format must be one of: auto, ${Object.keys(MCP_CONFIGS).join(", ")}.`,
+    };
+  }
+  const candidates = Object.entries(MCP_CONFIGS).map(([format, descriptor]) => {
+    assertNoSymlink(root, descriptor.file);
+    const configPath = path.join(root, descriptor.file);
+    if (!fs.existsSync(configPath)) return { format, ...descriptor, configPath, exists: false, config: null };
+    let config;
     try {
       config = JSON.parse(fs.readFileSync(configPath, "utf8"));
     } catch (error) {
-      return {
-        status: "failed",
-        error: `Cannot safely merge project MCP config ${configPath}: ${error.message}`,
-      };
+      return { format, ...descriptor, configPath, exists: true, error:
+        `Cannot safely merge project MCP config ${configPath}: ${error.message}` };
     }
     if (!config || typeof config !== "object" || Array.isArray(config)) {
-      return { status: "failed", error: `Project MCP config must contain a JSON object: ${configPath}` };
+      return { format, ...descriptor, configPath, exists: true, error:
+        `Project MCP config must contain a JSON object: ${configPath}` };
     }
+    const servers = config[descriptor.serversKey];
+    if (servers !== undefined && (!servers || typeof servers !== "object" || Array.isArray(servers))) {
+      return { format, ...descriptor, configPath, exists: true, error:
+        `The "${descriptor.serversKey}" value must be an object in ${configPath}` };
+    }
+    return { format, ...descriptor, configPath, exists: true, config };
+  });
+  const invalid = candidates.find((candidate) => candidate.error);
+  if (invalid) return { status: "failed", file: invalid.file, error: invalid.error };
+
+  const managed = candidates.filter((candidate) =>
+    MANAGED_SERVER_NAMES.some((name) => candidate.config?.[candidate.serversKey]?.[name]));
+  if (managed.length > 1) {
+    return {
+      status: "conflict",
+      error: `MCPEE servers are already present in both ${MCP_CONFIGS.portable.file} and ${MCP_CONFIGS.vscode.file}; keep one host configuration to avoid duplicate servers.`,
+    };
   }
-  if (config.mcpServers !== undefined &&
-      (!config.mcpServers || typeof config.mcpServers !== "object" || Array.isArray(config.mcpServers))) {
-    return { status: "failed", error: `The "mcpServers" value must be an object in ${configPath}` };
+  const existing = candidates.filter((candidate) => candidate.exists);
+  const selected = requestedFormat === "auto"
+    ? managed[0] || (existing.length === 1 ? existing[0] : candidates.find(({ format }) => format === "portable"))
+    : candidates.find(({ format }) => format === requestedFormat);
+  const duplicate = candidates.find((candidate) =>
+    candidate !== selected &&
+    MANAGED_SERVER_NAMES.some((name) => candidate.config?.[candidate.serversKey]?.[name]));
+  if (duplicate) {
+    return {
+      status: "conflict",
+      file: selected.file,
+      error: `MCPEE servers are already configured in ${duplicate.file}; remove that entry before selecting ${selected.file}.`,
+    };
   }
-  config.mcpServers ||= {};
+  const config = selected.config || {};
+  config[selected.serversKey] ||= {};
   const desiredServers = {
-    [SERVER_NAME]: serverConfiguration(),
     mcpee: mcpeeServerConfiguration(),
+    ...(options.available === true ? { [SERVER_NAME]: serverConfiguration() } : {}),
   };
   let configured = false;
   let conflicts = [];
   for (const [name, desired] of Object.entries(desiredServers)) {
-    if (config.mcpServers[name]) {
-      if (!sameServerConfiguration(root, name, config.mcpServers[name], desired)) {
+    if (config[selected.serversKey][name]) {
+      if (!sameServerConfiguration(root, name, config[selected.serversKey][name], desired)) {
         conflicts.push(name);
       }
       continue;
     }
-    config.mcpServers[name] = desired;
+    config[selected.serversKey][name] = desired;
     configured = true;
   }
   if (!configured && conflicts.length === 0) {
-    return { status: "unchanged", file: MCP_CONFIG_FILE };
+    return { status: "unchanged", file: selected.file, format: selected.format };
   }
-  fs.mkdirSync(path.dirname(configPath), { recursive: true });
+  fs.mkdirSync(path.dirname(selected.configPath), { recursive: true });
   if (configured) {
-    const temporary = `${configPath}.${process.pid}.tmp`;
+    const temporary = `${selected.configPath}.${process.pid}.tmp`;
     try {
       fs.writeFileSync(temporary, `${JSON.stringify(config, null, 2)}\n`, "utf8");
-      fs.renameSync(temporary, configPath);
+      fs.renameSync(temporary, selected.configPath);
     } catch (error) {
       if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
       throw error;
@@ -177,11 +215,12 @@ function configureProjectMcp(projectRoot, options = {}) {
   if (conflicts.length > 0) {
     return {
       status: "conflict",
-      file: MCP_CONFIG_FILE,
-      error: `Existing user-owned MCP server configuration was preserved: ${conflicts.join(", ")}.`,
+      file: selected.file,
+      format: selected.format,
+      error: `Existing user-owned MCP server configuration was preserved: ${conflicts.join(", ")} in ${selected.file}.`,
     };
   }
-  return { status: "configured", file: MCP_CONFIG_FILE };
+  return { status: "configured", file: selected.file, format: selected.format };
 }
 
 function invokeCodeGraph(root, args, timeoutMs) {
@@ -279,21 +318,25 @@ function searchCodeGraph(projectRoot, query, limit = 10) {
 
 function updateCodeGraph(projectRoot, options = {}) {
   const root = path.resolve(projectRoot);
+  const mcp = configureProjectMcp(root, {
+    format: options.mcpConfigFormat || "auto",
+    available: options.documentationOnly !== true && options.available === true,
+  });
+  if (mcp.status === "failed" || mcp.status === "conflict") {
+    throw new Error(mcp.error);
+  }
   if (options.documentationOnly === true) {
     const result = {
       status: "not-applicable",
       operation: "skipped",
       reason: "No application code was detected. Documentation-only work does not require a CodeGraph index.",
+      mcp,
     };
     recordEvent(root, {
       event_name: "knowledge.codegraph.completed",
       attributes: { operation: result.operation, status: result.status, reason: result.reason },
     });
     return result;
-  }
-  const mcp = configureProjectMcp(root, { available: options.available });
-  if (mcp.status === "failed" || mcp.status === "conflict") {
-    throw new Error(mcp.error);
   }
   if (!options.available) {
     return {

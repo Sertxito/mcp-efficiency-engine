@@ -12,11 +12,12 @@ const { listFeatures, readFeature, workspace } = require("./lifecycle");
 const { caseFileName } = require("./naming");
 
 const MAX_FILE_BYTES = 16 * 1024 * 1024;
+const MAX_GRAPH_FILE_BYTES = 64 * 1024 * 1024;
 const REPORT_PATH = ".mcpee/state/specification-reconciliation.json";
 const hash = value => crypto.createHash("sha256").update(value).digest("hex");
 
-function readJson(root, relative, label) {
-  const { contents } = readProjectFile(root, relative, MAX_FILE_BYTES, label);
+function readJson(root, relative, label, maxBytes = MAX_FILE_BYTES) {
+  const { contents } = readProjectFile(root, relative, maxBytes, label);
   try {
     return { value: JSON.parse(contents.toString("utf8")), bytes: contents };
   } catch (error) {
@@ -145,7 +146,7 @@ function graphReconciliation(root, scopes, sourceHashes) {
   if (!fs.existsSync(graphPath)) return {
     status: "missing", sha256: null, cross_scope_source_dependencies: [], contradiction_candidates: [],
   };
-  const { value: graph, bytes } = readJson(root, GRAPH_PATH, "Unified evidence graph");
+  const { value: graph, bytes } = readJson(root, GRAPH_PATH, "Unified evidence graph", MAX_GRAPH_FILE_BYTES);
   if (graph.generated_by !== "mcpee" || !Array.isArray(graph.nodes) || !Array.isArray(graph.edges) ||
       !Array.isArray(graph.findings)) {
     throw new Error("Unified evidence graph failed its reconciliation schema checks.");
