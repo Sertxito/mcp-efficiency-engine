@@ -58,6 +58,148 @@ function resolve(root, slug) {
   return resolveDecision(root, { slug, id: "Q-001", answer: "Display the title and author for every catalog result.", reviewer: "Product owner" });
 }
 
+test("pending owner answers remain open through CLI and MCP until explicitly settled", async t => {
+  const { root, slug } = fixture(t);
+  const cli = path.resolve(__dirname, "../packages/cli/bin/mcpee.js");
+  const missingResolution = require("node:child_process").spawnSync(process.execPath, [
+    cli, "specs", "decide", "--project", root, "--slug", slug, "--id", "Q-001",
+    "--answer", "The display choice is pending confirmation.", "--reviewer", "Product owner", "--json",
+  ], { encoding: "utf8" });
+  assert.notEqual(missingResolution.status, 0);
+  assert.match(missingResolution.stderr, /requires explicit --resolution/);
+  assert.equal(featureStatus(root, slug).pending_decisions, 1);
+  const pending = JSON.parse(execFileSync(process.execPath, [
+    cli, "specs", "decide", "--project", root, "--slug", slug, "--id", "Q-001",
+    "--answer", "The displayed metadata is still pending owner confirmation.",
+    "--reviewer", "Product owner", "--resolution", "pending", "--json",
+  ], { encoding: "utf8" }));
+  assert.equal(pending.pending_decisions, 1);
+  assert.equal(pending.next, "clarify");
+  assert.throws(() => approve(root, slug, "specification"), /Resolve open decisions/);
+  const register = path.join(root, workspace(slug, root), "decisions.json");
+  const before = fs.readFileSync(register);
+  assert.throws(() => resolveDecision(root, { slug, id: "Q-001", answer: "Not yet confirmed by the owner.",
+    reviewer: "Product owner", resolution: "anything" }), /resolved, pending or deferred/);
+  assert.deepEqual(fs.readFileSync(register), before);
+  assert.match(fs.readFileSync(path.join(root, workspace(slug, root), "decisions.md"), "utf8"),
+    /OPEN \/ PENDIENTE \(Product owner\)/);
+  const { createMcpServer } = require("../packages/mcp-server/src/server");
+  const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
+  const { InMemoryTransport } = require("@modelcontextprotocol/sdk/inMemory.js");
+  const server = createMcpServer({ projectRoot: root, packageRoot: path.resolve(__dirname, ".."),
+    spawnProcess: () => assert.fail("Clarification must not create a model process.") });
+  const client = new Client({ name: "clarification-test", version: "1" });
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+  t.after(async () => { await client.close(); await server.close(); });
+  await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+  const input = { slug, id: "Q-001", answer: "Display the title and author for every catalog result.",
+    reviewer: "Product owner", resolution: "resolved" };
+  const settled = await client.callTool({ name: "mcpee_specs_decide", arguments: input });
+  assert.ok(!settled.isError, settled.content[0].text);
+  const state = JSON.parse(settled.content[0].text);
+  assert.equal(state.pending_decisions, 0);
+  assert.equal(state.next, "review-specification");
+  assert.equal(state.specification_approved, false);
+  const revised = await client.callTool({ name: "mcpee_specs_revise_decision", arguments: {
+    slug, id: "Q-001", answer: "The owner publishes the validated title and author for catalog results.",
+    reviewer: "Product owner", confirm_sha256: state.reviews.specification.sha256,
+  } });
+  assert.ok(!revised.isError, revised.content[0].text);
+  const revisedState = JSON.parse(revised.content[0].text);
+  const cliRevision = require("node:child_process").spawnSync(process.execPath, [
+    cli, "specs", "revise-decision", "--project", root, "--slug", slug, "--id", "Q-001",
+    "--answer", "The owner publishes the validated title, author and format for catalog results.",
+    "--reviewer", "Product owner", "--confirm-sha256", revisedState.reviews.specification.sha256,
+  ], { encoding: "utf8" });
+  assert.equal(cliRevision.status, 0, cliRevision.stderr);
+  const [decision] = JSON.parse(fs.readFileSync(register, "utf8"));
+  assert.equal(decision.resolution, "resolved");
+  assert.equal(decision.history[0].resolution, "pending");
+  assert.equal(decision.history[0].answer, JSON.parse(before)[0].answer);
+  assert.equal(decision.history[1].answer, input.answer);
+  assert.equal(decision.history.at(-1).answer, "The owner publishes the validated title and author for catalog results.");
+  assert.equal(decision.answer, "The owner publishes the validated title, author and format for catalog results.");
+  const duplicate = await client.callTool({ name: "mcpee_specs_decide", arguments: input });
+  assert.equal(duplicate.isError, true);
+  assert.match(duplicate.content[0].text, /already resolved/);
+});
+
+test("decisions explicitly deferred to a later phase do not block current approval", t => {
+  const { root, slug } = fixture(t);
+  const cli = path.resolve(__dirname, "../packages/cli/bin/mcpee.js");
+  const deferred = JSON.parse(execFileSync(process.execPath, [
+    cli, "specs", "decide", "--project", root, "--slug", slug, "--id", "Q-001",
+    "--answer", "Defer choosing the displayed metadata until the next product phase.",
+    "--reviewer", "Product owner", "--resolution", "deferred", "--json",
+  ], { encoding: "utf8" }));
+  assert.equal(deferred.pending_decisions, 0);
+  assert.equal(deferred.deferred_decisions, 1);
+  assert.equal(deferred.next, "review-specification");
+  assert.match(fs.readFileSync(path.join(root, workspace(slug, root), "decisions.md"), "utf8"),
+    /Deferred to a later phase \(Product owner\)/);
+
+  const approved = approve(root, slug, "specification");
+  assert.equal(approved.specification_approved, true);
+  assert.equal(approved.deferred_decisions, 1);
+
+  const reopened = resolveDecision(root, { slug, id: "Q-001",
+    answer: "The metadata is still awaiting a product decision.", reviewer: "Product owner", resolution: "pending" });
+  assert.equal(reopened.pending_decisions, 1);
+  assert.equal(reopened.deferred_decisions, 0);
+  const [decision] = JSON.parse(fs.readFileSync(path.join(root, workspace(slug, root), "decisions.json"), "utf8"));
+  assert.equal(decision.history[0].resolution, "deferred");
+});
+
+for (const resolution of ["pending", "deferred"]) test(`repeated ${resolution} answers preserve decision bytes, history and specification digest`, t => {
+  const { root, slug } = fixture(t);
+  const input = { slug, id: "Q-001", answer: "Keep the metadata choice for a later owner decision.",
+    reviewer: "Product owner", resolution };
+  resolveDecision(root, input);
+  if (resolution === "deferred") approve(root, slug, "specification");
+  const directory = workspace(slug, root);
+  const files = ["decisions.json", "decisions.md", "lifecycle.json"];
+  const before = files.map(file => fs.readFileSync(path.join(root, directory, file)));
+  const status = featureStatus(root, slug);
+  const repeated = resolveDecision(root, { ...input, answer: ` ${input.answer} `, reviewer: ` ${input.reviewer} ` });
+  assert.deepEqual(repeated, status);
+  assert.equal(currentDigest(root, slug, "specification"), status.reviews.specification.sha256);
+  for (const [index, file] of files.entries()) {
+    assert.deepEqual(fs.readFileSync(path.join(root, directory, file)), before[index], file);
+  }
+  assert.equal(JSON.parse(before[0])[0].history, undefined);
+});
+
+test("MCP decision tool accepts explicit deferral without resolving or approving it", async t => {
+  const { root, slug } = fixture(t);
+  const { createMcpServer } = require("../packages/mcp-server/src/server");
+  const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
+  const { InMemoryTransport } = require("@modelcontextprotocol/sdk/inMemory.js");
+  const server = createMcpServer({ projectRoot: root, packageRoot: path.resolve(__dirname, ".."),
+    spawnProcess: () => assert.fail("Deferring a decision must not create a model process.") });
+  const client = new Client({ name: "deferred-decision-test", version: "1" });
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+  t.after(async () => { await client.close(); await server.close(); });
+  await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+  const result = await client.callTool({ name: "mcpee_specs_decide", arguments: {
+    slug, id: "Q-001", answer: "Handle this decision in the next product phase.",
+    reviewer: "Product owner", resolution: "deferred",
+  } });
+  assert.ok(!result.isError, result.content[0].text);
+  const status = JSON.parse(result.content[0].text);
+  assert.equal(status.pending_decisions, 0);
+  assert.equal(status.deferred_decisions, 1);
+  assert.equal(status.specification_approved, false);
+  assert.equal(status.reviews.specification.approved, false);
+  const before = fs.readFileSync(path.join(root, workspace(slug, root), "decisions.json"));
+  const repeated = await client.callTool({ name: "mcpee_specs_decide", arguments: {
+    slug, id: "Q-001", answer: "Handle this decision in the next product phase.",
+    reviewer: "Product owner", resolution: "deferred",
+  } });
+  assert.ok(!repeated.isError, repeated.content[0].text);
+  assert.deepEqual(JSON.parse(repeated.content[0].text), status);
+  assert.deepEqual(fs.readFileSync(path.join(root, workspace(slug, root), "decisions.json")), before);
+});
+
 test("one workspace links real artifacts and exposes clarification before approval", (t) => {
   const { root, slug, result } = fixture(t);
   assert.equal(result.path, `docs/specifications/proposed/${slug}/spec.md`);
@@ -80,7 +222,7 @@ test("one workspace links real artifacts and exposes clarification before approv
   const ready = approve(root, slug, "tasks");
   assert.equal(ready.status, "ready-for-implementation");
   assert.equal(ready.implementation_verified, false);
-  const history = path.join(root, `${workspace(slug, root)}/reviews`);
+  const history = path.join(root, `${workspace(slug, root)}/history`);
   assert.equal(fs.readdirSync(history).length, 3);
   const snapshots = fs.readdirSync(history).map((name) => fs.readFileSync(path.join(history, name), "utf8"));
   assert.ok(snapshots.some((content) => content.includes("Display the title and author")));

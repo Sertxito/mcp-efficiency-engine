@@ -18,6 +18,7 @@ const safePath = z.string().min(1).refine(value =>
   "Use a project-relative product path, not an internal or escaping path.");
 const check = z.object({
   id: z.string().regex(/^CHECK-\d{3}$/), command: text, expected: text,
+  kind: z.enum(["automated", "manual"]).optional(),
 }).strict();
 const planSchema = z.object({
   title: text, specification_sha256: z.string().regex(/^[a-f0-9]{64}$/),
@@ -39,6 +40,7 @@ const tasksSchema = z.object({
   plan_sha256: z.string().regex(/^[a-f0-9]{64}$/),
   tasks: z.array(z.object({
     id: z.string().regex(/^TASK-\d{3}$/), description: text,
+    kind: z.enum(["implementation", "documentation"]).optional(),
     use_cases: z.array(caseId).min(1), paths: z.array(safePath).min(1),
     depends_on: z.array(z.string().regex(/^TASK-\d{3}$/)),
     checks: z.array(z.string().regex(/^CHECK-\d{3}$/)).min(1),
@@ -46,10 +48,20 @@ const tasksSchema = z.object({
   open_questions: z.array(text).max(100),
 }).strict();
 
+const isImplementationTask = task => task.kind !== "documentation";
+
+function isSpecificationBundlePath(file, slug) {
+  return /^docs\/specifications\/(?:proposed|reviewed|approved)\/[^/]+\//.test(file) ||
+    file.startsWith(`specs/${slug}/`) || file.startsWith(`specs/approved/${slug}/`);
+}
+
 function validatePhase(root, slug, stage, response) {
   if (!["plan", "tasks"].includes(stage)) throw new Error(`Unsupported authoring phase: ${stage}`);
   const document = (stage === "plan" ? planSchema : tasksSchema).parse(JSON.parse(response));
   const status = featureStatus(root, slug);
+  if (stage === "tasks" && !status.specification_approved) {
+    throw new Error("Explicit specification approval is required before generating tasks; approve the current specification individually or as a batch.");
+  }
   if (!status.reviews.specification.approved || status.drift.length ||
       document.specification_sha256 !== status.reviews.specification.sha256) {
     throw new Error("Phase references an unvalidated or changed specification; route against the current canonical digest.");
@@ -64,11 +76,19 @@ function validatePhase(root, slug, stage, response) {
     ids.add(entry.id);
     for (const id of entry.use_cases) {
       if (!cases.has(id)) throw new Error(`Unknown use case in ${entry.id}: ${id}`);
-      covered.add(id);
+      if (stage === "plan" || isImplementationTask(entry)) covered.add(id);
     }
     for (const file of entry.paths) projectPath(root, file);
+    if ((stage === "plan" || isImplementationTask(entry)) &&
+        entry.paths.every(file => isSpecificationBundlePath(file, slug))) {
+      throw new Error(`${stage === "plan" ? "Design" : "Implementation task"} ${entry.id} must include a concrete product implementation path outside the specification bundle; use cases are references, not implementation targets.`);
+    }
   }
-  if ([...cases].some(id => !covered.has(id))) throw new Error(`${stage} must account for every canonical use case.`);
+  if ([...cases].some(id => !covered.has(id))) {
+    throw new Error(stage === "tasks"
+      ? "tasks must account for every canonical use case with implementation work; documentation links provide traceability only."
+      : `${stage} must account for every canonical use case.`);
+  }
   if (stage === "plan") {
     if (new Set(document.checks.map(item => item.id)).size !== document.checks.length) {
       throw new Error("Plan check IDs must be unique.");
@@ -77,7 +97,8 @@ function validatePhase(root, slug, stage, response) {
     if (!status.reviews.plan.approved || document.plan_sha256 !== currentDigest(root, slug, "plan")) {
       throw new Error("Tasks require the current validated plan digest.");
     }
-    const plan = JSON.parse(fs.readFileSync(projectPath(root, `${directory}/plan.json`), "utf8"));
+    const plan = validatePhase(root, slug, "plan",
+      fs.readFileSync(projectPath(root, `${directory}/plan.json`), "utf8"));
     const checks = new Set(plan.checks.map(item => item.id));
     const plannedPaths = new Set(plan.design.flatMap(item => item.paths));
     for (const task of document.tasks) {
@@ -107,12 +128,19 @@ function validatePhase(root, slug, stage, response) {
       return result;
     };
     for (const task of document.tasks) {
+      if (!isImplementationTask(task)) continue;
       const prerequisiteIds = ancestors(task.id);
-      const upstreamCases = new Set(document.tasks.filter(item => prerequisiteIds.has(item.id))
+      const upstreamCases = new Set(document.tasks.filter(item =>
+        prerequisiteIds.has(item.id) && isImplementationTask(item))
         .flatMap(item => item.use_cases));
+      for (const id of task.use_cases) upstreamCases.add(id);
       for (const id of task.use_cases) {
         for (const dependency of manifest.cases.find(item => item.id === id).dependencies) {
-          if (!upstreamCases.has(dependency)) throw new Error(`Task ${task.id} must depend on work for prerequisite ${dependency}.`);
+          if (!upstreamCases.has(dependency)) {
+            throw new Error(`Task ${task.id} must include or depend on work for prerequisite ${dependency}. ` +
+              "Only implementation tasks satisfy functional prerequisites. Mark documentation-only work with kind documentation; " +
+              "keep its use_cases as traceability and model its actual depends_on separately. Do not add dependencies that create a cycle.");
+          }
         }
       }
     }
@@ -142,12 +170,12 @@ function renderPhase(stage, document, cases = []) {
       ...document.design.flatMap(item => [`### ${item.id}`, item.description,
         `Use cases: ${item.use_cases.map(link).join(", ")}`, `Paths: ${item.paths.join(", ")}`, ""]),
       "## Verification", "",
-      ...document.checks.map(item => `- **${item.id}**: \`${item.command}\` — ${item.expected}`),
+      ...document.checks.map(item => `- **${item.id}**${item.kind ? ` (${item.kind})` : ""}: \`${item.command}\` — ${item.expected}`),
       "", "## Risks", "", ...document.risks.map(item =>
         `- ${item.description}${item.requires_approval ? " — HUMAN AUTHORIZATION REQUIRED" : ""}`),
     ] : [
       "## Dependency-ordered work", "",
-      ...orderedTasks.map(item => `- [ ] **${item.id}**: ${item.description} | Cases: ${item.use_cases.map(link).join(", ")} | Paths: ${item.paths.join(", ")} | Depends on: ${item.depends_on.join(", ") || "none"} | Checks: ${item.checks.join(", ")}`),
+      ...orderedTasks.map(item => `- [ ] **${item.id}**: ${item.description}${item.kind ? ` | Kind: ${item.kind}` : ""} | ${isImplementationTask(item) ? "Cases" : "Related cases (traceability only)"}: ${item.use_cases.map(link).join(", ")} | Paths: ${item.paths.join(", ")} | Depends on: ${item.depends_on.join(", ") || "none"} | Checks: ${item.checks.join(", ")}`),
     ]),
     "", "## Open decisions", "", ...document.open_questions.map(item => `- ${item}`), "",
   ].join("\n");
@@ -155,6 +183,13 @@ function renderPhase(stage, document, cases = []) {
 
 function phasePrompt(root, slug, stage) {
   const status = featureStatus(root, slug);
+  const { directory, manifest } = readFeature(root, slug);
+  const canonicalPaths = [
+    `${directory}/manifest.json`,
+    manifest.index,
+    `${directory}/decisions.md`,
+    ...manifest.cases.map(item => item.path),
+  ];
   const sample = stage === "plan" ? {
     title: "Concrete technical design", specification_sha256: status.reviews.specification.sha256,
     design: [{ id: "DESIGN-001", description: "Source-bound design for a specific outcome.",
@@ -164,13 +199,19 @@ function phasePrompt(root, slug, stage) {
   } : {
     title: "Concrete implementation tasks", specification_sha256: status.reviews.specification.sha256,
     plan_sha256: status.reviews.plan.sha256,
-    tasks: [{ id: "TASK-001", description: "Implement one specific case and its regression check.",
+    tasks: [{ id: "TASK-001", kind: "implementation", description: "Implement one specific case and its regression check.",
       use_cases: ["UC-001"], paths: ["src/catalog.js"], depends_on: [], checks: ["CHECK-001"] }],
     open_questions: [],
   };
   return [
-    `Author only the ${stage} phase for ${readFeature(root, slug).directory}/. Return one JSON object; MCPEE renders the canonical Markdown and manifest. Do not write files, implement code, execute commands or approve risky actions.`,
+    `Author only the ${stage} phase for ${directory}/. Return one JSON object; MCPEE renders the canonical Markdown and manifest. Do not write files, implement code, execute commands or approve risky actions.`,
+    `For reading the specification, use these current canonical artifact paths from manifest.json: ${canonicalPaths.join(", ")}. Prior conversation references and paths embedded in historical snapshots are archival; do not use them to locate active artifacts. Design and implementation task paths must name concrete product files to implement, not merely specification references; never treat the approved specification as an implementation target.`,
     "Read every canonical use case and decisions.md. For tasks, read plan.md and plan.json. Account for every use case, keep exact current digests, concrete paths and checks, and acyclic dependencies. Commands are proposed verification, not evidence they ran. Do not invent answers to contradictory requirements; record open_questions. Only an actual risky action proposed by this plan may set requires_approval true, with a matching approval_action. Missing visual/runtime acceptance or a disclaimer that local tests are not production acceptance is not a human approval gate.",
+    "Classify each plan check with kind automated or manual. Manual checks describe the human review and expected evidence; do not disguise them as executable commands. Automated checks must name the actual command, not an undefined runner.",
+    "Use open_questions only for specific unresolved decisions that must be answered before this phase can advance. A reminder that an already deferred decision or its operational data remains pending for a later phase is not an open question for this phase. Preserve that constraint in relevant design or task descriptions; never silently resolve, discard or reclassify the recorded decision. If it is genuinely required for this phase, state the specific blocking question instead.",
+    ...(stage === "tasks" ? [
+      "Set kind to implementation for functional work and documentation for documentation-only work. Omitted kind means implementation for legacy tasks. Every use case needs implementation coverage. Documentation use_cases are traceability only: they neither inherit functional prerequisites nor satisfy them for other tasks. Keep documentation depends_on explicit according to actual work order (preparatory documentation may precede implementation; final documentation may follow it). An implementation task may cover a use case and its prerequisite within the same unit of work; otherwise it must depend directly or transitively on implementation work covering that prerequisite. Never repair missing prerequisites by blindly adding links that create cycles; correct the task classification and coverage instead.",
+    ] : []),
     "Shape example, not a reference solution:", JSON.stringify(sample),
     "Machine schema:", JSON.stringify(z.toJSONSchema(stage === "plan" ? planSchema : tasksSchema, { unrepresentable: "any" })),
   ].join("\n\n");
@@ -182,18 +223,79 @@ function phaseMarkdownMatches(stage, document, markdown, cases = []) {
     renderPhase(stage, document).trimEnd() === actual;
 }
 
-function prepareImplementationValidation(root, slug) {
+function prepareImplementationValidation(root, slug, options = {}) {
   const status = featureStatus(root, slug);
-  if (status.drift.length || !status.reviews.tasks.approved) {
+  if (status.drift.length || !status.specification_approved || !status.reviews.tasks.approved) {
     throw new Error("Implementation validation requires current validated specification, plan and tasks.");
   }
   const { directory } = readFeature(root, slug);
   const plan = validatePhase(root, slug, "plan", fs.readFileSync(projectPath(root, `${directory}/plan.json`), "utf8"));
   const tasks = validatePhase(root, slug, "tasks", fs.readFileSync(projectPath(root, `${directory}/tasks.json`), "utf8"));
   const plannedPaths = new Set(tasks.tasks.flatMap(task => task.paths));
-  const steps = plan.checks.map(check => {
+  // Plans authored in an earlier lifecycle stage may reference the bundle's former location.
+  const { currentBundlePath } = require("./storage");
+  const evidencePaths = [...new Set([...plannedPaths].map(file => currentBundlePath(root, slug, directory, file)))]
+    .filter(file => !file.startsWith(`${directory}/`) || !fs.existsSync(projectPath(root, file)) ||
+      fs.statSync(projectPath(root, file)).isFile());
+  const workflowId = `spec-${slug}`;
+  const workflowPath = `.mcpee/workflows/${workflowId}.json`;
+  const explicitWorkflow = fs.existsSync(projectPath(root, workflowPath));
+  let workflowContents;
+  let steps;
+  const pending = [];
+  const manual = check => check.kind === "manual" ||
+    (!check.kind && /^manual review\s*:/i.test(check.command));
+  const automatedChecks = plan.checks.filter(check => !manual(check));
+  for (const check of plan.checks.filter(manual)) {
+    pending.push({ id: check.id, kind: "manual", command: check.command, expected: check.expected });
+  }
+  if (explicitWorkflow) {
+    const { MAX_RUN_SPEC_BYTES, MAX_CHECKS } = require("../../evaluation-engine/src/evaluate");
+    if (fs.statSync(projectPath(root, workflowPath)).size > MAX_RUN_SPEC_BYTES) {
+      throw new Error(`Explicit canonical workflow exceeds ${MAX_RUN_SPEC_BYTES} bytes.`);
+    }
+    const schema = z.object({
+      workflow_id: z.literal(workflowId), task: z.string().trim().min(3),
+      steps: z.array(z.object({
+        id: z.string().regex(/^check-\d{3}$/), label: z.string().trim().min(1),
+        command: z.string().min(1), tool: z.string().min(1),
+        args: z.array(z.string().max(8192).refine(value => !value.includes("\0"))).max(128),
+        cwd: z.string().optional(), requires_approval: z.boolean().optional(),
+        timeout_ms: z.number().int().min(1000).max(900000).optional(),
+      }).strict()).min(1).max(MAX_CHECKS),
+    }).strict();
+    workflowContents = fs.readFileSync(projectPath(root, workflowPath));
+    const workflow = schema.parse(JSON.parse(workflowContents.toString("utf8")));
+    if ((!options.allowPending && workflow.steps.length !== automatedChecks.length) ||
+        new Set(workflow.steps.map(step => step.id)).size !== workflow.steps.length ||
+        workflow.steps.some(step => !automatedChecks.some(check => check.id.toLowerCase() === step.id))) {
+      throw new Error(`Explicit canonical workflow ${workflowPath} must map every plan check exactly once.`);
+    }
+    const tools = new Set(require("../../../catalog/tools/tools.json").tools.map(tool => tool.id));
+    steps = automatedChecks.flatMap(check => {
+      const step = workflow.steps.find(item => item.id === check.id.toLowerCase());
+      if (!step && options.allowPending) {
+        pending.push({ id: check.id, kind: "automated", command: check.command, expected: check.expected });
+        return [];
+      }
+      if (!step || step.command !== check.command) {
+        throw new Error(`Explicit workflow must bind the exact command of ${check.id}; update ${workflowPath} against the current plan.`);
+      }
+      if (!tools.has(step.tool)) throw new Error(`Canonical check ${check.id} references a tool outside the MCPEE catalog: ${step.tool}.`);
+      if (step.cwd && step.cwd !== ".") {
+        safePath.parse(step.cwd.replace(/\\/g, "/"));
+        projectPath(root, step.cwd);
+      }
+      const { command, ...execution } = step;
+      return [{ ...execution, label: check.expected, requires_approval: true }];
+    });
+  } else steps = automatedChecks.flatMap(check => {
     if (!/^node --test(?: [a-zA-Z0-9_./-]+\.test\.(?:cjs|mjs|js))+$/.test(check.command)) {
-      throw new Error(`Canonical check ${check.id} requires an explicit workflow: only exact project-local node:test checks are automatically executable.`);
+      if (options.allowPending) {
+        pending.push({ id: check.id, kind: "automated", command: check.command, expected: check.expected });
+        return [];
+      }
+      throw new Error(`Canonical check ${check.id} requires an explicit workflow at ${workflowPath}: map every CHECK id to a catalog tool, argument array and exact plan command. Only node:test checks are automatically translated; other tools and cloud operations retain explicit invocation approval.`);
     }
     const args = check.command.split(" ").slice(1);
     for (const file of args.slice(1)) {
@@ -202,19 +304,39 @@ function prepareImplementationValidation(root, slug) {
       projectPath(root, file);
     }
     if (!tasks.tasks.some(task => task.checks.includes(check.id))) {
+      if (options.allowPending) {
+        pending.push({ id: check.id, kind: "automated", command: check.command, expected: check.expected });
+        return [];
+      }
       throw new Error(`Check ${check.id} is not linked to canonical use-case tasks.`);
     }
-    return { id: check.id.toLowerCase(), label: check.expected, tool: "node", args };
+    return [{ id: check.id.toLowerCase(), label: check.expected, tool: "node", args }];
   });
-  const workflowId = `spec-${slug}`;
-  return {
+  const result = {
     specification_sha256: status.reviews.specification.sha256,
     plan_sha256: status.reviews.plan.sha256, tasks_sha256: status.reviews.tasks.sha256,
-    commands: plan.checks.map(check => check.command),
+    ...(status.reviewed_source_drift?.length ? { source_drift_reviews: status.reviewed_source_drift
+      .map(review => ({ path: review.path, review: review.review, sha256: review.sha256 })) } : {}),
+    commands: explicitWorkflow ? [] : plan.checks.filter(check => steps.some(step => step.id === check.id.toLowerCase())).map(check => check.command),
+    ...(pending.length ? { pending_checks: pending } : {}),
+    ...(explicitWorkflow ? { explicit_workflow: workflowPath,
+      workflow_sha256: crypto.createHash("sha256").update(workflowContents).digest("hex") } : {}),
     spec: { workflow_id: workflowId, task: `Verify canonical implementation checks for ${slug}`,
-      evidence: [`${directory}/spec.md`, `${directory}/plan.json`, `${directory}/tasks.json`,
-        ...plannedPaths], steps },
+      evidence: [...new Set([`${directory}/spec.md`, `${directory}/plan.json`, `${directory}/tasks.json`,
+        ...evidencePaths, ...(explicitWorkflow ? [workflowPath] : [])])], steps },
   };
+  if (!options.skipManualReviews && pending.some(check => check.kind === "manual")) {
+    const reviews = require("./manual-review").currentManualReviews(root, slug, result);
+    if (reviews.length) {
+      result.manual_reviews = reviews;
+      result.pending_checks = pending.filter(check => !reviews.some(review => review.id === check.id));
+      if (!result.pending_checks.length) delete result.pending_checks;
+    }
+  }
+  if (!options.allowPending && result.pending_checks?.length) {
+    throw new Error(`Manual checks require human review and cannot be executed as workflow steps: ${result.pending_checks.map(check => check.id).join(", ")}.`);
+  }
+  return result;
 }
 
 function preparePhasePublication(root, slug, stage, response) {
@@ -349,6 +471,7 @@ function recoverAuthoring(root, candidate, sourcePaths = [], { confirmSha256 } =
     }
     result = publishFunctionalSpec(root, response, sources, {
       automatic: true, proposalOnly: metadata.proposal_only === true,
+      ...(confirmSha256 ? { confirmRevisionSha256: confirmSha256 } : {}),
       ...(authoringScope ? { authoringScope } : {}),
     });
   } else if (["plan", "tasks"].includes(metadata.stage)) {
@@ -358,7 +481,7 @@ function recoverAuthoring(root, candidate, sourcePaths = [], { confirmSha256 } =
     throw new Error("Unsupported recovery phase.");
   }
   const indexing = require("../../source-engine/src/sync").syncProject(root, {
-    generateDocumentation: false, tools: [], graphify: { installed: false },
+    generateDocumentation: false, discoverSpecifications: false, tools: [], graphify: { installed: false },
   });
   if (indexing.counts.failed) throw new Error("Recovered artifacts persisted but source indexing failed; inspect sync evidence.");
   require("../../core/src/telemetry").recordEvent(root, { event_name: "copilot.authoring.recovered",
@@ -368,4 +491,4 @@ function recoverAuthoring(root, candidate, sourcePaths = [], { confirmSha256 } =
   return { candidate, stage: metadata.stage, result };
 }
 
-module.exports = { validatePhase, renderPhase, phasePrompt, publishPhase, publishPhaseWithApproval, recoverAuthoring, phaseMarkdownMatches, prepareImplementationValidation };
+module.exports = { validatePhase, renderPhase, phasePrompt, publishPhase, publishPhaseWithApproval, recoverAuthoring, phaseMarkdownMatches, prepareImplementationValidation, isImplementationTask };

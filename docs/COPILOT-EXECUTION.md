@@ -40,6 +40,30 @@ This is not a blanket grant to the nested agent. Actions outside task-scoped
 local edits still use MCP elicitation and fail closed if the host cannot show
 the approval UI. Decline and cancel remain denials.
 
+VS Code shows an MCP elicitation inside the chat only while a tool call of the
+same server is open; otherwise it falls back to an easily missed notification.
+MCPEE therefore sends an approval only while an `mcpee_run` or
+`mcpee_run_status` call is open (waiting up to 60 seconds for the next status
+poll, then sending it anyway), links it to that call, and keeps the call open
+until the decision instead of returning `running`. A `running` response with a
+pending approval has `poll_after_ms: 0`. `mcp.approval.requested` records
+`host_tool_call_open`.
+
+Run status persists execution activity (`starting`, `thinking`, `tool-running`,
+`tool-completed`, `tool-failed`) and approval activity (`waiting-approval`,
+`approval-approved`, `approval-denied`, `approval-error`) with timestamps.
+An idle progress timestamp is not proof of a hung process. Approval requests
+may wait up to ten minutes; request, result and channel errors are traced
+separately. A channel error or timeout aborts the current SDK execution without
+retrying it. SDK `policy-approved` hook permissions only delegate to MCPEE's
+action hook; they do not mean the underlying command was authorized or passed.
+MCP connection state `Running` is distinct from the task's persisted result.
+
+Approval status includes the request ID and tool so a completed workflow-launch
+approval is not confused with another pending request. Reading existing shell
+output with `read_powershell` does not require another execution approval; sending
+input, stopping a process and launching/repeating commands remain gated.
+
 Workspace trust, MCP server enablement and the host's own tool-confirmation
 policy remain in effect. MCPEE cannot override host-level confirmations:
 enable the generated approval hook in hosts that support it, or use the
@@ -89,15 +113,38 @@ use an interactive terminal prompt for approvals. Options:
 An interrupted run prints its SDK session UUID. Recovery is an explicit new
 command, not automatic: repeat the exact original `--task` and the same model
 and context options. MCPEE re-routes and re-authorizes context transfer, then
-checks the task, selected route, model and complete prompt/context fingerprint
-against the local journal before calling `resumeSession`. A mismatch, a live
+checks the task, selected route and model against the local journal before
+calling `resumeSession`. Structured authoring resumes (specification, plan,
+tasks) also require the complete prompt/context fingerprint, because the
+structured contract is resent. Other resumes send only the original task and
+last failure to the existing session; the regenerated context normally differs
+after a partial run (for example, the graph now includes the files the session
+wrote), so the drift is recorded as `copilot.session.resume.context_drift`
+instead of blocking. A task, route or model mismatch, a live
 owner, a completed session, or an active recovery lock stops the operation.
+Canonical implementation resumes repeat the instruction that MCPEE, not the
+agent, runs `mcpee workflow run` and `mcpee sync`.
 The resumed SDK session does not continue pending tool calls automatically;
 MCPEE reinstalls the current hooks and permissions and asks Copilot to inspect
-the current project state before continuing. If prior effects are ambiguous,
-the session must stop for manual inspection rather than repeat them.
+the current project state before continuing. Local files can be inspected, so
+their state is not ambiguous; only uncertain external or irreversible effects
+make the session stop for manual inspection rather than repeat them. An
+unknown outcome of an MCPEE-owned verification or sync run is not ambiguity.
 Resumption cannot establish whether an earlier external side effect succeeded;
 inspect that system before authorizing a retry.
+
+In MCP, explicitly call `mcpee_run` with `resume_session_id` and the exact
+original `task`, without `feature` or `through`. The host launches the resumed
+CLI directly with its authenticated approval broker and task-context
+authorization; it does not start a fresh agent to run a nested recovery command.
+Malformed IDs, changed tasks, completed sessions and live owners fail before
+run admission or child execution. The SDK still enforces its original route,
+model, structured-authoring prompt and recovery-lock guards; a mismatch never
+falls back to a new session. If resumption is rejected before an SDK session
+starts, MCPEE does not run post-change synchronization for an earlier attempt.
+Direct terminal recovery still needs its own context-transfer approval.
+Do not ask a nested MCPEE agent to resume or stop its own ancestor process.
+Use `mcpee_run_status` and `mcpee_run_cancel` from the owning host instead.
 
 ## Request lifecycle
 
@@ -196,6 +243,11 @@ commands are not. The SDK's matching `hook` permission is approved by policy
 only to let this same `PreToolUse` hook make the action decision; it does not
 authorize the requested tool call or replace any required human approval.
 
+On Windows, generated project hooks use the initializing Node executable's
+absolute path in their PowerShell command, so a runtime shell without Node on
+its PATH can still enforce the policy. Repeated initialization upgrades legacy
+MCPEE hook commands without replacing custom commands or PowerShell overrides.
+
 In VS Code, the hook applies only when the Local harness, a trusted workspace
 and hooks are enabled; VS Code documents hooks as Preview. Tool names vary by
 harness, so keep the host's native permission controls enabled.
@@ -219,13 +271,107 @@ Structured specification, plan and task authoring instead records source-bound
 schema/provenance validation and refreshed canonical Markdown. It does not
 require an application workflow or claim application tests ran.
 
-Canonical implementation routes to `deliver-feature`. If its declared workflow
-is absent, MCPEE builds a digest-bound validation workflow from the current
+Canonical implementation routes to `deliver-feature` and always uses the
+canonical checks rather than an unrelated routed workflow. Without an explicit
+canonical adapter, MCPEE builds a digest-bound validation workflow from the current
 validated plan/tasks for exact `node --test <planned-path>.test.js|cjs|mjs`
 commands. These task-linked local checks need no additional approval; shell
 composition, unplanned files, sandbox bypass and other commands remain outside
-this allowance. Other check commands require an explicit workflow under the
-normal approval policy. Persisted evaluation and telemetry bind results to the
+this allowance. Other check commands use an explicit canonical adapter at
+`.mcpee/workflows/spec-<feature>.json`, under the normal invocation approval
+policy. .NET, PowerShell, cloud CLI and other catalog tools are not restricted
+to node:test. Missing tools, credentials or remote permissions are reported
+explicitly; MCPEE never installs tools or substitutes local doubles to claim a
+remote check passed.
+
+An absent adapter or a manual check does not prevent implementation from
+starting. Plans can classify checks as `kind: "automated"` or `kind: "manual"`;
+for older plans, the explicit `Manual review:` prefix identifies a manual
+check. Manual checks cannot be mapped to executable adapter steps. Unmapped
+automated checks and manual reviews remain pending; any runnable checks may run,
+but their passing report does not constitute complete canonical verification.
+Pending check IDs, descriptions and expected outcomes are retained in the run
+report. After a human completes a manual check, inspect its exact criteria and
+planned file hashes with `mcpee specs manual-preview --slug <feature> --id
+CHECK-001`. Record their explicit findings with `mcpee specs manual-review
+--slug <feature> --id CHECK-001 --reviewer "<name>" --outcome passed --findings "<what was
+reviewed and the result>" --confirm-sha256 <review_sha256>`. The MCP tools
+`mcpee_specs_manual_preview` and `mcpee_specs_manual_review` provide the same
+operations. Never infer a human review from an agent or automated check.
+Use `--outcome failed` when the review fails; the check remains pending and
+the failed record is preserved. Only explicitly passed reviews count toward
+verification.
+All planned evidence files must exist; changes to any of them or to the
+canonical phases invalidate the review. The review record is immutable and
+retained under `.mcpee/reports/manual-reviews/`. Run the canonical workflow
+again to combine current human reviews with actual automated results; a plan
+containing only manual checks can be finalized by the same workflow command.
+This is not product acceptance.
+
+During canonical implementation, the nested agent changes the approved task
+files and returns; the outer harness runs verification through its approval
+broker. The implementation hooks and shell-permission policy deny recognizable
+nested MCPEE CLI and MCP invocations without a human approval request; the
+agent continues using the supplied context and canonical files. Other gated
+actions still require their own approval. This is not a general shell sandbox
+and does not authorize or execute unrecognized commands.
+For a separately authorized manual invocation, `mcpee workflow run --spec
+.mcpee/workflows/spec-<feature>.json` validates the adapter, builds a separate
+digest-bound executable workflow with canonical evidence, requests each step's
+approval, and records exact passing verification. The adapter is never
+overwritten. Failure recovery also selects this canonical workflow rather than
+an unrelated generic delivery workflow.
+
+Plans and tasks authored while the bundle was `proposed` or `reviewed` may list
+the bundle's own files under that earlier location. Canonical evidence resolves
+those self-references to the bundle's current lifecycle directory (and former
+`reviews` to `history`) without rewriting digest-bound phase files; bundle
+directories are not evidence files. Every other planned path must exist before
+the canonical workflow can run, so a partial implementation reports the first
+missing planned file instead of running checks.
+
+Every canonical implementation prompt (fresh or resumed) states that MCPEE owns
+verification and sync, lists the planned paths that do not exist yet, and tells
+the agent to request gated actions (such as adding a planned dependency)
+through the normal tool call so the approval hook asks the user; the agent
+stops only if that request is denied.
+
+The adapter has `workflow_id: "spec-<feature>"`, a `task` description and
+`steps`. Each step binds one lowercase canonical check ID, the exact plan
+`command` (for traceability), a `label`, catalog `tool` and `args` array.
+Optional `cwd` stays project-relative; `timeout_ms` is bounded to 1000-900000.
+Map automated plan checks exactly once, including operational checks without a
+task link; these are not credited as per-use-case implementation evidence.
+An incomplete adapter leaves unmapped checks pending; it does not mark them passed. Do not
+silently omit pending Azure checks. Invocation approval remains required even
+if the adapter says `requires_approval: false`. Commands are never parsed or
+executed through a generic shell, and adapter commands are not autoauthorized
+inside the Copilot session. For example:
+
+```json
+{
+  "workflow_id": "spec-example-feature",
+  "task": "Verify the canonical implementation checks",
+  "steps": [{
+    "id": "check-001",
+    "label": "Run the application tests",
+    "command": "dotnet test tests/App.Tests/App.Tests.csproj --no-build",
+    "tool": "dotnet",
+    "args": ["test", "tests/App.Tests/App.Tests.csproj", "--no-build"],
+    "timeout_ms": 300000
+  }]
+}
+```
+
+Use `pwsh` with `-NoProfile -File <project-script>` for PowerShell and
+`azure-cli` for `az` operations. On Windows the installed Azure CLI uses its
+bundled Python module without launching `az.cmd` or a shell.
+The adapter hash joins canonical execution evidence; changing it during checks
+invalidates verification. A check that recovers or rewrites canonical phases
+cannot provide stable verification: any resulting phase change is rejected,
+not credited as implementation success.
+
+Persisted evaluation and telemetry bind results to the
 specification, plan and task digests; a phase change during checks rejects
 verification. Passing these checks is not production or full product acceptance.
 
@@ -249,12 +395,16 @@ evidence-led brownfield sources.
 The original constraints accompany every phase. Each phase has its own normal
 bounded executor and approval policy; the chain has at most four phase
 executions, with no repeated phase after failure or lack of advancement.
-Decisions, manual drafts, drift and missing verification stop the chain.
+Decisions, manual drafts, drift, missing explicit specification approval and missing verification stop the chain.
+Planning may run against structurally reviewed requirements, but tasks and implementation
+require an explicit user approval instruction. Use `mcpee_specs_status` and
+`mcpee_specs_approve` for selected specifications or a batch; no per-proposal
+confirmation or paid model session is needed. Generating or implementing does not approve specs.
 `.mcpee/reports/lifecycles/<id>.json` records phase outcomes and the endpoint,
 without storing raw task text. Interrupted chains are not automatically resumed.
 
 Successful canonical checks persist `docs/specifications/approved/<feature>/verification.json`
-and promote the bundle to that physical state with verification-derived authority:
+inside the already explicitly approved bundle, without granting requirement approval:
 each use case links tasks, check IDs and implementation paths, with canonical
 phase digests, evaluation report hash and all evaluated file hashes.
 `specs status` reports implementation checks as verified only while those

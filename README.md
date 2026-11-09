@@ -15,7 +15,7 @@ action, automatic validation after changes and a full local audit trail.
   Existing user files are never overwritten.
 
 npm package: **`mcp-efficiency-engine`** · commands: `mcpee` (or
-`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.46)
+`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.47)
 
 ## Requirements
 
@@ -33,12 +33,12 @@ Full details: [Getting started → Requirements](docs/GETTING-STARTED.md#require
 **1. Install**
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.46
+npm install --global mcp-efficiency-engine@0.1.47
 ```
 
 If npm blocks the native `koffi` dependency, add `--allow-scripts=koffi`
 (only that dependency is allowed). Prefer no global install? Use
-`npx --package=mcp-efficiency-engine@0.1.46 mcpee init --project <path>`.
+`npx --package=mcp-efficiency-engine@0.1.47 mcpee init --project <path>`.
 
 **2. Initialize your project**
 
@@ -145,12 +145,13 @@ implement." Without named source paths, all indexed product documents are
 selected, not just keyword search matches. Missing conversion or exceeded
 input limits block the request explicitly rather than dropping requirements.
 Then use `mcpee specs status` to inspect validated specification, technical plan
-and task phases. Advance automatically when checks pass; request human input
-only for unresolved contradictions, decisions or risky actions. All live together under
+and task phases. Structural checks permit planning, but an explicit user instruction
+to approve specifications is required before tasks or implementation. Approval may
+cover a batch without per-proposal confirmations. All live together under
 `docs/specifications/`, physically moving through `proposed/`, `reviewed/` and
-`approved/`. Only explicit approval or implemented-and-currently-verified
-behavior establishes a source of truth; automatic structural validation does
-not. Old discovery proposals remain evidence under `docs/generated/`, not a second
+`approved/`, with recorded transition evidence. Only explicit specification approval
+establishes a source of truth; automatic validation and passing implementation checks
+do not. Old discovery proposals remain evidence under `docs/generated/`, not a second
 greenfield approval workflow. Implement with Copilot, add a
 test script, and re-run `mcpee init` once code exists so MCPEE detects the new
 stack and generates validation.

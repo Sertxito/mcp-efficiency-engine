@@ -324,7 +324,7 @@ function renderDomainProposal({ slug, domain, part, parts, sources, cases, snaps
     "",
     `**Scope:** ${sources.length} sources; ${declared.length} test declarations; ${facts.length} static observations.`,
     "Domain membership is a path/name-based inference, not a confirmed business boundary.",
-    `This is generated extraction evidence, NOT an atomic functional specification. Start at [the project specification index](${path.posix.relative(path.posix.dirname(specPath), workspacePath)}). Both origins use docs/specifications/{proposed,reviewed,approved}/<feature>/<case-slug>.md, with short capability names such as about-us-staff. Only explicit approval or implemented-and-verified behavior establishes the source of truth. Do not promote this inventory by moving or renaming it.`,
+    `This is generated extraction evidence, NOT an atomic functional specification. Start at [the project specification index](${path.posix.relative(path.posix.dirname(specPath), workspacePath)}). Both origins use docs/specifications/{proposed,reviewed,approved}/<feature>/<case-slug>.md, with short capability names such as about-us-staff. Only explicit specification approval establishes the source of truth; passing implementation checks does not approve requirements. Do not promote this inventory by moving or renaming it.`,
     "",
     "## Intended behavior", "",
     "<!-- Replace this prompt with behavior confirmed by the accountable owner. -->",

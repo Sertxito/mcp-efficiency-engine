@@ -11,9 +11,10 @@ const { readCatalog } = require("../packages/copilot-renderer/src/render");
 const { detectProjectCapabilities } = require("../packages/copilot-renderer/src/project-capabilities");
 const { syncProject } = require("../packages/source-engine/src/sync");
 const { discoverBrownfieldSpec, ratifyBrownfieldSpec, listBrownfieldSpecs } = require("../packages/spec-engine/src/brownfield");
-const { isSpecificationTask, prepareFunctionalSources, selectFunctionalSources, functionalPrompt, applyFunctionalRepair, validateFunctionalSpec, publishFunctionalSpec } = require("../packages/spec-engine/src/functional");
+const { isSpecificationTask, prepareFunctionalSources, selectFunctionalSources, functionalPrompt, applyFunctionalRepair, validateFunctionalSpec, publishFunctionalSpec, publishFunctionalSpecWithApproval } = require("../packages/spec-engine/src/functional");
 const { runCopilotTask, createCopilotHooks } = require("../packages/execution-engine/src/copilot");
 const { routeTask } = require("../packages/routing-engine/src/route");
+const { affirmativeText, isReadOnlyTask, requestsArtifact } = require("../packages/spec-engine/src/intent");
 
 const roots = [];
 function fixture() {
@@ -25,6 +26,29 @@ function fixture() {
   fs.writeFileSync(path.join(root, file), "# League\n\n## Registration\nRegistration is closed until the organizer publishes an authorized link.\n\n## Teams\nOfficial teams consist of four participants.\n");
   return { root, file, sources: prepareFunctionalSources(root, [file]) };
 }
+test("functional source selection excludes only fully managed VS Code MCP configuration", () => {
+  const { root, file } = fixture();
+  const configPath = ".vscode/mcp.json";
+  const filePath = path.join(root, configPath);
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  const config = { servers: { mcpee: { type: "stdio", command: "node",
+    args: ["./.mcpee/runtime/mcp-server.cjs"] } } };
+  const save = () => fs.writeFileSync(filePath, JSON.stringify(config));
+  save();
+  assert.deepEqual(prepareFunctionalSources(root, [file, configPath]).map(source => source.path), [file]);
+  config.servers.product = { type: "stdio", command: "node", args: ["server.js"] };
+  save();
+  assert.deepEqual(prepareFunctionalSources(root, [file, configPath]).map(source => source.path), [file, configPath]);
+  delete config.servers.product;
+  config.servers.mcpee.tools = ["custom-tool"];
+  save();
+  assert.deepEqual(prepareFunctionalSources(root, [file, configPath]).map(source => source.path), [file, configPath]);
+  delete config.servers.mcpee.tools;
+  config.servers.mcpee.args = ["custom-server.js"];
+  save();
+  assert.deepEqual(prepareFunctionalSources(root, [file, configPath]).map(source => source.path), [file, configPath]);
+});
+
 function draft(file) {
   return {
     language: "en", title: "League public participation", slug: "league-public-participation",
@@ -59,9 +83,55 @@ test("specification intent distinguishes authoring from ordinary audits and codi
   for (const task of ["Prepara las especificaciones funcionales de League", "Genera casos de uso del documento", "Draft functional specifications", "hazme el greenfield", "Quiero que hagas el greenfield con estos documentos", "brownfield del proyecto"]) {
     assert.equal(isSpecificationTask(task), true, task);
   }
-  for (const task of ["Fix a bug in the greenfield detector", "Review the functional specification", "Explain use cases", "Create a website", "Write tests for the specification parser"]) {
+  for (const task of ["Fix a bug in the greenfield detector", "Review the functional specification", "Explain use cases", "Create a website", "Write tests for the specification parser",
+    "Esto NO es una solicitud de generar especificaciones, planes, tareas ni implementar nada.",
+    "Diagnóstico: la ejecución acabó en generación de especificaciones funcionales.",
+    "El fallo previo fue «Genera las especificaciones funcionales»; explica por qué.",
+    "Revisión de solo lectura: genera especificaciones si el router lo permite.",
+    "Do not generate functional specifications; inspect the router."]) {
     assert.equal(isSpecificationTask(task), false, task);
   }
+  for (const task of ["No implementes nada; genera las especificaciones funcionales", "Without changing code, draft the use cases"]) {
+    assert.equal(isSpecificationTask(task), true, task);
+  }
+});
+
+test("single-quoted examples do not express authoring intent or consume contractions", () => {
+  for (const task of [
+    "Explain the phrase 'create tasks' for public-catalog.",
+    "Explain 'generate functional specifications'.",
+    "Explica 'crea tareas' y 'genera especificaciones funcionales'.",
+    "Explain ‘create tasks’ for public-catalog.",
+  ]) {
+    assert.equal(requestsArtifact(task, /\b(?:tasks|tareas)\b/), false, task);
+    assert.equal(isSpecificationTask(task), false, task);
+  }
+  assert.equal(affirmativeText("Don't implement public-catalog."), "");
+  assert.equal(affirmativeText("Don't implement; create tasks for the user's catalog."),
+    "create tasks for the user's catalog");
+  assert.equal(requestsArtifact("Explain 'don't create tasks'; generate functional specifications.",
+    /\b(?:tasks|tareas)\b/), false);
+  assert.equal(isSpecificationTask("Explain 'create tasks'; generate functional specifications."), true);
+  assert.equal(isSpecificationTask("Revisa y actualiza la propuesta funcional league-web-integral para resolver su deriva."), true);
+  assert.equal(isSpecificationTask("Update the existing functional specification proposal for league-web-integral."), true);
+  assert.equal(isSpecificationTask("No actualices la propuesta funcional league-web-integral."), false);
+});
+
+test("read-only capability descriptions do not override affirmative work requests", () => {
+  for (const task of [
+    "Implement a read-only endpoint for public-catalog.",
+    "Implementa una API de solo lectura para public-catalog.",
+    "Generate functional specifications for a read-only API.",
+    "Do not use read-only mode; implement public-catalog.",
+    "Explain 'read-only'; implement public-catalog.",
+  ]) assert.equal(isReadOnlyTask(task), false, task);
+  for (const task of [
+    "Read-only review: generate specifications if the router permits it.",
+    "Revisión técnica de solo lectura: genera tareas si es posible.",
+    "Inspect public-catalog in read-only mode.",
+    "Implement public-catalog? Review the plan in read-only mode first.",
+  ]) assert.equal(isReadOnlyTask(task), true, task);
+  assert.equal(isSpecificationTask("Generate functional specifications for a read-only API."), true);
 });
 
 test("Spanish product prose and literal unfinished source evidence are not authored placeholders", () => {
@@ -187,11 +257,25 @@ test("bounded primary coverage excludes related context but exact context citati
   assert.doesNotMatch(prompt, /7: Official teams/);
 });
 
+test("unbounded functional authoring supplies every source line rather than retrieved fragments", () => {
+  const { root, file } = fixture();
+  const lines = ["# Complete requirements", ...Array.from({ length: 1400 },
+    (_, index) => `Requirement ${index + 1}: preserve this distinct documented behavior.`)];
+  fs.writeFileSync(path.join(root, file), lines.join("\n"));
+  const prompt = functionalPrompt(prepareFunctionalSources(root, [file]), "greenfield");
+  for (const [index, line] of lines.entries()) {
+    assert.ok(prompt.includes(`${index + 1}: ${line}`), `Missing source line ${index + 1}`);
+  }
+  assert.match(prompt, /do not replace it with retrieved fragments/);
+  assert.match(prompt, /do not defer documented behavior because of unavailable tools/);
+  assert.match(prompt, /only explicit specification approval establishes/);
+});
+
 test("functional prompt explains in-section evidence boundaries before generation", () => {
   const { sources } = fixture();
   const prompt = functionalPrompt(sources, "brownfield");
   assert.match(prompt, /INSIDE that section's inclusive line\/end_line range/);
-  const metadata = JSON.parse(prompt.split("Selected sources and required section coverage (read source files for their full content):\n\n")[1].split("\n\n")[0]);
+  const metadata = JSON.parse(prompt.split("Selected sources and required section coverage (full selected text follows):\n\n")[1].split("\n\n")[0]);
   assert.equal(metadata[0].headings[0].line, 3);
   assert.equal(metadata[0].headings[0].end_line, 5);
   assert.equal(metadata[0].headings[1].end_line, sources[0].lines.length);
@@ -260,12 +344,132 @@ test("readable specifications preserve flows, acceptance criteria, traceability 
   assert.equal(manifest.review_required, true);
   assert.equal(publishFunctionalSpec(root, response, sources).content, result.content);
   fs.appendFileSync(path.join(root, result.path), "\nOwner changes\n");
-  assert.throws(() => publishFunctionalSpec(root, response, sources), /already exists with different content/);
+  assert.throws(() => publishFunctionalSpec(root, response, sources), /requires explicit confirmation/);
   assert.match(fs.readFileSync(path.join(root, result.path), "utf8"), /Owner changes/);
   const spanish = draft(file);
   spanish.language = "es";
   spanish.slug = "league-participacion";
   assert.match(publishFunctionalSpec(root, JSON.stringify(spanish), sources).content, /## Casos de uso/);
+});
+
+test("specification revisions require approval, archive the prior bundle, and preserve matching decisions", async () => {
+  const { root, file, sources } = fixture();
+  const original = draft(file);
+  const first = publishFunctionalSpec(root, JSON.stringify(original), sources);
+  const previous = fs.readFileSync(path.join(root, first.path), "utf8");
+  const { currentDigest, resolveDecision, reviseDecision } = require("../packages/spec-engine/src/lifecycle");
+  resolveDecision(root, { slug: original.slug, id: "Q-001",
+    answer: "The organizer publishes the authorized registration link.", reviewer: "Product owner" });
+  reviseDecision(root, { slug: original.slug, id: "Q-001",
+    answer: "The organizer publishes the validated registration link.", reviewer: "Product owner",
+    confirmSha256: currentDigest(root, original.slug, "specification") });
+  const updated = structuredClone(original);
+  updated.summary += " The public page also explains the official team size.";
+  const response = JSON.stringify(updated);
+  const directory = "docs/specifications/proposed/league-public-participation";
+  for (const [file, content] of [
+    ["plan.json", "{\"open_questions\":[],\"risks\":[]}"],
+    ["plan.md", "Prior plan"],
+    ["tasks.json", "{\"tasks\":[]}"],
+    ["tasks.md", "Prior tasks"],
+    ["verification.json", "{\"verified\":true}"],
+  ]) fs.writeFileSync(path.join(root, directory, file), content);
+  const decisionBefore = JSON.parse(fs.readFileSync(path.join(root, "docs/specifications/proposed/league-public-participation/decisions.json"), "utf8"));
+  const prepared = publishFunctionalSpec(root, response, sources, { prepareOnly: true });
+  assert.match(prepared.revision.sha256, /^[a-f0-9]{64}$/);
+  assert.match(prepared.revision.archive_path, /^\.mcpee\/reports\/specification-revisions\/[a-f0-9]{64}\.json$/);
+  assert.equal(prepared.revision.decision_history.history_entries, 1);
+  assert.deepEqual(prepared.revision.decision_history.files.map(item => item.path), [
+    `${directory}/decisions.json`, `${directory}/decisions.md`,
+  ]);
+  assert.equal(fs.existsSync(path.join(root, prepared.revision.archive_path)), false);
+  let deniedMessage;
+  await assert.rejects(() => publishFunctionalSpecWithApproval(root, response, sources,
+    {}, async () => false), error => {
+    deniedMessage = error.message;
+    return /revision was not approved/.test(error.message);
+  });
+  assert.equal(fs.readFileSync(path.join(root, first.path), "utf8"), previous);
+  const deniedArchive = fs.readFileSync(path.join(root, prepared.revision.archive_path), "utf8");
+  const deniedManifest = JSON.parse(deniedArchive);
+  assert.equal(deniedManifest.kind, "specification-revision");
+  const deniedArchiveSha256 = crypto.createHash("sha256").update(deniedArchive).digest("hex");
+  assert.match(deniedMessage, new RegExp(`manifest SHA-256: ${deniedArchiveSha256}`));
+  assert.equal(deniedManifest.artifacts.find(item => item.path.endsWith("/decisions.json")).content,
+    fs.readFileSync(path.join(root, `${directory}/decisions.json`), "utf8"));
+  assert.equal(deniedManifest.decision_history.history_entries, 1);
+  assert.deepEqual(deniedManifest.artifacts.map(item => item.path).sort(),
+    prepared.revision.artifacts.map(item => item.path).sort());
+  const published = await publishFunctionalSpecWithApproval(root, response, sources,
+    {}, async revision => {
+      assert.equal(revision.sha256, prepared.revision.sha256);
+      assert.equal(fs.existsSync(path.join(root, revision.archive_path)), true);
+      assert.equal(revision.archive_manifest_sha256,
+        crypto.createHash("sha256").update(fs.readFileSync(path.join(root, revision.archive_path))).digest("hex"));
+      return true;
+    });
+  assert.ok(published.revision);
+  assert.equal(published.revisionManifestSha256,
+    crypto.createHash("sha256").update(fs.readFileSync(path.join(root, published.revision))).digest("hex"));
+  const report = JSON.parse(fs.readFileSync(path.join(root, published.revision), "utf8"));
+  assert.equal(report.kind, "specification-revision");
+  assert.equal(report.artifacts.find(item => item.path === first.path).content, previous);
+  assert.equal(report.artifacts.find(item => item.path === `${directory}/plan.json`).content, "{\"open_questions\":[],\"risks\":[]}");
+  for (const file of ["plan.json", "plan.md", "tasks.json", "tasks.md", "verification.json"]) {
+    assert.equal(fs.existsSync(path.join(root, directory, file)), false);
+  }
+  const decisions = JSON.parse(fs.readFileSync(path.join(root, "docs/specifications/proposed/league-public-participation/decisions.json"), "utf8"));
+  assert.equal(decisions[0].answer, decisionBefore[0].answer);
+  assert.deepEqual(decisions[0].history, decisionBefore[0].history);
+  assert.match(fs.readFileSync(path.join(root, first.path), "utf8"), /official team size/);
+});
+
+test("a revision archive modified after approval blocks proposal replacement", async () => {
+  const { root, file, sources } = fixture();
+  const original = draft(file);
+  const first = publishFunctionalSpec(root, JSON.stringify(original), sources);
+  const previous = fs.readFileSync(path.join(root, first.path), "utf8");
+  const updated = structuredClone(original);
+  updated.summary += " The page also explains the official team size.";
+
+  await assert.rejects(() => publishFunctionalSpecWithApproval(root, JSON.stringify(updated), sources,
+    {}, async revision => {
+      fs.writeFileSync(path.join(root, revision.archive_path), "tampered archive");
+      return true;
+    }), /archive is invalid/);
+  assert.equal(fs.readFileSync(path.join(root, first.path), "utf8"), previous);
+});
+
+test("specification revisions retain unmatched decisions and history without reusing their IDs", async () => {
+  const { root, file, sources } = fixture();
+  const original = draft(file);
+  original.open_questions = ["Which confirmed date should the public calendar show?"];
+  publishFunctionalSpec(root, JSON.stringify(original), sources);
+  const { currentDigest, resolveDecision, reviseDecision, featureStatus } =
+    require("../packages/spec-engine/src/lifecycle");
+  resolveDecision(root, { slug: original.slug, id: "Q-001",
+    answer: "Show the date only after the organizer confirms it.", reviewer: "Product owner" });
+  reviseDecision(root, { slug: original.slug, id: "Q-001",
+    answer: "Show the date when it is confirmed by the organizer.", reviewer: "Product owner",
+    confirmSha256: currentDigest(root, original.slug, "specification") });
+  const changed = structuredClone(original);
+  changed.open_questions = ["Which registration destination should the public page display?"];
+  await publishFunctionalSpecWithApproval(root, JSON.stringify(changed), sources, {},
+    async revision => revision.decision_history.history_entries === 1);
+  const directory = "docs/specifications/proposed/league-public-participation";
+  const decisions = JSON.parse(fs.readFileSync(path.join(root, `${directory}/decisions.json`), "utf8"));
+  const current = decisions.find(decision => decision.status !== "historical");
+  const historical = decisions.find(decision => decision.status === "historical");
+  assert.equal(current.question, changed.open_questions[0]);
+  assert.equal(current.id, "Q-002");
+  assert.equal(historical.id, "Q-001");
+  assert.equal(historical.question, original.open_questions[0]);
+  assert.equal(historical.answer, "Show the date when it is confirmed by the organizer.");
+  assert.equal(historical.history.length, 1);
+  assert.equal(featureStatus(root, original.slug).pending_decisions, 1);
+  const markdown = fs.readFileSync(path.join(root, `${directory}/decisions.md`), "utf8");
+  assert.match(markdown, /Historical, not mapped to a current question/);
+  assert.match(markdown, /Show the date when it is confirmed by the organizer/);
 });
 
 test("validation rejects empty, generic, ungrounded and incompletely mapped output", () => {
@@ -367,6 +571,19 @@ test("generic greenfield includes all seven product documents, not only keyword 
   assert.ok(plan.knowledge.every((source) => source.selection === "product-documentation"));
   const scoped = routeTask(root, `Draft functional specifications from ${file}`);
   assert.deepEqual(scoped.knowledge.map((source) => source.source_path), [file]);
+});
+
+test("revising a functional proposal routes to specification authoring, not task generation", () => {
+  const { root, file, sources } = fixture();
+  syncProject(root);
+  const proposal = draft(file);
+  publishFunctionalSpec(root, JSON.stringify(proposal), sources, { automatic: true, proposalOnly: true });
+
+  const plan = routeTask(root,
+    `Revisa y actualiza la propuesta funcional ${proposal.slug} para resolver su deriva; no generes plan ni tareas.`);
+  assert.equal(plan.specification_workspace.requested_stage, "specification");
+  assert.equal(plan.functional_specification.status, "authoring-required; static discovery is not the deliverable");
+  assert.equal(plan.workflow.id, "refine-backlog");
 });
 
 test("unconverted documentation blocks generic and explicitly scoped authoring without silent omissions", () => {
@@ -477,7 +694,7 @@ test("a non-League greenfield routes and executes through independent case files
   const first = path.join(root, result.casePaths[0]);
   fs.appendFileSync(first, "\nOwner clarification.\n");
   const originalIndex = fs.readFileSync(path.join(root, result.path), "utf8");
-  assert.throws(() => publishFunctionalSpec(root, JSON.stringify(data), sources), /already exists with different content/);
+  assert.throws(() => publishFunctionalSpec(root, JSON.stringify(data), sources), /requires explicit confirmation/);
   assert.equal(fs.readFileSync(path.join(root, result.path), "utf8"), originalIndex);
   assert.match(fs.readFileSync(first, "utf8"), /Owner clarification/);
 });
@@ -542,6 +759,44 @@ test("specification authoring denies model writes and shell actions without anot
   assert.equal((await hooks.onPreToolUse({ toolName: "view", toolArgs: { path: file } }, invocation)).permissionDecision, "allow");
   assert.equal((await hooks.onPreToolUse({ toolName: "create_file", toolArgs: { path: "src/app.js" } }, invocation)).permissionDecision, "deny");
   assert.equal((await hooks.onPreToolUse({ toolName: "powershell", toolArgs: { command: "node --version" } }, invocation)).permissionDecision, "deny");
+});
+
+test("ordinary specification execution applies bounded repairs to its last complete base", async () => {
+  const { root, file } = fixture();
+  const valid = draft(file);
+  const invalid = structuredClone(valid);
+  invalid.use_cases[0].evidence[0].line = 5;
+  const responses = [
+    JSON.stringify(invalid),
+    JSON.stringify({ replacements: [{ path: "/unknown", value: "not allowed" }] }),
+    JSON.stringify({ replacements: [{ path: "/use_cases/0/evidence", value: valid.use_cases[0].evidence }] }),
+  ];
+  const prompts = [];
+  const client = {
+    async start() {},
+    async stop() {},
+    async createSession() {
+      return {
+        sessionId: "20000000-0000-4000-8000-900000000001",
+        async sendAndWait(message) {
+          prompts.push(message.prompt);
+          return { data: { content: responses.shift() } };
+        },
+        async disconnect() {},
+      };
+    },
+  };
+  const result = await runCopilotTask(root, "Draft functional specifications", {
+    workflow: { id: "refine-backlog" }, agent: { id: "product" }, knowledge: [{ source_path: file }],
+  }, { approved: true, clientFactory: () => client });
+  assert.equal(prompts.length, 3);
+  assert.match(prompts[1], /Return only \{"replacements"/);
+  assert.match(prompts[2], /later malformed responses do not replace it/);
+  assert.match(prompts[2], /Repair must replace an existing own field/);
+  const published = JSON.parse(fs.readFileSync(path.join(root,
+    path.posix.dirname(result.specification.path), "specification.json"), "utf8"));
+  assert.deepEqual(published, valid);
+  assert.equal(result.specification.status, "draft-structurally-validated");
 });
 
 test("the executor persists a validated deliverable and fails instead of reporting empty-template success", async () => {

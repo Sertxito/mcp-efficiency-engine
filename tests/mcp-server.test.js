@@ -82,6 +82,156 @@ test("MCP preserves redacted success and failure results across handler restart 
   }
 });
 
+test("MCP resumes directly with original task authorization instead of creating a nested recovery agent", async t => {
+  const fixture = durableFixture(t);
+  const recovery = require("../packages/execution-engine/src/recoverable-sessions");
+  const sessionId = "10000000-0000-4000-8000-000000000099";
+  const task = "Implement the original approved capability";
+  const lease = recovery.createSessionRecord(fixture.root, {
+    session_id: sessionId, task_sha256: recovery.hash(task), execution_sha256: "a".repeat(64),
+    workflow_id: "deliver-feature", agent_id: "backend", model: "auto",
+  });
+  const record = { ...lease.record, status: "interrupted", owner_pid: 2147483647 };
+  fs.writeFileSync(lease.filename, JSON.stringify(record));
+  const before = fs.readFileSync(lease.filename);
+  const spawnProcess = fixture.options.spawnProcess;
+  fixture.options.spawnProcess = (command, args, options) => {
+    assert.ok(args.includes("--resume-session"));
+    assert.equal(args[args.indexOf("--resume-session") + 1], sessionId);
+    assert.equal(args[args.indexOf("--task") + 1], task);
+    assert.ok(args.includes("--chat-json"));
+    assert.equal(options.env.MCPEE_MCP_TASK_AUTHORIZED, "1");
+    assert.ok(options.env.MCPEE_APPROVAL_BROKER_URL);
+    return spawnProcess(command, args, options);
+  };
+  const handler = createRunToolHandler(fixture.options);
+  for (const input of [
+    { task: "Resume the old session please", resume_session_id: sessionId },
+    { task, resume_session_id: sessionId, feature: "capability", through: "verification" },
+    { task, resume_session_id: "invalid" },
+  ]) {
+    assert.equal((await handler(input)).isError, true);
+    assert.equal(fixture.starts(), 0);
+  }
+  assert.equal(fs.existsSync(path.join(fixture.root, ".mcpee/state/runs")), false);
+  const result = await handler({ task, resume_session_id: sessionId });
+  assert.equal(result.isError, false);
+  assert.equal(fixture.starts(), 1);
+  assert.ok(fs.readFileSync(lease.filename).equals(before),
+    "Transport preflight must not acquire or mutate the SDK recovery record.");
+});
+
+test("MCP rejects recovery of a live or completed session before starting any child", async t => {
+  const fixture = durableFixture(t);
+  const recovery = require("../packages/execution-engine/src/recoverable-sessions");
+  const task = "Inspect the original task";
+  const lease = recovery.createSessionRecord(fixture.root, {
+    session_id: "10000000-0000-4000-8000-000000000098",
+    task_sha256: recovery.hash(task), execution_sha256: "a".repeat(64),
+    workflow_id: "resolve-bug", agent_id: "debugger", model: "auto",
+  });
+  const handler = createRunToolHandler(fixture.options);
+  assert.match((await handler({ task, resume_session_id: lease.record.session_id })).content[0].text, /owner may still be running/);
+  fs.writeFileSync(lease.filename, JSON.stringify({ ...lease.record, status: "completed" }));
+  assert.match((await handler({ task, resume_session_id: lease.record.session_id })).content[0].text, /cannot resume from status/);
+  assert.equal(fixture.starts(), 0);
+});
+
+test("MCP persists execution tool progress and approval channel errors without a false decision", async t => {
+  const fixture = durableFixture(t);
+  let sawWaiting = false;
+  fixture.options.approve = async () => {
+    const state = fixture.snapshot().state;
+    sawWaiting = state.progress.status === "waiting-approval";
+    throw new Error("Host approval timed out");
+  };
+  fixture.options.spawnProcess = (_command, _args, options) => {
+    const child = new EventEmitter();
+    child.stdout = new PassThrough();
+    child.stderr = new PassThrough();
+    child.kill = () => true;
+    setImmediate(() => { void (async () => {
+      try {
+        child.emit("message", { type: "mcpee-authoring-progress", stage: "execution",
+          status: "tool-running", attempt: 1, tool: "powershell" });
+        assert.equal(fixture.snapshot().state.progress.tool, "powershell");
+        const response = await fetch(options.env.MCPEE_APPROVAL_BROKER_URL, {
+          method: "POST", headers: {
+            authorization: `Bearer ${options.env.MCPEE_APPROVAL_BROKER_TOKEN}`,
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({ kind: "copilot-tool", details: { tool: "powershell" } }),
+        });
+        assert.equal(response.ok, false);
+        child.stderr.end("Approval channel failed");
+        child.stdout.end();
+        child.emit("close", 1, null);
+      } catch (error) { child.emit("error", error); }
+    })(); });
+    return child;
+  };
+  const handler = createRunToolHandler(fixture.options);
+  const result = await handler({ task: "Inspect project tools" });
+  assert.equal(result.isError, true);
+  assert.equal(sawWaiting, true);
+  const state = fixture.snapshot().state;
+  assert.equal(state.status, "failed");
+  assert.equal(state.progress.status, "approval-error");
+  const events = readEvents(fixture.root);
+  assert.ok(events.some(event => event.event_name === "mcp.approval.requested"));
+  assert.ok(events.some(event => event.event_name === "mcp.approval.failed"));
+  assert.ok(!events.some(event => event.event_name === "mcp.approval.completed"));
+});
+
+test("MCP sends an approval only while a host tool call is open and keeps that call open until the decision", async t => {
+  const fixture = durableFixture(t);
+  const elicitations = [];
+  let decide;
+  fixture.options.pollWindowMs = 30;
+  fixture.options.approvalHostGraceMs = 5_000;
+  fixture.options.mcpServer = { server: {
+    getClientCapabilities: () => ({ elicitation: { form: {} } }),
+    elicitInput: (request, options) => new Promise(resolve => {
+      elicitations.push(options.relatedRequestId);
+      decide = () => resolve({ action: "accept", content: { decision: "approve" } });
+    }),
+  } };
+  let requestApproval;
+  let closeChild;
+  fixture.options.spawnProcess = (_command, _args, options) => {
+    const child = new EventEmitter();
+    child.stdout = new PassThrough();
+    child.stderr = new PassThrough();
+    child.kill = () => true;
+    requestApproval = () => fetch(options.env.MCPEE_APPROVAL_BROKER_URL, {
+      method: "POST", headers: {
+        authorization: `Bearer ${options.env.MCPEE_APPROVAL_BROKER_TOKEN}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ kind: "copilot-tool", details: { tool: "powershell" } }),
+    }).then(response => response.json());
+    closeChild = () => { child.stdout.end(); child.stderr.end(); child.emit("close", 0, null); };
+    return child;
+  };
+  const handler = createRunToolHandler(fixture.options);
+  const first = JSON.parse((await handler({ task: "Inspect project tools" }, { requestId: 1 })).content[0].text);
+  assert.equal(first.status, "running");
+  const decision = requestApproval();
+  await new Promise(resolve => setTimeout(resolve, 100));
+  assert.equal(elicitations.length, 0, "No elicitation may be sent while the host has no open MCPEE call.");
+  let statusReturned = false;
+  const status = handler({ run_id: first.run_id }, { requestId: 2 }).then(result => { statusReturned = true; return result; });
+  await new Promise(resolve => setTimeout(resolve, 150));
+  assert.deepEqual(elicitations, [2]);
+  assert.equal(statusReturned, false, "The status call must stay open while the approval is pending.");
+  decide();
+  assert.equal((await decision).approved, true);
+  closeChild();
+  await status;
+  const requested = readEvents(fixture.root).find(event => event.event_name === "mcp.approval.requested");
+  assert.equal(requested.attributes.host_tool_call_open, true);
+});
+
 test("MCP reports a dead-owner interruption with last progress, without replay or false completion", async t => {
   const fixture = durableFixture(t);
   await createRunToolHandler(fixture.options)({ task: "Inspect canonical source evidence" });
@@ -444,7 +594,7 @@ test("MCP server advertises the task tool to ordinary host clients", async (t) =
   const tools = await client.listTools();
   const runTool = tools.tools.find((tool) => tool.name === "mcpee_run");
   assert.ok(runTool);
-  assert.deepEqual(Object.keys(runTool.inputSchema.properties), ["task", "feature", "through"]);
+  assert.deepEqual(Object.keys(runTool.inputSchema.properties), ["task", "feature", "through", "resume_session_id"]);
   assert.deepEqual(runTool.inputSchema.required, ["task"]);
   const statusTool = tools.tools.find((tool) => tool.name === "mcpee_run_status");
   assert.ok(statusTool);
@@ -454,6 +604,32 @@ test("MCP server advertises the task tool to ordinary host clients", async (t) =
   assert.ok(cancelTool);
   assert.equal(cancelTool.annotations.readOnlyHint, false);
   assert.equal(cancelTool.annotations.openWorldHint, false);
+  const decideTool = tools.tools.find((tool) => tool.name === "mcpee_specs_decide");
+  assert.ok(decideTool);
+  assert.equal(decideTool.annotations.openWorldHint, false);
+  assert.equal(decideTool.annotations.readOnlyHint, false);
+  assert.ok(decideTool.inputSchema.required.includes("resolution"));
+  const manualPreview = tools.tools.find((tool) => tool.name === "mcpee_specs_manual_preview");
+  const manualReview = tools.tools.find((tool) => tool.name === "mcpee_specs_manual_review");
+  assert.equal(manualPreview.annotations.readOnlyHint, true);
+  assert.equal(manualReview.annotations.readOnlyHint, false);
+  assert.ok(manualReview.inputSchema.required.includes("confirm_sha256"));
+  assert.ok(manualReview.description.includes("ONLY"));
+  const driftPreview = tools.tools.find((tool) => tool.name === "mcpee_specs_drift_preview");
+  const driftReview = tools.tools.find((tool) => tool.name === "mcpee_specs_drift_review");
+  assert.equal(driftPreview.annotations.readOnlyHint, true);
+  assert.equal(driftReview.annotations.readOnlyHint, false);
+  assert.ok(driftReview.inputSchema.required.includes("confirm_sha256"));
+  assert.ok(driftReview.description.includes("explicitly"));
+  const missingDrift = await client.callTool({ name: "mcpee_specs_drift_preview",
+    arguments: { slug: "public-catalog", source_path: "config.json" } });
+  assert.equal(missingDrift.isError, true);
+  const clarification = await client.callTool({ name: "mcpee_run", arguments: {
+    task: "Clarify the public catalog specification.", feature: "public-catalog",
+  } });
+  assert.equal(clarification.isError, true);
+  assert.match(clarification.content[0].text, /pass task only, without feature\/through/);
+  assert.match(clarification.content[0].text, /mcpee_specs_decide/);
 });
 
   test("MCP retrieves long-running work across bounded calls without restarting it", async (t) => {
@@ -726,6 +902,7 @@ test("approval broker accepts only authenticated requests and forwards their dec
     seen.push({ kind, details });
     return kind === "copilot-tool";
   });
+
   try {
     const accepted = await fetch(broker.url, {
       method: "POST",
@@ -742,8 +919,28 @@ test("approval broker accepts only authenticated requests and forwards their dec
       body: JSON.stringify({ kind: "copilot-tool", details: {} }),
     });
     assert.equal(rejected.status, 401);
+    const malformed = await fetch(broker.url, {
+      method: "POST",
+      headers: { authorization: `Bearer ${broker.token}`, "content-type": "application/json" },
+      body: "{",
+    });
+    assert.equal(malformed.status, 400);
     assert.deepEqual(seen, [{ kind: "copilot-tool", details: { tool: "write_file" } }]);
   } finally {
     broker.close();
   }
+});
+
+test("approval broker reports host errors without presenting them as decisions", async () => {
+  const broker = await createApprovalBroker(async () => { throw new Error("MCP error -32001: request timeout"); });
+  try {
+    const response = await fetch(broker.url, {
+      method: "POST",
+      headers: { authorization: `Bearer ${broker.token}`, "content-type": "application/json" },
+      body: JSON.stringify({ kind: "copilot-tool", details: { tool: "test" } }),
+    });
+    assert.equal(response.status, 503);
+    assert.deepEqual(await response.json(), { approved: false, error: "approval-channel-failed",
+      message: "MCP error -32001: request timeout" });
+  } finally { broker.close(); }
 });

@@ -12,6 +12,7 @@
     { "id": "npm", "command": "npm", "version_args": ["--version"], "optional": true, "url": "https://docs.npmjs.com/", "installation": "bundled with Node.js" },
     { "id": "python", "command": "python", "version_args": ["--version"], "optional": true, "url": "https://www.python.org/", "installation": "project-local latest stable runtime managed by uv" },
     { "id": "dotnet", "command": "dotnet", "version_args": ["--version"], "optional": true, "url": "https://dotnet.microsoft.com/", "installation": "detect-only" },
+    { "id": "pwsh", "command": "pwsh", "version_args": ["--version"], "optional": true, "url": "https://learn.microsoft.com/powershell/", "installation": "detect-only; explicit project scripts and workflows require invocation approval" },
     { "id": "azure-cli", "command": "az", "version_args": ["--version"], "optional": true, "url": "https://learn.microsoft.com/cli/azure/", "installation": "detect-only; uses the existing Azure CLI identity for explicit read-only cloud inventory" },
     { "id": "aws-cli", "command": "aws", "version_args": ["--version"], "optional": true, "url": "https://docs.aws.amazon.com/cli/", "installation": "detect-only; uses the existing AWS CLI credential chain for explicit read-only cloud inventory" },
     { "id": "markitdown", "command": "markitdown", "version_args": ["--help"], "optional": true, "url": "https://github.com/microsoft/markitdown", "license": "MIT", "auto_install": true, "installer": { "type": "python-venv", "package": "markitdown[pdf,docx,pptx,xlsx]", "version": "0.1.8" } },

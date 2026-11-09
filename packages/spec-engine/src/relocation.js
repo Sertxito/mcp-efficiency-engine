@@ -99,12 +99,13 @@ function relocateDocuments(root, from, to, { destinations = [], rewriteJson = fa
 function relocateFeature(root, slug, state) {
   if (!STATES.includes(state)) throw new Error(`Unknown specification document state: ${state}`);
   const lifecycleApi = require("./lifecycle");
+  lifecycleApi.migrateReviewHistory(root, slug);
   const before = lifecycleApi.featureStatus(root, slug);
   const { directory, manifest, lifecycle } = lifecycleApi.readFeature(root, slug);
   const destination = `${SPEC_ROOT}/${state}/${slug}`;
   if (directory === destination) return before;
-  if (state === "approved" && !before.authoritative) {
-    throw new Error("Only explicit specification approval or current implementation verification can establish documentary authority.");
+  if (state === "approved" && !before.specification_approved) {
+    throw new Error("Only explicit specification approval can establish documentary authority; passing checks do not approve requirements.");
   }
   if (fs.existsSync(projectPath(root, destination))) throw new Error(`Specification destination already exists: ${destination}`);
   const originals = new Map();
@@ -123,7 +124,7 @@ function relocateFeature(root, slug, state) {
   const outputs = new Map();
   for (const [file, bytes] of originals) {
     const target = relocate(file);
-    if (!file.endsWith(".md") || file.startsWith(`${directory}/reviews/`)) {
+    if (!file.endsWith(".md") || file.startsWith(`${directory}/history/`)) {
       outputs.set(target, bytes);
       continue;
     }
@@ -174,6 +175,9 @@ function relocateFeature(root, slug, state) {
     approval.snapshot = relocate(approval.snapshot);
     approval.relocation = reportPath;
   }
+  for (const approval of lifecycle.approval_history || []) {
+    if (typeof approval.snapshot === "string") approval.snapshot = relocate(approval.snapshot);
+  }
   const verificationPath = `${destination}/verification.json`;
   if (before.implementation_verified && outputs.has(verificationPath)) {
     const verification = JSON.parse(outputs.get(verificationPath).toString("utf8"));
@@ -187,6 +191,11 @@ function relocateFeature(root, slug, state) {
     }
     outputs.set(verificationPath, Buffer.from(json(verification)));
   }
+  lifecycle.transitions = [...(lifecycle.transitions || []), {
+    from: before.document_state, to: state, at: new Date().toISOString(), report: reportPath,
+    reason: state === "approved" ? "explicit-specification-approval" : "specification-review",
+    ...(state === "approved" ? { reviewer: lifecycle.approvals.specification.reviewer } : {}),
+  }];
   outputs.set(`${destination}/lifecycle.json`, Buffer.from(json(lifecycle)));
   const report = {
     generated_by: "mcpee", kind: "specification-relocation", id, feature: slug,

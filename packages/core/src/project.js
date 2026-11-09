@@ -123,6 +123,9 @@ personal data into project memory or committed artifacts.
     ].map((event) => [event, [{
       type: "command",
       command: `node .mcpee/runtime/copilot-hook.cjs ${event}`,
+      ...(process.platform === "win32" ? {
+        powershell: `& '${process.execPath.replaceAll("'", "''")}' .mcpee/runtime/copilot-hook.cjs ${event}`,
+      } : {}),
       cwd: ".",
       timeoutSec: 10,
     }]])),
@@ -221,6 +224,9 @@ function addApprovalHook(projectRoot) {
   config.hooks.preToolUse.push({
     type: "command",
     command: "node .mcpee/runtime/copilot-hook.cjs preToolUse",
+    ...(process.platform === "win32" ? {
+      powershell: `& '${process.execPath.replaceAll("'", "''")}' .mcpee/runtime/copilot-hook.cjs preToolUse`,
+    } : {}),
     cwd: ".",
     timeoutSec: 10,
   });
@@ -229,6 +235,28 @@ function addApprovalHook(projectRoot) {
   }
   fs.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
   return true;
+}
+
+function refreshHookNodeCommands(projectRoot) {
+  if (process.platform !== "win32") return false;
+  const configPath = path.join(projectRoot, ".github/hooks/mcpee-observability.json");
+  if (fs.lstatSync(configPath).isSymbolicLink()) {
+    throw new Error(`Refusing to update Copilot hook configuration through symbolic link: ${configPath}`);
+  }
+  const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+  let changed = false;
+  for (const [event, hooks] of Object.entries(config.hooks || {})) {
+    if (!Array.isArray(hooks)) continue;
+    const command = `node .mcpee/runtime/copilot-hook.cjs ${event}`;
+    const powershell = `& '${process.execPath.replaceAll("'", "''")}' .mcpee/runtime/copilot-hook.cjs ${event}`;
+    for (const hook of hooks) {
+      if (hook?.type !== "command" || hook.command !== command || hook.powershell !== undefined) continue;
+      hook.powershell = powershell;
+      changed = true;
+    }
+  }
+  if (changed) fs.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
+  return changed;
 }
 
 function ensureRuntimeIgnoreRules(projectRoot) {
@@ -283,6 +311,9 @@ function initializeProject(projectRoot, options = {}) {
   }
   if (options.refreshApprovalHook && addApprovalHook(root)) {
     updated.push(".github/hooks/mcpee-observability.json (preToolUse approval hook added)");
+  }
+  if (refreshHookNodeCommands(root)) {
+    updated.push(".github/hooks/mcpee-observability.json (Windows Node path added)");
   }
   if (ensureRuntimeIgnoreRules(root)) {
     created.push(".mcpee/.gitignore (runtime exclusions added)");

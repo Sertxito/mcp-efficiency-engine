@@ -388,7 +388,7 @@
     { "id": "framework-clis", "description": "Project-specific command-line interfaces detected from local configuration." },
     { "id": "optional-mcp", "description": "Workspace-scoped MCP integrations that are available only when configured." }
   ],
-  "tools": ["git", "node", "npm", "python", "dotnet", "azure-cli", "aws-cli", "markitdown", "codegraph", "gitnexus", "graphify", "repomix"],
+  "tools": ["git", "node", "npm", "python", "dotnet", "pwsh", "azure-cli", "aws-cli", "markitdown", "codegraph", "gitnexus", "graphify", "repomix"],
   "patterns": [
     { "id": "architecture-challenge", "description": "Challenge proposed architecture against evidence, simpler alternatives, reversibility, and experiments.", "source_path": "mcpee/patterns/architecture-challenge.md", "when_to_use": ["architecture proposal review", "rewrite or platform adoption", "modernization decision"], "steps": ["State the outcome, evidence, and assumptions.", "Compare no-change and proportionate alternatives.", "Record trade-offs, owner, and experiment."], "anti_patterns": ["Rejecting designs by taste.", "Treating a plan as approval to deploy."] },
     { "id": "technical-debt-register", "description": "Capture and prioritize debt with traceable evidence and uncertainty rather than false precision.", "source_path": "mcpee/patterns/technical-debt-register.md", "when_to_use": ["technical debt assessment", "maintenance prioritization"], "steps": ["Record category, boundary, and source.", "Separate facts, hypotheses, and unknowns.", "Prioritize with supported impact and assign owner or review trigger."], "anti_patterns": ["Scoring without a declared method.", "Treating a scanner finding as business impact."] },

@@ -15,8 +15,10 @@ const MAX_APPROVAL_BYTES = 64 * 1024;
 const MAX_PROCESS_OUTPUT_BYTES = 4 * 1024 * 1024;
 const RUN_STATE_DIRECTORY = ".mcpee/state/runs";
 const runProgressSchema = z.object({
-  stage: z.enum(["specification", "plan", "tasks", "indexing", "brownfield"]),
-  status: z.enum(["authoring", "repairing", "validated", "indexing"]),
+  stage: z.enum(["specification", "plan", "tasks", "indexing", "brownfield", "execution", "approval"]),
+  status: z.enum(["authoring", "repairing", "validated", "indexing", "starting", "thinking",
+    "tool-running", "tool-completed", "tool-failed", "waiting-approval", "approval-approved",
+    "approval-denied", "approval-error"]),
   attempt: z.number().int().min(1).max(3), updated_at: z.string(),
   trace_id: z.string().uuid(),
   completed: z.number().int().nonnegative().optional(),
@@ -28,6 +30,9 @@ const runProgressSchema = z.object({
   concurrency: z.number().int().min(0).max(10).optional(),
   elapsed_ms: z.number().int().nonnegative().optional(),
   last_activity_at: z.string().optional(),
+  tool: z.string().max(200).optional(),
+  approval_kind: z.string().max(200).optional(),
+  approval_id: z.string().uuid().optional(),
 }).strict().refine(progress => progress.stage !== "brownfield" ||
   progress.completed !== undefined && progress.total !== undefined &&
   progress.completed <= progress.total && progress.scope !== undefined &&
@@ -203,7 +208,7 @@ function approvalMessage(kind, details) {
   throw new Error(`Unsupported approval request: ${kind}`);
 }
 
-async function requestApprovalFromMcp(client, kind, details, signal) {
+async function requestApprovalFromMcp(client, kind, details, signal, relatedRequestId) {
   signal?.throwIfAborted();
   const capabilities = client.server.getClientCapabilities();
   if (!capabilities?.elicitation?.form) {
@@ -223,7 +228,7 @@ async function requestApprovalFromMcp(client, kind, details, signal) {
       },
       required: ["decision"],
     },
-  }, { timeout: 600_000, signal });
+  }, { timeout: 600_000, signal, ...(relatedRequestId !== undefined ? { relatedRequestId } : {}) });
   if (result.action !== "accept") return false;
   return result.content?.decision === undefined || result.content.decision === "approve";
 }
@@ -261,7 +266,13 @@ function createApprovalBroker(approve) {
         }
         chunks.push(chunk);
       }
-      const body = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+      let body;
+      try { body = JSON.parse(Buffer.concat(chunks).toString("utf8")); }
+      catch (error) {
+        if (!(error instanceof SyntaxError)) throw error;
+        send(400, { approved: false });
+        return;
+      }
       if (!body || typeof body.kind !== "string" ||
           !body.details || typeof body.details !== "object" || Array.isArray(body.details)) {
         send(400, { approved: false });
@@ -270,7 +281,8 @@ function createApprovalBroker(approve) {
       send(200, { approved: await approve(body.kind, body.details) });
     } catch (error) {
       process.stderr.write(`[mcpee] MCP approval request failed: ${error.message}\n`);
-      if (!response.headersSent) send(400, { approved: false });
+      if (!response.headersSent) send(503, { approved: false,
+        error: "approval-channel-failed", message: redact(error.message).slice(0, 1000) });
     }
   });
 
@@ -314,6 +326,7 @@ function runCopilotCli({
   onStarted,
   feature,
   through,
+  resumeSessionId,
 }) {
   const cliEntrypoint = path.join(packageRoot, "packages", "cli", "bin", "mcpee.js");
   const marker = `__MCPEE_CHAT_RESULT_${crypto.randomBytes(16).toString("hex")}__`;
@@ -341,6 +354,7 @@ function runCopilotCli({
       "--project", projectRoot,
       "--task", task,
       ...(through ? ["--feature", feature, "--through", through] : []),
+      ...(resumeSessionId ? ["--resume-session", resumeSessionId] : []),
       "--chat-json",
     ], {
       cwd: projectRoot,
@@ -353,6 +367,8 @@ function runCopilotCli({
       const progress = runProgressSchema.safeParse({
         stage: message.stage, status: message.status, attempt: message.attempt,
         updated_at: new Date().toISOString(), trace_id: effectiveTraceId,
+        ...(typeof message.tool === "string" ? { tool: message.tool } : {}),
+        ...(typeof message.approval_kind === "string" ? { approval_kind: message.approval_kind } : {}),
         ...(message.stage === "brownfield" ? {
           completed: message.completed, total: message.total, scope: message.scope,
           failed: message.failed, active: message.active, pending: message.pending,
@@ -403,7 +419,7 @@ function runCopilotCli({
             child.kill();
             return;
           }
-          cancellationTimer = setTimeout(() => child.kill(), 5_000);
+          cancellationTimer = setTimeout(() => child.kill(), 60_000);
           child.send({ type: "mcpee.cancel" }, (error) => {
             if (error) {
               process.stderr.write(`[mcpee] Could not request graceful cancellation: ${error.message}\n`);
@@ -445,8 +461,10 @@ function createRunToolHandler(options) {
   const packageRoot = path.resolve(options.packageRoot);
   const spawnProcess = options.spawnProcess || spawn;
   const runs = new Map();
+  const approvalHostGraceMs = options.approvalHostGraceMs ?? 60_000;
+  const pollWindowMs = options.pollWindowMs ?? 20_000;
 
-  const execute = async ({ task, feature, through }, extra = {}) => {
+  const execute = async ({ task, feature, through, resume_session_id }, extra = {}) => {
     if (!fsExists(path.join(projectRoot, ".mcpee", "state", "project.json"))) {
       return {
         isError: true,
@@ -479,9 +497,47 @@ function createRunToolHandler(options) {
         });
         return true;
       }
-      return options.approve
-        ? options.approve(kind, details)
-        : requestApprovalFromMcp(options.mcpServer, kind, details, signal);
+      const approvalId = crypto.randomUUID();
+      const update = status => {
+        const run = runs.get(extra.runId);
+        if (!run) return;
+        run.state.progress = {
+          stage: "approval", status, attempt: 1, approval_kind: kind,
+          approval_id: approvalId,
+          ...(typeof details.tool === "string" ? { tool: details.tool.slice(0, 200) } : {}),
+          updated_at: new Date().toISOString(), trace_id: traceId,
+        };
+        run.state.updated_at = Date.now();
+        writeRunState(projectRoot, run.state);
+      };
+      const started = Date.now();
+      update("waiting-approval");
+      const run = runs.get(extra.runId);
+      let settle;
+      if (run) run.approvalPending = new Promise(resolve => { settle = resolve; });
+      const hostCall = run ? await waitForOpenCall(run, signal, approvalHostGraceMs) : null;
+      recordEvent(projectRoot, { event_name: "mcp.approval.requested", trace_id: traceId,
+        attributes: { approval_id: approvalId, kind, timeout_ms: 600_000,
+          host_tool_call_open: Boolean(hostCall) } });
+      try {
+        const granted = await (options.approve
+          ? options.approve(kind, details)
+          : requestApprovalFromMcp(options.mcpServer, kind, details, signal, hostCall?.requestId));
+        update(granted ? "approval-approved" : "approval-denied");
+        recordEvent(projectRoot, { event_name: "mcp.approval.completed", trace_id: traceId,
+          attributes: { approval_id: approvalId, kind, decision: granted ? "approved" : "denied",
+            duration_ms: Date.now() - started } });
+        return granted;
+      } catch (error) {
+        update("approval-error");
+        recordEvent(projectRoot, { event_name: "mcp.approval.failed", trace_id: traceId,
+          attributes: { approval_id: approvalId, kind, duration_ms: Date.now() - started,
+            error: redact(error.message) } });
+        throw error;
+      } finally {
+        if (run) run.approvalPending = null;
+        settle?.();
+      }
     };
     try {
       outcome = await runCopilotCli({
@@ -490,6 +546,7 @@ function createRunToolHandler(options) {
         task,
         feature,
         through,
+        resumeSessionId: resume_session_id,
         approve,
         spawnProcess,
         signal,
@@ -545,10 +602,34 @@ function createRunToolHandler(options) {
     };
   };
 
-  return async ({ task, feature, through, run_id: runId, cancel = false }, extra = {}) => {
+  return async ({ task, feature, through, resume_session_id, run_id: runId, cancel = false }, extra = {}) => {
+    if (resume_session_id) {
+      try {
+        if (!task || runId || feature || through || cancel) {
+          throw new Error("Resume requires the exact original task and resume_session_id only; it cannot start a lifecycle or retrieve/cancel another run.");
+        }
+        const { record } = require("../../execution-engine/src/recoverable-sessions").readSession(projectRoot, resume_session_id);
+        if (!["interrupted", "running", "resuming"].includes(record.status)) {
+          throw new Error(`SDK session cannot resume from status '${record.status}'.`);
+        }
+        if (record.owner_pid) {
+          try {
+            process.kill(record.owner_pid, 0);
+            throw new Error("The recorded SDK session owner may still be running; resume is blocked.");
+          } catch (error) {
+            if (error.code !== "ESRCH") throw error;
+          }
+        }
+        if (record.task_sha256 !== crypto.createHash("sha256").update(task).digest("hex")) {
+          throw new Error("Resume requires the exact original task, not a new instruction to resume. No execution was started.");
+        }
+      } catch (error) {
+        return { isError: true, content: [{ type: "text", text: `MCPEE resume preflight failed: ${redact(error.message)}` }] };
+      }
+    }
     if (Boolean(feature) !== Boolean(through) || through && (!task || runId ||
         !["tasks", "verification"].includes(through) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(feature))) {
-      return { isError: true, content: [{ type: "text", text: "Lifecycle execution requires task, feature slug and through=tasks|verification together; status requests cannot start a lifecycle." }] };
+      return { isError: true, content: [{ type: "text", text: "Lifecycle execution requires task, feature slug and through=tasks|verification together; status requests cannot start a lifecycle. For specification authoring or clarification, pass task only, without feature/through. Record owner answers with mcpee_specs_decide; clarification does not require tasks or verification." }] };
     }
     if ((task && runId) || (!task && !runId) || (cancel && !runId)) {
       return { isError: true, content: [{ type: "text", text: "Provide either task to start a run or run_id to retrieve it; cancellation requires run_id." }] };
@@ -578,7 +659,7 @@ function createRunToolHandler(options) {
       runId = state.run_id;
       run = { controller: new AbortController(), result: null, startedAt: state.started_at, progress: null, state };
       runs.set(runId, run);
-      run.promise = execute({ task, feature, through }, {
+      run.promise = execute({ task, feature, through, resume_session_id }, {
         ...extra,
         signal: run.controller.signal,
         runId,
@@ -615,34 +696,70 @@ function createRunToolHandler(options) {
       run.controller.abort(new Error("MCPEE run cancelled by the host."));
     }
     let timer;
+    let finished = false;
+    const call = { requestId: extra.requestId };
+    run.openCalls ??= new Set();
+    run.openCalls.add(call);
+    run.callWaiters?.splice(0).forEach(resolve => resolve(call));
     const onAbort = () => run.controller.abort(extra.signal.reason);
     if (extra.signal?.aborted) onAbort();
     else extra.signal?.addEventListener("abort", onAbort, { once: true });
+    const sleep = ms => new Promise(resolve => { timer = setTimeout(resolve, ms); });
+    const heartbeat = async () => {
+      // VS Code renders an elicitation inside chat only while a tool call of this server is open,
+      // so the call stays open while an approval is pending instead of returning "running".
+      while (!finished) {
+        await sleep(pollWindowMs);
+        if (!run.approvalPending) break;
+        await Promise.race([run.approvalPending, run.promise]);
+      }
+      const waiting = run.state.progress?.status === "waiting-approval";
+      return {
+        isError: false,
+        content: [{
+          type: "text",
+          text: JSON.stringify({
+            status: cancel ? "cancelling" : "running",
+            run_id: runId,
+            elapsed_ms: Math.max(0, Date.now() - run.startedAt),
+            progress: run.progress,
+            poll_after_ms: waiting ? 0 : 20_000,
+            next_action: waiting
+              ? "An approval is pending. Call mcpee_run_status with this same run_id now; MCPEE shows the approval in chat while that call is open. Do not restart the task."
+              : "Wait poll_after_ms before retrieving mcpee_run_status with this same run_id. Running alone is not evidence of progress; inspect the reported phase and telemetry if unchanged. Do not restart the task or report completion without a final result.",
+          }),
+        }],
+      };
+    };
     try {
-      return await Promise.race([
-        run.promise,
-        new Promise((resolve) => {
-          timer = setTimeout(() => resolve({
-            isError: false,
-            content: [{
-              type: "text",
-              text: JSON.stringify({
-                status: cancel ? "cancelling" : "running",
-                run_id: runId,
-                elapsed_ms: Math.max(0, Date.now() - run.startedAt),
-                progress: run.progress,
-                poll_after_ms: 20_000,
-                next_action: "Wait poll_after_ms before retrieving mcpee_run_status with this same run_id. Running alone is not evidence of progress; inspect the reported phase and telemetry if unchanged. Do not restart the task or report completion without a final result.",
-              }),
-            }],
-          }), 20_000);
-        }),
-      ]);
+      return await Promise.race([run.promise, heartbeat()]);
     } finally {
+      finished = true;
       clearTimeout(timer);
+      run.openCalls.delete(call);
       extra.signal?.removeEventListener("abort", onAbort);
     }
   };
+}
+
+function waitForOpenCall(run, signal, graceMs) {
+  const open = run.openCalls?.values().next().value;
+  if (open) return Promise.resolve(open);
+  return new Promise(resolve => {
+    let timer;
+    const done = value => {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", onAbort);
+      const index = run.callWaiters?.indexOf(done) ?? -1;
+      if (index >= 0) run.callWaiters.splice(index, 1);
+      resolve(value);
+    };
+    const onAbort = () => done(null);
+    run.callWaiters ??= [];
+    run.callWaiters.push(done);
+    timer = setTimeout(() => done(null), graceMs);
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
 }
 
 function fsExists(filePath) {
@@ -667,6 +784,138 @@ function createMcpServer(options) {
     mcpServer: server,
     spawnProcess: options.spawnProcess,
   });
+  server.registerTool("mcpee_specs_status", {
+    title: "Inspect specification approval and lifecycle",
+    description: "Read current canonical specifications, approval digests and proposed/reviewed/approved transition evidence. No model or project mutation. Use before explicit specification approval. For blocking source drift, inspect whether mcpee_specs_drift_preview permits a human out-of-scope review; explain the actual change and recorded rationale to the user, and only record their explicit review using mcpee_specs_drift_review. Never imply that syncing alone reviews drift.",
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+  }, () => {
+    try {
+      return { content: [{ type: "text", text: JSON.stringify(require("../../spec-engine/src/lifecycle").listFeatures(options.projectRoot)) }] };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: redact(error.message) }] };
+    }
+  });
+  server.registerTool("mcpee_specs_drift_preview", {
+    title: "Inspect an out-of-scope source change",
+    description: "Preview the current and recorded source hashes, recorded coverage and review digest before or after specification approval. Only entirely out-of-scope sources without use-case citations qualify. This does not record a review or approve the specification.",
+    inputSchema: { slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+      source_path: z.string().min(1) },
+    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+  }, input => {
+    try {
+      return { content: [{ type: "text", text: JSON.stringify(require("../../spec-engine/src/source-drift-review")
+        .previewSourceDrift(options.projectRoot, input.slug, input.source_path)) }] };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: redact(error.message) }] };
+    }
+  });
+  server.registerTool("mcpee_specs_drift_review", {
+    title: "Record an explicit human source-drift review",
+    description: "Use ONLY when the named human explicitly confirms reviewing the changed source and its recorded out-of-scope classification and authorizes continuation with the current specification unchanged. Available before or after specification approval; it does not grant that approval. Do not infer this from a request to implement or a model assessment. Bind the exact digest from mcpee_specs_drift_preview. This is not specification, product or deployment approval.",
+    inputSchema: { slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/), source_path: z.string().min(1),
+      reviewer: z.string().trim().min(1).max(160), findings: z.string().trim().min(8).max(4000),
+      confirm_sha256: z.string().regex(/^[a-f0-9]{64}$/) },
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  }, input => {
+    try {
+      return { content: [{ type: "text", text: JSON.stringify(require("../../spec-engine/src/source-drift-review")
+        .recordSourceDriftReview(options.projectRoot, { slug: input.slug, sourcePath: input.source_path,
+          reviewer: input.reviewer, findings: input.findings, confirmSha256: input.confirm_sha256 })) }] };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: redact(error.message) }] };
+    }
+  });
+  server.registerTool("mcpee_specs_manual_preview", {
+    title: "Inspect evidence for a manual check",
+    description: "Preview the exact canonical manual check and all planned evidence file hashes before a human reviews them. This does not record a review or approve anything.",
+    inputSchema: { slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+      id: z.string().regex(/^CHECK-\d{3}$/) },
+    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+  }, input => {
+    try {
+      return { content: [{ type: "text", text: JSON.stringify(require("../../spec-engine/src/manual-review")
+        .previewManualReview(options.projectRoot, input.slug, input.id)) }] };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: redact(error.message) }] };
+    }
+  });
+  server.registerTool("mcpee_specs_manual_review", {
+    title: "Record an explicit human manual review",
+    description: "Use ONLY after the named human explicitly confirms they completed this exact check and provides their outcome and findings. Never infer a review from implementation, an automated command, a request to proceed, or an AI assessment. Obtain the current review_sha256 using mcpee_specs_manual_preview and bind the human findings to it. A failed review remains pending. This records a review, not product acceptance or deployment approval.",
+    inputSchema: { slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+      id: z.string().regex(/^CHECK-\d{3}$/), reviewer: z.string().trim().min(1).max(160),
+      outcome: z.enum(["passed", "failed"]), findings: z.string().trim().min(8).max(4000),
+      confirm_sha256: z.string().regex(/^[a-f0-9]{64}$/) },
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  }, input => {
+    try {
+      return { content: [{ type: "text", text: JSON.stringify(require("../../spec-engine/src/manual-review")
+        .recordManualReview(options.projectRoot, { slug: input.slug, id: input.id, reviewer: input.reviewer,
+          outcome: input.outcome, findings: input.findings, confirmSha256: input.confirm_sha256 })) }] };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: redact(error.message) }] };
+    }
+  });
+  server.registerTool("mcpee_specs_decide", {
+    title: "Record, defer or resolve an owner specification decision",
+    description: "Use the user's explicit answer for the exact question in the selected feature's decisions.md. Never infer answers, copy Q IDs between revisions, or mark 'still pending' as resolved. Inspect existing decisions first: do not re-record an already deferred answer unless the owner explicitly changes it. Identical pending/deferred submissions are no-ops. Use resolution=deferred when the owner explicitly places the requirement in a later phase; deferred decisions remain visible and unresolved but do not block approval of the current phase. Use resolution=pending when the requirement is still in scope and awaiting an answer; it blocks approval. resolved means the owner settled the current decision. No model, brownfield batch, CodeGraph, Git, task/verification phase or specification approval is required. Later settlement of pending or deferred answers retains their history. This tool records decisions only; it does not rewrite requirements or resolve deferred source coverage.",
+    inputSchema: {
+      slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+      id: z.string().regex(/^Q-\d+$/),
+      answer: z.string().trim().min(8).max(4000),
+      reviewer: z.string().trim().min(1).max(160),
+      resolution: z.enum(["resolved", "pending", "deferred"]),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  }, input => {
+    try {
+      const result = require("../../spec-engine/src/lifecycle").resolveDecision(options.projectRoot, input);
+      return { content: [{ type: "text", text: JSON.stringify(result) }] };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: redact(error.message) }] };
+    }
+  });
+  server.registerTool("mcpee_specs_revise_decision", {
+    title: "Revise a resolved owner decision while retaining its history",
+    description: "Use only for an explicit owner correction or clarification to a previously resolved answer. First inspect mcpee_specs_status and bind confirm_sha256 to the exact current specification digest. MCPEE appends the previous answer to that decision's history, records the new answer and reviewer, and invalidates digest-bound reviews; it does not revise requirements, approve the specification or authorize implementation.",
+    inputSchema: {
+      slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+      id: z.string().regex(/^Q-\d+$/),
+      answer: z.string().trim().min(8).max(4000),
+      reviewer: z.string().trim().min(1).max(160),
+      confirm_sha256: z.string().regex(/^[a-f0-9]{64}$/),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  }, input => {
+    try {
+      const { confirm_sha256, ...decision } = input;
+      const result = require("../../spec-engine/src/lifecycle").reviseDecision(options.projectRoot, {
+        ...decision, confirmSha256: confirm_sha256,
+      });
+      return { content: [{ type: "text", text: JSON.stringify(result) }] };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: redact(error.message) }] };
+    }
+  });
+  server.registerTool("mcpee_specs_approve", {
+    title: "Approve selected specifications by explicit user instruction",
+    description: "Use ONLY when the user explicitly says to approve specifications, individually or as a batch. Generating tasks or requesting implementation is NOT approval. The explicit user order authorizes this local approval without per-proposal confirmations. Bind the exact current digests from mcpee_specs_status; record the accountable reviewer and user instruction. Records approval snapshots and state transitions, never approves deployment or product acceptance. Active project runs block relocation.",
+    inputSchema: {
+      specifications: z.array(z.object({ slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+        sha256: z.string().regex(/^[a-f0-9]{64}$/) }).strict()).min(1).max(5000),
+      reviewer: z.string().trim().min(1).max(160),
+      reason: z.string().trim().min(1).max(4000).describe("The user's explicit approval instruction, not inferred intent."),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  }, input => {
+    try {
+      const result = require("../../spec-engine/src/lifecycle").approveSpecifications(options.projectRoot, input);
+      return { content: [{ type: "text", text: JSON.stringify(result) }] };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: redact(error.message) }] };
+    }
+  });
   server.registerTool("mcpee_run", {
     title: "Run a project task with MCPEE",
     description: [
@@ -674,20 +923,25 @@ function createMcpServer(options) {
       "MCPEE performs local routing and grounding, then executes the task through the authenticated GitHub Copilot CLI agent runtime.",
       "Invoking this task tool authorizes its selected project context to the authenticated GitHub Copilot runtime and ordinary post-task local synchronization; MCPEE does not ask again for these internal steps.",
       "Nested destructive operations, dependency/tool installation, deployment, other external transfers and sensitive permissions retain their own explicit approval checks.",
+      "Task generation and implementation require explicitly approved specifications. An instruction to generate or implement does not approve requirements: use mcpee_specs_status and mcpee_specs_approve only when the user explicitly orders approval, including batch approval.",
+      "If a canonical cycle stops for source drift, inspect mcpee_specs_status and mcpee_specs_drift_preview. For eligible out-of-scope sources, present the changed source and recorded scope to the human and offer to record their explicit review; never infer or fabricate their review. Other drift remains blocked.",
+      "Specification authoring and clarification use task only, without feature/through. For explicit owner answers use mcpee_specs_decide, keeping pending decisions open; use mcpee_specs_revise_decision only to correct an already resolved answer with the exact current specification digest. Brownfield discovery excludes generated specifications as input; it is not a clarification or revision command.",
       "This tool only starts a task. If the result is running, call the read-only mcpee_run_status tool with its run_id until the final result; do not start another task or ask the user to poll. Use mcpee_run_cancel to cancel a run.",
       "Return the tool's result to the user; do not make the same project changes again in this chat turn.",
+      "To explicitly resume an interrupted SDK session, pass resume_session_id and the exact original task, without feature or through. This resumes directly through the host approval channel; never start a new agent to run a nested mcpee run --resume-session command. Scope, model and prompt guards remain enforced; no silent fresh-session fallback.",
     ].join(" "),
     inputSchema: {
       task: z.string().trim().min(1).max(8000).describe("Start a new task, preserving necessary constraints."),
       feature: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional().describe("Canonical feature slug; required with through."),
       through: z.enum(["tasks", "verification"]).optional().describe("Explicitly execute validated specification/plan/tasks phases through tasks or implementation checks. Requires feature. Stops on genuine decisions, drift or failures; never proves product acceptance."),
+      resume_session_id: z.string().uuid().optional().describe("Explicitly resume this recorded interrupted SDK session with its exact original task. Mutually exclusive with feature/through. Does not replay completed work or bypass nested action approvals."),
     },
     annotations: {
       readOnlyHint: false,
       destructiveHint: false,
       openWorldHint: true,
     },
-  }, ({ task, feature, through }, extra = {}) => runHandler({ task, feature, through }, extra));
+  }, ({ task, feature, through, resume_session_id }, extra = {}) => runHandler({ task, feature, through, resume_session_id }, extra));
   server.registerTool("mcpee_run_status", {
     title: "Check MCPEE run status",
     description: "Retrieve current progress or the persisted result of an existing MCPEE run by run_id, including after a server restart. A dead owner without a final result is interrupted, not successful; inspect its trace and saved authoring candidates instead of replaying the task. This only reads local run state; it does not start, cancel, or modify the run.",

@@ -10,7 +10,22 @@ async function runWorkflow(projectRoot, workflowSpecPath, options = {}) {
   if (options.expectedWorkflowId && spec.workflow_id !== options.expectedWorkflowId) {
     throw new Error(`Validation workflow mismatch: expected '${options.expectedWorkflowId}', found '${spec.workflow_id}'.`);
   }
-  const impactPreflight = analyzeImpacts(projectRoot, spec.evidence.map((source) => source.path));
+  let adapterPath;
+  if (options.canonicalFeature) {
+    const canonical = require("../../spec-engine/src/phases").prepareImplementationValidation(projectRoot, options.canonicalFeature, { allowPending: true });
+    if (spec.workflow_id !== canonical.spec.workflow_id) throw new Error("Canonical validation workflow ID does not match the feature.");
+    adapterPath = canonical.explicit_workflow;
+    if (adapterPath && !spec.evidence.some(source => source.path === adapterPath && source.sha256 === canonical.workflow_sha256)) {
+      throw new Error("Canonical workflow adapter evidence does not match its validated digest.");
+    }
+  }
+  const impactPreflight = analyzeImpacts(projectRoot, spec.evidence
+    .filter(source => source.path !== adapterPath).map(source => source.path));
+  if (adapterPath) {
+    recordEvent(projectRoot, { event_name: "workflow.adapter.validated",
+      attributes: { workflow_id: spec.workflow_id, path: adapterPath,
+        basis: "digest-bound-execution-configuration; not an application impact target" } });
+  }
   await options.beforeRun?.(impactPreflight);
   recordEvent(projectRoot, {
     event_name: "workflow.started",

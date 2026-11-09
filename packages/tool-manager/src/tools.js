@@ -16,6 +16,7 @@ const NPM_TOOL_ROOT = ".mcpee/tools/npm";
 const PYTHON_TOOL_ROOT = ".mcpee/tools/python";
 const PYTHON_BOOTSTRAP_ROOT = ".mcpee/tools/bootstrap/uv";
 const MAX_INSTALL_OUTPUT = 1024 * 1024;
+const PYTHON_TOOL_VALIDATION_TIMEOUT_MS = 120_000;
 
 function candidates(directory, command) {
   const extension = path.extname(command);
@@ -81,6 +82,14 @@ function findExecutable(projectRoot, tool, installState = null) {
   return null;
 }
 
+function azureCliPythonPath(wrapper) {
+  const root = path.resolve(path.dirname(wrapper), "..");
+  const interpreter = path.join(root, "python.exe");
+  const module = path.join(root, "Lib", "site-packages", "azure", "cli", "__main__");
+  return fs.existsSync(interpreter) && [".py", ".pyc"].some(extension => fs.existsSync(`${module}${extension}`))
+    ? interpreter : null;
+}
+
 function discoverTools(projectRoot) {
   const root = path.resolve(projectRoot);
   const installState = readInstallState(root);
@@ -97,7 +106,8 @@ function discoverTools(projectRoot) {
         available: executable !== null,
         invokable: executable !== null &&
           (!(process.platform === "win32" && /\.(?:cmd|bat|ps1)$/i.test(executable)) ||
-            (tool.id === "npm" && Boolean(npmCliPath(process.execPath, executable)))),
+            (tool.id === "npm" && Boolean(npmCliPath(process.execPath, executable))) ||
+            (tool.id === "azure-cli" && Boolean(azureCliPythonPath(executable)))),
         executable,
         validation: "not-run",
         installation: installState.tools[tool.id] || installState.results?.[tool.id] || (tool.auto_install ? null : {
@@ -409,6 +419,70 @@ function installedPythonPackageVersion(run, python, root, packageName) {
   return !result.error && result.status === 0 ? result.stdout.trim() : null;
 }
 
+function isInstalledFile(file) {
+  try {
+    return fs.statSync(file).isFile();
+  } catch (error) {
+    if (error.code === "ENOENT" || error.code === "ENOTDIR") return false;
+    throw error;
+  }
+}
+
+function reportsPythonVersion(run, executable, root, version) {
+  const result = run(executable, ["--version"], { cwd: root, timeoutMs: 5000 });
+  if (result.error || result.status !== 0) return false;
+  const match = `${result.stdout || ""}${result.stderr || ""}`.match(/Python\s+(\d+\.\d+\.\d+)/);
+  return match?.[1] === version;
+}
+
+function verifiedPythonTool(root, tool, state, options, pythonVersion) {
+  if (!/^\d+\.\d+\.\d+$/.test(pythonVersion || "")) return null;
+  const definition = tool.installer;
+  const target = path.join(root, PYTHON_TOOL_ROOT, tool.id, pythonVersion);
+  const relativeTarget = path.relative(root, target).split(path.sep).join("/");
+  const oldState = state.tools[tool.id];
+  if (oldState?.version !== definition.version || oldState?.python_version !== pythonVersion ||
+      oldState?.environment !== relativeTarget) return null;
+  const scripts = path.join(target, process.platform === "win32" ? "Scripts" : "bin");
+  const environmentPython = path.join(scripts, process.platform === "win32" ? "python.exe" : "python");
+  if (!isInstalledFile(environmentPython) ||
+      !candidates(scripts, tool.command).some(isInstalledFile)) return null;
+  const run = options.runProcess || runProcess;
+  const packageName = tool.id === "graphify" ? "graphifyy" : "markitdown";
+  if (!reportsPythonVersion(run, environmentPython, root, pythonVersion) ||
+      installedPythonPackageVersion(run, environmentPython, root, packageName) !== definition.version) return null;
+  return { id: tool.id, status: "already-installed", version: definition.version, python_version: pythonVersion };
+}
+
+function verifiedInstalledTool(root, tool, state, options) {
+  const definition = tool.installer;
+  if (definition.type === "npm-prefix") {
+    if (!isVersionAtLeast(process.versions.node, definition.node_minimum) ||
+        state.tools[tool.id]?.version !== definition.version) return null;
+    const installedPackage = path.join(root, NPM_TOOL_ROOT, "node_modules", definition.package, "package.json");
+    const executable = findExecutable(root, tool, state);
+    if (!executable || !isInstalledFile(executable) || !isInstalledFile(installedPackage)) return null;
+    try {
+      if (JSON.parse(fs.readFileSync(installedPackage, "utf8")).version === definition.version) {
+        return { id: tool.id, status: "already-installed", version: definition.version };
+      }
+    } catch (error) {
+      if (!(error instanceof SyntaxError) && error.code !== "ENOENT") throw error;
+    }
+    return null;
+  }
+  if (definition.type === "python-venv") {
+    const runtime = state.python_runtime;
+    if (!runtime || !/^\d+\.\d+\.\d+$/.test(runtime.version || "")) return null;
+    const executable = findExecutable(root, toolsById.get("python"), state);
+    const tracked = runtime.executable && path.resolve(root, runtime.executable);
+    if (!executable || executable !== tracked || !isInstalledFile(executable) ||
+        !reportsPythonVersion(options.runProcess || runProcess, executable, root, runtime.version)) return null;
+    return verifiedPythonTool(root, tool, state, options, runtime.version);
+  }
+  return null;
+}
+
 function installPythonTool(root, tool, state, options, runtime) {
   const definition = tool.installer;
   const run = options.runProcess || runProcess;
@@ -418,13 +492,8 @@ function installPythonTool(root, tool, state, options, runtime) {
   const environmentPython = path.join(target, process.platform === "win32" ? "Scripts" : "bin", pythonName);
   const oldState = state.tools[tool.id];
   const packageName = tool.id === "graphify" ? "graphifyy" : "markitdown";
-  if (oldState?.version === definition.version &&
-      oldState?.python_version === runtime.version &&
-      oldState?.environment === relativeTarget &&
-      fs.existsSync(environmentPython) &&
-      installedPythonPackageVersion(run, environmentPython, root, packageName) === definition.version) {
-    return { id: tool.id, status: "already-installed", version: definition.version, python_version: runtime.version };
-  }
+  const existing = verifiedPythonTool(root, tool, state, options, runtime.version);
+  if (existing) return existing;
   if (fs.existsSync(target) && oldState?.environment !== relativeTarget) {
     return { id: tool.id, status: "failed", reason: `Refusing to reuse an untracked Python environment: ${target}` };
   }
@@ -459,17 +528,12 @@ function installNpmTool(root, tool, state, options) {
   if (!isVersionAtLeast(process.versions.node, definition.node_minimum)) {
     return { id: tool.id, status: "blocked", reason: `Node.js ${definition.node_minimum}+ is required; current runtime is ${process.version}.` };
   }
+  const existing = verifiedInstalledTool(root, tool, state, options);
+  if (existing) return existing;
   const npmCli = options.npmCli || npmCliPath();
   if (!npmCli) return { id: tool.id, status: "blocked", reason: "npm's JavaScript CLI was not found beside the active Node runtime." };
   const installedPackage = path.join(root, NPM_TOOL_ROOT, "node_modules", definition.package, "package.json");
   const platformPackage = npmPlatformPackage(root, definition);
-  const hasPlatformPackage = !platformPackage || fs.existsSync(platformPackage);
-  if (state.tools[tool.id]?.version === definition.version && fs.existsSync(installedPackage)) {
-    const packageState = JSON.parse(fs.readFileSync(installedPackage, "utf8"));
-    if (packageState.version === definition.version && hasPlatformPackage) {
-      return { id: tool.id, status: "already-installed", version: definition.version };
-    }
-  }
   const target = path.join(root, NPM_TOOL_ROOT);
   const run = options.runProcess || runProcess;
   const installed = run(process.execPath, [
@@ -634,12 +698,20 @@ async function installCatalogTools(projectRoot, options = {}) {
       ? `${PYTHON_TOOL_ROOT}/runtime/ (latest stable Python, if not already installed)`
       : null,
   });
+  const alreadyInstalled = new Map();
+  if (!options.skipInstall) {
+    for (const tool of tools) {
+      if (options.skipNodeTools && tool.installer.type === "npm-prefix") continue;
+      const existing = verifiedInstalledTool(root, tool, state, options);
+      if (existing) alreadyInstalled.set(tool.id, existing);
+    }
+  }
   const blockers = new Map(tools.map(tool => [tool.id, nodeBlocker(tool)]));
-  const blockedTools = tools.filter(tool => blockers.get(tool.id));
+  const blockedTools = tools.filter(tool => !alreadyInstalled.has(tool.id) && blockers.get(tool.id));
   for (const tool of options.skipInstall ? [] : blockedTools) options.onProgress?.({
     id: tool.id, status: "blocked", reason: blockers.get(tool.id),
   });
-  const eligible = tools.filter(tool => !blockers.get(tool.id) &&
+  const eligible = tools.filter(tool => !alreadyInstalled.has(tool.id) && !blockers.get(tool.id) &&
     !(options.skipNodeTools && tool.installer.type === "npm-prefix"));
   const batchApproved = !options.skipInstall && eligible.length && options.approveInstallBatch
     ? await options.approveInstallBatch(eligible.map(installDetails))
@@ -647,6 +719,17 @@ async function installCatalogTools(projectRoot, options = {}) {
   for (const tool of tools) {
     if (options.skipInstall) {
       results.push({ id: tool.id, status: "skipped", reason: "Tool installation was disabled by --skip-tool-install." });
+      continue;
+    }
+    const existing = alreadyInstalled.get(tool.id);
+    if (existing) {
+      results.push(existing);
+      options.onProgress?.(existing);
+      recordEvent(root, {
+        event_name: "tool.installation.completed",
+        tool_name: tool.id,
+        attributes: { status: existing.status, version: existing.version },
+      });
       continue;
     }
     const blocker = blockers.get(tool.id);
@@ -760,27 +843,32 @@ function validateTool(projectRoot, toolId, options = {}) {
     return { id: toolId, available: false, validation: "missing", error: `${definition.command} was not found on PATH or in project node_modules/.bin` };
   }
   const windowsWrapper = process.platform === "win32" && /\.(?:cmd|bat|ps1)$/i.test(executable);
-  if (windowsWrapper && definition.id !== "npm") {
+  const azurePython = windowsWrapper && definition.id === "azure-cli" ? azureCliPythonPath(executable) : null;
+  if (windowsWrapper && definition.id !== "npm" && !azurePython) {
     return { id: toolId, available: true, executable, validation: "not-run", reason: "Windows script wrappers are not launched through a shell" };
   }
-  const localNpmCli = windowsWrapper ? npmCliPath(process.execPath, executable) : null;
-  if (windowsWrapper && !localNpmCli) {
+  const localNpmCli = windowsWrapper && definition.id === "npm" ? npmCliPath(process.execPath, executable) : null;
+  if (windowsWrapper && !localNpmCli && !azurePython) {
     return { id: toolId, available: true, executable, validation: "not-run", reason: "npm's JavaScript CLI was not found beside the active Node runtime; the shell wrapper was not launched" };
   }
   const usesNodeEntrypoint = definition.installer?.type === "npm-prefix" || Boolean(localNpmCli);
-  const command = usesNodeEntrypoint ? process.execPath : executable;
+  const command = azurePython || (usesNodeEntrypoint ? process.execPath : executable);
   const args = definition.installer?.type === "npm-prefix"
     ? [path.join(projectRoot, NPM_TOOL_ROOT, "node_modules", definition.installer.package, definition.installer.entry_point), ...definition.version_args]
-    : localNpmCli
+    : azurePython
+      ? ["-I", "-B", "-m", "azure.cli", ...definition.version_args]
+      : localNpmCli
       ? [localNpmCli, ...definition.version_args]
       : definition.version_args;
   const run = options.runProcess || spawnSync;
   const result = run(command, args, {
     cwd: projectRoot,
     encoding: "utf8",
-    env: definition.installer?.env ? { ...process.env, ...definition.installer.env } : process.env,
+    env: azurePython || definition.installer?.env
+      ? { ...process.env, ...(azurePython ? { AZ_INSTALLER: "MSI" } : {}), ...(definition.installer?.env || {}) }
+      : process.env,
     timeout: options.timeoutMs || (definition.installer
-      ? 30_000
+      ? definition.installer.type === "python-venv" ? PYTHON_TOOL_VALIDATION_TIMEOUT_MS : 30_000
       : definition.id === "npm" ? 10_000 : 3000),
     maxBuffer: 256 * 1024,
     windowsHide: true,
@@ -862,19 +950,22 @@ function invokeTool(projectRoot, toolId, args, options = {}) {
   const executable = findExecutable(root, definition, installState);
   if (!executable) throw new Error(`Required local tool '${toolId}' is unavailable; no installation was attempted`);
   const windowsWrapper = process.platform === "win32" && /\.(?:cmd|bat|ps1)$/i.test(executable);
-  if (windowsWrapper && definition.id !== "npm") {
+  const azurePython = windowsWrapper && definition.id === "azure-cli" ? azureCliPythonPath(executable) : null;
+  if (windowsWrapper && definition.id !== "npm" && !azurePython) {
     throw new Error(`Refusing to launch shell-based tool wrapper '${executable}'`);
   }
-  const localNpmCli = windowsWrapper ? npmCliPath(process.execPath, executable) : null;
-  if (windowsWrapper && !localNpmCli) {
+  const localNpmCli = windowsWrapper && definition.id === "npm" ? npmCliPath(process.execPath, executable) : null;
+  if (windowsWrapper && !localNpmCli && !azurePython) {
     throw new Error(`Cannot invoke npm without a shell: npm's JavaScript CLI was not found beside the active Node runtime (${executable}).`);
   }
   const usesNodeEntrypoint = definition.installer?.type === "npm-prefix" || Boolean(localNpmCli);
   const started = Date.now();
-  const command = usesNodeEntrypoint ? process.execPath : executable;
+  const command = azurePython || (usesNodeEntrypoint ? process.execPath : executable);
   const invocationArgs = definition.installer?.type === "npm-prefix"
     ? [path.join(root, NPM_TOOL_ROOT, "node_modules", definition.installer.package, definition.installer.entry_point), ...args]
-    : localNpmCli
+    : azurePython
+      ? ["-I", "-B", "-m", "azure.cli", ...args]
+      : localNpmCli
       ? [localNpmCli, ...args]
       : args;
   const result = spawnSync(command, invocationArgs, {
@@ -883,6 +974,7 @@ function invokeTool(projectRoot, toolId, args, options = {}) {
     encoding: "utf8",
     env: {
       ...process.env,
+      ...(azurePython ? { AZ_INSTALLER: "MSI" } : {}),
       ...(definition.installer?.env || {}),
       ...(options.env || {}),
     },
@@ -935,6 +1027,7 @@ module.exports = {
   installCatalogTools,
   installPythonEnvironment,
   npmCliPath,
+  azureCliPythonPath,
   readLatestLtsVersion,
   isVersionAtLeast,
 };

@@ -34,13 +34,13 @@ why MCPEE manages its own isolated Python runtime instead of requiring one.
 Global installation (recommended):
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.46
+npm install --global mcp-efficiency-engine@0.1.47
 ```
 
 Run a pinned version without installing globally:
 
 ```sh
-npx --package=mcp-efficiency-engine@0.1.46 mcpee init --project C:\path\to\project
+npx --package=mcp-efficiency-engine@0.1.47 mcpee init --project C:\path\to\project
 ```
 
 The npm package is `mcp-efficiency-engine`. It installs two equivalent
@@ -50,7 +50,7 @@ If npm reports that the Copilot SDK's native `koffi` dependency has a blocked
 install script, allow only that dependency:
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.46 --allow-scripts=koffi
+npm install --global mcp-efficiency-engine@0.1.47 --allow-scripts=koffi
 ```
 
 This does not enable install scripts globally. A successful `mcpee help`
@@ -92,6 +92,12 @@ never overwrites user-owned files. In one run it:
    are not touched. Use Up/Down and Enter to choose Yes or No; no typed
    approval keywords are needed. Required tools are included, not separate
    questions. Declining the bundle leaves required tools pending.
+   On repeat runs, MCPEE verifies the existing pinned package versions,
+   executable files and Python interpreters before requesting approval.
+   Ready tools are reported as `already-installed` and excluded from the
+   bundle; they do not trigger downloads or Python runtime upgrades.
+   Missing or changed installations still require approval for repair and
+   any associated runtime changes.
    **CodeGraph is bundled**, but its index is required only for projects with
    application code. Documentation-only setup, sync, discovery and architecture
    skip the code-index health check, preserving any existing index.
@@ -251,14 +257,22 @@ business intent. Requirements come first:
 4. **Clarify and approve.** `mcpee specs status --slug <feature>` shows pending
    decisions, drift and the review digest. Record owner decisions with
    `mcpee specs decide --slug <feature> --id Q-001 --answer "<decision>" --reviewer "<owner>"`.
+   Revise a previously resolved answer with
+   `mcpee specs revise-decision --slug <feature> --id Q-001 --answer "<updated decision>" --reviewer "<owner>" --confirm-sha256 <current-spec-digest>`;
+   the prior answer is retained in history.
    Review the specification and every case, then use
    `mcpee specs approve --slug <feature> --stage specification --reviewer "<owner>" --confirm-sha256 <digest>`.
    Open decisions and deferred requirements block approval; explicit
    out-of-scope sections remain visible. Draft creation and machine validation
    never approve requirements. `specs review` records a review without approval;
    explicit specification approval moves the bundle to `approved/`.
-   Implementation with current passing recorded checks is the other path to
-   authority; verification is bounded to those checks, not full product acceptance.
+   An explicit chat instruction to approve selected specs or a batch is sufficient:
+   use `mcpee_specs_status` then `mcpee_specs_approve` with current digests.
+   No per-proposal confirmation is needed. The CLI batch equivalent is
+   `mcpee specs approve --all-current --reviewer "<owner>" --reason "Approve these specifications"`.
+   Approval records the proposed/reviewed/approved transitions and exact artifact snapshots.
+   Tasks and implementation require explicit approval; passing recorded checks
+   does not approve requirements or establish full product acceptance.
 5. **Plan and decompose.** Author `plan.md` in the same feature bundle against the validated
    specification and case IDs; `mcpee plan init --slug <feature> --title "<title>"`
    can create an explicitly unreviewed template without replacing the spec.
@@ -365,7 +379,7 @@ Non-interactive `init` never guesses and never downloads without approval:
 |---|---|
 | `--agents <id,...\|all\|none>` | Choose specialist agents and their dependencies explicitly; the core `orchestrator` is always installed. Omit this option for the full local catalog in new projects. `all` selects all agents, not independent catalog assets. |
 | `--embeddings none\|light\|bge-m3` | Choose embeddings explicitly. Default in all terminals: `none`. |
-| `--skip-tool-install` | Use already installed tools. Without it, non-interactive tool installation is denied. Mandatory readiness checks (such as CodeGraph) still apply. |
+| `--skip-tool-install` | Skip installation entirely without changing installation receipts. Without it, verified pinned tools are reused without approval, but non-interactive installation or repair is denied. Mandatory readiness checks (such as CodeGraph) still apply. |
 
 Example:
 

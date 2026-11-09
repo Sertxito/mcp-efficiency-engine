@@ -32,6 +32,7 @@ const RELEVANT_CATEGORIES = new Set([
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const GENERATED_MARKER = "<!-- MCPEE brownfield proposal; not an approved requirement -->";
+const MAX_APPROVED_SPEC_CONTEXT_BYTES = 512 * 1024;
 
 function digest(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
@@ -164,6 +165,8 @@ function isScaffolding(root, sourcePath) {
   if (["specs/README.md", "specs/MCPEE.md"].includes(sourcePath) || /^specs\/[^/]+\/(?:spec\.md|UC-\d{3}\.md|manifest\.json|migration\.json|lifecycle\.json|decisions\.(?:md|json)|plan\.md|tasks\.md)$/.test(sourcePath)) return true;
   if (/^(?:\.mcpee\/|\.codegraph\/|docs\/generated\/|\.github\/(?:agents|skills)\/mcpee-|\.github\/hooks\/mcpee)/.test(sourcePath) ||
       [".mcp.json", "mcpee.config.yml"].includes(sourcePath)) return true;
+  if (sourcePath === ".vscode/mcp.json" &&
+      require("../../knowledge-engine/src/codegraph").isManagedOnlyMcpConfig(root, sourcePath)) return true;
   if (sourcePath === ".github/copilot-instructions.md") {
     return fs.readFileSync(projectPath(root, sourcePath), "utf8").startsWith("# MCPEE project instructions");
   }
@@ -419,7 +422,7 @@ function createDomainProposal(root, group) {
   const { domain, part, parts, sources } = group;
   const cases = testCases(sources);
   const workspacePath = require("./lifecycle").navigationTarget(root);
-  const snapshotHash = digest(JSON.stringify({ schema_version: 2, format_version: 11, workspacePath, domain, part, parts, sources, cases }));
+  const snapshotHash = digest(JSON.stringify({ schema_version: 2, format_version: 12, workspacePath, domain, part, parts, sources, cases }));
   const slug = `brownfield-${domain}-part-${part}-${snapshotHash.slice(0, 12)}`;
   ensureDirectory(root, PROPOSALS);
   const specRelative = `${PROPOSALS}/${slug}.md`;
@@ -438,7 +441,7 @@ function createDomainProposal(root, group) {
   const specSha256 = digest(content);
   const evidence = {
     schema_version: 2,
-    format_version: 11,
+    format_version: 12,
     workspace_path: workspacePath,
     generated_by: "mcpee",
     status: "proposed",
@@ -830,14 +833,17 @@ function checkSpecDrift(root) {
   for (const feature of require("./lifecycle").listFeatures(root).filter((item) => item.status !== "unvalidated-manual-draft")) {
     entries.push({
       slug: feature.id, specification_status: feature.authoritative ? "approved" : feature.document_state,
-      specPath: feature.path, drift_status: feature.drift.length ? "drifted" : "current",
-      changed: feature.drift, missing: [],
+      specPath: feature.path, drift_status: feature.drift.length ? "drifted"
+        : feature.reviewed_source_drift?.length ? "reviewed-out-of-scope" : "current",
+      changed: feature.drift, missing: [], ...(feature.reviewed_source_drift
+        ? { reviewed_source_drift: feature.reviewed_source_drift } : {}),
     });
   }
   return {
     generated_at: new Date().toISOString(),
     current: entries.filter((entry) => entry.drift_status === "current").length,
     drifted: entries.filter((entry) => entry.drift_status === "drifted").length,
+    reviewed_out_of_scope: entries.filter((entry) => entry.drift_status === "reviewed-out-of-scope").length,
     specifications: entries.sort((left, right) => left.slug.localeCompare(right.slug)),
   };
 }
@@ -856,8 +862,8 @@ function prepareApprovedSpecContext(root, plan, contextPackage = null) {
     const filename = projectPath(root, spec.path);
     const stat = fs.statSync(filename);
     bytes += stat.size;
-    if (bytes > 128 * 1024) {
-      throw new Error("Approved specification context exceeds 131072 bytes. Narrow the approved specification selection; no contract was silently truncated.");
+    if (bytes > MAX_APPROVED_SPEC_CONTEXT_BYTES) {
+      throw new Error(`Approved specification context exceeds ${MAX_APPROVED_SPEC_CONTEXT_BYTES} bytes. Narrow the approved specification selection; no contract was silently truncated.`);
     }
     const buffer = fs.readFileSync(filename);
     if (digest(buffer) !== spec.sha256) {
@@ -876,12 +882,14 @@ function prepareApprovedSpecContext(root, plan, contextPackage = null) {
       const caseContent = casePaths.map((file) => {
         if (!file.startsWith(`${directory}/`)) throw new Error(`Invalid canonical case path: ${file}`);
         const content = fs.readFileSync(projectPath(root, file));
-        bytes += content.length;
-        if (bytes > 128 * 1024) throw new Error("Approved specification context exceeds 131072 bytes; no contract was silently truncated.");
+        bytes += Buffer.byteLength(content);
+        if (bytes > MAX_APPROVED_SPEC_CONTEXT_BYTES) {
+          throw new Error(`Approved specification context exceeds ${MAX_APPROVED_SPEC_CONTEXT_BYTES} bytes; no contract was silently truncated.`);
+        }
         files.push(file);
         return `### ${file}\n\n${redact(content.toString("utf8"))}`;
       });
-      sections.push(`### Approved specification: ${spec.path}\n\nSource drift: ${status.drift.length ? `drifted (${status.drift.join(", ")})` : "current"}. Approved requirements remain normative; review differences rather than rewriting the contract.\n\n${redact(buffer.toString("utf8"))}\n\n${caseContent.join("\n\n")}`);
+      sections.push(`### Approved specification: ${spec.path}\n\nSource drift: ${status.drift.length ? `drifted (${status.drift.join(", ")})` : status.reviewed_source_drift?.length ? `reviewed out-of-scope changes (${status.reviewed_source_drift.map(item => item.path).join(", ")})` : "current"}. Approved requirements remain normative; review differences rather than rewriting the contract.\n\n${redact(buffer.toString("utf8"))}\n\n${caseContent.join("\n\n")}`);
       files.push(spec.path);
       continue;
     }
@@ -906,12 +914,16 @@ function prepareApprovedSpecContext(root, plan, contextPackage = null) {
     ...sections,
     ...(contextPackage?.content ? ["# Additional project evidence", contextPackage.content] : []),
   ].join("\n\n");
+  const byteLength = Buffer.byteLength(content, "utf8");
+  if (byteLength > MAX_APPROVED_SPEC_CONTEXT_BYTES) {
+    throw new Error(`Approved specification context exceeds ${MAX_APPROVED_SPEC_CONTEXT_BYTES} bytes. Narrow the approved specification selection; no contract was silently truncated.`);
+  }
   return {
     ...contextPackage,
     kind: contextPackage ? contextPackage.kind || "packed" : "specifications",
     content,
     files: [...new Set([...files, ...(contextPackage?.files || [])])],
-    byteLength: Buffer.byteLength(content, "utf8"),
+    byteLength,
     estimatedTokens: Math.ceil(content.length / 4),
     approvedSpecHashes: specs.map(({ path: specPath, sha256, bundle_sha256 }) => ({
       path: specPath, sha256, ...(bundle_sha256 ? { bundle_sha256 } : {}),

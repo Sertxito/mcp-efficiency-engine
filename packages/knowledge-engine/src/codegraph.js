@@ -100,6 +100,31 @@ function mcpeeServerConfiguration() {
   };
 }
 
+function isManagedOnlyMcpConfig(root, relativePath) {
+  const descriptor = Object.values(MCP_CONFIGS).find(item => item.file === relativePath);
+  if (!descriptor) return false;
+  assertNoSymlink(root, relativePath);
+  const filename = path.join(root, relativePath);
+  if (!fs.existsSync(filename)) return false;
+  let config;
+  try {
+    config = JSON.parse(fs.readFileSync(filename, "utf8"));
+  } catch (error) {
+    if (error instanceof SyntaxError) return false;
+    throw error;
+  }
+  if (!config || typeof config !== "object" || Array.isArray(config) ||
+      Object.keys(config).length !== 1 || !config[descriptor.serversKey] ||
+      typeof config[descriptor.serversKey] !== "object" || Array.isArray(config[descriptor.serversKey])) return false;
+  const entries = Object.entries(config[descriptor.serversKey]);
+  return entries.length > 0 && entries.every(([name, value]) => {
+    const desired = name === "mcpee" ? mcpeeServerConfiguration()
+      : name === SERVER_NAME ? serverConfiguration() : null;
+    return desired && value && !Object.hasOwn(value, "tools") &&
+      sameServerConfiguration(root, name, value, desired);
+  });
+}
+
 function sameServerConfiguration(root, name, current, desired) {
   if (!current || typeof current !== "object" || Array.isArray(current)) return false;
   const normalize = (server) => {
@@ -406,6 +431,7 @@ function updateCodeGraph(projectRoot, options = {}) {
 
 module.exports = {
   configureProjectMcp,
+  isManagedOnlyMcpConfig,
   readCodeGraphState: readState,
   searchCodeGraph,
   updateCodeGraph,

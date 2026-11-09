@@ -173,14 +173,16 @@ function acquireSession(root, sessionId, input) {
           promptIdentity(original.payload.prompt) === input.prompt_sha256;
       }
     }
-    if (!sameTask || !sameExecution) {
+    // Unstructured resumes send only the original task to the existing session, so regenerated context may drift.
+    const contextDrift = sameTask && !sameExecution && input.require_context_identity === false;
+    if (!sameTask || (!sameExecution && !contextDrift)) {
       throw new Error("Resume task, route, model or selected context differs from the interrupted execution; no SDK session was resumed.");
     }
     record.status = "resuming";
     record.owner_pid = process.pid;
     record.attempts += 1;
     writeSession(filename, record);
-    return { filename, record, release };
+    return { filename, record, release, context_drift: contextDrift };
   } catch (error) {
     release();
     throw error;

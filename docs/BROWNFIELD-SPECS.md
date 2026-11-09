@@ -20,6 +20,41 @@ in the same directory, not parallel document trees. The JSON and Markdown are
 one source-bound artifact pair, not independent contracts. Owner edits are
 preserved and disagreements block advancement rather than being overwritten.
 
+### Shared lifecycle for both origins
+
+Greenfield derives candidate requirements from product documents; brownfield
+first discovers and reconciles evidence from an existing application and its
+documents. Once canonical specifications exist, both use the same feature bundle,
+approval gates and transition history: `proposed -> reviewed -> approved`.
+The origin does not change the lifecycle.
+
+Authoring receives the complete selected text with original line numbers, not
+only search results or section titles. Bounded brownfield selections include
+only their selected ranges. Sources remain subject to the 2 MiB and 1000-section
+limits; oversized scopes must be narrowed before paid execution. Reading or
+retrieval failures are not business decisions and must not justify deferring
+documented requirements.
+
+When a complete candidate fails validation, both ordinary and bounded
+specification authoring can repair existing fields using JSON Pointer
+replacements instead of retransmitting the entire specification. Every repaired
+candidate is fully validated; malformed repairs do not replace the last complete
+base, and all attempts remain bounded and recorded.
+
+These directories describe the bundle's documentary state, not an independent
+state for every task. Specifications, cases, decisions, plan and tasks move
+together when present. Each phase retains its own digest-bound validation,
+review snapshots and upstream bindings. Tasks are authored only after explicit
+specification approval, so new tasks belong to the already approved bundle;
+their presence there does not mean they have passed phase validation or have
+been implemented. Implementation and recorded checks remain separate states.
+
+`history/` inside the bundle contains immutable validation and approval snapshots,
+not another documentary state. It keeps the same name in proposed, reviewed and
+approved bundles. Existing `reviews/` folders migrate to `history/` on approval,
+bundle relocation or `mcpee specs migrate`, preserving snapshot bytes and updating
+live lifecycle references. Historical evidence is not reingested as product requirements.
+
 ### Names and navigation
 
 The same layout and naming apply whether sources are documents (greenfield)
@@ -45,20 +80,48 @@ extraction evidence, never atomic product specs or automatic sources of truth.
 The whole feature bundle moves physically between state directories without
 changing feature/case names. `mcpee specs review --slug <feature> --reviewer <owner>
 --confirm-sha256 <digest>` records review without approval. Explicit specification
-approval, or implementation with current passing recorded checks, promotes the
-bundle to `approved/` and establishes authority. Reviewed is not approved.
-Stale implementation evidence removes verification-derived authority; an explicit
+approval promotes the bundle to `approved/` and establishes authority.
+Reviewed is not approved; passing implementation checks does not approve requirements. An explicit
 approved specification remains normative despite application-source drift.
 
 `mcpee specs status [--slug <feature>]` reports the next phase and exact review
 digests. New runtime-authored features use `advancement: validated`: specification,
-plan and task checks advance phases automatically without a separate approval
-prompt. Machine validation is labeled separately from human review. Resolve
+plan and task checks advance automatically without per-proposal confirmation,
+but task generation and implementation require explicit specification approval.
+A user instruction to approve selected specifications, including a batch, is sufficient;
+a generation or implementation request is not approval. Machine validation is labeled separately from human review. Resolve
 source contradictions and open specification decisions with `specs decide`.
+An answer can be recorded without resolving its question: use
+`--resolution pending` for an owner decision that is still awaiting confirmation.
+It remains open and blocks approval; later settlement retains the pending
+answer in its history. If the owner explicitly places a requirement in a later
+phase, record `--resolution deferred`: it remains visible as deferred and
+unresolved, but does not block approval of the current phase. This does not
+silently settle its product decision or approve future work. The CLI requires
+an explicit `--resolution resolved|pending|deferred`; answer text alone never
+closes or defers a decision. To correct a resolved answer, use
+`specs revise-decision` with the exact current specification digest; MCPEE
+appends the previous answer to history and invalidates digest-bound reviews.
+
+In chat, `mcpee_specs_decide` records the exact owner answer with explicit
+`resolution: pending|deferred|resolved`, without a model, CodeGraph, Git or a
+later lifecycle phase. Deferred answers are non-blocking for the current phase;
+pending answers still block. `mcpee_specs_revise_decision` revises a resolved answer only
+when bound to the current specification digest, preserving the previous answer
+in history. Question IDs are local to a feature: reconcile revisions by
+question meaning and scope, never by matching `Q-###` alone. Recording answers
+does not rewrite requirements or clear deferred source coverage. Preserve earlier
+drafts; work on the intended complete revision rather than clarifying an obsolete
+partial draft. Brownfield discovery intentionally excludes generated specifications
+as evidence, so it is not a command for revising those drafts. CodeGraph health
+is required only where application-code signals exist, not for document-only inputs.
+
+`mcpee_run` accepts specification authoring/clarification as `task` alone;
+`feature` plus `through` selects the distinct tasks/verification orchestrator.
 High-impact technical decisions and open phase questions block the plan/tasks
 handoff visibly (`clarify-phase`); reconcile the documented decision or explicitly
 review its exact digest. Manual and migrated drafts retain their explicit review
-policy; `specs approve` remains available for those and optional human review.
+policy; `specs approve` records explicit requirement approval for all workspaces.
 Planning/execution requests routed to a canonical feature recheck the required
 approval before creating an SDK session. With multiple canonical features,
 name the feature. Ordinary review/status commands do not call a model.
@@ -66,6 +129,18 @@ For an automatically validated feature, request "Create plan for `<feature>`",
 then "Create tasks for `<feature>`" through the task tool. `plan create` is a
 manual template helper, not a substitute for structured technical authoring;
 it refuses to insert an empty planning template into an automatic workspace.
+
+Use `mcpee_specs_status` to read current digests and `mcpee_specs_approve`
+only on an explicit approval instruction, with the selected slug/digest pairs,
+reviewer and instruction. The CLI equivalent for a current batch is
+`mcpee specs approve --all-current --reviewer "owner" --reason "Approve these specifications"`.
+No additional per-proposal prompt is needed. Approval snapshots, prior validation
+records, `lifecycle.json` transitions and `.mcpee/reports/specification-approvals/`
+retain the flow `proposed -> reviewed -> approved`, even when validation is immediate.
+Old bundles retain their existing history; missing past transitions are not invented.
+Batch approval is refused during an active run because relocation changes paths and digests.
+For compatibility `reviews.*.approved` still denotes phase clearance; use
+`specification_approved`, `document_approval` and `document_state` for real requirement approval.
 
 Reviews bind the actual case documents and decisions, not only an index link.
 Editing upstream artifacts invalidates downstream approvals. Source drift
@@ -87,6 +162,32 @@ command compatibility or automatic execution of all its stages. The authoring
 run still stops at the requested phase. Machine validation is not proof of
 semantic correctness, successful implementation or product acceptance.
 
+### Documentation tasks and functional prerequisites
+
+Structured tasks may set `kind` to `implementation` or `documentation`.
+Omitting it preserves legacy implementation semantics. Every canonical use case
+requires implementation work. For documentation-only tasks, `use_cases` records
+traceability, not functional coverage: these links neither inherit use-case
+prerequisites nor satisfy them for implementation tasks, and are excluded from
+per-case implementation verification. Documentation still needs planned paths,
+valid checks and explicit, acyclic `depends_on` links reflecting actual work order.
+Preparatory documentation may precede implementation; final documentation may
+depend on completed functional work. Do not repair a missing prerequisite by
+adding a cyclic link: classify documentation separately and ensure implementation
+tasks include the prerequisite in the same unit of work or depend on implementation
+work covering it. This does not treat documentation as implementation.
+
+Each design entry and implementation task must name at least one concrete
+product path outside the specification bundle. Specification and case paths
+identify requirements; they are not substitutes for implementation targets.
+Existing bundle references may still be retained as evidence alongside product
+paths. A plan lacking implementation paths must be revised and reviewed through
+the normal phase-revision workflow before generating implementable tasks.
+Phase `open_questions` are decisions needed before that phase can advance, not
+reminders that recorded decisions or operational data are deferred to a later
+phase. Preserve deferred constraints in the relevant design or task descriptions;
+do not silently resolve decisions or remove genuinely blocking questions.
+
 ## One canonical graph and retrieval corpus
 
 `docs/specifications/<state>/<feature>/` is the workspace for both paths. A shared canonical
@@ -95,8 +196,10 @@ decisions and available plans/tasks. Sync includes these artifacts even when
 `knowledge.sourceRoots` only covers application directories. The source
 manifest supplies the same source ID, path, SHA-256 and canonical authority to
 the unified graph, lexical index and embedding chunks. Draft and approved
-specification authority are distinct; indexing a draft does not approve it. Runtime authoring
-refreshes the unified graph and lexical index after publication; it does not
+specification authority are distinct; indexing a draft does not approve it.
+Runtime authoring, review and approval refresh the unified graph and lexical
+index after publication or a state transition; this refresh does not
+rediscover brownfield proposals and cannot overwrite an unrelated draft. It does not
 claim that embeddings were generated. Existing local embeddings are refreshed
 by the normal embedding command and stale chunks are not treated as fresh.
 
@@ -113,6 +216,11 @@ source paths, SHA-256 hashes, extracted headings and symbols, supported C#
 validation/route/authorization declarations, and declared test names. It
 does not execute tests, infer business intent, send source content to a model,
 or declare observed code to be desired behavior.
+
+Proposal format versions are part of their snapshot identity. Version 12
+separates the current approval wording from version 11 inventories, which remain
+untouched. Normal sync still discovers proposals and refuses owner conflicts;
+canonical publication, recovery and verification only refresh retrieval indexes.
 
 ## Complete brownfield
 
@@ -183,6 +291,11 @@ Unsupported covered sections report their exact inclusive line range:
 evidence elsewhere in the file is insufficient. Technical-only imports or
 scaffolding may be explicitly out-of-scope with a reason, never silently
 treated as covered business behavior.
+For newly selected sources, VS Code MCP configuration is excluded as harness
+scaffolding only when it contains exclusively the recognized MCPEE-managed
+servers with their expected configuration. Mixed or customized configurations
+remain eligible product evidence. This does not change previously approved
+bundles or dismiss drift in their recorded source hashes.
 For an interrupted SDK session, `mcpee brownfield --resume-session <uuid>`
 resumes only its exact unchanged scope, using its saved conversation and
 diagnostic; later scopes continue normally. Already published scopes cannot be
@@ -264,6 +377,19 @@ funcionales" and short "greenfield" / "brownfield" requests also select this
 authoring path. The product agent is preferred when installed; requirements
 discovery guidance is included even when document or frontend keywords occur.
 
+Intent comes only from affirmative wording: quoted text (including straight
+single quotes, without treating apostrophes in contractions as quote delimiters)
+and negated clauses
+("no generes tareas", "do not implement", "sin…", "ni…") never select a
+phase, nominal mentions such as "generación de tareas" are not requests, and
+artifact plus authoring verb must appear in the same sentence. A task declared
+"solo lectura" / "read-only" before a work request is routed as a review and
+never starts specification, plan, task or implementation authoring. A capability
+description after an affirmative work request, such as "Implement a read-only
+endpoint", does not change that request into a review. Negated-only requests use
+the fallback workflow; removed text is never reused for workflow scoring.
+This applies equally to greenfield and brownfield projects.
+
 The internal executor reads the selected sources and returns a structured
 draft. MCPEE validates non-empty actors, use cases, main flows, alternatives,
 postconditions, rules, Given/When/Then criteria and exact source-line quotes.
@@ -277,9 +403,19 @@ prerequisite case references; missing, self-referencing or cyclic dependencies
 are rejected. The manifest binds case content hashes, source hashes and
 coverage. It records unresolved decisions and does not claim implementation
 readiness. The JSON model response is not the human deliverable.
-Existing different content in any bundle file is never overwritten; conflicts
-are checked before creating the bundle. Use a new descriptive revision slug
-after review.
+Existing different content in any bundle file is never overwritten silently.
+For a functional revision, MCPEE first writes and verifies the previous bundle
+and decision register in `.mcpee/reports/specification-revisions/`. The
+confirmation then shows the created archive path, its manifest-file digest,
+artifact inventory and decision-history evidence. Denying replacement leaves
+that archive in place and the current bundle unchanged. Confirming replaces
+the proposed specification but does not approve the new specification.
+Decision records no longer present verbatim in the revised draft remain in the
+register as historical records with their original IDs, answers and history;
+new questions receive unused IDs. Dependent plan, task and verification
+artifacts are archived and invalidated; reviews and approvals must be repeated.
+Approved specifications cannot be revised in place: preserve the approved
+bundle and create a proposed successor.
 
 ## Generic documentation-to-atomic-greenfield process
 
@@ -391,8 +527,8 @@ available for provenance; they are not overwritten or silently deleted.
 
 ## Single-command onboarding
 
-Run `mcpee init --project <path>` once. The same built-in pipeline applies to
-TR and any other existing project: initialize managed state, inventory configured
+Run `mcpee init --project <path>` once. The built-in pipeline is project-independent:
+initialize managed state, inventory configured
 source roots, extract indexed evidence, partition candidate domains, and create
 proposals, characterization scenarios, assertion records and readable catalogs.
 No separate `specs discover` call, per-domain invocation, or repeated `init`
@@ -536,8 +672,8 @@ validators and business logic need inspection. They are not semantic parsers.
 
 The agreed product scope is C#/.NET, JavaScript/Node.js, TypeScript, Python,
 SQL, PowerShell, Bicep, pipeline YAML, HTML/Angular templates and React/JSX/TSX.
-Vue and other languages are not part of this recognition scope. Coverage does
-not depend on TR: the CLI acceptance fixture contains all ten families under
+Vue and other languages are not part of this recognition scope. Coverage is
+tested independently of any acceptance project: the CLI fixture contains all ten families under
 independent source roots, and checks first-init extraction and repeat preservation.
 
 | Family | Static evidence | Test association | Explicit limits |
@@ -658,8 +794,10 @@ Markdown content is added before transfer approval in grounded, Repomix and
 `--no-ground-context` modes; disabling optional grounding does not discard
 the normative contracts. The executor rechecks hashes before starting the
 SDK and refuses stale or path-only context. Source drift is disclosed without
-rewriting the approved requirements. Approved content is limited to 128 KiB;
-exceeding the limit fails explicitly rather than truncating a contract.
+rewriting the approved requirements. Approved content is limited to 512 KiB,
+including the final serialized context; exceeding the limit fails explicitly
+rather than truncating a contract. Plan, task and implementation routes include
+only approved contracts for the selected feature when multiple features exist.
 The specification itself grants no permission to make a change.
 
 ## Commands
@@ -678,6 +816,32 @@ mcpee specs ratify --slug <id> --reviewer <name> --confirm-sha256 <digest>
 Run `mcpee sync` before discovery when source files have changed. A project
 without Git is supported: drift detection uses the recorded and current file
 hashes, not commit history.
+
+For a structured specification, before or after approval, an owner may review a
+changed source that the manifest and canonical document both classify entirely
+as `out-of-scope`, with no use-case citations. Inspect the actual change and
+recorded rationale, then use `mcpee specs drift-preview --slug <feature>
+--source <path>` to obtain the exact source hashes, coverage and review digest.
+After a named human explicitly confirms the review and conclusion, record it
+with `mcpee specs drift-review --slug <feature> --source <path> --reviewer
+<name> --findings <text> --confirm-sha256 <review-digest>`. The equivalent MCP
+tools are `mcpee_specs_drift_preview` and `mcpee_specs_drift_review`. The preview
+does not supply the old file contents; use independently retained history when
+needed. Missing files, covered, deferred, mixed, cited or ambiguous sources
+remain blocked.
+
+The review is evidence of a human conclusion, not an automated semantic check
+or approval of changed requirements. The specification bundle remains unchanged,
+and an unapproved specification still requires explicit approval after the
+blocking drift is reviewed. This avoids requiring approval to review the very
+drift that blocks approval.
+Status distinguishes `reviewed_source_drift` from blocking `drift`; changing
+the source or specification contents invalidates the review. Evidence-backed
+documentary relocations (`proposed` to `reviewed` to `approved`) preserve the
+review without modifying its original record. Verification also binds
+the exact review record and becomes stale if that evidence changes or is
+replaced. The record's digest detects accidental changes but does not
+authenticate its author against an adversary with filesystem write access.
 
 The directory layout is format-neutral Markdown plus a JSON evidence manifest;
 it does not claim conformance with Spec Kit or OpenSpec schemas. A future

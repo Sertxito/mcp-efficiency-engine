@@ -61,6 +61,18 @@ function executor(root, calls, nameForScope = scope => scope.domain) {
   };
 }
 
+test("documentation-only CLI brownfield does not require a ready application code graph", async t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "mcpee-docs-brownfield-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  initializeProject(root);
+  fs.writeFileSync(path.join(root, "knowledge/sources/business/catalog.md"),
+    "# Public catalog\nVisitors can browse published books without signing in.\n");
+  const { run } = require("../packages/cli/src/cli");
+  await assert.rejects(() => run(["brownfield", "--project", root, "--last-domain", "unknown-domain"]), /Unknown brownfield last domain/);
+  assert.equal(fs.existsSync(path.join(root, ".mcpee/state/codegraph.json")), false);
+  assert.equal(fs.existsSync(path.join(root, ".git")), false);
+});
+
 test("complete brownfield combines code with original documentation and produces only proposals, then resumes without paid reruns", async t => {
   const root = fixture(t), calls = [];
   const planning = buildSpecificationScopes(root);

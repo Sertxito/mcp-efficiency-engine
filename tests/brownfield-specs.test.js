@@ -272,7 +272,7 @@ test("domain review covers each source once and extracts cited contract and test
   assert.match(markdown, /disabled-not-run/);
   assert.match(markdown, /denies unauthenticated access/);
   const authEvidence = manifests.find((manifest) => manifest.domain === "auth");
-  assert.equal(authEvidence.format_version, 11);
+  assert.equal(authEvidence.format_version, 12);
   const validation = authEvidence.test_cases.find((item) => item.title === "Password: Required");
   assert.equal(validation.behavior, "observed-declaration");
   assert.equal(validation.automation, "not-assessed");
@@ -535,6 +535,38 @@ test("discovery preserves edited drafts and approved specs and refuses an edited
   }), /snapshot reference changed/);
 });
 
+test("approval wording format changes create a new inventory without overwriting version 11 proposals", () => {
+  const { root } = makeProject();
+  const current = discoverBrownfieldSpec(root);
+  const evidence = JSON.parse(fs.readFileSync(path.join(root, current.evidencePath), "utf8"));
+  const legacySnapshot = crypto.createHash("sha256").update(JSON.stringify({
+    schema_version: 2, format_version: 11, workspacePath: evidence.workspace_path,
+    domain: evidence.domain, part: evidence.part, parts: evidence.parts,
+    sources: evidence.sources, cases: evidence.test_cases,
+  })).digest("hex");
+  const legacySlug = `brownfield-${evidence.domain}-part-${evidence.part}-${legacySnapshot.slice(0, 12)}`;
+  const legacyPath = current.specPath.replace(current.slug, legacySlug);
+  const legacyEvidencePath = current.evidencePath.replace(current.slug, legacySlug);
+  const legacyContent = fs.readFileSync(path.join(root, current.specPath), "utf8")
+    .replaceAll(current.slug, legacySlug).replaceAll(evidence.snapshot_sha256, legacySnapshot)
+    .replace("Only explicit specification approval establishes the source of truth; passing implementation checks does not approve requirements.",
+      "Only explicit approval or implemented-and-verified behavior establishes the source of truth.");
+  const legacyEvidence = { ...evidence, format_version: 11, slug: legacySlug,
+    snapshot_sha256: legacySnapshot, proposal_sha256: crypto.createHash("sha256").update(legacyContent).digest("hex") };
+  fs.writeFileSync(path.join(root, legacyPath), legacyContent);
+  fs.writeFileSync(path.join(root, legacyEvidencePath), JSON.stringify(legacyEvidence));
+  const before = fs.readFileSync(path.join(root, legacyEvidencePath));
+  fs.unlinkSync(path.join(root, current.specPath));
+  fs.unlinkSync(path.join(root, current.evidencePath));
+  const discovered = discoverBrownfieldSpec(root);
+  assert.equal(discovered.status, "created");
+  assert.equal(discovered.slug, current.slug);
+  assert.notEqual(discovered.slug, legacySlug);
+  assert.equal(fs.readFileSync(path.join(root, legacyPath), "utf8"), legacyContent);
+  assert.ok(fs.readFileSync(path.join(root, legacyEvidencePath)).equals(before));
+  assert.equal(discoverBrownfieldSpec(root).status, "preserved");
+});
+
 test("source drift blocks discovery and missing sources are reported without rewriting approved specs", () => {
   const { root, sourceFile } = makeProject();
   const result = discoverBrownfieldSpec(root);
@@ -656,15 +688,33 @@ test("executor receives actual approved content and refuses path-only or stale a
     assert.equal(discoverBrownfieldSpec(root).status, "preserved");
   });
 
-  test("specification context fails explicitly when too large and does not truncate requirements", () => {
+  test("specification context admits complete contracts up to 512 KiB and rejects larger content", () => {
     const { root } = makeProject();
     const proposal = discoverBrownfieldSpec(root);
     const reviewed = completeProposal(root, proposal);
     ratifyBrownfieldSpec(root, { slug: proposal.slug, reviewer: "Owner", confirmSha256: reviewed });
     const spec = listBrownfieldSpecs(root).find((item) => item.status === "approved");
-    fs.appendFileSync(path.join(root, spec.path), "x".repeat(128 * 1024));
+    fs.appendFileSync(path.join(root, spec.path), "x".repeat(200 * 1024));
     spec.sha256 = crypto.createHash("sha256").update(fs.readFileSync(path.join(root, spec.path))).digest("hex");
-    assert.throws(() => prepareApprovedSpecContext(root, { approved_specs: [spec] }), /exceeds 131072 bytes/);
+    const context = prepareApprovedSpecContext(root, { approved_specs: [spec] });
+    assert.ok(context.byteLength > 128 * 1024);
+    assert.ok(context.byteLength < 512 * 1024);
+    assert.ok(context.content.includes("x".repeat(200 * 1024)));
+
+    fs.appendFileSync(path.join(root, spec.path), "y".repeat(513 * 1024));
+    spec.sha256 = crypto.createHash("sha256").update(fs.readFileSync(path.join(root, spec.path))).digest("hex");
+    assert.throws(() => prepareApprovedSpecContext(root, { approved_specs: [spec] }), /exceeds 524288 bytes/);
+  });
+
+  test("specification context counts appended evidence in the final transfer limit", () => {
+    const { root } = makeProject();
+    const proposal = discoverBrownfieldSpec(root);
+    const reviewed = completeProposal(root, proposal);
+    ratifyBrownfieldSpec(root, { slug: proposal.slug, reviewer: "Owner", confirmSha256: reviewed });
+    const spec = listBrownfieldSpecs(root).find((item) => item.status === "approved");
+    const context = { content: "x".repeat(512 * 1024) };
+    assert.throws(() => prepareApprovedSpecContext(root, { approved_specs: [spec] }, context),
+      /exceeds 524288 bytes/);
   });
 
   test("review navigation refuses to overwrite user-owned state", () => {

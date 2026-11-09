@@ -44,6 +44,8 @@ function writeRunReport(projectRoot, { task, plan, execution, postChange = null,
     : executionEvent?.attributes?.outcome === "success";
   const hasChanges = execution.changedPaths.length > 0;
   const validationStatus = postChange?.validation?.status;
+  const impactNotApplicable = ["plan", "tasks"].includes(plan.specification_workspace?.requested_stage) &&
+    plan.project_stack?.has_code_signals === false;
   const stages = [
     {
       id: "understand",
@@ -52,13 +54,16 @@ function writeRunReport(projectRoot, { task, plan, execution, postChange = null,
     },
     {
       id: "analyze",
-      status: plan.impact_preflight?.status === "ready" ? "completed" : "blocked",
+      status: impactNotApplicable ? "not_applicable"
+        : plan.impact_preflight?.status === "ready" ? "completed" : "blocked",
       evidence: [{
         kind: "impact_preflight",
-        status: plan.impact_preflight?.status || "unavailable",
+        status: impactNotApplicable ? "not-applicable" : plan.impact_preflight?.status || "unavailable",
         target_count: plan.impact_preflight?.targets?.length || 0,
       }],
-      ...(plan.impact_preflight?.status === "ready" ? {} : {
+      ...(impactNotApplicable ? {
+        reason: "Canonical plan/task authoring is documentation-only; application impact analysis does not apply.",
+      } : plan.impact_preflight?.status === "ready" ? {} : {
         reason: plan.impact_preflight?.reason || "Impact evidence was not ready.",
       }),
     },
@@ -81,12 +86,13 @@ function writeRunReport(projectRoot, { task, plan, execution, postChange = null,
       status: !hasChanges ? "not_applicable" :
         validationStatus === "passed" ? "completed" :
           validationStatus === "failed" ? "failed" : "blocked",
-      evidence: postChange?.validation?.kind === "source-bound-authoring"
+      evidence: [...(postChange?.validation?.kind === "source-bound-authoring"
         ? [{ kind: "source-bound-authoring", report: postChange.validation.report,
           application_validation: "not-run" }]
         : postChange?.validation?.evaluation_id
         ? [{ evaluation_id: postChange.validation.evaluation_id, report: postChange.validation.report }]
-        : [],
+        : []), ...(postChange?.validation?.pending_checks?.length
+        ? [{ kind: "pending-canonical-checks", checks: postChange.validation.pending_checks }] : [])],
       ...(!hasChanges ? { reason: "The session did not report a file mutation." } :
         validationStatus === "passed" ? {} :
           { reason: postChange?.validation?.reason || "No validation result was recorded." }),
