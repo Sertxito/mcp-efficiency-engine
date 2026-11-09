@@ -27,12 +27,15 @@ const READ_ONLY_TOOL_CALLS = new Set([
   "codegraph_status",
 ]);
 
-const INTERNAL_MCPEE_TOOLS = new Set(["mcpee_run", "mcpee_run_status", "mcpee_run_cancel"]);
+const INTERNAL_MCPEE_TOOLS = new Set(["mcpee_run", "mcpee_run_status", "mcpee_run_cancel", "mcpee_specs_status",
+  "mcpee_specs_decide", "mcpee_specs_revise_decision", "mcpee_specs_approve"]);
+const MANUAL_REVIEW_TOOLS = new Set(["mcpee_specs_manual_preview", "mcpee_specs_manual_review",
+  "mcpee_specs_drift_preview", "mcpee_specs_drift_review"]);
 
-function isInternalMcpeeTool(toolName) {
+function isInternalMcpeeTool(toolName, tools = INTERNAL_MCPEE_TOOLS) {
   const name = String(toolName || "").toLowerCase();
-  return INTERNAL_MCPEE_TOOLS.has(name) ||
-    [...INTERNAL_MCPEE_TOOLS].some((tool) =>
+  return tools.has(name) ||
+    [...tools].some((tool) =>
       name === `mcp__mcpee__${tool}` || name === `mcp_mcpee_${tool}` || name === `mcpee-${tool}`);
 }
 
@@ -221,13 +224,22 @@ function shellCommandIsReadOnly(command) {
     /^(?:node|npm|python3?|dotnet) (?:--version|-v|-V)$/.test(normalized);
 }
 
+function isNestedMcpeeCommand(command) {
+  if (typeof command !== "string") return false;
+  const executable = /(?:^|[\s;&|()'"])(?:[^\s;&|()'"]*[\\/])?(?:mcpee(?:\.cmd|\.exe|\.cjs|\.js)?|mcp-efficiency-engine(?:\.cmd|\.exe|\.cjs|\.js)?)(?=$|[\s;&|()'"])/i;
+  return executable.test(command);
+}
+
 function assessCopilotToolCall(input, options = {}) {
   const toolName = String(input?.toolName || input?.tool_name || "").toLowerCase();
   const args = parseToolArguments(input?.toolArgs ?? input?.tool_args ?? input?.tool_input ?? input?.arguments);
   let requiresApproval = true;
   let reason = "This tool is not on MCPEE's verified read-only allowlist.";
 
-  if (isInternalMcpeeTool(toolName)) {
+  if (options.canonicalImplementation &&
+      (isInternalMcpeeTool(toolName) || isInternalMcpeeTool(toolName, MANUAL_REVIEW_TOOLS))) {
+    return { decision: "deny", reason: "MCPEE owns canonical lifecycle and verification. Continue implementing the tasks without invoking nested MCPEE tools." };
+  } else if (isInternalMcpeeTool(toolName)) {
     return {
       decision: "allow",
       reason: "Internal MCPEE task transport/status/cancellation; nested actions retain their own approval checks.",
@@ -235,8 +247,17 @@ function assessCopilotToolCall(input, options = {}) {
   } else if (READ_ONLY_TOOL_CALLS.has(toolName)) {
     requiresApproval = false;
     reason = "Recognized read-only Copilot tool.";
+  } else if (toolName === "read_powershell" && typeof args.shellId === "string" &&
+      /^[a-zA-Z0-9_-]{1,128}$/.test(args.shellId) &&
+      Object.keys(args).every(key => ["shellId", "delay"].includes(key)) &&
+      (args.delay === undefined || Number.isFinite(args.delay) && args.delay >= 0 && args.delay <= 600)) {
+    requiresApproval = false;
+    reason = "Read existing session shell output only; no command execution, input, or cancellation.";
   } else if (/^(?:bash|shell|powershell|terminal|run_in_terminal)$/.test(toolName)) {
     const command = args.command ?? args.cmd ?? args.script;
+    if (options.canonicalImplementation && isNestedMcpeeCommand(command)) {
+      return { decision: "deny", reason: "MCPEE owns canonical lifecycle and verification. Continue implementing the tasks without invoking nested MCPEE commands." };
+    }
     const directoryListing = toolName === "powershell" && typeof command === "string" &&
       /^Get-ChildItem(?: -Force)?(?: \| Select-Object Name,Mode(?:,Length)?)?$/i.test(command.trim());
     const plannedValidation = typeof command === "string" &&

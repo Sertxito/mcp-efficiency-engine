@@ -814,6 +814,47 @@ test("project init upgrades only explicitly authorized runtime and hook registra
   assert.ok(updatedConfig.hooks.preToolUse.some((hook) => hook.command.endsWith("preToolUse")));
 });
 
+test("Windows hook registration executes with an empty PATH and preserves custom commands", {
+  skip: process.platform !== "win32",
+}, () => {
+  const root = temporaryProject();
+  initializeProject(root);
+  const configPath = path.join(root, ".github/hooks/mcpee-observability.json");
+  const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+  const hook = config.hooks.preToolUse[0];
+  const expectedCommand = hook.powershell;
+  const shell = execFileSync("pwsh", ["-NoProfile", "-Command", "(Get-Process -Id $PID).Path"], {
+    encoding: "utf8",
+  }).trim();
+  const legacy = spawnSync(shell, ["-NoProfile", "-NonInteractive", "-Command", hook.command], {
+    cwd: root,
+    input: JSON.stringify({ toolName: "view", toolArgs: { path: "README.md" } }),
+    encoding: "utf8",
+    env: { ...process.env, PATH: "", Path: "" },
+    timeout: 10_000,
+  });
+  assert.notEqual(legacy.status, 0);
+  assert.match(legacy.stderr, /node/);
+  const result = spawnSync(shell, ["-NoProfile", "-NonInteractive", "-Command", hook.powershell], {
+    cwd: root,
+    input: JSON.stringify({ toolName: "view", toolArgs: { path: "README.md" } }),
+    encoding: "utf8",
+    env: { ...process.env, PATH: "", Path: "" },
+    timeout: 10_000,
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(JSON.parse(result.stdout).permissionDecision, "allow");
+  delete hook.powershell;
+  const custom = { type: "command", command: "node custom-review.cjs", powershell: "custom-command" };
+  config.hooks.preToolUse.push(custom);
+  fs.writeFileSync(configPath, JSON.stringify(config));
+  initializeProject(root);
+  const upgraded = JSON.parse(fs.readFileSync(configPath, "utf8"));
+  assert.equal(upgraded.hooks.preToolUse[0].powershell, expectedCommand);
+  assert.deepEqual(upgraded.hooks.preToolUse[1], custom);
+  assert.equal(initializeProject(root).updated.some(file => file.includes("Windows Node path added")), false);
+});
+
 test("installed Copilot hook records real sanitized input and enforces preToolUse decisions", () => {
   const root = temporaryProject();
   initializeProject(root);
@@ -821,7 +862,7 @@ test("installed Copilot hook records real sanitized input and enforces preToolUs
   const input = {
     sessionId: "session-1",
     eventId: "event-1",
-    timestamp: 1791547200,
+    timestamp: Math.floor(Date.now() / 1000),
     prompt: "Deploy with Bearer abcdefghijklmnop",
     api_token: "should-not-be-recorded",
   };
@@ -832,7 +873,7 @@ test("installed Copilot hook records real sanitized input and enforces preToolUs
   const [event] = readEvents(root).filter((item) => item.event_name === "userPromptSubmitted");
   assert.equal(event.session_id, "session-1");
   assert.equal(event.source_event_id, "event-1");
-  assert.equal(event.timestamp, "2026-10-09T12:00:00.000Z");
+  assert.equal(event.timestamp, new Date(input.timestamp * 1000).toISOString());
   assert.equal(event.payload.api_token, "[REDACTED]");
   assert.ok(!JSON.stringify(event).includes("abcdefghijklmnop"));
 
@@ -1402,6 +1443,33 @@ test("run lifecycle reports account for all stages using evidence, not model cla
   assert.equal(blocked.stages[5].status, "blocked");
   assert.equal(blocked.stages[6].status, "completed");
 
+  const pendingChecks = [{ id: "CHECK-002", kind: "manual", command: "Review the design.",
+    expected: "A human reviews the design." }];
+  const pending = writeRunReport(root, {
+    task: "Implement with pending checks", plan, execution, events,
+    postChange: { validation: { status: "blocked", reason: "Checks remain pending.",
+      evaluation_id: "partial-evaluation", report: ".mcpee/reports/workflows/partial.json",
+      pending_checks: pendingChecks } },
+  });
+  const persisted = JSON.parse(fs.readFileSync(path.join(root, pending.file), "utf8"));
+  assert.equal(persisted.status, "blocked");
+  assert.deepEqual(persisted.stages[4].evidence[1], { kind: "pending-canonical-checks", checks: pendingChecks });
+
+  const planning = writeRunReport(root, {
+    task: "Create a canonical plan for a documentation-only specification",
+    plan: {
+      ...plan,
+      project_stack: { has_code_signals: false },
+      specification_workspace: { requested_stage: "plan" },
+      impact_preflight: { status: "unavailable", targets: [], reason: "No application sources exist." },
+    },
+    execution: { sessionId: execution.sessionId, changedPaths: [] },
+    events,
+  });
+  assert.equal(planning.status, "completed");
+  assert.equal(planning.stages[1].status, "not_applicable");
+  assert.equal(planning.stages[1].evidence[0].status, "not-applicable");
+
   const failedTask = "Fail before returning a session result";
   const failedTaskHash = require("node:crypto").createHash("sha256").update(failedTask).digest("hex");
   const failed = writeRunReport(root, {
@@ -1683,6 +1751,7 @@ test("Copilot execution requires transfer approval without per-file prompts", as
   let clientConfig;
   let promptText;
   const permissionReviews = [];
+  const executionProgress = [];
   const client = {
     async start() {},
     async createSession(config) {
@@ -1778,12 +1847,18 @@ test("Copilot execution requires transfer approval without per-file prompts", as
       return true;
     },
     approveTool: async (input, reason, impact) => input.toolName === "edit" && impact.status === "ready",
+    onProgress: progress => executionProgress.push(progress),
     clientFactory: () => client,
   });
 
   assert.equal(result.sessionId, "10000000-0000-4000-8000-000000000001");
   assert.equal(result.content, "Copilot completed the task.");
   assert.deepEqual(result.changedPaths, ["src/example.js"]);
+  assert.ok(executionProgress.some(progress => progress.status === "starting"));
+  assert.ok(executionProgress.some(progress => progress.status === "tool-running" && progress.tool === "read_file"));
+  assert.ok(executionProgress.some(progress => progress.status === "tool-completed"));
+  assert.ok(executionProgress.some(progress => progress.status === "waiting-approval"));
+  assert.ok(executionProgress.some(progress => progress.status === "approval-approved"));
   assert.match(promptText, /MCPEE routing plan/);
   for (const policy of policies) assert.ok(promptText.includes(JSON.stringify(policy.description)));
   assert.match(promptText, /resolve-bug.*understand -> analyze -> plan -> execute -> validate -> document -> observe -> learn/s);
@@ -1970,6 +2045,41 @@ test("Copilot execution rejects unauthenticated runtimes before creating a sessi
   assert.deepEqual(calls, ["start", "stop"]);
 });
 
+test("Copilot approval channel errors abort execution even when the SDK swallows hook failures", async () => {
+  const root = temporaryProject();
+  initializeProject(root);
+  const calls = [], progress = [];
+  const client = {
+    async start() {},
+    async createSession(config) {
+      return {
+        sessionId: "10000000-0000-4000-8000-000000000004",
+        async sendAndWait() {
+          try {
+            await config.hooks.onPreToolUse(
+              { toolName: "powershell", toolArgs: { command: "npm install" } },
+              { sessionId: "10000000-0000-4000-8000-000000000004" });
+          } catch {}
+          return new Promise(() => {});
+        },
+        async abort() { calls.push("abort"); },
+        async disconnect() { calls.push("disconnect"); },
+      };
+    },
+    async stop() { calls.push("stop"); },
+  };
+  await assert.rejects(runCopilotTask(root, "Inspect the project", {
+    workflow: { id: "resolve-bug" }, agent: { id: "debugger" },
+  }, {
+    approved: true, interactive: true, clientFactory: () => client,
+    approveTool: async () => { throw new Error("Approval request timed out"); },
+    onProgress: update => progress.push(update),
+  }), /Approval channel failed.*timed out/);
+  assert.deepEqual(calls, ["abort", "disconnect", "stop"]);
+  assert.ok(progress.some(update => update.status === "approval-error"));
+  assert.ok(readEvents(root).some(event => event.event_name === "copilot.approval.failed"));
+});
+
 test("Copilot failure telemetry preserves file mutations for post-change recovery", async () => {
   const root = temporaryProject();
   initializeProject(root);
@@ -2066,10 +2176,15 @@ test("Copilot resumes an interrupted SDK session without replaying pending work"
   };
   const resumed = await runCopilotTask(root, "Inspect and update the service", plan, {
     approved: true, resumeSessionId: sessionId, clientFactory: () => resumedClient,
+    conversationContext: [{ role: "user", content: "Context refreshed after the partial implementation." }],
   });
+  const drift = readEvents(root).find(event => event.event_name === "copilot.session.resume.context_drift");
+  assert.equal(drift.session_id, sessionId);
+  assert.doesNotMatch(resumedPrompt, /Context refreshed after the partial implementation/);
   assert.equal(resumeConfig.continuePendingWork, false);
   assert.equal(typeof resumeConfig.hooks.onPreToolUse, "function");
   assert.match(resumedPrompt, /Continue the interrupted MCPEE task/);
+  assert.match(resumedPrompt, /Local project files can be inspected, so their state is not ambiguous/);
   assert.deepEqual(resumed.changedPaths, ["src/first.js", "src/second.js"]);
   const completed = JSON.parse(fs.readFileSync(journalPath, "utf8"));
   assert.equal(completed.status, "completed");
@@ -3268,6 +3383,28 @@ test("sync can refresh evidence without generating documentation before validati
   assert.equal(fs.existsSync(path.join(root, "docs/generated/project-overview.md")), false);
 });
 
+test("canonical index refresh does not rediscover or overwrite conflicting brownfield proposals", () => {
+  const root = temporaryProject();
+  initializeProject(root);
+  fs.mkdirSync(path.join(root, "src"), { recursive: true });
+  fs.writeFileSync(path.join(root, "src/app.js"), "export const ready = true;\n");
+  const first = syncProject(root, { generateDocumentation: false, tools: [], graphify: { installed: false } });
+  const proposal = first.specifications.proposals[0];
+  const evidencePath = path.join(root, proposal.evidencePath);
+  const evidence = JSON.parse(fs.readFileSync(evidencePath, "utf8"));
+  evidence.proposal_sha256 = "0".repeat(64);
+  fs.writeFileSync(evidencePath, JSON.stringify(evidence));
+  const before = fs.readFileSync(evidencePath);
+  assert.throws(() => syncProject(root, { generateDocumentation: false, tools: [], graphify: { installed: false } }),
+    /Refusing to overwrite user-owned proposal/);
+  const result = syncProject(root, {
+    generateDocumentation: false, discoverSpecifications: false, tools: [], graphify: { installed: false },
+  });
+  assert.equal(result.specifications.status, "not-requested");
+  assert.equal(result.unifiedGraph.status, "ready");
+  assert.ok(fs.readFileSync(evidencePath).equals(before));
+});
+
 test("sync builds a deterministic evidence-linked unified graph and exposes graph search", () => {
   const root = temporaryProject();
   initializeProject(root);
@@ -3868,6 +4005,24 @@ test("npm wrapper resolution finds the JavaScript CLI without invoking a Windows
   assert.equal(npmCliPath(path.join(root, "missing", "node.exe"), npmWrapper), null);
 });
 
+test("Azure CLI Windows wrappers resolve only the installed bundled interpreter and module", () => {
+  const { azureCliPythonPath } = require("../packages/tool-manager/src/tools");
+  const root = temporaryProject();
+  const wrapper = path.join(root, "CLI2", "wbin", "az.cmd");
+  const interpreter = path.join(root, "CLI2", "python.exe");
+  const module = path.join(root, "CLI2", "Lib", "site-packages", "azure", "cli", "__main__.py");
+  fs.mkdirSync(path.dirname(wrapper), { recursive: true });
+  fs.mkdirSync(path.dirname(module), { recursive: true });
+  fs.writeFileSync(wrapper, "");
+  assert.equal(azureCliPythonPath(wrapper), null);
+  fs.writeFileSync(interpreter, "");
+  assert.equal(azureCliPythonPath(wrapper), null);
+  fs.writeFileSync(module, "");
+  assert.equal(azureCliPythonPath(wrapper), interpreter);
+  fs.renameSync(module, `${module}c`);
+  assert.equal(azureCliPythonPath(wrapper), interpreter);
+});
+
 test("observe aggregates execution, authorization, and validation outcomes", () => {
   const root = temporaryProject();
   initializeProject(root);
@@ -4015,7 +4170,7 @@ test("tool installation uses isolated pinned environments and accepts compatible
       return { status: 0, stdout: `${runtimePython()}\n`, stderr: "" };
     }
     if (command === localUv && args[0] === "python") return { status: 0, stdout: "", stderr: "" };
-    if (command === runtimePython() && args[0] === "--version") {
+    if (args[0] === "--version" && path.basename(command).startsWith("python")) {
       return { status: 0, stdout: `Python ${managedPythonVersion}\n`, stderr: "" };
     }
     if (command === localUv && args[0] === "venv") {
@@ -4025,7 +4180,10 @@ test("tool installation uses isolated pinned environments and accepts compatible
       fs.writeFileSync(path.join(scripts, process.platform === "win32" ? "python.exe" : "python"), "test environment");
       return { status: 0, stdout: "", stderr: "" };
     }
-    if (command === localUv && args[0] === "pip") return { status: 0, stdout: "", stderr: "" };
+    if (command === localUv && args[0] === "pip") {
+      fs.writeFileSync(path.join(path.dirname(args[3]), `markitdown${process.platform === "win32" ? ".exe" : ""}`), "test entry point");
+      return { status: 0, stdout: "", stderr: "" };
+    }
     if (args[0] === "-c") return { status: 0, stdout: "0.1.8\n", stderr: "" };
     throw new Error(`Unexpected test command: ${command} ${args.join(" ")}`);
   };

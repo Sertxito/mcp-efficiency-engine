@@ -93,21 +93,65 @@ function telemetryEventsPath(projectRoot) {
   return path.join(projectRoot, TELEMETRY_FILE);
 }
 
+function recoverAbandonedTelemetryLock(lockPath) {
+  const recoveryPath = `${lockPath}.recovery`;
+  let recovery;
+  try {
+    recovery = fs.openSync(recoveryPath, "wx");
+  } catch (error) {
+    if (error.code === "EEXIST") return false;
+    throw error;
+  }
+  try {
+    let stat, owner;
+    try {
+      stat = fs.statSync(lockPath);
+      owner = fs.readFileSync(lockPath, "utf8").trim();
+    } catch (error) {
+      if (error.code === "ENOENT") return true;
+      throw error;
+    }
+    if (Date.now() - stat.mtimeMs <= 5000 || !/^[1-9]\d*$/.test(owner)) return false;
+    const pid = Number(owner);
+    if (!Number.isSafeInteger(pid)) return false;
+    try {
+      process.kill(pid, 0);
+      return false;
+    } catch (error) {
+      if (error.code !== "ESRCH") return false;
+    }
+    const current = fs.statSync(lockPath);
+    if (current.mtimeMs !== stat.mtimeMs || current.size !== stat.size ||
+        fs.readFileSync(lockPath, "utf8").trim() !== owner) return false;
+    fs.unlinkSync(lockPath);
+    return true;
+  } finally {
+    fs.closeSync(recovery);
+    fs.unlinkSync(recoveryPath);
+  }
+}
+
 function withTelemetryFileLock(projectRoot, callback) {
   const source = telemetryEventsPath(projectRoot);
   const lockPath = `${source}.lock`;
   fs.mkdirSync(path.dirname(source), { recursive: true });
   let descriptor;
-  const deadline = Date.now() + 5000;
+  const deadline = Date.now() + 120000;
   while (descriptor === undefined) {
     try {
       descriptor = fs.openSync(lockPath, "wx");
-      fs.writeSync(descriptor, `${process.pid}\n`);
+      try {
+        fs.writeSync(descriptor, `${process.pid}\n`);
+      } catch (error) {
+        fs.closeSync(descriptor);
+        fs.unlinkSync(lockPath);
+        throw error;
+      }
     } catch (error) {
       if (error.code !== "EEXIST") throw error;
       try {
-        if (Date.now() - fs.statSync(lockPath).mtimeMs > 5 * 60 * 1000) {
-          fs.unlinkSync(lockPath);
+        if (Date.now() - fs.statSync(lockPath).mtimeMs > 5000 &&
+            recoverAbandonedTelemetryLock(lockPath)) {
           continue;
         }
       } catch (statError) {
@@ -241,15 +285,17 @@ function validateEvent(event) {
 
 function readEvents(projectRoot) {
   return withTelemetryFileLock(projectRoot, (source) => {
-    pruneExpiredTelemetryLocked(source, Date.now(), true);
+    const now = Date.now();
+    pruneExpiredTelemetryLocked(source, now);
     if (!fs.existsSync(source)) return [];
     const events = [];
+    const cutoff = now - TELEMETRY_RETENTION_DAYS * 24 * 60 * 60 * 1000;
     for (const { line, index } of telemetryLines(source)) {
       if (!line.trim()) continue;
       try {
         const event = JSON.parse(line);
         validateEvent(event);
-        events.push(event);
+        if (Date.parse(event.timestamp) >= cutoff) events.push(event);
       } catch (error) {
         throw new Error(`Invalid telemetry JSONL at ${source}:${index + 1}: ${error.message}`);
       }

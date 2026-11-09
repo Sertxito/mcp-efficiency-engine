@@ -36,6 +36,60 @@ test("telemetry reads and prunes incrementally across UTF-8 chunk boundaries wit
   assert.equal(fs.readdirSync(path.dirname(file)).some(name => name.endsWith(".tmp")), false);
 });
 
+test("telemetry reads avoid rewriting the journal on every call while filtering expired events", t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "mcpee-telemetry-read-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const event = recordEvent(root, { event_name: "test.current" });
+  const file = path.join(root, ".mcpee/telemetry/events/copilot.jsonl");
+  fs.appendFileSync(file, `${JSON.stringify({ ...event, event_id: "old", timestamp: "2000-01-01T00:00:00.000Z" })}\n`);
+  fs.writeFileSync(`${file}.last-pruned`, "current");
+  const size = fs.statSync(file).size;
+  assert.deepEqual(readEvents(root).map(item => item.event_id), [event.event_id]);
+  assert.equal(fs.statSync(file).size, size);
+  assert.equal(pruneExpiredTelemetry(root), 1);
+});
+
+test("concurrent processes recover an abandoned telemetry lock without losing events", async t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "mcpee-telemetry-stale-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  recordEvent(root, { event_name: "test.initial" });
+  const lock = path.join(root, ".mcpee/telemetry/events/copilot.jsonl.lock");
+  fs.writeFileSync(lock, "2147483647\n");
+  const old = new Date(Date.now() - 10000);
+  fs.utimesSync(lock, old, old);
+  const { spawn } = require("node:child_process");
+  const modulePath = path.resolve(__dirname, "../packages/core/src/telemetry.js");
+  const run = name => new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, ["-e",
+      "require(process.argv[1]).recordEvent(process.argv[2], {event_name: process.argv[3]})",
+      modulePath, root, name], { stdio: ["ignore", "ignore", "pipe"] });
+    let errors = "";
+    child.stderr.on("data", data => { errors += data; });
+    child.on("error", reject);
+    child.on("close", code => code === 0 ? resolve() : reject(new Error(errors)));
+  });
+  await Promise.all([run("test.one"), run("test.two")]);
+  assert.deepEqual(readEvents(root).map(event => event.event_name).sort(), ["test.initial", "test.one", "test.two"]);
+  assert.equal(fs.existsSync(lock), false);
+  assert.equal(fs.existsSync(`${lock}.recovery`), false);
+});
+
+test("old locks belonging to live processes are not stolen", t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "mcpee-telemetry-live-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  recordEvent(root, { event_name: "test.initial" });
+  const lock = path.join(root, ".mcpee/telemetry/events/copilot.jsonl.lock");
+  fs.writeFileSync(lock, `${process.pid}\n`);
+  const old = new Date(Date.now() - 6 * 60 * 1000);
+  fs.utimesSync(lock, old, old);
+  const kill = t.mock.method(process, "kill", () => { throw Object.assign(new Error("stop test"), { code: "EPERM" }); });
+  const wait = t.mock.method(Atomics, "wait", () => { throw new Error("live lock retained"); });
+  assert.throws(() => recordEvent(root, { event_name: "test.contended" }), /live lock retained/);
+  assert.equal(fs.readFileSync(lock, "utf8").trim(), String(process.pid));
+  kill.mock.restore();
+  wait.mock.restore();
+});
+
 test("redaction preserves only numeric telemetry measures, never token-shaped credentials", () => {
   const metrics = {
     input_tokens: 123, output_tokens: 5, inputTokens: 12, cacheReadTokens: 6,

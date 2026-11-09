@@ -1,6 +1,6 @@
 {
   "name": "mcp-efficiency-engine",
-  "version": "0.1.46",
+  "version": "0.1.47",
   "description": "Local-first engineering harness platform for GitHub Copilot projects",
   "license": "MIT",
   "type": "commonjs",
@@ -53,10 +53,10 @@
     "build:runtime": "node scripts/build-copilot-runtime.js",
     "pretest": "npm run build:runtime",
     "prepack": "npm run build:runtime",
-    "test": "node --test",
+    "test": "node --test --test-concurrency=2",
     "init": "node packages/cli/bin/mcpee.js init",
     "pack:check": "npm run build:runtime && node scripts/check-package.js",
-    "audit:dependencies": "npm audit --audit-level=low",
+    "audit:dependencies": "node scripts/audit-dependencies.js",
     "docs:check-links": "node scripts/check-doc-links.js",
     "docs:check-official-links": "node scripts/check-official-links.js"
   },

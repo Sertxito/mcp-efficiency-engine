@@ -13,6 +13,7 @@ const { recordEvent, observeLayer } = require("../../core/src/telemetry");
 const { readInstalledCatalog, sourceBody } = require("../../copilot-renderer/src/render");
 const { listBrownfieldSpecs, isScaffolding } = require("../../spec-engine/src/brownfield");
 const { isSpecificationTask } = require("../../spec-engine/src/functional");
+const { affirmativeText, isReadOnlyTask, requestsArtifact } = require("../../spec-engine/src/intent");
 const { listFeatures } = require("../../spec-engine/src/lifecycle");
 
 const RULES_PATH = path.resolve(__dirname, "../../../catalog/routing/routing-rules.json");
@@ -114,9 +115,10 @@ function routeTask(projectRoot, task, options = {}) {
   const detectedTechnologyIds = new Set(
     (catalog.project_stack?.detected_technologies || []).map(({ id }) => id),
   );
+  const intentText = affirmativeText(task);
   const workflowScores = rules.routes.map((route, index) => ({
     ...route,
-    ...scoreKeywords(normalizedTask, route.keywords),
+    ...scoreKeywords(intentText, route.keywords),
     order: index,
   })).filter((route) => catalog.workflows.some((workflow) => workflow.id === route.workflow))
     .sort((left, right) => right.score - left.score || left.order - right.order);
@@ -132,14 +134,16 @@ function routeTask(projectRoot, task, options = {}) {
   const features = listFeatures(projectRoot);
   const namedFeatures = features.filter((feature) => new RegExp(`(^|[^a-z0-9-])${feature.id}(?=$|[^a-z0-9-])`, "i").test(task));
   let activeFeatures = namedFeatures.length ? namedFeatures : features.length === 1 ? features : [];
-  const actionable = normalize(task).replace(/\b(?:do not implement|don't implement|sin implementar|no implementar|no implementes)\b/g, "");
-  const explicitPhase = activeFeatures.length ? actionable.match(/^\s*(?:please\s+)?(?:create|generate|write|crea\w*|genera\w*|prepara\w*)\s+(?:(?:el|un|the|a|an)\s+)?(?:(?:technical|tecnico)\s+)?(plan|tasks|tareas)\b/)?.[1] : null;
+  const readOnly = isReadOnlyTask(task);
+  const actionable = readOnly ? "" : affirmativeText(task);
+  const explicitPhase = actionable.match(/\b(?:please\s+)?(?:create|generate|write|crea\w*|genera\w*|prepara\w*)\s+(?:(?:only|solo)\s+)?(?:(?:el|la|un|una|the|a|an)\s+)?(?:(?:technical|tecnico|tecnica)\s+)?(plan|tasks|tareas)(?:\s+(?:technical|tecnico|tecnica))?\b/)?.[1] || null;
   const explicitImplementation = activeFeatures.length && /^\s*(?:please\s+)?(?:implement\w*|programa\w*|build)\b/.test(actionable);
   const specificationTask = isSpecificationTask(task) && !explicitPhase && !explicitImplementation;
-  const requestedStage = explicitPhase ? (explicitPhase === "tareas" ? "tasks" : explicitPhase)
+  const requestedStage = readOnly ? "review"
+    : explicitPhase ? (explicitPhase === "tareas" ? "tasks" : explicitPhase)
     : explicitImplementation ? "implementation" : specificationTask ? "specification"
-    : /\b(?:tasks|tareas)\b/.test(actionable) && /\b(?:create|generate|write|genera\w*|crea\w*|prepara\w*)\b/.test(actionable) ? "tasks"
-    : /\b(?:plan|planifica\w*)\b/.test(actionable) && (/\b(?:create|generate|write|genera\w*|crea\w*|prepara\w*|planifica\w*)\b/.test(actionable) || /^(?:please\s+)?plan\b/.test(actionable)) ? "plan"
+    : requestsArtifact(task, /\b(?:tasks|tareas)\b/) ? "tasks"
+    : requestsArtifact(task, /\bplan\b/) || /\bplanifica\w*\b/.test(actionable) || /^(?:please\s+)?plan\b/.test(actionable) ? "plan"
     : /\b(?:implement|implementa|implementar|implementad|implementes|programa|programar)\b|\bbuild\s+(?:a|an|the|this)\b/.test(actionable) ? "implementation"
     : "review";
   if (["plan", "tasks", "implementation"].includes(requestedStage)) {
@@ -353,6 +357,8 @@ function routeTask(projectRoot, task, options = {}) {
     ...knowledgeGraph.filter((source) => source.graph === "unified").map((source) => source.source_path),
   ])].filter((sourcePath) => !documentationOnly || !isScaffolding(projectRoot, sourcePath)).slice(0, 10);
   const impactPreflight = analyzeImpacts(projectRoot, impactPaths);
+  const phaseScoped = ["plan", "tasks", "implementation"].includes(requestedStage);
+  const selectedFeatureIds = new Set(activeFeatures.map(feature => feature.id));
   const availableTools = discoverTools(projectRoot).tools
     .filter((tool) => tool.invokable)
     .map((tool) => tool.id);
@@ -414,6 +420,8 @@ function routeTask(projectRoot, task, options = {}) {
     knowledge_graph: knowledgeGraph,
     approved_specs: listBrownfieldSpecs(projectRoot)
       .filter((spec) => spec.status === "approved")
+      .filter((spec) => !phaseScoped || features.length <= 1 ||
+        activeFeatures.length > 0 && selectedFeatureIds.has(spec.slug))
       .map(({ slug, path: specPath, sha256, bundle_sha256 }) => ({ slug, path: specPath, sha256,
         ...(bundle_sha256 ? { bundle_sha256 } : {}) })),
     knowledge_graph_status: {

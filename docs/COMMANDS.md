@@ -33,12 +33,44 @@ guides.
 | `mcpee specs ratify --slug <id> --reviewer <name> --confirm-sha256 <digest>` | Approve a legacy inventory-based contract into `docs/specifications/approved/`. |
 | `mcpee specs status [--slug <feature>] [--json]` | Start at `docs/README.md`; inspect each specification's physical state, authority, phase, drift and review hashes. |
 | `mcpee specs review --slug <feature> --reviewer <owner> --confirm-sha256 <digest>` | Record exact review and move the bundle to `reviewed/`, without granting authority. |
-| `mcpee specs decide --slug <feature> --id Q-001 --answer <decision> --reviewer <owner>` | Record an explicit owner answer without rewriting the question. |
+| `mcpee specs decide --slug <feature> --id Q-001 --answer <decision> --reviewer <owner> --resolution resolved\|pending\|deferred` | Record an explicit owner answer without rewriting the question. Pending answers stay open and block approval; `deferred` means explicitly out of the current phase, remains visible and unresolved, but does not block current-phase approval. Later settlement preserves its history. |
+| `mcpee specs revise-decision --slug <feature> --id Q-001 --answer <decision> --reviewer <owner> --confirm-sha256 <current-spec-digest>` | Revise a previously resolved owner answer only after confirming the current specification digest; appends the previous answer to history and invalidates digest-bound reviews. |
 | `mcpee specs approve --slug <feature> --stage specification\|plan\|tasks --reviewer <owner> --confirm-sha256 <digest>` | Approve the exact reviewed artifacts in order; never marks implementation verified. |
+| `mcpee specs drift-preview --slug <feature> --source <path>` | Preview an eligible out-of-scope source change and its exact review digest before or after specification approval, without recording a review. |
+| `mcpee specs drift-review --slug <feature> --source <path> --reviewer <name> --findings <text> --confirm-sha256 <review-digest>` | Record an explicit human review of the exact change and its out-of-scope classification; does not change or approve the specification. |
+| `mcpee specs manual-preview --slug <feature> --id CHECK-001` | Inspect a manual check and digest-bound planned evidence before human review. |
+| `mcpee specs manual-review --slug <feature> --id CHECK-001 --reviewer <name> --outcome passed\|failed --findings <text> --confirm-sha256 <review-digest>` | Record an explicit human review without claiming product acceptance; failures remain pending. |
+| `mcpee specs reconcile-lifecycle --report-id <uuid> --run-id <uuid>` | Preserve and mark an abandoned lifecycle interrupted only when its matching run is terminal and child process has exited. |
+| `mcpee specs approve --all-current --reviewer <owner> --reason <explicit-approval-instruction>` | Approve the current canonical specification batch with digest-bound snapshots and state-transition history; no per-proposal confirmation. Stops on unresolved requirements or active runs. |
 | `mcpee specs migrate [--json]` | Move legacy root specs and inventories under `docs/` with rebased links and audited provenance; preserve existing authority, never invent it. Older pre-workspace drafts are imported as unapproved copies. |
-| `mcpee specs recover --candidate <project-relative-response.txt> [--source <original-path>] [--confirm-sha256 <revision-digest>]` | Validate a preserved authoring candidate and rebuild local indexes without calling a model. Requires the recorded response checksum and unchanged original source snapshot. Conflicting plan/task pairs require the exact revision digest and are archived before replacement; conflicting functional specifications remain protected. |
+| `mcpee specs recover --candidate <project-relative-response.txt> [--source <original-path>] [--confirm-sha256 <revision-digest>]` | Validate a preserved authoring candidate and rebuild local indexes without calling a model. Requires the recorded response checksum and unchanged original source snapshot. Conflicting plan/task/specification revisions require the exact revision digest and are archived before replacement. |
 
 ## Knowledge
+
+The MCP tools `mcpee_specs_status`, `mcpee_specs_decide`, `mcpee_specs_revise_decision` and `mcpee_specs_approve` expose the same
+local specification approval flow. Use the approval tool only on an explicit
+user approval instruction, never infer it from generation or implementation.
+Tasks and implementation require real specification approval.
+The decision tool requires `slug`, `id`, `answer`, `reviewer` and explicit
+`resolution: resolved|pending|deferred`; a deferred decision is non-blocking for
+the current phase, not resolved and not an approval. Inspect the existing
+register before writing: an already deferred answer must not be re-recorded
+without an explicit owner change. Repeating the same pending or deferred
+answer, reviewer and resolution leaves the register, history and digest
+unchanged. It records clarification
+without calling a model, requiring CodeGraph or authorizing approval. `mcpee_run` authoring/clarification
+uses `task` only, not `feature`/`through` (reserved for tasks/verification).
+`mcpee_specs_revise_decision` appends the prior resolved answer to history and
+requires the exact current specification digest. A changed functional
+specification is first archived as a complete bundle in
+`.mcpee/reports/specification-revisions/`; MCPEE verifies the archive file,
+manifest digest, artifact inventory and decision history before asking for
+explicit replacement confirmation. Denying replacement leaves the verified
+archive in place and the current bundle unchanged. Replacement invalidates
+dependent phase artifacts and requires a fresh specification review. Revision
+confirmation is not product approval. Decisions omitted from a revised draft
+remain in the register as historical records; their IDs and answer histories
+are preserved, and new decisions receive unused IDs.
 
 | Command | Purpose |
 |---|---|

@@ -9,7 +9,7 @@ const { analyzeImpacts } = require("../../knowledge-engine/src/unified");
 const { invokeTool } = require("../../tool-manager/src/tools");
 const { WALL_TIMEOUT_MS, createExecutionDeadline } = require("./execution-deadline");
 const { prepareApprovedSpecContext, projectPath, ensureDirectory } = require("../../spec-engine/src/brownfield");
-const { isSpecificationTask, prepareFunctionalSources, functionalPrompt, validateFunctionalSpec, publishFunctionalSpec } = require("../../spec-engine/src/functional");
+const { isSpecificationTask, prepareFunctionalSources, functionalPrompt, validateFunctionalSpec, publishFunctionalSpecWithApproval } = require("../../spec-engine/src/functional");
 const { phasePrompt, validatePhase, publishPhaseWithApproval } = require("../../spec-engine/src/phases");
 
 const MAX_CONTEXT_PACKAGE_BYTES = 2 * 1024 * 1024;
@@ -187,6 +187,7 @@ function createCopilotHooks(projectRoot, options = {}) {
         projectRoot,
         task: options.task,
         validationCommands: options.validationCommands,
+        canonicalImplementation: options.canonicalImplementation,
       });
       if (options.specificationAuthoring &&
           (assessment.decision !== "allow" || isFileMutationCall(input) ||
@@ -377,24 +378,29 @@ function describePermissionRequest(request) {
 function createPermissionRequestHandler(projectRoot, options = {}) {
   const interactive = options.interactive === true;
   return async (request, invocation) => {
+    const nestedCommand = request.kind === "shell" && options.canonicalImplementation &&
+      assessCopilotToolCall({ toolName: "shell", toolArgs: { command: request.fullCommandText } },
+        { canonicalImplementation: true }).decision === "deny";
     const policyManagedHook = request.kind === "hook" &&
       typeof request.toolName === "string";
     const plannedValidation = request.kind === "shell" && !request.requestSandboxBypass &&
       options.validationCommands?.includes(request.fullCommandText?.trim());
-    const approved = policyManagedHook || plannedValidation || interactive &&
+    const approved = !nestedCommand && (policyManagedHook || plannedValidation || interactive &&
       typeof options.approvePermission === "function" &&
-      await options.approvePermission(request, describePermissionRequest(request));
+      await options.approvePermission(request, describePermissionRequest(request)));
     recordEvent(projectRoot, {
       event_name: "copilot.permission.decision",
       session_id: invocation.sessionId,
       attributes: {
         kind: request.kind,
-        decision: policyManagedHook || plannedValidation
+        decision: nestedCommand ? "policy-denied" : policyManagedHook || plannedValidation
           ? "policy-approved"
           : approved ? "approved-once" : interactive ? "rejected" : "no-interactive-review",
       },
     });
-    return approved
+    return nestedCommand
+      ? { kind: "reject", feedback: "MCPEE owns canonical lifecycle and verification. Continue implementation without nested MCPEE commands." }
+      : approved
       ? { kind: "approved" }
       : interactive
         ? { kind: "reject", feedback: "Human approval was not granted." }
@@ -453,7 +459,7 @@ function createPrompt(task, plan, contextPackage = null, conversationContext = [
     `Execute the selected workflow "${plan.workflow.id}" through these ordered stages: ${(plan.workflow.execution_stages || ["understand", "analyze", "plan", "execute", "validate", "document", "observe", "learn"]).join(" -> ")}. Apply only relevant stages, but explicitly report any stage that could not be completed and the evidence for completed stages.`,
     "Use selected technical guidance only when relevant, and defer to the repository's actual versions, configuration, and conventions. Treat scorecards as review rubrics and evaluation cases as behavioral specifications; they are not proof that an automated response grader ran.",
     "Approved specifications listed in the routing plan are the normative source of intended project behavior. Read the specifications relevant to the task before changing code, preserve their requirements, and never rewrite them to match observed implementation. If the requested change conflicts with an approved specification or source drift is suspected, disclose the conflict and request owner review rather than silently changing the contract.",
-    "Start with docs/README.md and docs/specifications/README.md for all project documentation. Both greenfield and brownfield specifications live in docs/specifications/{proposed,reviewed,approved}/<feature>/ with short descriptive <case-slug>.md atomic capabilities (for example about-us-staff.md). Follow current manifest paths: files move with documentary state. Proposed/reviewed content is NOT authoritative; only explicit approval or implemented-and-verified evidence establishes the approved source of truth. Machine structural validation alone never grants documentary authority. Use decisions.md, plan.md and tasks.md in the current feature directory; UC IDs remain internal references. Never put project documentation in .mcpee/ or create a parallel root specs/ tree. .mcpee contains engine tools, state and execution evidence only; owner inputs stay in knowledge/sources and IDE integrations use standard locations. Stop at the requested phase, preserve review records, and never approve your own output. Ready-for-implementation does not mean implemented or verified.",
+    "Start with docs/README.md and docs/specifications/README.md for all project documentation. Both greenfield and brownfield specifications live in docs/specifications/{proposed,reviewed,approved}/<feature>/ with short descriptive <case-slug>.md atomic capabilities (for example about-us-staff.md). Follow current manifest paths: files move with documentary state. Proposed/reviewed content is NOT authoritative; only explicit specification approval establishes the approved source of truth. Machine validation and passing implementation checks never approve requirements. Task generation and implementation require an explicit user approval instruction, individually or as a batch, recorded by mcpee_specs_approve without per-proposal confirmations. Generating or implementing is not an approval instruction. Use decisions.md, plan.md and tasks.md in the current feature directory; UC IDs remain internal references. Never put project documentation in .mcpee/ or create a parallel root specs/ tree. .mcpee contains engine tools, state and execution evidence only; owner inputs stay in knowledge/sources and IDE integrations use standard locations. Stop at the requested phase, preserve review and transition records, and never approve your own output. Ready-for-implementation does not mean implemented or verified.",
     "In audits, consolidate duplicate root causes and distinguish a supported defect from a conditional risk or missing evidence. Do not infer absent authorization, caller error handling or retry limits from a fragment alone.",
     "An explicit verified-behavior claim contradicted by supplied evidence can be a finding about the claim, not proof that the underlying capability is absent. Clearly stated unverified scope is not such a claim.",
     "Use the applicable bundled technical guide and verified local code as the working baseline. Consult official documentation for uncovered, uncertain, version-sensitive or changed behavior; do not browse routinely to rediscover covered practices or treat a dated local guide as proof of current API support. Keep any lookup narrow, cite the source and disclose unavailable verification.",
@@ -504,6 +510,9 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
         throw new Error(`Specification phase blocked: ${feature.id} is an unvalidated manual draft; author and review source-bound use cases before ${workspace.requested_stage}. No paid SDK session was started.`);
       }
       const current = featureStatus(root, feature.id);
+      if (["tasks", "implementation"].includes(workspace.requested_stage) && !current.specification_approved) {
+        throw new Error(`Specification phase blocked: ${feature.id} requires explicit specification approval before ${workspace.requested_stage}. Approve individually or as a batch; no paid SDK session was started.`);
+      }
       if (current.drift.length || !current.reviews[requiredStage].approved) {
         throw new Error(`Specification phase blocked: ${feature.id} needs current validation or owner approval of ${requiredStage} before ${workspace.requested_stage}. No paid SDK session was started.`);
       }
@@ -527,10 +536,10 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
   const phaseAuthoring = !specificationSources && ["plan", "tasks"].includes(workspace?.requested_stage) &&
     workspace.features?.length ? { stage: workspace.requested_stage, slug: workspace.features[0].id } : null;
   if (workspace?.requested_stage === "implementation" && workspace.features?.length === 1 &&
-      fs.existsSync(projectPath(root, `${require("../../spec-engine/src/lifecycle").workspace(workspace.features[0].id, root)}/plan.json`)) &&
-      !fs.existsSync(projectPath(root, `.mcpee/workflows/${plan.workflow.id}.json`))) {
+      fs.existsSync(projectPath(root, `${require("../../spec-engine/src/lifecycle").workspace(workspace.features[0].id, root)}/plan.json`))) {
     options = { ...options, validationCommands: require("../../spec-engine/src/phases")
-      .prepareImplementationValidation(root, workspace.features[0].id).commands };
+      .prepareImplementationValidation(root, workspace.features[0].id, { allowPending: true }).commands,
+      canonicalImplementation: true };
   }
   if (phaseAuthoring && workspace.features.length !== 1) {
     throw new Error("Structured phase authoring requires exactly one canonical feature.");
@@ -538,6 +547,11 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
   if (phaseAuthoring?.stage === "tasks" &&
       !fs.existsSync(projectPath(root, `${require("../../spec-engine/src/lifecycle").workspace(phaseAuthoring.slug, root)}/plan.json`))) {
     throw new Error("Structured tasks require a source-bound plan.json, not only a manual planning template. Reconcile the technical plan before starting a paid session.");
+  }
+  if (phaseAuthoring?.stage === "tasks") {
+    const directory = require("../../spec-engine/src/lifecycle").workspace(phaseAuthoring.slug, root);
+    validatePhase(root, phaseAuthoring.slug, "plan",
+      fs.readFileSync(projectPath(root, `${directory}/plan.json`), "utf8"));
   }
   const prompt = [createPrompt(task, plan, contextPackage, conversationContext, specificationSources, options),
     ...(options.proposalOnly ? [
@@ -565,17 +579,46 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
       ? recoverable.acquireSession(root, options.resumeSessionId, {
         task, workflow_id: plan.workflow.id, agent_id: plan.agent.id,
         prompt_sha256: resumePromptHash, prompt, model,
+        require_context_identity: Boolean(specificationSources || phaseAuthoring),
       })
       : null;
+    if (resumeLease?.context_drift) {
+      recordEvent(root, {
+        event_name: "copilot.session.resume.context_drift",
+        session_id: options.resumeSessionId,
+        attributes: { task_sha256: taskHash, workflow: plan.workflow.id, agent: plan.agent.id, model,
+          recorded_execution_sha256: resumeLease.record.execution_sha256,
+          current_execution_sha256: executionFingerprint,
+          decision: "resume-with-original-session-context; regenerated context is not resent" },
+      });
+    }
     let session;
     let authoringEvidence = null;
     let executionStartedEvent;
     let sessionRecord = resumeLease || null;
     const deadline = createExecutionDeadline();
     const approvalOptions = { ...options };
+    let rejectApprovalFailure;
+    const approvalFailure = new Promise((resolve, reject) => { rejectApprovalFailure = reject; });
+    approvalFailure.catch(() => {});
     for (const name of ["approveTool", "approvePermission"]) {
       if (typeof options[name] === "function") {
-        approvalOptions[name] = (...args) => deadline.waitForApproval(() => options[name](...args));
+        approvalOptions[name] = async (...args) => {
+          options.onProgress?.({ stage: "approval", status: "waiting-approval", attempt: 1 });
+          try {
+            const granted = await deadline.waitForApproval(() => options[name](...args));
+            options.onProgress?.({ stage: "approval", status: granted ? "approval-approved" : "approval-denied", attempt: 1 });
+            return granted;
+          } catch (error) {
+            const failure = new Error(`Approval channel failed; the action was not authorized. ${error.message}`, { cause: error });
+            failure.code = "MCPEE_APPROVAL_FAILED";
+            recordEvent(root, { event_name: "copilot.approval.failed",
+              attributes: { error: redact(error.message), callback: name } });
+            options.onProgress?.({ stage: "approval", status: "approval-error", attempt: 1 });
+            rejectApprovalFailure(failure);
+            throw failure;
+          }
+        };
       }
     }
     const changedPaths = new Set(resumeLease?.record.changed_paths || []);
@@ -786,6 +829,14 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
               eventId: event.event_id,
             });
           }
+          const progressStatus = eventType === "assistant.turn_start" ? "thinking"
+            : eventType === "tool.execution_start" ? "tool-running"
+            : eventType === "tool.execution_complete" ? data.success === false ? "tool-failed" : "tool-completed"
+            : null;
+          if (progressStatus) options.onProgress?.({
+            stage: "execution", status: progressStatus, attempt: 1,
+            ...(typeof sdkToolName === "string" ? { tool: sdkToolName.slice(0, 200) } : {}),
+          });
         });
       }
       recordEvent(root, {
@@ -806,7 +857,19 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
           if (options.signal?.aborted) onAbort();
           else options.signal?.addEventListener("abort", onAbort, { once: true });
         });
-        let currentPrompt = prompt;
+        const canonicalInstruction = "Canonical implementation execution: implement the approved tasks and return the changed files and any blockers. MCPEE runs the canonical verification workflow after your changes through its own approval broker. Do not invoke any mcpee CLI command yourself, including mcpee specs status, mcpee workflow run or mcpee sync; inspect the canonical files and supplied context instead. Do not regenerate tasks or workflows, and do not claim checks passed before the harness records their results. A workflow-launch approval is not approval of every nested tool or cloud operation. When an approved task needs a gated action, such as adding a planned package dependency, request it through the normal tool call so the MCPEE approval hook asks the user; do not stop merely because approval will be required. Stop only if that approval is denied.";
+        let currentPrompt = options.canonicalImplementation ? `${prompt}\n\n${canonicalInstruction}` : prompt;
+        let canonicalResume = "";
+        if (options.canonicalImplementation) {
+          const missing = require("../../spec-engine/src/phases")
+            .prepareImplementationValidation(root, workspace.features[0].id, { allowPending: true }).spec.evidence
+            .filter(file => !fs.existsSync(projectPath(root, file)));
+          canonicalResume = [
+            "Earlier MCPEE verification or synchronization runs (mcpee workflow run, mcpee sync, canonical checks) are owned by MCPEE, are local and repeatable, and are not side effects to reconcile. Their unknown or interrupted outcome is not ambiguity: MCPEE reruns verification after your changes. Treat only external or irreversible effects (deployment, publication, remote resource changes, data deletion) as uncertain.",
+            missing.length ? `Planned paths that do not exist yet (${missing.length}); continue implementing the approved tasks that own them, preserving existing files:\n${missing.map(file => `- ${file}`).join("\n")}` : "Every planned path exists; finish any remaining approved task content.",
+          ].join("\n\n");
+          currentPrompt = `${currentPrompt}\n\n${canonicalResume}`;
+        }
         let repairBase = null;
         let repairBasePath = null;
         const stage = specificationSources ? "specification" : phaseAuthoring?.stage;
@@ -816,11 +879,12 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
         }
         for (let attempt = 1; attempt <= (stage ? 3 : 1); attempt++) {
           if (stage) options.onProgress?.({ stage, attempt, status: attempt === 1 ? "authoring" : "repairing" });
+          else options.onProgress?.({ stage: "execution", attempt: 1, status: "starting" });
           const submittedPrompt = resumeLease && attempt === 1
-            ? `Continue the interrupted MCPEE task below in this existing session. First inspect the current project state and the preceding conversation. Do not replay completed tool calls or overwrite completed work. Continue only the remaining work, preserving the original scope and constraints. If the state is ambiguous or an earlier operation may have succeeded, stop and report that uncertainty instead of repeating it.\n\nOriginal task SHA-256: ${taskHash}\nOriginal task:\n${task}\n\nLast persisted failure:\n${resumeLease.record.last_error || "No failure diagnostic recorded."}${stage ? `\n\nRetain the previous saved candidate and repair it against this unchanged structured contract; do not regenerate from scratch:\n${currentPrompt}` : ""}`
+            ? `Continue the interrupted MCPEE task below in this existing session. First inspect the current project state and the preceding conversation. Do not replay completed tool calls or overwrite completed work. Continue only the remaining work, preserving the original scope and constraints. Local project files can be inspected, so their state is not ambiguous. If an earlier external or irreversible operation may have succeeded, stop and report that uncertainty instead of repeating it.\n\nOriginal task SHA-256: ${taskHash}\nOriginal task:\n${task}\n\nLast persisted failure:\n${resumeLease.record.last_error || "No failure diagnostic recorded."}${options.canonicalImplementation ? `\n\n${canonicalInstruction}\n\n${canonicalResume}` : ""}${stage ? `\n\nRetain the previous saved candidate and repair it against this unchanged structured contract; do not regenerate from scratch:\n${currentPrompt}` : ""}`
             : currentPrompt;
           response = await Promise.race([
-            session.sendAndWait({ prompt: submittedPrompt }, executionTimeoutMs), cancellation, executionDeadline,
+            session.sendAndWait({ prompt: submittedPrompt }, executionTimeoutMs), cancellation, executionDeadline, approvalFailure,
           ]);
           content = response?.data?.content;
           if (typeof content !== "string") throw new Error("Copilot session completed without an assistant message.");
@@ -832,7 +896,7 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
           let reconciledContent = content;
           let citationCorrections = [];
           try {
-            if (options.proposalOnly && specificationSources && repairBase) {
+            if (specificationSources && repairBase) {
               content = require("../../spec-engine/src/functional").applyFunctionalRepair(content, repairBase);
               reconciledContent = content;
             }
@@ -886,7 +950,7 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
             throw new Error(`Source drift prevents repair; preserve the draft and synchronize the changed evidence. Drafts: ${authoringEvidence}`, { cause: diagnostic });
           }
           if (attempt === 3) throw new Error(`Structured ${stage} failed after 3 bounded attempts. Drafts and diagnostics: ${authoringEvidence}. ${diagnostic.message}`, { cause: diagnostic });
-          if (options.proposalOnly && specificationSources) {
+          if (specificationSources) {
             try {
               const parsed = JSON.parse(content.trim().replace(/^```json\s*\n([\s\S]*?)\n```\s*$/, "$1"));
               if (parsed && Array.isArray(parsed.use_cases) && Array.isArray(parsed.coverage)) {
@@ -905,7 +969,7 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
             attributes: { stage, next_attempt: attempt + 1 }, payload: { prompt: currentPrompt } });
         }
       } catch (error) {
-        if (options.signal?.aborted || error.code === "MCPEE_EXECUTION_TIMEOUT" ||
+        if (options.signal?.aborted || error.code === "MCPEE_EXECUTION_TIMEOUT" || error.code === "MCPEE_APPROVAL_FAILED" ||
             error.message === `Timeout after ${executionTimeoutMs}ms waiting for session.idle`) {
           try {
             await session.abort();
@@ -932,11 +996,11 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
         payload: { content },
       });
       options.signal?.throwIfAborted();
-      const specification = specificationSources ? publishFunctionalSpec(root, content, specificationSources, {
+      const specification = specificationSources ? await publishFunctionalSpecWithApproval(root, content, specificationSources, {
         automatic: true, ...(authoringScope ? { authoringScope } : {}),
         proposalOnly: options.proposalOnly === true,
         citationCorrections: options.citationCorrections,
-      }) : null;
+      }, options.approveSpecificationRevision) : null;
       const phase = phaseAuthoring ? await publishPhaseWithApproval(
         root, phaseAuthoring.slug, phaseAuthoring.stage, content, options.approvePhaseRevision) : null;
       if (phase) {
@@ -953,6 +1017,7 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
         changedPaths.add(`${path.posix.dirname(specification.path)}/lifecycle.json`);
         changedPaths.add(`${path.posix.dirname(specification.path)}/specification.json`);
         for (const casePath of specification.casePaths) changedPaths.add(casePath);
+        if (specification.revision) changedPaths.add(specification.revision);
         for (const review of specification.reviews) {
           if (review.status === "draft-filled-for-review") changedPaths.add(review.path);
         }
@@ -960,7 +1025,7 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
       if (specification || phase) {
         options.onProgress?.({ stage: "indexing", attempt: 1, status: "indexing" });
         const indexing = require("../../source-engine/src/sync").syncProject(root, {
-          generateDocumentation: false, tools: [], graphify: { installed: false },
+          generateDocumentation: false, discoverSpecifications: false, tools: [], graphify: { installed: false },
         });
         recordEvent(root, { event_name: "copilot.authoring.indexed", session_id: session.sessionId,
           attributes: { retrieval: "lexical", graph: "unified", inventory: "knowledge/traceability/source-manifest.json",
@@ -993,13 +1058,17 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
       return {
         sessionId: session.sessionId,
         content: specification
-          ? `${specification.path}\n\n${specification.content}\nSource-bound validation passed. Next: ${specification.lifecycle.next}. ${options.proposalOnly ? "Onboarding preserves proposed state; no review or approval was granted." : "Phase progression is automatic when no decisions remain."} Deferred/out-of-scope sections: ${specification.deferredSections}. Open decisions: ${specification.unresolvedDecisions}.\nAtomic use-case documents: ${JSON.stringify(specification.casePaths)}\nAuthoring evidence: ${authoringEvidence}`
+          ? `${specification.path}\n\n${specification.content}\nSource-bound validation passed. Next: ${specification.lifecycle.next}. ${options.proposalOnly ? "Onboarding preserves proposed state; no review or approval was granted." : "Phase progression is automatic when no decisions remain."} Deferred/out-of-scope sections: ${specification.deferredSections}. Open decisions: ${specification.unresolvedDecisions}.${specification.revision ? ` Previous bundle archived and verified at ${specification.revision} (manifest SHA-256 ${specification.revisionManifestSha256}); review and approval must be repeated.` : ""}\nAtomic use-case documents: ${JSON.stringify(specification.casePaths)}\nAuthoring evidence: ${authoringEvidence}`
           : phase ? `${phase.paths.join("\n")}\nNext: ${phase.status.next}. Machine validation is not implementation or product acceptance.\nAuthoring evidence: ${authoringEvidence}` : content,
         changedPaths: [...changedPaths].sort(),
         ...(authoringEvidence ? { authoringEvidence } : {}),
         ...(phase ? { phase: { stage: phaseAuthoring.stage, ...phase } } : {}),
         ...(specification ? { specification: {
           path: specification.path, useCaseCount: specification.useCaseCount,
+          ...(specification.revision ? {
+            revision: specification.revision,
+            revisionManifestSha256: specification.revisionManifestSha256,
+          } : {}),
           deferredSections: specification.deferredSections, status: "draft-structurally-validated",
           reviews: specification.reviews,
           casePaths: specification.casePaths, manifestPath: specification.manifestPath,

@@ -446,7 +446,18 @@ async function requestApprovalFromHost(kind, details, environment = null) {
     request.on("error", reject);
     request.end(JSON.stringify({ kind, details }));
   });
-  if (!response.ok) throw new Error(`The VS Code approval broker returned HTTP ${response.status}.`);
+  if (!response.ok) {
+    if (response.status === 503) {
+      let failure;
+      try { failure = await response.json(); }
+      catch (error) { throw new Error("The VS Code approval broker returned an invalid error response.", { cause: error }); }
+      if (failure?.error === "approval-channel-failed" && typeof failure.message === "string" &&
+          failure.message.length <= 1000) {
+        throw new Error(`The VS Code approval channel failed: ${redact(failure.message)}`);
+      }
+    }
+    throw new Error(`The VS Code approval broker returned HTTP ${response.status}.`);
+  }
   const result = await response.json();
   if (!result || typeof result.approved !== "boolean") {
     throw new Error("The VS Code approval broker returned an invalid decision.");
@@ -555,8 +566,12 @@ function printHelp() {
     "  specs reconcile [--json] (hash-linked brownfield cross-scope review matrix)",
     "  specs status [--slug <feature>] [--json] | specs migrate [--json]",
     "  specs review --slug <feature> --reviewer <owner> --confirm-sha256 <digest>",
-    "  specs decide --slug <feature> --id Q-001 --answer <decision> --reviewer <owner>",
+    "  specs decide --slug <feature> --id Q-001 --answer <decision> --reviewer <owner> --resolution resolved|pending|deferred",
+    "  specs revise-decision --slug <feature> --id Q-001 --answer <decision> --reviewer <owner> --confirm-sha256 <current-spec-digest>",
     "  specs approve --slug <feature> --stage specification|plan|tasks --reviewer <owner> --confirm-sha256 <digest>",
+    "  specs manual-preview --slug <feature> --id CHECK-001 | specs manual-review --slug <feature> --id CHECK-001 --reviewer <name> --outcome passed|failed --findings <evidence> --confirm-sha256 <review-digest>",
+    "  specs reconcile-lifecycle --report-id <uuid> --run-id <uuid>",
+    "  specs drift-preview --slug <feature> --source <path> | specs drift-review --slug <feature> --source <path> --reviewer <name> --findings <text> --confirm-sha256 <review-digest>",
     "  specs recover --candidate .mcpee/reports/authoring/<run>/<phase>-<attempt>.txt [--source <original-path>] [--confirm-sha256 <revision-digest>]",
     "  specs ratify --slug <id> --reviewer <name> --confirm-sha256 <digest>",
     "  drift [--json]",
@@ -949,6 +964,31 @@ function runSpecs(root, args) {
   const [action = "list"] = args;
   const json = args.includes("--json");
   let result;
+  if (action === "drift-preview" || action === "drift-review") {
+    const slug = optionValue(args, "--slug"), sourcePath = optionValue(args, "--source");
+    const review = require("../../spec-engine/src/source-drift-review");
+    result = action === "drift-preview" ? review.previewSourceDrift(root, slug, sourcePath)
+      : review.recordSourceDriftReview(root, { slug, sourcePath, reviewer: optionValue(args, "--reviewer"),
+        findings: optionValue(args, "--findings"), confirmSha256: optionValue(args, "--confirm-sha256") });
+    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    return 0;
+  }
+  if (action === "reconcile-lifecycle") {
+    result = require("../../spec-engine/src/orchestration").reconcileInterruptedLifecycle(root,
+      optionValue(args, "--report-id"), optionValue(args, "--run-id"));
+    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    return 0;
+  }
+  if (action === "manual-preview" || action === "manual-review") {
+    const slug = optionValue(args, "--slug"), id = optionValue(args, "--id");
+    const manual = require("../../spec-engine/src/manual-review");
+    result = action === "manual-preview" ? manual.previewManualReview(root, slug, id)
+      : manual.recordManualReview(root, { slug, id, reviewer: optionValue(args, "--reviewer"),
+        outcome: optionValue(args, "--outcome"), findings: optionValue(args, "--findings"),
+        confirmSha256: optionValue(args, "--confirm-sha256") });
+    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    return 0;
+  }
   if (action === "scopes") {
     result = require("../../spec-engine/src/scopes").buildSpecificationScopes(root);
     if (json) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
@@ -970,7 +1010,7 @@ function runSpecs(root, args) {
     }
     return ["blocked", "incomplete"].includes(result.status) ? 2 : 0;
   }
-  if (["status", "approve", "review", "decide", "migrate", "recover"].includes(action)) {
+  if (["status", "approve", "review", "decide", "revise-decision", "migrate", "recover"].includes(action)) {
     const slug = optionValue(args, "--slug");
     if (action === "status") {
       result = slug ? listFeatures(root).find((feature) => feature.id === slug) || featureStatus(root, slug) : listFeatures(root);
@@ -981,7 +1021,23 @@ function runSpecs(root, args) {
         slug, reviewer: optionValue(args, "--reviewer"), confirmSha256: optionValue(args, "--confirm-sha256"),
       });
     } else if (action === "approve") {
-      result = approveStage(root, {
+      if (args.includes("--all-current")) {
+        if (slug || optionValue(args, "--stage") && optionValue(args, "--stage") !== "specification") {
+          throw new Error("--all-current approves specifications only and cannot be combined with --slug.");
+        }
+        result = require("../../spec-engine/src/lifecycle").approveSpecifications(root, {
+          specifications: listFeatures(root).filter(feature => feature.status !== "unvalidated-manual-draft")
+            .map(feature => ({ slug: feature.id, sha256: feature.reviews.specification.sha256 })),
+          reviewer: optionValue(args, "--reviewer"), reason: optionValue(args, "--reason"),
+        });
+      } else if (!optionValue(args, "--stage") || optionValue(args, "--stage") === "specification") {
+        require("../../spec-engine/src/lifecycle").approveSpecifications(root, {
+          specifications: [{ slug, sha256: optionValue(args, "--confirm-sha256") }],
+          reviewer: optionValue(args, "--reviewer"),
+          reason: optionValue(args, "--reason") || "Explicit mcpee specs approve invocation.",
+        });
+        result = featureStatus(root, slug);
+      } else result = approveStage(root, {
         slug, stage: optionValue(args, "--stage") || "specification",
         reviewer: optionValue(args, "--reviewer"), confirmSha256: optionValue(args, "--confirm-sha256"),
       });
@@ -991,9 +1047,18 @@ function runSpecs(root, args) {
       result = require("../../spec-engine/src/phases").recoverAuthoring(root, optionValue(args, "--candidate"), sources, {
         confirmSha256: optionValue(args, "--confirm-sha256"),
       });
+    } else if (action === "revise-decision") {
+      result = require("../../spec-engine/src/lifecycle").reviseDecision(root, {
+        slug, id: optionValue(args, "--id"), answer: optionValue(args, "--answer"),
+        reviewer: optionValue(args, "--reviewer"), confirmSha256: optionValue(args, "--confirm-sha256"),
+      });
     } else {
+      if (!args.includes("--resolution")) {
+        throw new Error("specs decide requires explicit --resolution resolved|pending|deferred; answer text alone does not close or defer a decision.");
+      }
       result = resolveDecision(root, {
         slug, id: optionValue(args, "--id"), answer: optionValue(args, "--answer"), reviewer: optionValue(args, "--reviewer"),
+        resolution: optionValue(args, "--resolution"),
       });
     }
     const navigation = refreshWorkspaceIndex(root);
@@ -1046,7 +1111,7 @@ function runSpecs(root, args) {
     process.stdout.write(`  reviewed proposal SHA-256=${result.proposalSha256}\n`);
     return 0;
   }
-  throw new Error("Use mcpee specs status|migrate|discover|scopes|list|drift; specs decide --slug <id> --id Q-001 --answer <text> --reviewer <owner>; specs review --slug <id> --reviewer <owner> --confirm-sha256 <digest>; specs approve --slug <id> --stage specification|plan|tasks --reviewer <owner> --confirm-sha256 <digest>; or legacy specs ratify.");
+  throw new Error("Use mcpee specs status|migrate|discover|scopes|list|drift; specs decide --slug <id> --id Q-001 --answer <text> --reviewer <owner> --resolution resolved|pending|deferred; specs revise-decision --slug <id> --id Q-001 --answer <text> --reviewer <owner> --confirm-sha256 <current-spec-digest>; specs review --slug <id> --reviewer <owner> --confirm-sha256 <digest>; specs approve --slug <id> --stage specification|plan|tasks --reviewer <owner> --confirm-sha256 <digest>; or legacy specs ratify.");
 }
 
 async function approveMaintenance(action, description) {
@@ -1981,24 +2046,65 @@ async function runWorkflowCommand(root, args) {
     process.stderr.write(`[mcpee] Unknown workflow action: ${action}\n`);
     return 2;
   }
-  const specPath = optionValue(options, "--spec");
+  let specPath = optionValue(options, "--spec");
   if (!specPath) {
     process.stderr.write("[mcpee] Usage: mcpee workflow run --spec <project-relative-json>\n");
     return 2;
   }
+  const normalizedSpecPath = specPath.replace(/\\/g, "/").replace(/^\.\//, "");
+  const canonicalSlug = /^\.mcpee\/workflows\/spec-([a-z0-9]+(?:-[a-z0-9]+)*)\.json$/.exec(normalizedSpecPath)?.[1];
+  let canonical;
+  if (canonicalSlug) {
+    canonical = require("../../spec-engine/src/phases").prepareImplementationValidation(root, canonicalSlug, { allowPending: true });
+    if (!canonical.spec.steps.length) {
+      if (!canonical.pending_checks?.length && canonical.manual_reviews?.length) {
+        require("../../spec-engine/src/verification").recordImplementationVerification(root, canonicalSlug, canonical, null);
+        process.stdout.write("[mcpee] Canonical manual reviews verified; product acceptance remains not verified.\n");
+        return 0;
+      }
+      process.stderr.write(`[mcpee] No automated checks are runnable; pending checks: ${canonical.pending_checks.map(check => `${check.id} (${check.kind})`).join(", ")}.\n`);
+      return 1;
+    }
+    specPath = materializeCanonicalWorkflow(root, canonical);
+  }
   const result = await runWorkflow(root, specPath, {
     approveStep,
     beforeRun: printImpactPreflight,
+    ...(canonicalSlug ? { canonicalFeature: canonicalSlug } : {}),
   });
+  if (canonical && result.status === "passed" && !canonical.pending_checks?.length) {
+    require("../../spec-engine/src/verification").recordImplementationVerification(root, canonicalSlug, canonical, result.file);
+  }
   process.stdout.write(`[mcpee] Workflow ${result.workflow_id}: ${result.status} (${result.id})\n`);
   for (const step of result.checks) {
     process.stdout.write(`  ${step.status}: ${step.label} (${step.tool}, exit ${step.exit_code ?? "not started"})\n`);
   }
   process.stdout.write(`  evidence: ${result.evidence.length}; report: ${result.file}\n`);
+  if (canonical?.pending_checks?.length) {
+    process.stderr.write(`[mcpee] Canonical verification remains pending: ${canonical.pending_checks.map(check => `${check.id} (${check.kind})`).join(", ")}.\n`);
+  }
   if (result.learning_proposals.length) {
     process.stdout.write(`  recurring workflow pattern proposed: ${result.learning_proposals.length}; review with mcpee learn list (approval required before memory)\n`);
   }
-  return result.status === "passed" ? 0 : 1;
+  return result.status === "passed" && !canonical?.pending_checks?.length ? 0 : 1;
+}
+
+function materializeCanonicalWorkflow(root, canonicalValidation) {
+  const workflowId = canonicalValidation.spec.workflow_id;
+  let workflowSpec = `.mcpee/workflows/${workflowId}-${canonicalValidation.tasks_sha256}.json`;
+  const content = `${JSON.stringify(canonicalValidation.spec, null, 2)}\n`;
+  let filename = path.join(root, workflowSpec);
+  if (fs.existsSync(filename) && fs.readFileSync(filename, "utf8") !== content) {
+    const revision = crypto.createHash("sha256").update(JSON.stringify(canonicalValidation)).digest("hex");
+    workflowSpec = `.mcpee/workflows/${workflowId}-${canonicalValidation.tasks_sha256}-${revision}.json`;
+    filename = path.join(root, workflowSpec);
+    if (fs.existsSync(filename) && fs.readFileSync(filename, "utf8") !== content) {
+      throw new Error("Canonical validation workflow revision conflicts with existing work; do not overwrite it.");
+    }
+  }
+  fs.mkdirSync(path.dirname(filename), { recursive: true });
+  if (!fs.existsSync(filename)) fs.writeFileSync(filename, content, { flag: "wx" });
+  return workflowSpec;
 }
 
 function runAssetAudit(root, args) {
@@ -2405,8 +2511,8 @@ async function approveCopilotTool(input, reason, impactPreflight = { targets: []
 
 async function synchronizeAfterCopilotChanges(root, changedPaths, workflowId, options = {}) {
   const onValidation = options.onValidation || (() => {});
-  const canonicalValidation = options.canonicalFeature && !fs.existsSync(path.join(root, `.mcpee/workflows/${workflowId}.json`))
-    ? require("../../spec-engine/src/phases").prepareImplementationValidation(root, options.canonicalFeature)
+  const canonicalValidation = options.canonicalFeature
+    ? require("../../spec-engine/src/phases").prepareImplementationValidation(root, options.canonicalFeature, { allowPending: true })
     : null;
   if (canonicalValidation) workflowId = canonicalValidation.spec.workflow_id;
   const description = [
@@ -2423,7 +2529,9 @@ async function synchronizeAfterCopilotChanges(root, changedPaths, workflowId, op
     onValidation({ status: "blocked", reason: "Human approval for evidence and graph refresh was not granted." });
     return 1;
   }
-  const result = (options.syncProject || syncProject)(root, { generateDocumentation: false });
+  const result = (options.syncProject || syncProject)(root, {
+    generateDocumentation: false, ...(canonicalValidation ? { discoverSpecifications: false } : {}),
+  });
   const specDrift = checkSpecDrift(root);
   if (specDrift.drifted) {
     process.stderr.write(`[mcpee] Approved/proposed specifications have source drift: ${specDrift.drifted} item(s). Review with mcpee specs drift; no specification was rewritten.\n`);
@@ -2453,17 +2561,32 @@ async function synchronizeAfterCopilotChanges(root, changedPaths, workflowId, op
     ? `.mcpee/workflows/${workflowId}-${canonicalValidation.tasks_sha256}.json`
     : `.mcpee/workflows/${workflowId}.json`;
   if (canonicalValidation) {
-    const content = `${JSON.stringify(canonicalValidation.spec, null, 2)}\n`;
-    let filename = path.join(root, workflowSpec);
-    if (fs.existsSync(filename) && fs.readFileSync(filename, "utf8") !== content) {
-      const revision = crypto.createHash("sha256").update(JSON.stringify(canonicalValidation)).digest("hex");
-      workflowSpec = `.mcpee/workflows/${workflowId}-${canonicalValidation.tasks_sha256}-${revision}.json`;
-      filename = path.join(root, workflowSpec);
-      if (fs.existsSync(filename) && fs.readFileSync(filename, "utf8") !== content) {
-        throw new Error("Canonical validation workflow revision conflicts with existing work; do not overwrite it.");
-      }
+    const missing = canonicalValidation.spec.evidence.filter(file => !fs.existsSync(path.join(root, file)));
+    if (missing.length) {
+      recordEvent(root, {
+        event_name: "copilot.canonical_validation.blocked",
+        attributes: { feature: options.canonicalFeature, reason: "planned-paths-missing",
+          missing_path_count: missing.length, missing_paths: missing.slice(0, 50) },
+      });
+      process.stderr.write(`[mcpee] Canonical verification was not run: ${missing.length} planned path(s) do not exist yet, so the approved tasks are not fully implemented: ${missing.slice(0, 10).join(", ")}${missing.length > 10 ? ", ..." : ""}\n`);
+      onValidation({ status: "blocked", reason: `Implementation incomplete: ${missing.length} planned path(s) are missing.`,
+        missing_paths: missing, ...(canonicalValidation.pending_checks ? { pending_checks: canonicalValidation.pending_checks } : {}) });
+      return 1;
     }
-    if (!fs.existsSync(filename)) fs.writeFileSync(filename, content, { flag: "wx" });
+    if (!canonicalValidation.spec.steps.length) {
+      if (!canonicalValidation.pending_checks?.length && canonicalValidation.manual_reviews?.length) {
+        require("../../spec-engine/src/verification").recordImplementationVerification(root, options.canonicalFeature, canonicalValidation, null);
+        onValidation({ status: "passed", reason: "All canonical checks have current human review records." });
+        process.stdout.write("[mcpee] Canonical manual reviews verified; product acceptance remains not verified.\n");
+        return 0;
+      }
+      const pending = canonicalValidation.pending_checks.map(check => `${check.id} (${check.kind})`).join(", ");
+      process.stderr.write(`[mcpee] Canonical verification remains pending; no automated checks are runnable: ${pending}.\n`);
+      onValidation({ status: "blocked", reason: "Canonical checks require manual review or an explicit automated workflow.",
+        pending_checks: canonicalValidation.pending_checks });
+      return 1;
+    }
+    workflowSpec = materializeCanonicalWorkflow(root, canonicalValidation);
   }
   if (!fs.existsSync(path.join(root, workflowSpec))) {
     recordEvent(root, {
@@ -2475,24 +2598,29 @@ async function synchronizeAfterCopilotChanges(root, changedPaths, workflowId, op
     return 1;
   }
   const validation = await (options.runWorkflow || runWorkflow)(root, workflowSpec, {
+    ...(canonicalValidation ? { canonicalFeature: options.canonicalFeature } : {}),
     approveStep: canonicalValidation
-      ? async step => canonicalValidation.spec.steps.some(planned =>
-        planned.tool === step.tool && JSON.stringify(planned.args) === JSON.stringify(step.args))
+      ? async step => canonicalValidation.explicit_workflow
+        ? (options.approveStep || approveStep)(step)
+        : canonicalValidation.spec.steps.some(planned =>
+          planned.tool === step.tool && JSON.stringify(planned.args) === JSON.stringify(step.args))
       : options.approveStep || approveStep,
     beforeRun: options.beforeRun || printImpactPreflight,
     expectedWorkflowId: workflowId,
   });
   if (canonicalValidation) {
-    const current = require("../../spec-engine/src/phases").prepareImplementationValidation(root, options.canonicalFeature);
+    const current = require("../../spec-engine/src/phases").prepareImplementationValidation(root, options.canonicalFeature, { allowPending: true });
     if (JSON.stringify(current) !== JSON.stringify(canonicalValidation)) {
       throw new Error("Canonical phases changed during implementation checks; verification cannot be credited.");
     }
     recordEvent(root, { event_name: "copilot.canonical_validation.completed",
-      attributes: { feature: options.canonicalFeature, status: validation.status,
+      attributes: { feature: options.canonicalFeature,
+        status: validation.status === "passed" && current.pending_checks?.length ? "blocked" : validation.status,
+        automated_status: validation.status, pending_check_count: current.pending_checks?.length || 0,
         specification_sha256: current.specification_sha256, plan_sha256: current.plan_sha256,
         tasks_sha256: current.tasks_sha256, evaluation_id: validation.id, report: validation.file,
         scope: "planned-implementation-checks", product_acceptance: "not-verified" } });
-    if (validation.status === "passed") {
+    if (validation.status === "passed" && !current.pending_checks?.length) {
       require("../../spec-engine/src/verification").recordImplementationVerification(
         root, options.canonicalFeature, current, validation.file);
     }
@@ -2514,7 +2642,15 @@ async function synchronizeAfterCopilotChanges(root, changedPaths, workflowId, op
       evaluation_id: validation.id,
       report: validation.file,
       reason: `Routed workflow validation ended with status '${validation.status}'.`,
+      ...(canonicalValidation?.pending_checks ? { pending_checks: canonicalValidation.pending_checks } : {}),
     });
+    return 1;
+  }
+  if (canonicalValidation?.pending_checks?.length) {
+    process.stderr.write(`[mcpee] Automated checks passed, but canonical verification remains pending: ${canonicalValidation.pending_checks.map(check => `${check.id} (${check.kind})`).join(", ")}. Report: ${validation.file}\n`);
+    onValidation({ status: "blocked", evaluation_id: validation.id, report: validation.file,
+      reason: "Automated checks passed; other canonical checks remain pending.",
+      pending_checks: canonicalValidation.pending_checks });
     return 1;
   }
   let documentation;
@@ -2664,7 +2800,9 @@ async function runBrownfield(root, args, { prepared = false } = {}) {
     const code = await runSync(root, { allowSourceFailures: true });
     if (code !== 0) return { status: "blocked", exitCode: code };
     const codeGraph = readCodeGraphState(root);
-    if (codeGraph?.status !== "ready") throw new Error("Brownfield requires a healthy code graph; run mcpee init to resolve the reported tool/index blocker.");
+    if (detectProjectCapabilities(root, readCatalog().catalog).has_code_signals && codeGraph?.status !== "ready") {
+      throw new Error("Brownfield requires a healthy code graph for application sources; run mcpee init to resolve the reported tool/index blocker.");
+    }
   }
   process.stdout.write("[mcpee] Brownfield includes Copilot authoring of functional proposals from code plus related local documentation. This request authorizes source transfer and quota use, not implementation or approval.\n");
   const cancellation = new AbortController();
@@ -2802,6 +2940,7 @@ async function runCopilotCommandInternal(root, args) {
     }
   };
   if (process.connected) process.on("message", onHostMessage);
+  const executionAttemptStartedAt = Date.now();
   try {
     delete process.env.MCPEE_APPROVAL_BROKER_URL;
     delete process.env.MCPEE_APPROVAL_BROKER_TOKEN;
@@ -2827,6 +2966,18 @@ async function runCopilotCommandInternal(root, args) {
         ] : []),
         `Revision SHA-256: ${revision.sha256}. This confirms file replacement, not product approval or execution of risky actions.`,
       ].join("\n")),
+      approveSpecificationRevision: revision => approveMaintenance("specification-revision", [
+        `Replace the proposed specification ${revision.feature} with the validated candidate?`,
+        `Verified archive already created: ${revision.archive_path}.`,
+        `Archive manifest file SHA-256: ${revision.archive_manifest_sha256}; artifact inventory SHA-256: ${revision.archive_sha256}; included files: ${revision.artifacts.length}; changed artifacts SHA-256: ${revision.sha256}.`,
+        `Files preserved: ${revision.artifacts.map(file => file.path).join(", ")}.`,
+        `Decision-history proof: questions=${revision.decision_history.question_count}; questions with prior history=${revision.decision_history.questions_with_history}; prior history entries=${revision.decision_history.history_entries}.`,
+        ...revision.decision_history.files.map(file => `Preserved ${file.path} SHA-256=${file.sha256}.`),
+        ...(revision.invalidated_paths.length ? [
+          `Dependent cases or plan/tasks/verification will be archived and removed from the current bundle: ${revision.invalidated_paths.join(", ")}.`,
+        ] : []),
+        "Confirming allows only proposal replacement using this verified archive; it does not approve the specification or authorize implementation.",
+      ].join("\n")),
       onProgress: (progress) => {
         if (typeof process.send === "function" && process.connected) {
           process.send({ type: "mcpee-authoring-progress", ...progress }, (error) => {
@@ -2841,7 +2992,8 @@ async function runCopilotCommandInternal(root, args) {
     const taskHash = crypto.createHash("sha256").update(task).digest("hex");
     const executionEvent = events.findLast((event) =>
       event.event_name === "copilot.execution.completed" &&
-      event.attributes?.task_sha256 === taskHash);
+      event.attributes?.task_sha256 === taskHash &&
+      Date.parse(event.timestamp) >= executionAttemptStartedAt - 1000);
     const failedExecution = {
       sessionId: typeof executionEvent?.session_id === "string" ? executionEvent.session_id : null,
       changedPaths: Array.isArray(executionEvent?.attributes?.changed_paths)
@@ -2854,6 +3006,9 @@ async function runCopilotCommandInternal(root, args) {
       process.stderr.write(`[mcpee] Copilot failed after changing ${failedExecution.changedPaths.length} project file(s); attempting approved post-change synchronization.\n`);
       try {
         await synchronizeAfterCopilotChanges(root, failedExecution.changedPaths, plan.workflow.id, {
+          ...(plan.specification_workspace?.requested_stage === "implementation" &&
+            plan.specification_workspace.features?.length === 1
+            ? { canonicalFeature: plan.specification_workspace.features[0].id } : {}),
           onValidation: (validation) => {
             postChange = {
               validation,
@@ -2877,6 +3032,7 @@ async function runCopilotCommandInternal(root, args) {
     printRunReport(report);
     if (failedExecution.sessionId) {
       process.stderr.write(`[mcpee] Copilot session ${failedExecution.sessionId} is recorded for explicit recovery. After confirming the prior process has exited, run mcpee run --resume-session ${failedExecution.sessionId} --task "<same request>".\n`);
+      process.stderr.write(`[mcpee] From MCP, use mcpee_run with resume_session_id="${failedExecution.sessionId}" and the exact original task, without feature/through. Do not start a new agent to execute a nested recovery command.\n`);
     }
     throw error;
   } finally {

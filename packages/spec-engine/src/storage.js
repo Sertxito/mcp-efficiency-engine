@@ -31,4 +31,14 @@ function featureDirectories(root) {
   });
 }
 
-module.exports = { SPEC_ROOT, STATES, workspace, featureDirectories };
+function currentBundlePath(root, slug, directory, file) {
+  const escaped = slug.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = new RegExp(`^(?:${SPEC_ROOT}/(?:${STATES.join("|")})|specs)/${escaped}(/.*)?$`).exec(file);
+  if (!match) return file;
+  let rest = match[1] || "";
+  if (/^\/reviews(?:\/|$)/.test(rest) && !fs.existsSync(projectPath(root, `${directory}/reviews`)) &&
+      fs.existsSync(projectPath(root, `${directory}/history`))) rest = rest.replace(/^\/reviews/, "/history");
+  return `${directory}${rest}`;
+}
+
+module.exports = { SPEC_ROOT, STATES, workspace, featureDirectories, currentBundlePath };

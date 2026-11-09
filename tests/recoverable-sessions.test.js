@@ -99,6 +99,24 @@ test("resumable session journal records interruption, accumulates paths and clos
   }), /cannot resume/);
 });
 
+test("unstructured resumes tolerate regenerated context drift but never task or route changes", t => {
+  const root = project(t);
+  const journal = create(root);
+  updateSession(journal, "interrupted");
+  const drifted = { task, ...route, prompt_sha256: hash("regenerated context after partial implementation") };
+  assert.throws(() => acquireSession(root, sessionId, drifted), /differs from the interrupted execution/);
+  assert.throws(() => acquireSession(root, sessionId, { ...drifted, require_context_identity: true }),
+    /differs from the interrupted execution/);
+  assert.throws(() => acquireSession(root, sessionId, { ...drifted, task: "Different task", require_context_identity: false }),
+    /differs from the interrupted execution/);
+  assert.throws(() => acquireSession(root, sessionId, { ...drifted, model: "other-model", require_context_identity: false }),
+    /differs from the interrupted execution/);
+  const lease = acquireSession(root, sessionId, { ...drifted, require_context_identity: false });
+  assert.equal(lease.context_drift, true);
+  assert.equal(lease.record.status, "resuming");
+  lease.release();
+});
+
 test("resumable session refuses changed task or route before acquisition", t => {
   const root = project(t);
   const journal = create(root);

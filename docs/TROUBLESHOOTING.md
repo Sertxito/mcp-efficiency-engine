@@ -125,10 +125,12 @@ runtime as a successful local install. Close processes holding files under
 `.mcpee/tools/python/runtime` before retrying `mcpee init`. Do not delete the
 runtime or disable security software to resolve a lock.
 
-Packaged CLI validation allows 30 seconds for cold starts of MarkItDown,
-Graphify, CodeGraph and Repomix. A three-second validation timeout after a
-successful package install does not prove the tool is broken. Validation still
-reports timeouts and nonzero exit codes as failures.
+Packaged CLI validation allows 120 seconds for cold starts of MarkItDown and
+Graphify's isolated Python environments, and 30 seconds for CodeGraph and
+Repomix. Conversion of PDF/Office documents is separately bounded to three
+minutes. Shorter timeouts may falsely mark installed tools as failed or prevent
+conversion before indexing; validation still reports nonzero exit codes as
+failures.
 
 ## Indexing is slow or interrupted
 
@@ -169,3 +171,18 @@ which the VS Code Copilot harness does not load. From 0.1.27, every skill uses
 rewrites only MCPEE-marked files, reuses workflows already migrated by VS Code
 and removes MCPEE-owned legacy prompts. Skills without the MCPEE marker are
 user-owned and left unchanged.
+# Telemetry lock contention
+
+MCPEE serializes telemetry writes and retention maintenance. Reading the
+event journal filters expired events without compacting it on every read;
+physical retention pruning is scheduled separately. A lock with a live or
+unverifiable owner is never reclaimed just because it is old. A lock held by
+a confirmed dead process can be recovered after a short grace period. If a
+lock still cannot be recovered, inspect the owner and any recovery lock before
+removing anything; do not delete the telemetry journal or an active lock.
+
+An interrupted lifecycle report can be reconciled with `mcpee specs
+reconcile-lifecycle --report-id <uuid> --run-id <uuid>`. MCPEE checks the task
+digest, timestamps, terminal run state and exited child before preserving the
+original report and recording interruption. This does not retry the task or
+assert that implementation or verification completed.

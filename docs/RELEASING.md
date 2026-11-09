@@ -5,12 +5,30 @@
 - Repository: <https://github.com/Sertxito/mcp-efficiency-engine>
 - npm package: `mcp-efficiency-engine`
 - Commands: `mcpee` and `mcp-efficiency-engine`
-- Current candidate: **0.1.46**, following published **0.1.45**
+- Current candidate: **0.1.47**, following published **0.1.46**
 - Runtime: Node.js **>=24**
 
 Keep the normal pre-1.0 version sequence until stable acceptance is complete.
 Do not label the target architecture fully implemented or promote to 1.0.0
 based only on passing automated tests.
+
+The 0.1.47 patch requires explicit specification approval before tasks and
+implementation, supports digest-bound batch approvals, and preserves decision
+history across functional revisions. Pending and deferred decisions are explicit;
+identical repeated answers do not change the register or invalidate approval.
+Out-of-scope source drift can receive an explicit human review before or after
+specification approval, with exact source and bundle binding and continuity
+through evidence-backed documentary relocations. Reviewing drift never approves
+requirements or converts implementation checks into product acceptance.
+
+Canonical verification distinguishes automated checks from recorded human
+reviews, preserves pending checks, and blocks nested MCPEE execution during
+implementation. The release also includes affirmative-intent routing, resumable
+execution and approval progress, Windows hook command repair, isolated tool
+validation and installation reuse, longer Office conversion bounds, and
+abandoned telemetry-lock recovery. Private project evidence, local configuration,
+traces and generated test data are excluded from publication. Project-specific
+recovery is not catalogue-wide acceptance or a stable 1.0 certification.
 
 The 0.1.46 patch asks for confirmation before replacing an existing plan or task
 pair. It archives the previous contents and review approvals under
@@ -30,12 +48,12 @@ Office extraction forces UTF-8 strict output and rejects replacement characters;
 sync retries damaged owned conversions without changing original sources or
 granting authority to earlier proposals.
 
-TR reached 304/304 structurally validated units while preserving prior proposals.
-Its last draft required an audited citation-only repair against an already
+A brownfield acceptance run reached 304/304 structurally validated units while
+preserving prior proposals. Its last draft required an audited citation-only repair against an already
 damaged normalized source. That project-specific result is not catalogue-wide
 acceptance, semantic approval, or proof that model timeouts cannot recur.
 The UTF-8 prevention fix is covered by automated extraction tests and a separate
-read-only converter check; TR's reviewed evidence is not silently regenerated
+read-only converter check; existing reviewed evidence is not silently regenerated
 by publication. Greenfield coverage remains automated, not a new real-model
 certification. This remains a pre-1.0 reliability patch, not a stable 1.0 claim.
 
@@ -93,7 +111,7 @@ The human entry point is `docs/README.md` (or adjacent `MCPEE.md` when preservin
 owner edits), with every specification indexed under `docs/specifications/`.
 Functional specs, independent cases, decisions, plans, tasks and review snapshots
 move together through `proposed`, `reviewed` and `approved` directories. Explicit
-approval or implemented-and-currently-verified behavior establishes authority;
+specification approval establishes authority;
 automatic structural validation does not. Legacy root-workspace migration
 rebases links and preserves existing reviews with audited hashes, without
 inventing authority or atomic decomposition. Older pre-workspace drafts are
@@ -167,8 +185,8 @@ After deployment, verify:
 
 ```sh
 npm view mcp-efficiency-engine version
-npm view mcp-efficiency-engine@0.1.46 bin engines dist.integrity --json
-npx --package=mcp-efficiency-engine@0.1.46 mcpee help
+npm view mcp-efficiency-engine@0.1.47 bin engines dist.integrity --json
+npx --package=mcp-efficiency-engine@0.1.47 mcpee help
 ```
 
 Also check the release workflow and GitHub Pages deployment. A failed

@@ -23,6 +23,7 @@ const DEFAULT_IGNORES = new Set([
   ".github/prompts/mcpee-*", ".github/instructions/mcpee-*",
 ]);
 const MAX_SOURCE_BYTES = 2 * 1024 * 1024;
+const OFFICE_CONVERSION_TIMEOUT_MS = 180_000;
 const TEXT_EXTENSIONS = new Set([
   ".md", ".mdx", ".txt", ".rst", ".adoc", ".js", ".jsx", ".mjs", ".cjs",
   ".ts", ".tsx", ".mts", ".cts", ".vue", ".py", ".pyi", ".go", ".rs", ".java",
@@ -477,7 +478,7 @@ function collectSources(projectRoot, config) {
         if (["docs/README.md", "docs/MCPEE.md"].includes(relative) && isScaffolding(project, relative)) continue;
         if ((relative.startsWith("specs/") || relative.startsWith("docs/specifications/")) && isScaffolding(project, relative) &&
             !canonicalPaths.has(relative) && !entry.isDirectory()) continue;
-        if (/^(?:specs\/[^/]+|docs\/specifications\/(?:proposed|reviewed|approved)\/[^/]+)\/reviews(?:\/|$)/.test(relative)) continue;
+        if (/^(?:specs\/[^/]+|docs\/specifications\/(?:proposed|reviewed|approved)\/[^/]+)\/(?:reviews|history)(?:\/|$)/.test(relative)) continue;
         if (entry.isDirectory()) {
           visit(absolute);
           continue;
@@ -540,7 +541,7 @@ function processSource(projectRoot, source, previous, tools) {
       };
     }
     const result = invokeTool(projectRoot, "markitdown", [absoluteSource], {
-      timeoutMs: 30_000,
+      timeoutMs: OFFICE_CONVERSION_TIMEOUT_MS,
       env: { PYTHONIOENCODING: "utf-8:strict", PYTHONUTF8: "1" },
     });
     if (result.status !== "success") {
@@ -767,7 +768,9 @@ function syncProject(projectRoot, options = {}) {
   atomicProjectWrite(root, ".mcpee/indexes/knowledge-index.json", `${JSON.stringify(lexicalIndex, null, 2)}\n`);
   atomicProjectWrite(root, ".mcpee/state/project.json", `${JSON.stringify(state, null, 2)}\n`);
   const unifiedGraph = buildUnifiedGraph(root);
-  const specifications = discoverBrownfieldSpec(root);
+  const specifications = options.discoverSpecifications === false
+    ? { status: "not-requested", sourceCount: 0 }
+    : discoverBrownfieldSpec(root);
   const graphifyOptions = options.graphify ||
     (Array.isArray(options.tools)
       ? { installed: options.tools.some((tool) => tool.id === "graphify" && tool.invokable) }

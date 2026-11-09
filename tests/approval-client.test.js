@@ -50,6 +50,8 @@ test("host approval preserves denial and fails explicitly on HTTP, shape and ove
   for (const sample of [
     { status: 200, body: '{"approved":false}', result: false },
     { status: 403, body: '{"approved":false}', error: /HTTP 403/ },
+    { status: 503, body: '{"approved":false,"error":"approval-channel-failed","message":"MCP error -32001: request timeout"}', error: /approval channel failed: MCP error -32001: request timeout/ },
+    { status: 503, body: "{", error: /invalid error response/ },
     { status: 200, body: '{"approved":"yes"}', error: /invalid decision/ },
     { status: 200, body: "{", error: /JSON/ },
     { status: 200, body: "x".repeat(65537), error: /exceeds 65536 bytes/ },
