@@ -5,12 +5,28 @@
 - Repository: <https://github.com/Sertxito/mcp-efficiency-engine>
 - npm package: `mcp-efficiency-engine`
 - Commands: `mcpee` and `mcp-efficiency-engine`
-- Current candidate: **0.1.47**, following published **0.1.46**
+- Current candidate: **0.1.48**, following published **0.1.47**
 - Runtime: Node.js **>=24**
 
 Keep the normal pre-1.0 version sequence until stable acceptance is complete.
 Do not label the target architecture fully implemented or promote to 1.0.0
 based only on passing automated tests.
+
+The 0.1.48 patch keeps plan-only requests from advancing into downstream tasks.
+Brownfield stops starting units on SDK quota errors, drains already running
+work and preserves the partial report. Model suggestions require two recorded
+successful sessions in the same domain and a runtime-advertised alternative;
+they never silently change models or prove that a shared quota permits retrying.
+Projects can pin the SDK account with `host.githubAccount`: credentials are read
+in memory from GitHub CLI, stored SDK authentication is bypassed, and a missing
+credential fails without falling back to another account. VS Code Chat and the
+SDK must not be assumed to share an account or quota.
+
+Plan-only requests preserve leading no-deployment/no-commit constraints and
+validate only upstream phases, not downstream tasks. The installed operating
+contract and MCP tool guidance use `task` alone for single-phase requests;
+`feature`/`through` remain reserved for explicitly requested lifecycle chaining.
+Updates refresh this generated contract without replacing owner instructions.
 
 The 0.1.47 patch requires explicit specification approval before tasks and
 implementation, supports digest-bound batch approvals, and preserves decision
@@ -185,8 +201,8 @@ After deployment, verify:
 
 ```sh
 npm view mcp-efficiency-engine version
-npm view mcp-efficiency-engine@0.1.47 bin engines dist.integrity --json
-npx --package=mcp-efficiency-engine@0.1.47 mcpee help
+npm view mcp-efficiency-engine@0.1.48 bin engines dist.integrity --json
+npx --package=mcp-efficiency-engine@0.1.48 mcpee help
 ```
 
 Also check the release workflow and GitHub Pages deployment. A failed

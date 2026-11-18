@@ -113,6 +113,23 @@ after(() => {
   for (const root of temporaryRoots) fs.rmSync(root, { recursive: true, force: true });
 });
 
+test("installation and refresh deliver single-phase guidance without replacing owner instructions", () => {
+  const root = temporaryProject();
+  const ownerPath = path.join(root, ".github/copilot-instructions.md");
+  fs.mkdirSync(path.dirname(ownerPath), { recursive: true });
+  fs.writeFileSync(ownerPath, "Owner instructions remain authoritative.\n");
+  initializeProject(root);
+  const contractPath = path.join(root, ".github/instructions/mcpee-catalog.instructions.md");
+  const contract = fs.readFileSync(contractPath, "utf8");
+  assert.match(contract, /pass `task` only/);
+  assert.match(contract, /Never set\n`through=tasks` merely to generate a plan/);
+  assert.match(contract, /tasks does not block planning; implementation still requires/);
+  fs.writeFileSync(contractPath, contract.replace(/Preserve the requested phase[\s\S]*?(?=Git is optional)/, ""));
+  initializeProject(root);
+  assert.equal(fs.readFileSync(contractPath, "utf8"), contract);
+  assert.equal(fs.readFileSync(ownerPath, "utf8"), "Owner instructions remain authoritative.\n");
+});
+
 test("init creates the project structure and preserves existing user files", () => {
   const root = temporaryProject();
   const instructions = path.join(root, ".github/copilot-instructions.md");

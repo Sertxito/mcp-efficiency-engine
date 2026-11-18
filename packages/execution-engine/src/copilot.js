@@ -3,6 +3,8 @@
 const path = require("node:path");
 const fs = require("node:fs");
 const crypto = require("node:crypto");
+const { execFileSync } = require("node:child_process");
+const { parseConfig } = require("../../source-engine/src/sync");
 const { assessCopilotToolCall } = require("../../core/src/approval");
 const { recordEvent, redact, withTelemetryContext } = require("../../core/src/telemetry");
 const { analyzeImpacts } = require("../../knowledge-engine/src/unified");
@@ -485,6 +487,23 @@ function createPrompt(task, plan, contextPackage = null, conversationContext = [
   return sections.join("\n\n");
 }
 
+function createCopilotClientOptions(projectRoot, options = {}) {
+  const clientOptions = { workingDirectory: projectRoot };
+  const { githubAccount } = parseConfig(projectRoot);
+  if (!githubAccount) return clientOptions;
+  let token;
+  try {
+    token = (options.execFileSync || execFileSync)("gh", [
+      "auth", "token", "--hostname", "github.com", "--user", githubAccount,
+    ], { encoding: "utf8", timeout: 10_000, maxBuffer: 64 * 1024,
+      windowsHide: true, stdio: ["ignore", "pipe", "pipe"] }).trim();
+  } catch {
+    throw new Error(`Cannot read the configured GitHub account credential. Sign in with gh for host.githubAccount (${githubAccount}) before running MCPEE; no fallback account was used.`);
+  }
+  if (!token) throw new Error("The configured GitHub account credential is empty; no fallback account was used.");
+  return { ...clientOptions, gitHubToken: token, useLoggedInUser: false };
+}
+
 async function runCopilotTask(projectRoot, task, plan, options = {}) {
   if (options.approved !== true) {
     throw new Error("Running Copilot sends the task and selected routing context to GitHub Copilot; explicit human approval is required.");
@@ -572,9 +591,10 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
   return withTelemetryContext({ trace_id: traceId }, async () => {
     const { CopilotClient } = require("../runtime/copilot-sdk.cjs");
     const recoverable = require("./recoverable-sessions");
+    const clientOptions = createCopilotClientOptions(root, options);
     const client = options.clientFactory
-      ? options.clientFactory({ workingDirectory: root })
-      : new CopilotClient({ workingDirectory: root });
+      ? options.clientFactory(clientOptions)
+      : new CopilotClient(clientOptions);
     const resumeLease = options.resumeSessionId
       ? recoverable.acquireSession(root, options.resumeSessionId, {
         task, workflow_id: plan.workflow.id, agent_id: plan.agent.id,
@@ -596,6 +616,9 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
     let authoringEvidence = null;
     let executionStartedEvent;
     let sessionRecord = resumeLease || null;
+    let resolvedModel = model === "auto" ? null : model;
+    let availableModels = [];
+    let sessionQuotaError = null;
     const deadline = createExecutionDeadline();
     const approvalOptions = { ...options };
     let rejectApprovalFailure;
@@ -741,6 +764,15 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
         session.on((sdkEvent) => {
           const eventType = typeof sdkEvent?.type === "string" ? sdkEvent.type : "event";
           const data = sdkEvent?.data && typeof sdkEvent.data === "object" ? sdkEvent.data : {};
+          if (eventType === "session.auto_mode_resolved") {
+            if (typeof data.chosenModel === "string") resolvedModel = data.chosenModel;
+            if (Array.isArray(data.availableModels)) {
+              availableModels = data.availableModels.filter(item => typeof item === "string");
+            }
+          }
+          if (eventType === "session.error" && data.errorType === "quota" && typeof data.message === "string") {
+            sessionQuotaError = data.message;
+          }
           const attributes = {};
           const sdkToolCallId = data.toolCallId || data.tool_call_id ||
             sdkEvent?.toolCallId || sdkEvent?.tool_call_id || null;
@@ -1061,6 +1093,7 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
           ? `${specification.path}\n\n${specification.content}\nSource-bound validation passed. Next: ${specification.lifecycle.next}. ${options.proposalOnly ? "Onboarding preserves proposed state; no review or approval was granted." : "Phase progression is automatic when no decisions remain."} Deferred/out-of-scope sections: ${specification.deferredSections}. Open decisions: ${specification.unresolvedDecisions}.${specification.revision ? ` Previous bundle archived and verified at ${specification.revision} (manifest SHA-256 ${specification.revisionManifestSha256}); review and approval must be repeated.` : ""}\nAtomic use-case documents: ${JSON.stringify(specification.casePaths)}\nAuthoring evidence: ${authoringEvidence}`
           : phase ? `${phase.paths.join("\n")}\nNext: ${phase.status.next}. Machine validation is not implementation or product acceptance.\nAuthoring evidence: ${authoringEvidence}` : content,
         changedPaths: [...changedPaths].sort(),
+        resolvedModel,
         ...(authoringEvidence ? { authoringEvidence } : {}),
         ...(phase ? { phase: { stage: phaseAuthoring.stage, ...phase } } : {}),
         ...(specification ? { specification: {
@@ -1078,6 +1111,10 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
         } } : {}),
       };
     } catch (error) {
+      if (sessionQuotaError && error.message === sessionQuotaError) {
+        error.mcpeeModelFailure = { kind: "quota", requested: model, selected: resolvedModel,
+          available_models: availableModels };
+      }
       error.sessionId = session?.sessionId || null;
       error.authoringEvidence = authoringEvidence;
       if (sessionRecord) recoverable.updateSession(sessionRecord, "interrupted", {
@@ -1121,6 +1158,7 @@ async function runCopilotTask(projectRoot, task, plan, options = {}) {
 
 module.exports = {
   collectContextFiles,
+  createCopilotClientOptions,
   createPrompt,
   createCopilotHooks,
   createPermissionRequestHandler,

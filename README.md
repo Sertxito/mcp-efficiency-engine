@@ -15,7 +15,7 @@ action, automatic validation after changes and a full local audit trail.
   Existing user files are never overwritten.
 
 npm package: **`mcp-efficiency-engine`** · commands: `mcpee` (or
-`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.47)
+`mcp-efficiency-engine`) · license: MIT · status: pre-1.0 (0.1.48)
 
 ## Requirements
 
@@ -33,12 +33,12 @@ Full details: [Getting started → Requirements](docs/GETTING-STARTED.md#require
 **1. Install**
 
 ```sh
-npm install --global mcp-efficiency-engine@0.1.47
+npm install --global mcp-efficiency-engine@0.1.48
 ```
 
 If npm blocks the native `koffi` dependency, add `--allow-scripts=koffi`
 (only that dependency is allowed). Prefer no global install? Use
-`npx --package=mcp-efficiency-engine@0.1.47 mcpee init --project <path>`.
+`npx --package=mcp-efficiency-engine@0.1.48 mcpee init --project <path>`.
 
 **2. Initialize your project**
 

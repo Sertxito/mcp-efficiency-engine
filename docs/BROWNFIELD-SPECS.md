@@ -122,8 +122,10 @@ High-impact technical decisions and open phase questions block the plan/tasks
 handoff visibly (`clarify-phase`); reconcile the documented decision or explicitly
 review its exact digest. Manual and migrated drafts retain their explicit review
 policy; `specs approve` records explicit requirement approval for all workspaces.
-Planning/execution requests routed to a canonical feature recheck the required
-approval before creating an SDK session. With multiple canonical features,
+Planning/execution requests routed to a canonical feature recheck only the required
+upstream approvals before creating an SDK session. Planning does not validate or
+approve downstream tasks; pending task review still blocks implementation.
+With multiple canonical features,
 name the feature. Ordinary review/status commands do not call a model.
 For an automatically validated feature, request "Create plan for `<feature>`",
 then "Create tasks for `<feature>`" through the task tool. `plan create` is a
@@ -247,7 +249,15 @@ structure and provenance but does not mark them reviewed or approved in this
 onboarding flow. Contradictions and missing intent remain open questions.
 The batch persists progress under `.mcpee/reports/brownfield/`; a failed scope
 records its error, SDK session and saved candidate directory, then independent
-scopes continue. Successful scopes keep their proposals. A later request reuses current verified artifacts and
+scopes continue for scope-specific failures. An SDK quota error stops scheduling
+new scopes; already active scopes finish and their results are preserved.
+The partial report records the selected model and the alternatives advertised by
+the runtime. It searches the last 100 reports and suggests an advertised
+alternative only after at least two different recorded successful sessions in
+the same domain; this is historical
+evidence, not a guarantee of current availability, cost or semantic quality.
+It never changes models without an explicit user choice. If no qualifying
+alternative exists, it reports that rather than guessing. Successful scopes keep their proposals. A later request reuses current verified artifacts and
 continues missing scopes; it never silently overwrites edits or spends quota
 again for already current scopes. A project lock prevents duplicate batches.
 Final source-bound reconciliation is required before reporting completion.
@@ -273,7 +283,9 @@ use `mcpee brownfield --concurrency 4 --last-domain reporting` to process other
 domains first; deferred domains start only after all other workers have drained.
 There is no automatic retry loop. Per-session deadlines and bounded repairs
 remain enforced. An extraction/validation failure, timeout or source conversion
-failure cannot stop eligible independent scopes. Host cancellation, broken
+failure cannot stop eligible independent scopes. A provider quota failure is
+shared or unknown in scope, so it stops new work instead of retrying every unit.
+Host cancellation, broken
 shared infrastructure or inability to persist evidence still stops safely.
 Any failed scope, blocked source or incomplete reconciliation produces a
 `partial` report and nonzero exit, never complete or approved status.
@@ -381,7 +393,9 @@ Intent comes only from affirmative wording: quoted text (including straight
 single quotes, without treating apostrophes in contractions as quote delimiters)
 and negated clauses
 ("no generes tareas", "do not implement", "sin…", "ni…") never select a
-phase, nominal mentions such as "generación de tareas" are not requests, and
+phase. Leading action constraints such as "sin desplegar ni comitear genera un
+plan" or "without deploying or committing generate a plan" do not erase the
+following affirmative request. Nominal mentions such as "generación de tareas" are not requests, and
 artifact plus authoring verb must appear in the same sentence. A task declared
 "solo lectura" / "read-only" before a work request is routed as a review and
 never starts specification, plan, task or implementation authoring. A capability

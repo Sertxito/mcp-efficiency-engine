@@ -1112,6 +1112,15 @@ participant, and do not repeat the task's implementation directly in Chat after
 MCPEE returns. If \`mcpee_run\` is unavailable, explain that the MCPEE execution
 path is unavailable instead of silently bypassing its routing and approvals.
 
+Preserve the requested phase and all constraints in \`task\`. For a single-phase
+request (specification, plan, tasks or clarification), pass \`task\` only and name
+the canonical feature in its text; omit \`feature\` and \`through\`. Never set
+\`through=tasks\` merely to generate a plan. Use \`feature\`/\`through\` only for
+an explicitly requested multi-phase lifecycle. Pending review of downstream
+tasks does not block planning; implementation still requires current upstream
+reviews and explicit specification approval. A plan revision retains its
+confirmation and history requirements; planning never approves tasks.
+
 Git is optional for documentation, specifications and architecture proposals.
 Without a Git worktree, review the actual generated files and report diff/status
 as not applicable; do not initialize Git or block document creation. Projects

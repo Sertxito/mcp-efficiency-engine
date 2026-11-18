@@ -2795,7 +2795,7 @@ async function runBrownfield(root, args, { prepared = false } = {}) {
   const concurrency = requestedConcurrency === "auto" ? "auto" : Number(requestedConcurrency);
   const lastDomains = optionValue(args, "--last-domain", "").split(",").filter(Boolean);
   require("../../spec-engine/src/brownfield-authoring").brownfieldConcurrency(0, concurrency);
-  process.stdout.write(`[mcpee] Large brownfield discovery can take hours; ${concurrency === "auto" ? "automatic parallelism, up to 10" : concurrency} concurrent authoring session(s). Scope failures retain evidence and the remaining scopes continue. A partial batch is not complete. Progress is reported every 30 seconds; activity alone does not prove progress.\n`);
+  process.stdout.write(`[mcpee] Large brownfield discovery can take hours; ${concurrency === "auto" ? "automatic parallelism, up to 10" : concurrency} concurrent authoring session(s). Scope failures retain evidence; quota failures stop new scopes. A partial batch is not complete. Progress is reported every 30 seconds; activity alone does not prove progress.\n`);
   if (!prepared) {
     const code = await runSync(root, { allowSourceFailures: true });
     if (code !== 0) return { status: "blocked", exitCode: code };
@@ -2818,7 +2818,7 @@ async function runBrownfield(root, args, { prepared = false } = {}) {
       signal: cancellation.signal,
       onProgress: progress => {
         process.stdout.write(`[mcpee] Brownfield ${progress.event}: ${progress.scope}; completed=${progress.completed}/${progress.total} failed=${progress.failed} active=${progress.active} pending=${progress.pending} concurrency=${progress.concurrency} elapsed=${Math.round(progress.elapsed_ms / 1000)}s; last-activity=${progress.last_activity_at}; report=${progress.report}\n`);
-        if (progress.error) process.stderr.write(`[mcpee] Scope ${progress.scope}: ${progress.error}; evidence saved, continuing independent scopes.\n`);
+        if (progress.error) process.stderr.write(`[mcpee] Scope ${progress.scope}: ${progress.error}; evidence saved. See batch status for continuation.\n`);
         if (process.connected && typeof process.send === "function") {
           process.send({ type: "mcpee-authoring-progress", stage: "brownfield", status: "authoring", attempt: 1,
             completed: progress.completed, total: progress.total, scope: progress.scope,

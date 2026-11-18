@@ -116,6 +116,33 @@ function brownfieldConcurrency(pending, requested = "auto") {
   return requested;
 }
 
+function modelAdvice(root, failedEntry, currentReport) {
+  const failure = failedEntry.model_failure;
+  const available = new Set((failure.available_models || []).filter(model =>
+    model !== "auto" && model !== failure.selected));
+  if (!available.size) return [];
+  const counts = new Map(), seen = new Set();
+  const directory = projectPath(root, ".mcpee/reports/brownfield");
+  const filenames = fs.readdirSync(directory).filter(name => /^[a-f0-9-]+\.json$/i.test(name))
+    .map(name => ({ name, mtime: fs.statSync(path.join(directory, name)).mtimeMs }))
+    .sort((a, b) => b.mtime - a.mtime).slice(0, 100);
+  for (const { name } of filenames) {
+    const report = name === `${currentReport.id}.json` ? currentReport
+      : JSON.parse(fs.readFileSync(path.join(directory, name), "utf8"));
+    if (report.generated_by !== "mcpee" || !Array.isArray(report.scopes)) continue;
+    for (const scope of report.scopes) {
+      if (scope.status !== "authored" || scope.domain !== failedEntry.domain ||
+          !scope.session_id || seen.has(scope.session_id) || !available.has(scope.model_used)) continue;
+      seen.add(scope.session_id);
+      const evidence = counts.get(scope.model_used) || [];
+      evidence.push({ report: `.mcpee/reports/brownfield/${name}`, scope: scope.id, session_id: scope.session_id });
+      counts.set(scope.model_used, evidence);
+    }
+  }
+  return [...counts].filter(([, evidence]) => evidence.length >= 2)
+    .map(([model, evidence]) => ({ model, successful_scopes: evidence.length, evidence }));
+}
+
 function authorBrownfield(root, options = {}) {
   return withSpecificationScopePlanning(root, () => authorBrownfieldBatch(root, options));
 }
@@ -134,6 +161,7 @@ async function authorBrownfieldBatch(root, options = {}) {
   const signal = options.signal ? AbortSignal.any([options.signal, shutdown.signal]) : shutdown.signal;
   let heartbeat;
   let heartbeatError;
+  let quotaBlocked = null;
   const id = crypto.randomUUID();
   const reportPath = `.mcpee/reports/brownfield/${id}.json`;
   const record = {
@@ -263,11 +291,16 @@ async function authorBrownfieldBatch(root, options = {}) {
           if (!published || !result?.specification) {
             throw new Error(`Scope ${scope.id} did not publish source-bound functional specifications; model commentary is not completion.`);
           }
-          Object.assign(entry, published, { status: "authored", session_id: result.sessionId || null });
+          Object.assign(entry, published, { status: "authored", session_id: result.sessionId || null,
+            model_used: result.resolvedModel || null });
         }
       } catch (error) {
         Object.assign(entry, { status: signal.aborted ? "cancelled" : "failed", error: error.message,
           session_id: error.sessionId || null, authoring_evidence: error.authoringEvidence || null });
+        if (!signal.aborted && error.mcpeeModelFailure?.kind === "quota") {
+          entry.model_failure = error.mcpeeModelFailure;
+          quotaBlocked ||= entry;
+        }
       }
       entry.completed_at = new Date().toISOString();
       save();
@@ -278,7 +311,7 @@ async function authorBrownfieldBatch(root, options = {}) {
       let next = 0;
       const worker = async () => {
         try {
-          while (next < group.length) {
+          while (next < group.length && !quotaBlocked) {
             signal.throwIfAborted();
             await processScope(group[next++]);
           }
@@ -292,8 +325,18 @@ async function authorBrownfieldBatch(root, options = {}) {
       if (failure) throw failure.reason;
     };
     await runGroup(pending.filter(scope => !lastDomains.includes(scope.domain)));
-    await runGroup(pending.filter(scope => lastDomains.includes(scope.domain)));
+    if (!quotaBlocked) await runGroup(pending.filter(scope => lastDomains.includes(scope.domain)));
     if (heartbeatError) throw heartbeatError;
+    if (quotaBlocked) {
+      record.model_advice = modelAdvice(root, quotaBlocked, record);
+      record.status = "partial";
+      record.reason = `Model quota blocked ${quotaBlocked.id}; no further scopes were started. ` +
+        (record.model_advice.length
+          ? `Previously successful available models require explicit selection: ${record.model_advice.map(item => item.model).join(", ")}. Check availability and cost before retrying with --model.`
+          : "No available alternative has two recorded successes in this domain among the last 100 reports; inspect model availability before retrying.");
+      record.phases.push({ phase: "functional-proposals", status: record.status });
+      return { ...record, report: reportPath, exitCode: 1 };
+    }
     const reconciliation = buildSpecificationReconciliation(root);
     record.reconciliation = { path: reconciliation.path, status: reconciliation.status, summary: reconciliation.summary };
     const incomplete = planning.blocked.length || record.summary.failed ||

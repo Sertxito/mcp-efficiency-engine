@@ -148,7 +148,8 @@ function routeTask(projectRoot, task, options = {}) {
     : "review";
   if (["plan", "tasks", "implementation"].includes(requestedStage)) {
     activeFeatures = activeFeatures.map(feature => feature.advancement === "validated"
-      ? require("../../spec-engine/src/lifecycle").advanceValidatedStages(projectRoot, feature.id) : feature);
+      ? require("../../spec-engine/src/lifecycle").advanceValidatedStages(projectRoot, feature.id,
+        { through: { plan: "specification", tasks: "plan", implementation: "tasks" }[requestedStage] }) : feature);
   }
   if (specificationTask) {
     const specificationRoute = workflowScores.find((route) => route.workflow === "refine-backlog") ||

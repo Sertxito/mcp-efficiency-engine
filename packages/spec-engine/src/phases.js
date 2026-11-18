@@ -421,7 +421,7 @@ function publishPhase(root, slug, stage, response, { confirmSha256 } = {}) {
     }
     throw error;
   }
-  const status = require("./lifecycle").advanceValidatedStages(root, slug);
+  const status = require("./lifecycle").advanceValidatedStages(root, slug, { through: stage });
   return { paths: [...outputs.map(file => file.path), ...(revision?.invalidated_paths || []),
     ...(revisionPath ? [revisionPath] : [])], status, ...(revisionPath ? { revision: revisionPath } : {}) };
 }
