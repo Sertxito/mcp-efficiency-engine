@@ -141,19 +141,20 @@ test("redaction remains stable across nested quoted tool output and persisted va
 test("OpenTelemetry SDK materializes correlated OTLP spans locally without prompt content", async t => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "mcpee-otel-"));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const timestamp = Date.now() - 10_000;
   const start = recordEvent(root, {
-    event_name: "context.layer.started", trace_id: "test-request", timestamp: "2026-10-15T12:00:00Z",
+    event_name: "context.layer.started", trace_id: "test-request", timestamp: new Date(timestamp).toISOString(),
     attributes: { layer: "memory" }, payload: { task: "PRIVATE_PROMPT" },
   });
   const finish = recordEvent(root, {
     event_name: "context.layer.completed", trace_id: "test-request", parent_id: start.event_id,
-    timestamp: "2026-10-15T12:00:01Z",
+    timestamp: new Date(timestamp + 1000).toISOString(),
     attributes: { layer: "memory", outcome: "failure", consulted: true, selected_count: 0 },
     payload: { error: "PRIVATE_ERROR" },
   });
   recordEvent(root, {
     event_name: "copilot.sdk.assistant.usage", trace_id: "test-request",
-    timestamp: "2026-10-15T12:00:02Z", parent_id: start.event_id,
+    timestamp: new Date(timestamp + 2000).toISOString(), parent_id: start.event_id,
     attributes: { input_tokens: 42, output_tokens: 7, model: "test-model" },
     payload: { content: "PRIVATE_RESPONSE" },
   });
