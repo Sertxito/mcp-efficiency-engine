@@ -99,7 +99,30 @@ bundles the pinned upstream JavaScript with its required JSON-RPC code, includes
 third-party notices and build provenance, and avoids installing the SDK's
 vulnerable Zod dependency. Native runtime assets remain npm-selected for the
 consumer's operating system and architecture. Direct terminal runs
-use an interactive terminal prompt for approvals. Options:
+use an interactive terminal prompt for approvals.
+
+The SDK has its own authentication session; it does not inherit the account
+selected in VS Code Chat. Its stored OAuth account can also take precedence
+over the active `gh` account. To pin a project to an already authenticated
+GitHub CLI account, set the non-secret login in `mcpee.config.yml`:
+
+```yaml
+host:
+  provider: github-copilot
+  githubAccount: your-github-login
+```
+
+MCPEE reads that account's credential from `gh auth token --hostname github.com
+--user <login>` in memory and disables the SDK's stored-account fallback.
+No token is written to project files or telemetry. Missing credentials fail
+before starting the SDK; MCPEE never silently substitutes another account.
+Without this setting, the SDK's existing authentication behavior is preserved.
+The setting is read for each new execution, including brownfield scopes.
+Restart the MCP server after updating MCPEE's code, not to switch models.
+A provider HTTP 402 describes the SDK connection's quota; it is not evidence
+that the separate VS Code Chat account has exhausted its allowance.
+
+Execution options:
 
 | Option | Effect |
 |---|---|
@@ -391,6 +414,10 @@ specification, then authors only missing plan/tasks phases and, when explicitly
 requested, implements and verifies. Existing validated phases are not
 regenerated. The same procedure works for document-led greenfield and
 evidence-led brownfield sources.
+
+For a plan-only request, pass `task` only and name the feature in its text;
+omit `feature`/`through`. A plan-only task combined with a tasks/verification
+endpoint is rejected with this correction, not treated as a task-review blocker.
 
 The original constraints accompany every phase. Each phase has its own normal
 bounded executor and approval policy; the chain has at most four phase

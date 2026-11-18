@@ -6,6 +6,8 @@ const NEGATION = /\b(?:no|not|never|nunca|sin|ni|nor|without|avoid\w*|evita\w*|d
 const QUOTED = /«[^»]*»|“[^”]*”|‘[^’]*’|"[^"\n]*"|`[^`\n]*`|(?<![\p{L}\p{N}_])'[^\n]*?'(?![\p{L}\p{N}_])/gu;
 const READ_ONLY = /\b(?:solo\s+lectura|solo-lectura|read[\s-]?only|readonly)\b/;
 const WORK_REQUEST = new RegExp(String.raw`\b(?:${AUTHORING_VERB}|implement\w*|programa\w*|build|fix|change|edit|modifica\w*|cambia\w*)\b`);
+// An infinitive/gerund constraint can precede a separate imperative without punctuation.
+const PREPOSED_CONSTRAINT = new RegExp(String.raw`\b(?:sin\s+[a-z]+(?:ar|er|ir)(?:\s+(?:ni|y|o)\s+[a-z]+(?:ar|er|ir))*|without\s+[a-z]+ing(?:\s+(?:nor|and|or)\s+[a-z]+ing)*)\s+(?=(?![a-z]*(?:ar|er|ir)\b)(?:${AUTHORING_VERB}|implement|implementa|programa|build|fix|change|edit|modifica|cambia)\b)`, "g");
 
 function normalizeTask(task) {
   return String(task).normalize("NFKD").replace(/\p{Diacritic}/gu, "").toLowerCase();
@@ -13,7 +15,7 @@ function normalizeTask(task) {
 
 // Affirmative sentences only: quotations and negated clauses never express what the user asks for.
 function affirmativeSentences(task) {
-  return normalizeTask(task).replace(QUOTED, " ").replace(NEGATION, " ")
+  return normalizeTask(task).replace(QUOTED, " ").replace(PREPOSED_CONSTRAINT, " ").replace(NEGATION, " ")
     .split(/[.;:!?\n]+/).map(sentence => sentence.replace(/\s+/g, " ").trim()).filter(Boolean);
 }
 

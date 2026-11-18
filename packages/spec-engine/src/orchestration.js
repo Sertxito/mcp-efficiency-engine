@@ -6,6 +6,7 @@ const { renameAtomicSync } = require("../../core/src/atomic-file");
 const { projectPath, ensureDirectory } = require("./brownfield");
 const { workspace, featureStatus } = require("./lifecycle");
 const { recordEvent } = require("../../core/src/telemetry");
+const { affirmativeText, requestsArtifact } = require("./intent");
 
 async function runSpecificationLifecycle(root, { slug, task, through, execute }) {
   if (!["tasks", "verification"].includes(through) || typeof task !== "string" || !task.trim() ||
@@ -31,6 +32,11 @@ async function runSpecificationLifecycle(root, { slug, task, through, execute })
   save();
   const seen = new Set();
   try {
+    if (requestsArtifact(task, /\bplan\b/) &&
+        !requestsArtifact(task, /\b(?:tasks|tareas)\b/) &&
+        !/\b(?:implement\w*|programa\w*|build|verify|verifica\w*)\b/.test(affirmativeText(task))) {
+      throw new Error("A plan-only request cannot run through tasks or verification. Use mcpee_run with task only, naming the feature in the task, without feature/through; CLI: mcpee run --task \"Create plan for <feature>\".");
+    }
     for (let count = 0; count < 4; count++) {
       const directory = workspace(slug, root);
       const present = fs.existsSync(projectPath(root, `${directory}/manifest.json`));

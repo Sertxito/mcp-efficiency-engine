@@ -287,12 +287,13 @@ function canonicalArtifacts(root) {
     });
 }
 
-function advanceValidatedStages(root, slug) {
+function advanceValidatedStages(root, slug, { through = "tasks" } = {}) {
+  if (!stages.includes(through)) throw new Error("Validation endpoint must be specification, plan or tasks.");
   const { lifecycle } = readFeature(root, slug);
   if (lifecycle.advancement !== "validated") return featureStatus(root, slug);
   let status = featureStatus(root, slug);
   if (status.drift.length || status.pending_decisions || status.deferred_sections) return status;
-  for (const stage of stages) {
+  for (const stage of stages.slice(0, stages.indexOf(through) + 1)) {
     const { directory, manifest } = readFeature(root, slug);
     if (status.reviews[stage].approved) continue;
     if (stage === "tasks" && !status.specification_approved) break;

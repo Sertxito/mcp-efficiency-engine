@@ -97,6 +97,15 @@ function parseConfig(projectRoot) {
       continue;
     }
     const keyMatch = line.match(/^\s{2}([A-Za-z][\w-]*):\s*(.*?)\s*$/);
+    if (section === "host" && keyMatch?.[1] === "githubAccount") {
+      if (config.githubAccount !== undefined) throw new Error("Duplicate host.githubAccount in mcpee.config.yml.");
+      const account = keyMatch[2].replace(/\s+#.*$/, "").replace(/^(['"])(.*)\1$/, "$2");
+      if (!/^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i.test(account)) {
+        throw new Error("host.githubAccount must be a GitHub account login in mcpee.config.yml.");
+      }
+      config.githubAccount = account;
+      continue;
+    }
     if (section === "knowledge" && keyMatch && !keyMatch[2]) {
       listKey = keyMatch[1];
       continue;
@@ -115,6 +124,7 @@ function parseConfig(projectRoot) {
   return {
     sourceRoots: config.sourceRoots.length ? config.sourceRoots : defaults.sourceRoots,
     ignore: [...DEFAULT_IGNORES, ...config.ignore],
+    ...(config.githubAccount ? { githubAccount: config.githubAccount } : {}),
   };
 }
 

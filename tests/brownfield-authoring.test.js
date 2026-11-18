@@ -301,6 +301,76 @@ test("failed model authoring leaves evidence and continues later scopes; retry s
   assert.equal(result.scopes[0].status, "preserved-current");
 });
 
+test("quota failure stops new scopes, drains active work and suggests only observed available alternatives", async t => {
+  const root = fixture(t), planning = buildSpecificationScopes(root);
+  assert.ok(planning.scopes.length >= 3);
+  const reportDirectory = path.join(root, ".mcpee/reports/brownfield");
+  fs.mkdirSync(reportDirectory, { recursive: true });
+  const historyId = "11111111-1111-4111-8111-111111111111";
+  fs.writeFileSync(path.join(reportDirectory, `${historyId}.json`), JSON.stringify({
+    generated_by: "mcpee", id: historyId,
+    scopes: [
+      { status: "authored", domain: planning.scopes[0].domain, id: "prior-1", session_id: "one", model_used: "alternative" },
+      { status: "authored", domain: planning.scopes[0].domain, id: "prior-2", session_id: "two", model_used: "alternative" },
+      { status: "authored", domain: planning.scopes[0].domain, id: "prior-3", session_id: "three", model_used: "unavailable" },
+      { status: "authored", domain: planning.scopes[0].domain, id: "prior-4", session_id: "four", model_used: "unproven" },
+      { status: "authored", domain: "other-domain", id: "prior-5", session_id: "five", model_used: "unproven" },
+    ],
+  }));
+  let release, bothStarted;
+  const gate = new Promise(resolve => { release = resolve; });
+  const started = new Promise(resolve => { bothStarted = resolve; });
+  const called = [], publish = executor(root, []);
+  const running = authorBrownfield(root, {
+    authorized: true, concurrency: 2,
+    execute: async (scope, plan) => {
+      called.push(scope.id);
+      if (called.length === 2) bothStarted();
+      await gate;
+      if (scope.id === planning.scopes[0].id) {
+        const error = new Error("Quota exceeded");
+        error.mcpeeModelFailure = { kind: "quota", requested: "auto", selected: "original",
+          available_models: ["original", "alternative", "unproven"] };
+        throw error;
+      }
+      return publish(scope, plan);
+    },
+  });
+  await started;
+  release();
+  const result = await running;
+  assert.equal(result.status, "partial");
+  assert.equal(called.length, 2);
+  assert.equal(result.summary.pending, planning.scopes.length - 2);
+  assert.equal(result.summary.failed, 1);
+  assert.equal(result.summary.completed, 1);
+  assert.deepEqual(result.model_advice.map(item => [item.model, item.successful_scopes]), [["alternative", 2]]);
+  assert.match(result.reason, /explicit selection/);
+  const persisted = JSON.parse(fs.readFileSync(path.join(root, result.report), "utf8"));
+  assert.equal(persisted.status, "partial");
+  assert.equal(persisted.summary.active, 0);
+  assert.equal(persisted.model_advice[0].evidence.length, 2);
+});
+
+test("quota failure with no verified alternative stops without proposing a model", async t => {
+  const root = fixture(t), calls = [];
+  const result = await authorBrownfield(root, {
+    authorized: true, concurrency: 1,
+    execute: async scope => {
+      calls.push(scope.id);
+      const error = new Error("Quota exceeded");
+      error.mcpeeModelFailure = { kind: "quota", requested: "auto", selected: "original",
+        available_models: ["original"] };
+      throw error;
+    },
+  });
+  assert.equal(calls.length, 1);
+  assert.equal(result.status, "partial");
+  assert.deepEqual(result.model_advice, []);
+  assert.match(result.reason, /No available alternative/);
+  assert.ok(result.summary.pending > 0);
+});
+
 test("changed or edited authored evidence blocks reuse rather than silently accepting or overwriting it", async t => {
   const root = fixture(t);
   await authorBrownfield(root, { authorized: true, execute: executor(root, []) });

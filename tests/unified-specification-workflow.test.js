@@ -785,6 +785,146 @@ test("canonical phase intent overrides incidental specification or ingestion key
   }
 });
 
+test("SDK quota events preserve the actual selected and available models", async () => {
+  const { root, sources, document } = fixture();
+  publishFunctionalSpec(root, JSON.stringify(document), sources, { automatic: true });
+  const task = "Create plan for public-catalog";
+  const route = routeTask(root, task);
+  let listener;
+  await assert.rejects(runCopilotTask(root, task, route, {
+    approved: true, contextPackage: prepareApprovedSpecContext(root, route),
+    clientFactory: () => ({
+      async start() {}, async stop() {},
+      async createSession() {
+        return {
+          sessionId: "20000000-0000-4000-8000-000000000099",
+          on(handler) { listener = handler; },
+          async sendAndWait() {
+            listener({ type: "session.auto_mode_resolved", data: {
+              chosenModel: "original", availableModels: ["original", "alternative"],
+            } });
+            listener({ type: "session.error", data: { errorType: "quota", message: "Quota exceeded" } });
+            throw new Error("Quota exceeded");
+          },
+          async disconnect() {},
+        };
+      },
+    }),
+  }), error => {
+    assert.deepEqual(error.mcpeeModelFailure, {
+      kind: "quota", requested: "auto", selected: "original", available_models: ["original", "alternative"],
+    });
+    return true;
+  });
+});
+
+test("SDK authentication pins the configured gh account without persisting its credential", async () => {
+  const { root, plan } = fixture();
+  const configPath = path.join(root, "mcpee.config.yml");
+  fs.writeFileSync(configPath, fs.readFileSync(configPath, "utf8").replace(
+    "  provider: github-copilot", "  provider: github-copilot\n  githubAccount: \"test-owner\" # explicit SDK account"));
+  const options = {
+    approved: true,
+    execFileSync(command, args, settings) {
+      assert.equal(command, "gh");
+      assert.deepEqual(args, ["auth", "token", "--hostname", "github.com", "--user", "test-owner"]);
+      assert.equal(settings.timeout, 10_000);
+      return "fixture-credential\n";
+    },
+    clientFactory(settings) {
+      assert.deepEqual(settings, {
+        workingDirectory: root, gitHubToken: "fixture-credential", useLoggedInUser: false,
+      });
+      throw new Error("Stopped before SDK startup");
+    },
+  };
+  await assert.rejects(runCopilotTask(root, "Draft functional specifications", plan, options),
+    /Stopped before SDK startup/);
+  assert.ok(!fs.readFileSync(configPath, "utf8").includes("fixture-credential"));
+  const telemetry = path.join(root, ".mcpee/telemetry/events/copilot.jsonl");
+  assert.ok(!fs.readFileSync(telemetry, "utf8").includes("fixture-credential"));
+
+  fs.writeFileSync(configPath, fs.readFileSync(configPath, "utf8").replace(
+    "  provider: github-copilot", "  provider: github-copilot\n  githubAccount: other-owner"));
+  await assert.rejects(runCopilotTask(root, "Draft functional specifications", plan, options),
+    /Duplicate host.githubAccount/);
+});
+
+test("SDK authentication never falls back when a pinned credential is missing or invalid", async () => {
+  const { root, plan } = fixture();
+  const configPath = path.join(root, "mcpee.config.yml");
+  fs.writeFileSync(configPath, fs.readFileSync(configPath, "utf8").replace(
+    "  provider: github-copilot", "  provider: github-copilot\n  githubAccount: test-owner"));
+  for (const resolveCredential of [
+    () => { throw new Error("Sensitive subprocess output"); },
+    () => " \n",
+  ]) {
+    await assert.rejects(runCopilotTask(root, "Draft functional specifications", plan, {
+      approved: true, execFileSync: resolveCredential,
+      clientFactory: () => assert.fail("A missing pinned credential must stop before SDK construction"),
+    }), error => {
+      assert.match(error.message, /no fallback account was used/);
+      assert.ok(!error.message.includes("Sensitive subprocess output"));
+      return true;
+    });
+  }
+  fs.writeFileSync(configPath, "host:\n  githubAccount: --invalid-login\n");
+  await assert.rejects(runCopilotTask(root, "Draft functional specifications", plan, {
+    approved: true,
+    execFileSync: () => assert.fail("Invalid account must stop before invoking gh"),
+  }), /host.githubAccount must be a GitHub account login/);
+});
+
+test("SDK authentication retains the existing default when no account is pinned", async () => {
+  const { root, plan } = fixture();
+  await assert.rejects(runCopilotTask(root, "Draft functional specifications", plan, {
+    approved: true,
+    execFileSync: () => assert.fail("Default authentication must not invoke gh"),
+    clientFactory(settings) {
+      assert.deepEqual(settings, { workingDirectory: root });
+      throw new Error("Default SDK authentication preserved");
+    },
+  }), /Default SDK authentication preserved/);
+});
+
+test("leading action constraints preserve a plan request without reviewing downstream tasks", async () => {
+  const { root, sources, document } = fixture();
+  publishFunctionalSpec(root, JSON.stringify(document), sources, { automatic: true });
+  const plan = technicalPlan(root);
+  publishPhase(root, document.slug, "plan", JSON.stringify(plan));
+  publishPhase(root, document.slug, "tasks", JSON.stringify(tasks(root)));
+  const directory = workspace(document.slug, root);
+  const tasksPath = path.join(root, directory, "tasks.md");
+  fs.appendFileSync(tasksPath, "\nOwner changes task validation requirements.\n");
+  const before = ["tasks.md", "tasks.json", "lifecycle.json"].map(file =>
+    fs.readFileSync(path.join(root, directory, file)));
+  assert.equal(featureStatus(root, document.slug).next, "review-tasks");
+
+  for (const task of [
+    "sin desplegar ni comitear genera un plan para cubrir public-catalog",
+    "without deploying or committing generate a plan for public-catalog",
+  ]) {
+    const route = routeTask(root, task);
+    assert.equal(route.specification_workspace.requested_stage, "plan", task);
+    assert.equal(route.workflow.id, "change-architecture", task);
+    const result = await execute(root, task, route, [plan]);
+    assert.equal(result.phase.status.next, "review-tasks");
+    assert.equal(result.phase.status.reviews.tasks.approved, false);
+  }
+  for (const [index, file] of ["tasks.md", "tasks.json", "lifecycle.json"].entries()) {
+    assert.ok(fs.readFileSync(path.join(root, directory, file)).equals(before[index]), file);
+  }
+  const implementation = "sin desplegar ni comitear implementa public-catalog";
+  assert.throws(() => routeTask(root, implementation), /tasks JSON and Markdown disagree/);
+
+  for (const through of ["tasks", "verification"]) {
+    await assert.rejects(runSpecificationLifecycle(root, {
+      slug: document.slug, task: "sin desplegar ni comitear genera un plan para public-catalog",
+      through, execute: () => assert.fail("A plan-only request must not start a chained phase."),
+    }), /plan-only request.*Use mcpee_run with task only/);
+  }
+});
+
 test("negative and quoted requests select review workflows while read-only endpoints remain implementation", () => {
   const { root, sources, document } = fixture();
   publishFunctionalSpec(root, JSON.stringify(document), sources, { automatic: true });
@@ -794,6 +934,8 @@ test("negative and quoted requests select review workflows while read-only endpo
     ["Do not implement the public-catalog feature.", "understand-project"],
     ["No implementes public-catalog.", "understand-project"],
     ["Do not create tasks for public-catalog.", "understand-project"],
+    ["Sin intentar generar tareas para public-catalog.", "understand-project"],
+    ["Sin crear ni implementar public-catalog.", "understand-project"],
     ["Explain the phrase 'create tasks' for public-catalog.", "ingest-knowledge"],
     ["Explain 'generate functional specifications' for public-catalog.", "ingest-knowledge"],
   ]) {
